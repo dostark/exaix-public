@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
-import { FlowStepType } from "../src/enums.ts";
+import { FlowStepType } from "../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import {

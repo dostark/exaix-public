@@ -1,3 +1,7 @@
+/**
+ * @module migrate_db
+ * @description Script: migrate_db
+ */
 import { Database } from "@db/sqlite";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";

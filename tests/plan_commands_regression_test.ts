@@ -10,10 +10,10 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
-import { PlanStatus } from "../src/plans/plan_status.ts";
+import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import type { IPlanMetadata } from "../src/cli/commands/plan_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
-import type { Config } from "../src/config/schema.ts";
+import type { Config } from "../src/shared/schemas/config.ts";
 
 const TEST_AGENT_ID = "test-agent";
 const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";

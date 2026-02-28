@@ -16,7 +16,7 @@ import {
   type IStructuredLogger,
   type LogMetadata,
 } from "../../src/services/structured_logger.ts";
-import { LogLevel } from "../../src/enums.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { InputDialog } from "../../src/helpers/dialog_base.ts";
 

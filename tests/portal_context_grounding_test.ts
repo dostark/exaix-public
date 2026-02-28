@@ -10,7 +10,7 @@ import { join } from "@std/path";
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
-import { MockStrategy } from "../src/enums.ts";
+import { MockStrategy } from "../src/shared/enums.ts";
 
 Deno.test("RequestProcessor: Portal context includes file list for grounding", async () => {
   const { tempDir, db, config, cleanup } = await initTestDbService();

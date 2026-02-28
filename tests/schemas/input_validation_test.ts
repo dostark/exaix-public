@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertThrows } from "@std/assert";
-import { SecurityMode } from "../../src/enums.ts";
+import { SecurityMode } from "../../src/shared/enums.ts";
 
 import {
   AgentExecutionOptionsSchema,
@@ -20,8 +20,8 @@ import {
   PortalNameSchema,
   TraceIdSchema,
   UserRequestSchema,
-} from "../../src/schemas/input_validation.ts";
-import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+} from "../../src/shared/schemas/input_validation.ts";
+import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
 import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 Deno.test("Input Validation - BlueprintNameSchema", async (t) => {

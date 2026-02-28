@@ -8,11 +8,11 @@
  */
 
 import type { RequestCommands } from "../commands/request_commands.ts";
-import { RequestPriority } from "../../enums.ts";
-import { RequestStatus } from "../../requests/request_status.ts";
+import { RequestPriority } from "../../shared/enums.ts";
+import { RequestStatus } from "../../shared/status/request_status.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
 
 export interface IRequestActionContext {
   requestCommands: RequestCommands;
@@ -208,6 +208,7 @@ function printRequestResult(
     agent?: string;
     flow?: string;
     status: string;
+    subject?: string;
   },
   json: boolean,
   _dryRun: boolean,
@@ -225,7 +226,7 @@ function printRequestResult(
         trace_id: result.trace_id,
         filename: result.filename,
         priority: `${priorityIcon} ${result.priority}`,
-        subject: (result as any).subject,
+        subject: result.subject,
         agent: result.flow ? undefined : result.agent,
         flow: result.flow,
         status: result.status,

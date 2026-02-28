@@ -14,8 +14,8 @@
  * @related-files [src/services/request_processor.ts, src/services/blueprint_loader.ts]
  */
 
-import type { IModelProvider } from "../ai/providers.ts";
-import { JSONValue, toSafeJson } from "../types.ts";
+import { IModelProvider } from "../ai/types.ts";
+import { JSONValue, toSafeJson } from "../shared/types/json.ts";
 import type { IDatabaseService } from "./db.ts";
 import {
   createLLMRetryPolicy,
@@ -26,9 +26,9 @@ import {
   type IRetryResult,
 } from "./retry_policy.ts";
 import { createOutputValidator, type IOutputValidator, type IValidationMetrics } from "./output_validator.ts";
-import type { ISkillsService } from "./skills.ts";
+import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import { extractKeywords } from "../helpers/text.ts";
-import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
 import { PlanAdapter } from "./plan_adapter.ts";
 
 /**

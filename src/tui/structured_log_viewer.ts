@@ -7,7 +7,7 @@
  * @related-files [src/services/structured_logger.ts, src/tui/monitor_view.ts]
  */
 
-import { MessageType } from "../enums.ts";
+import { MessageType } from "../shared/enums.ts";
 import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../helpers/tree_view.ts";
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { DialogBase } from "../helpers/dialog_base.ts";
@@ -18,7 +18,7 @@ import type { IStructuredLogEntry, IStructuredLogger } from "../services/structu
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { DialogStatus, LogLevel } from "../enums.ts";
+import { DialogStatus, LogLevel } from "../shared/enums.ts";
 
 // ===== Service Interfaces =====
 

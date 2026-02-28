@@ -8,8 +8,8 @@
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
-import type { IPortalPermissions } from "../../src/schemas/portal_permissions.ts";
-import { PortalOperation, SecurityMode } from "../../src/enums.ts";
+import type { IPortalPermissions } from "../../src/shared/schemas/portal_permissions.ts";
+import { PortalOperation, SecurityMode } from "../../src/shared/enums.ts";
 
 /**
  * Helper to create test portal configuration

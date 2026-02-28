@@ -7,7 +7,7 @@
 
 import { assert, assertEquals } from "@std/assert";
 import { type IPortalService, PortalManagerView } from "../../src/tui/portal_manager_view.ts";
-import { PortalStatus } from "../../src/enums.ts";
+import { PortalStatus } from "../../src/shared/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";

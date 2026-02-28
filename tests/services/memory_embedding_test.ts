@@ -6,7 +6,7 @@
  */
 
 import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { exists } from "@std/fs";
@@ -16,9 +16,9 @@ import {
   MemoryEmbeddingService,
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { ILearning } from "../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import type { ILearning } from "../../src/shared/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixtures =====

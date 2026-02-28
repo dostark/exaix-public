@@ -10,7 +10,12 @@
 import { join } from "@std/path";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { IDatabaseService } from "./db.ts";
-import type { IArtifact, IArtifactFilters, IArtifactFrontmatter, IArtifactWithContent } from "../schemas/artifact.ts";
+import type {
+  IArtifact,
+  IArtifactFilters,
+  IArtifactFrontmatter,
+  IArtifactWithContent,
+} from "../shared/schemas/artifact.ts";
 import { coerceReviewStatus, type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
 /**

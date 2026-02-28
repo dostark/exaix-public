@@ -15,7 +15,7 @@ import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { GitTestHelper, setupGitRepo } from "../helpers/git_test_helper.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 
 /**
  * TDD Tests for ReviewRegistry Portal Support

@@ -8,8 +8,8 @@
  */
 
 import { createGroupNode, createNode, type ITreeNode } from "../../helpers/tree_view.ts";
-import type { AgentStatusItem } from "../agent_status_view.ts";
-import { AGENT_STATUS_ORDER, AgentStatus } from "./agent_status.ts";
+import type { IAgentStatusItem } from "../../shared/types/agent.ts";
+import { AGENT_STATUS_ORDER, AgentStatus, type AgentStatusType } from "../../shared/status/agent_status.ts";
 import {
   TUI_AGENT_STATUS_ICONS,
   TUI_ICON_AGENT,
@@ -28,7 +28,7 @@ const AGENT_STATUS_ICONS: Record<string, string> = {
 /**
  * Build flat agent tree (no grouping)
  */
-export function buildFlatTree(agents: AgentStatusItem[]): ITreeNode[] {
+export function buildFlatTree(agents: IAgentStatusItem[]): ITreeNode[] {
   return agents.map((agent) => {
     const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
     const label = `${icon} ${agent.name} (${agent.model})`;
@@ -39,8 +39,8 @@ export function buildFlatTree(agents: AgentStatusItem[]): ITreeNode[] {
 /**
  * Build agent tree grouped by status
  */
-export function buildTreeByStatus(agents: AgentStatusItem[]): ITreeNode[] {
-  const byStatus = new Map<string, AgentStatusItem[]>();
+export function buildTreeByStatus(agents: IAgentStatusItem[]): ITreeNode[] {
+  const byStatus = new Map<string, IAgentStatusItem[]>();
   for (const agent of agents) {
     if (!byStatus.has(agent.status)) {
       byStatus.set(agent.status, []);
@@ -50,8 +50,8 @@ export function buildTreeByStatus(agents: AgentStatusItem[]): ITreeNode[] {
 
   // Order: active, inactive, error
   return AGENT_STATUS_ORDER
-    .filter((status) => byStatus.has(status))
-    .map((status) => {
+    .filter((status: AgentStatusType) => byStatus.has(status))
+    .map((status: AgentStatusType) => {
       const statusAgents = byStatus.get(status)!;
       const icon = AGENT_STATUS_ICONS[status] || "⚪";
       const children = statusAgents.map((agent) => {
@@ -70,8 +70,8 @@ export function buildTreeByStatus(agents: AgentStatusItem[]): ITreeNode[] {
 /**
  * Build agent tree grouped by model
  */
-export function buildTreeByModel(agents: AgentStatusItem[]): ITreeNode[] {
-  const byModel = new Map<string, AgentStatusItem[]>();
+export function buildTreeByModel(agents: IAgentStatusItem[]): ITreeNode[] {
+  const byModel = new Map<string, IAgentStatusItem[]>();
   for (const agent of agents) {
     if (!byModel.has(agent.model)) {
       byModel.set(agent.model, []);

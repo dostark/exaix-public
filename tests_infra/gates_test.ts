@@ -1,3 +1,9 @@
+/**
+ * @module Gates_Test
+ * @path tests_infra/gates_test.ts
+ * @description Module for gates_test.
+ */
+
 import { assertStringIncludes } from "https://deno.land/std@0.221.0/assert/mod.ts";
 
 /**

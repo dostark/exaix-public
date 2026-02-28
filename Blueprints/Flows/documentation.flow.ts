@@ -1,3 +1,9 @@
+/**
+ * @module Documentation.Flow
+ * @path Blueprints/Flows/documentation.flow.ts
+ * @description Module for documentation.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 export default defineFlow({

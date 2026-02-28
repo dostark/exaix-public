@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assertThrows } from "@std/assert";
-import { RequestStatus } from "../src/requests/request_status.ts";
+import { RequestStatus } from "../src/shared/status/request_status.ts";
 
-import { RequestSchema } from "../src/schemas/request.ts";
+import { RequestSchema } from "../src/shared/schemas/request.ts";
 import { FrontmatterParser } from "../src/parsers/markdown.ts";
 import { initTestDbService } from "./helpers/db.ts";
 

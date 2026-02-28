@@ -22,8 +22,8 @@ import {
   renderTree,
   toggleNode,
 } from "../helpers/tree_view.ts";
-import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../enums.ts";
-import { AgentStatus, type AgentStatusType } from "./agent_status/agent_status.ts";
+import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../shared/enums.ts";
+import { AgentStatus, type AgentStatusType as _AgentStatusType } from "../shared/status/agent_status.ts";
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
@@ -36,52 +36,21 @@ import {
   TUI_LOG_LEVEL_ICONS,
 } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
+import { DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
 
 // Extracted utilities
 import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
 import { buildFlatTree, buildTreeByModel, buildTreeByStatus } from "./agent_status/tree_builder.ts";
-import { MessageType } from "../enums.ts";
-
-// ===== Service Interfaces =====
-
-/**
- * Service interface for agent status access.
- */
-export interface IAgentService {
-  listAgents(): Promise<AgentStatusItem[]>;
-  getAgentLogs(agentId: string, limit?: number): Promise<AgentLogEntry[]>;
-  getAgentHealth(agentId: string): Promise<AgentHealthData>;
-}
-
-export interface AgentStatusItem {
-  id: string;
-  name: string;
-  model: string;
-  status: AgentStatusType;
-  lastActivity: string; // ISO timestamp
-  capabilities: string[];
-  defaultSkills: string[]; // Phase 17: Skills from blueprint default_skills
-}
-export interface AgentHealthData {
-  status: AgentHealth;
-  issues: string[];
-  uptime: number; // seconds
-}
-
-export interface AgentLogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  traceId?: string;
-}
+import { MessageType } from "../shared/enums.ts";
+import { IAgentService } from "../shared/interfaces/i_agent_service.ts";
+import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../shared/types/agent.ts";
 
 // ===== View State =====
 
 /**
  * State interface for Agent Status View
  */
-export interface AgentViewState {
+export interface IAgentViewState {
   /** Currently selected agent ID */
   selectedAgentId: string | null;
   /** Agent tree structure */
@@ -266,18 +235,18 @@ export const AGENT_KEY_BINDINGS = new AgentKeyBindings().KEY_BINDINGS;
  */
 export class AgentStatusView {
   private selectedAgentId: string | null = null;
-  private agents: AgentStatusItem[] = [];
+  private agents: IAgentStatusItem[] = [];
 
   constructor(private readonly agentService: IAgentService) {}
 
   /** Get all agents with their status. */
-  async getAgentList(): Promise<AgentStatusItem[]> {
+  async getAgentList(): Promise<IAgentStatusItem[]> {
     this.agents = await this.agentService.listAgents();
     return this.agents;
   }
 
   /** Get cached agents (without fetch) */
-  getCachedAgents(): AgentStatusItem[] {
+  getCachedAgents(): IAgentStatusItem[] {
     return [...this.agents];
   }
 
@@ -373,13 +342,13 @@ export class AgentStatusView {
  * Minimal IAgentService mock for TUI session tests
  */
 export class MinimalAgentServiceMock implements IAgentService {
-  private agents: AgentStatusItem[] = [];
+  private agents: IAgentStatusItem[] = [];
 
-  constructor(agents: AgentStatusItem[] = []) {
+  constructor(agents: IAgentStatusItem[] = []) {
     this.agents = agents;
   }
 
-  listAgents(): Promise<AgentStatusItem[]> {
+  listAgents(): Promise<IAgentStatusItem[]> {
     return Promise.resolve([...this.agents]);
   }
 
@@ -402,7 +371,7 @@ export class MinimalAgentServiceMock implements IAgentService {
     });
   }
 
-  setAgents(agents: AgentStatusItem[]): void {
+  setAgents(agents: IAgentStatusItem[]): void {
     this.agents = agents;
   }
 }
@@ -414,10 +383,10 @@ export class MinimalAgentServiceMock implements IAgentService {
  */
 export class AgentStatusTuiSession extends TuiSessionBase {
   private readonly agentView: AgentStatusView;
-  private state: AgentViewState;
+  private state: IAgentViewState;
   private localSpinnerState: SpinnerState;
   private autoRefreshTimer: number | null = null;
-  private agents: AgentStatusItem[] = [];
+  private agents: IAgentStatusItem[] = [];
 
   constructor(agentView: AgentStatusView, useColors = true) {
     super(useColors);
@@ -465,11 +434,11 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.state.agentTree;
   }
 
-  getAgents(): AgentStatusItem[] {
+  getAgents(): IAgentStatusItem[] {
     return this.agents;
   }
 
-  setAgents(agents: AgentStatusItem[]): void {
+  setAgents(agents: IAgentStatusItem[]): void {
     this.agents = agents;
     this.buildTree();
     this.selectFirstAgent();
@@ -570,7 +539,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     }
   }
 
-  private getFilteredAgents(): AgentStatusItem[] {
+  private getFilteredAgents(): IAgentStatusItem[] {
     let result = [...this.agents];
 
     // Apply search filter
@@ -702,7 +671,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     }
   }
 
-  private formatDetailContent(agent: AgentStatusItem | undefined, health: AgentHealthData): string {
+  private formatDetailContent(agent: IAgentStatusItem | undefined, health: AgentHealthData): string {
     if (!agent) return "Agent not found.";
 
     const lines: string[] = [];
@@ -1092,7 +1061,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
  */
 export class LegacyAgentStatusTuiSession extends TuiSessionBase {
   private readonly agentView: AgentStatusView;
-  private agents: AgentStatusItem[] = [];
+  private agents: IAgentStatusItem[] = [];
 
   constructor(agentView: AgentStatusView, useColors = true) {
     super(useColors);

@@ -14,7 +14,7 @@ import { StructuredLogViewer } from "../structured_log_viewer.ts";
 import { DaemonControlView } from "../daemon_control_view.ts";
 import { AgentStatusView } from "../agent_status_view.ts";
 import { RequestManagerView } from "../request_manager_view.ts";
-import { MemoryView } from "../memory_view.ts";
+import { MemoryServiceAdapter, MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
 import { type ITuiView } from "../tui_dashboard.ts";
 import {
@@ -29,26 +29,51 @@ import {
   MockStructuredLogger,
   MockStructuredLoggerService,
 } from "../tui_dashboard_mocks.ts";
-import { IDatabaseService } from "../../services/db.ts";
-import type { IPortalService } from "../portal_manager_view.ts";
-import type { IStructuredLogger } from "../../services/structured_logger.ts";
+
+import { PortalCommands } from "../../cli/commands/portal_commands.ts";
+import { PlanCommands } from "../../cli/commands/plan_commands.ts";
+import { RequestCommands } from "../../cli/commands/request_commands.ts";
+import { DaemonCommands } from "../../cli/commands/daemon_commands.ts";
+import { join } from "@std/path";
+
+import { PortalServiceAdapter } from "../../services/adapters/portal_adapter.ts";
+import { PlanServiceAdapter } from "../../services/adapters/plan_adapter.ts";
+import { RequestServiceAdapter } from "../../services/adapters/request_adapter.ts";
+import { DaemonServiceAdapter } from "../../services/adapters/daemon_adapter.ts";
+import { AgentServiceAdapter } from "../../services/adapters/agent_adapter.ts";
+import { MemoryBankService } from "../../services/memory_bank.ts";
+import { SkillsService } from "../../services/skills.ts";
+
+import { IDatabaseService } from "../../shared/interfaces/i_database_service.ts";
+import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
+import { IPlanService } from "../../shared/interfaces/i_plan_service.ts";
+import { IStructuredLogger } from "../../shared/interfaces/i_log_service.ts";
+import { IDaemonService } from "../../shared/interfaces/i_daemon_service.ts";
+import { IAgentService } from "../../shared/interfaces/i_agent_service.ts";
+import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
+import { IMemoryBankService } from "../../shared/interfaces/i_memory_bank_service.ts";
+import { ISkillsService } from "../../shared/interfaces/i_skills_service.ts";
+import { IMemoryServiceInterface } from "../memory_view/types.ts";
+import { type Config } from "../../shared/schemas/config.ts";
+import { type ICommandContext } from "../../cli/base.ts";
 
 export interface IDashboardViewOptions {
   testMode?: boolean;
   databaseService?: IDatabaseService;
+  config?: Config;
 }
 
 export interface IDashboardServices {
   portalService: IPortalService;
-  planService: MockPlanService;
+  planService: IPlanService;
   logService: IDatabaseService;
   structuredLogger: IStructuredLogger;
-  structuredLoggerService: MockStructuredLoggerService;
-  daemonService: MockDaemonService;
-  agentService: MockAgentService;
-  requestService: MockRequestService;
-  memoryService: MockMemoryService;
-  skillsService: MockSkillsService;
+  structuredLoggerService: ILogService;
+  daemonService: IDaemonService;
+  agentService: IAgentService;
+  requestService: IRequestService;
+  memoryService: IMemoryBankService | IMemoryServiceInterface;
+  skillsService: ISkillsService;
 }
 
 export interface IDashboardViewsAndServices {
@@ -62,16 +87,47 @@ export interface IDashboardViewsAndServices {
 export function initDashboardViews(
   options: IDashboardViewOptions = {},
 ): IDashboardViewsAndServices {
-  const portalService = new MockPortalService();
-  const planService = new MockPlanService();
-  const logService = options.databaseService || new MockLogService();
-  const structuredLogger = new MockStructuredLogger();
-  const structuredLoggerService = new MockStructuredLoggerService();
-  const daemonService = new MockDaemonService();
-  const agentService = new MockAgentService();
-  const requestService = new MockRequestService();
-  const memoryService = new MockMemoryService();
-  const skillsService = new MockSkillsService();
+  let portalService: IPortalService;
+  let planService: IPlanService;
+  let logService: IDatabaseService;
+  let structuredLogger: IStructuredLogger;
+  let structuredLoggerService: ILogService;
+  let daemonService: IDaemonService;
+  let agentService: IAgentService;
+  let requestService: IRequestService;
+  let memoryService: IMemoryBankService | IMemoryServiceInterface;
+  let skillsService: ISkillsService;
+
+  if (options.testMode || !options.config || !options.databaseService) {
+    portalService = new MockPortalService();
+    planService = new MockPlanService();
+    logService = options.databaseService || new MockLogService();
+    structuredLogger = new MockStructuredLogger();
+    structuredLoggerService = new MockStructuredLoggerService();
+    daemonService = new MockDaemonService();
+    agentService = new MockAgentService();
+    requestService = new MockRequestService();
+    memoryService = new MockMemoryService();
+    skillsService = new MockSkillsService();
+  } else {
+    const context: ICommandContext = {
+      config: options.config,
+      db: options.databaseService,
+    };
+
+    portalService = new PortalServiceAdapter(new PortalCommands(context));
+    planService = new PlanServiceAdapter(new PlanCommands(context));
+    logService = options.databaseService;
+    structuredLogger = new MockStructuredLogger(); // TODO: Real structured logger if needed
+    structuredLoggerService = new MockStructuredLoggerService(); // TODO: Real service if needed
+    daemonService = new DaemonServiceAdapter(new DaemonCommands(context));
+    agentService = new AgentServiceAdapter(context);
+    requestService = new RequestServiceAdapter(new RequestCommands(context));
+    const memoryBank = new MemoryBankService(options.config, options.databaseService);
+    memoryService = memoryBank;
+    const memoryDir = join(options.config.system.root!, options.config.paths.memory!);
+    skillsService = new SkillsService({ memoryDir }, options.databaseService);
+  }
 
   const services: IDashboardServices = {
     portalService,
@@ -101,7 +157,14 @@ export function initDashboardViews(
     Object.assign(new DaemonControlView(daemonService), { name: "DaemonControlView" }),
     Object.assign(new AgentStatusView(agentService), { name: "AgentStatusView" }),
     Object.assign(new RequestManagerView(requestService), { name: "RequestManagerView" }),
-    Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
+    Object.assign(
+      new MemoryView(
+        options.config && options.databaseService
+          ? new MemoryServiceAdapter(options.config, options.databaseService)
+          : (memoryService as IMemoryServiceInterface),
+      ),
+      { name: "MemoryView" },
+    ),
     Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
   ].map((view) => {
     const v = view as ITuiView;

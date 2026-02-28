@@ -10,9 +10,9 @@
 import { z } from "zod";
 import type { IMemoryBankService } from "./memory_bank.ts";
 import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
-import type { ILearning, IMemorySearchResult } from "../schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../enums.ts";
-import { MemoryStatus } from "../memory/memory_status.ts";
+import type { ILearning, IMemorySearchResult } from "../shared/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../shared/enums.ts";
+import { MemoryStatus } from "../shared/status/memory_status.ts";
 
 // ===== Configuration Schema =====
 

@@ -6,10 +6,15 @@
  * @dependencies [MemoryBankSchemas, MemoryEnums, MemoryStatus, Constants]
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
-import type { IExecutionMemory, ILearning, IMemorySearchResult, IProjectMemory } from "../schemas/memory_bank.ts";
-import { MemoryType } from "../enums.ts";
-import { MemoryStatus } from "../memory/memory_status.ts";
-import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
+import type {
+  IExecutionMemory,
+  ILearning,
+  IMemorySearchResult,
+  IProjectMemory,
+} from "../shared/schemas/memory_bank.ts";
+import { MemoryType } from "../shared/enums.ts";
+import { MemoryStatus } from "../shared/status/memory_status.ts";
+import { DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
 
 export interface ISearchDeps {
   projectsDir: string;
@@ -192,8 +197,8 @@ export async function searchByTags(
     if (includesAllTags(learning.tags ?? [], normalizedTags)) {
       results.push({
         type: MemoryType.LEARNING,
-        title: learning.title,
-        summary: learning.description,
+        title: learning.title || "Untitled",
+        summary: learning.description || "",
         relevance_score: 0.95,
         tags: learning.tags,
         id: learning.id,
@@ -269,8 +274,8 @@ export async function searchByKeyword(
     if (titleFreq === 0 && descFreq === 0) continue;
     results.push({
       type: MemoryType.LEARNING,
-      title: learning.title,
-      summary: learning.description,
+      title: learning.title || "Untitled",
+      summary: learning.description || "",
       relevance_score: deps.calculateRelevance(titleFreq, descFreq),
       tags: learning.tags,
       id: learning.id,

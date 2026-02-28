@@ -27,7 +27,7 @@ import {
   TEST_TOTAL_TOKENS_ANTHROPIC,
   TEST_TOTAL_TOKENS_GOOGLE,
   TEST_TOTAL_TOKENS_OPENAI,
-} from "./config/constants.ts";
+} from "./shared/constants.ts";
 
 Deno.test("[regression] Token usage logged at info level with cost calculation", () => {
   // Test that tokenMapperGoogle includes cost calculation

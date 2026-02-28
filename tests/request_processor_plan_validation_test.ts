@@ -12,15 +12,15 @@ import { parse } from "@std/yaml";
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { PlanValidationError } from "../src/services/plan_adapter.ts";
-import { RequestStatus } from "../src/requests/request_status.ts";
-import { PlanStatus } from "../src/plans/plan_status.ts";
+import { RequestStatus } from "../src/shared/status/request_status.ts";
+import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import type { EventLogger } from "../src/services/event_logger.ts";
 
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 function parseFrontmatter(content: string): JSONObject {
   const parts = content.split("---");
   if (parts.length < 3) {

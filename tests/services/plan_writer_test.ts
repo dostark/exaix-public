@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
 import {
   type IAgentExecutionResult,
@@ -15,7 +15,7 @@ import {
   PlanWriter,
 } from "../../src/services/plan_writer.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../shared/constants.ts";
 
 /**
  * Creates a mock IPlanWriterConfig for testing

@@ -8,7 +8,7 @@
 import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { parse as parseYaml } from "https://deno.land/std@0.224.0/yaml/mod.ts";
 import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
-import { BlueprintFrontmatterSchema } from "../../src/schemas/blueprint.ts";
+import { BlueprintFrontmatterSchema } from "../../src/shared/schemas/blueprint.ts";
 
 const BLUEPRINTS_DIR = "./Blueprints/Agents";
 const EXAMPLES_DIR = "./Blueprints/Agents/examples";

@@ -6,14 +6,15 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { DaemonStatus, DialogStatus } from "../../src/enums.ts";
+import { DaemonStatus, DialogStatus } from "../../src/shared/enums.ts";
 
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { ILogEntry } from "../../src/tui/monitor_view.ts";
-import type { JSONObject } from "../../src/types.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
+import { ActivityRecord } from "../../src/services/db.ts";
+import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
 import {
   createMockDatabaseService,
   createMonitorViewWithLogs,
@@ -37,7 +38,7 @@ function createMonitorSession(logs: Array<ILogEntry | JSONObject> = []) {
 // Helper for verifying filters
 async function verifyFilter(
   logs: Array<ILogEntry | JSONObject>,
-  filter: JournalFilterOptions,
+  filter: IJournalFilterOptions,
   expectedLength: number,
   checkFn: (logs: ILogEntry[]) => void,
 ) {
@@ -165,7 +166,7 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
     getRecentActivity(limit?: number) {
       return this.inner.getRecentActivity(limit);
     }
-    queryActivity(filter: JournalFilterOptions) {
+    queryActivity(filter: IJournalFilterOptions) {
       calls.push(`query:${JSON.stringify(filter)}`);
       return this.inner.queryActivity(filter);
     }

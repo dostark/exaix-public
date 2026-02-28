@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { parse as parseYaml } from "@std/yaml";
 
 interface Frontmatter {

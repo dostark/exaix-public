@@ -7,7 +7,7 @@
  * @related-files [src/cli/exoctl.ts]
  */
 
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { EventLogger } from "../services/event_logger.ts";
 
@@ -191,6 +191,14 @@ export abstract class BaseCommand {
    * Get the command line as a single string for logging
    * @returns Command line string like "exoctl daemon start --force"
    */
+  /**
+   * Get the system configuration
+   * @returns Config object
+   */
+  public getConfig(): Config {
+    return this.config;
+  }
+
   protected getCommandLineString(): string {
     return `exoctl ${Deno.args.join(" ")}`;
   }

@@ -6,12 +6,12 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { ConditionEvaluator, IConditionContext } from "../../src/flows/condition_evaluator.ts";
-import { IFlow, IFlowStep } from "../../src/schemas/flow.ts";
+import { IFlow, IFlowStep } from "../../src/shared/schemas/flow.ts";
 import { IStepResult } from "../../src/flows/flow_runner.ts";
-import { JSONValue } from "../../src/types.ts";
+import { JSONValue } from "../../src/shared/types/json.ts";
 
 const createContext = (
   results: Record<string, { success: boolean; content?: string; data?: JSONValue }> = {},

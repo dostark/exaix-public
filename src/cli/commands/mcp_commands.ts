@@ -9,7 +9,7 @@
 
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import { MCPServer } from "../../mcp/server.ts";
-import { DEFAULT_MCP_HTTP_PORT } from "../../config/constants.ts";
+import { DEFAULT_MCP_HTTP_PORT } from "../../shared/constants.ts";
 
 export interface IMcpStdioServer {
   start(): void;

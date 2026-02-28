@@ -6,9 +6,9 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
+import { MemoryOperation, MemorySource, PortalOperation } from "../src/shared/enums.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
-import { PlanStatus } from "../src/plans/plan_status.ts";
+import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../src/config/paths.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
@@ -23,7 +23,7 @@ import {
   getWorkspaceRequestsDir,
 } from "./helpers/paths_helper.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
-import type { IModelProvider } from "../src/ai/providers.ts";
+import { IModelProvider } from "../src/ai/types.ts";
 import type { ActivityRecord } from "../src/services/db.ts";
 import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
 

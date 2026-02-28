@@ -8,9 +8,9 @@
  * @related-files [src/services/request_processor.ts, src/config/service.ts]
  */
 import { join } from "@std/path";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export interface IPathResolverConfig {
   /** Optional: Database service for activity logging */

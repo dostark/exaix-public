@@ -7,7 +7,7 @@
 
 import type { IDatabaseService } from "../src/services/db.ts";
 import type { ActivityRepository } from "../src/repositories/activity_repository.ts";
-import { JSONObject } from "../src/types.ts";
+import { JSONObject } from "../src/shared/types/json.ts";
 
 /**
  * Create a fully-typed stub implementation of the DatabaseService used in tests.

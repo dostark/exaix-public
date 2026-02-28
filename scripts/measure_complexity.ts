@@ -1,3 +1,7 @@
+/**
+ * @module measure_complexity
+ * @description Script: measure_complexity
+ */
 import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
 import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
 // Top-level dynamic imports for parser loading (see CODE_STYLE.md for rationale)

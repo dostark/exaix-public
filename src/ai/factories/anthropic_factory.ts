@@ -9,7 +9,7 @@
 import { AbstractKeyBasedProviderFactory } from "./abstract_provider_factory.ts";
 import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { AnthropicProvider } from "../providers/anthropic_provider.ts";
-import { PROVIDER_ANTHROPIC } from "../../config/constants.ts";
+import { PROVIDER_ANTHROPIC } from "../../shared/constants.ts";
 
 export class AnthropicProviderFactory extends AbstractKeyBasedProviderFactory {
   constructor() {

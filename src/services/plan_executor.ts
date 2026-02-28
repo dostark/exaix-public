@@ -9,20 +9,20 @@
  */
 
 import { parse as parseToml } from "@std/toml";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { GitNothingToCommitError, GitService, type IGitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
-import { ExecutionStatus } from "../enums.ts";
-import { JSONObject, JSONValue } from "../types.ts";
+import { ExecutionStatus } from "../shared/enums.ts";
+import { JSONObject, JSONValue } from "../shared/types/json.ts";
 import {
   EXECUTION_REPORT_MAX_TOKENS,
   EXECUTION_REPORT_PROMPT_MAX_CHARS,
   EXECUTION_REPORT_TEMPERATURE,
   EXECUTION_REPORT_TOOL_OUTPUT_MAX_CHARS,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 export interface IPlanStep {
   number: number;

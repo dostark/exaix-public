@@ -67,7 +67,7 @@ Memory/
 
 Stores long-term knowledge about a specific portal (codebase).
 
-**Schema:** [`src/schemas/memory_bank.ts::ProjectMemorySchema`](../src/schemas/memory_bank.ts)
+**Schema:** [`src/shared/schemas/memory_bank.ts::ProjectMemorySchema`](../src/shared/schemas/memory_bank.ts)
 
 ```typescript
 interface ProjectMemory {
@@ -132,7 +132,7 @@ Adding real-time collaboration features using WebSockets.
 
 Records what was done during each agent execution.
 
-**Schema:** [`src/schemas/memory_bank.ts::ExecutionMemorySchema`](../src/schemas/memory_bank.ts)
+**Schema:** [`src/shared/schemas/memory_bank.ts::ExecutionMemorySchema`](../src/shared/schemas/memory_bank.ts)
 
 ```typescript
 interface ExecutionMemory {
@@ -210,7 +210,7 @@ Added JWT authentication middleware to the Express application.
 
 Stores cross-project learnings that apply universally.
 
-**Schema:** [`src/schemas/memory_bank.ts::GlobalMemorySchema`](../src/schemas/memory_bank.ts)
+**Schema:** [`src/shared/schemas/memory_bank.ts::GlobalMemorySchema`](../src/shared/schemas/memory_bank.ts)
 
 ```typescript
 interface GlobalMemory {
@@ -235,7 +235,7 @@ interface GlobalMemoryStats {
 
 Represents a single piece of learned knowledge.
 
-**Schema:** [`src/schemas/memory_bank.ts::LearningSchema`](../src/schemas/memory_bank.ts)
+**Schema:** [`src/shared/schemas/memory_bank.ts::LearningSchema`](../src/shared/schemas/memory_bank.ts)
 
 ```typescript
 interface Learning {
@@ -270,7 +270,7 @@ type LearningCategory =
 
 Represents a pending memory update awaiting approval.
 
-**Schema:** [`src/schemas/memory_bank.ts::MemoryUpdateProposalSchema`](../src/schemas/memory_bank.ts)
+**Schema:** [`src/shared/schemas/memory_bank.ts::MemoryUpdateProposalSchema`](../src/shared/schemas/memory_bank.ts)
 
 ```typescript
 interface MemoryUpdateProposal {
@@ -610,7 +610,7 @@ Memory Banks will be integrated into the TUI dashboard in a future phase:
 ## Related Documentation
 
 - **Implementation:** [Phase 12 Planning](../.copilot/planning/phase-12-obsidian-retirement.md)
-- **Schemas:** [src/schemas/memory_bank.ts](../src/schemas/memory_bank.ts)
+- **Schemas:** [src/shared/schemas/memory_bank.ts](../src/shared/schemas/memory_bank.ts)
 - **Migration:** [scripts/migrate_to_memory_banks.ts](../scripts/migrate_to_memory_banks.ts) (Phase 12.5)
 - **Services:**
   - [src/services/memory_bank.ts](../src/services/memory_bank.ts) — Core memory operations

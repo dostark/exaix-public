@@ -14,8 +14,8 @@ import {
   MemoryScope,
   MemorySource,
   MemoryType as _MemoryType,
-} from "../../../src/enums.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
+} from "../../../src/shared/enums.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 import { KEYS } from "../../../src/helpers/keyboard.ts";
 import {
   type IExecutionMemory,
@@ -23,7 +23,7 @@ import {
   type IMemorySearchResult,
   type IMemoryUpdateProposal,
   type IProjectMemory,
-} from "../../../src/schemas/memory_bank.ts";
+} from "../../../src/shared/schemas/memory_bank.ts";
 import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
 import { DialogBase } from "../../../src/helpers/dialog_base.ts";
 // ===== Interfaces =====

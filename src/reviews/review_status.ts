@@ -4,7 +4,7 @@
  * @description Type definitions and utility functions for Review outcome states.
  * @architectural-layer Reviews
  * @dependencies []
- * @related-files [src/services/review_registry.ts, src/schemas/review.ts]
+ * @related-files [src/services/review_registry.ts, src/shared/schemas/review.ts]
  */
 export const ReviewStatus = {
   PENDING: "pending",

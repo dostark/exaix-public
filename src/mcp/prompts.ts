@@ -7,7 +7,7 @@
  * @related-files [src/services/db.ts]
  */
 
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
 
 // ============================================================================

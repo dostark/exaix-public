@@ -10,12 +10,12 @@
 // Minimal Deno env interface for type-safe env access
 declare const Deno: { env: { get(key: string): string | undefined } };
 
-import * as DEFAULTS from "../config/constants.ts";
-import { Config } from "../config/schema.ts";
-import { AiConfig, getDefaultModels } from "../config/ai_config.ts";
-import { MockStrategy, ProviderType } from "../enums.ts";
+import * as DEFAULTS from "../shared/constants.ts";
+import { Config } from "../shared/schemas/config.ts";
+import { AiConfig, getDefaultModels } from "../shared/schemas/ai_config.ts";
+import { MockStrategy, ProviderType } from "../shared/enums.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
-import { InputValidator } from "../schemas/input_validation.ts";
+import { InputValidator } from "../shared/schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { DatabaseService } from "../services/db.ts";
 import { createAPIRetryPolicy, RetryPolicy } from "../services/retry_policy.ts";
@@ -27,9 +27,8 @@ import { OllamaProviderFactory } from "./factories/ollama_factory.ts";
 import { OpenAIProviderFactory } from "./factories/openai_factory.ts";
 import { AbstractKeyBasedProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
-import { PricingTier } from "../enums.ts";
+import { PricingTier } from "../shared/enums.ts";
 import { IModelProvider, IProviderInfo, IResolvedProviderOptions } from "./types.ts";
-export type { IModelProvider, IProviderInfo, IResolvedProviderOptions };
 import { ProviderFactoryError } from "./errors.ts";
 import type { EventLogger } from "../services/event_logger.ts";
 import { LazyProvider } from "./providers/lazy_provider.ts";

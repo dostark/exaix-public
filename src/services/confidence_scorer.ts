@@ -8,12 +8,12 @@
  */
 
 import { z } from "zod";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import type { DatabaseService } from "./db.ts";
 import { AgentRunner, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
-import { ConfidenceAssessmentLevel, FactorImpact } from "../enums.ts";
+import { ConfidenceAssessmentLevel, FactorImpact } from "../shared/enums.ts";
 
 export interface IConfidenceScorerConfig {
   lowConfidenceThreshold?: number;
@@ -71,7 +71,7 @@ import {
   CONFIDENCE_THRESHOLD_LOW,
   CONFIDENCE_THRESHOLD_MEDIUM,
   CONFIDENCE_THRESHOLD_VERY_LOW,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 // ============================================================================
 // Confidence Schema

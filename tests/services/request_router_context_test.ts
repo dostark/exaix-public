@@ -12,9 +12,9 @@ import { RequestRouter } from "../../src/services/request_router.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
-import type { IPortalConfig } from "../../src/config/schema.ts";
+import type { IPortalConfig } from "../../src/shared/schemas/config.ts";
 import {
   createMockAgentRunner,
   createMockFlowRunner,

@@ -11,8 +11,8 @@ import { ConfigService } from "../config/service.ts";
 import { GitService, IGitService } from "../services/git_service.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
-import { ExoPathDefaults } from "../config/constants.ts";
-import type { Config } from "../config/schema.ts";
+import { ExoPathDefaults } from "../shared/constants.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 

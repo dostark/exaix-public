@@ -14,7 +14,7 @@ import {
   PORTAL_CONTEXT_REQUIRED_ACTIONS_TITLE,
   PORTAL_CONTEXT_ROOT_LABEL,
   PORTAL_CONTEXT_SECTION_TITLE,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 export interface IPortalContextArgs {
   portalAlias: string;

@@ -8,8 +8,8 @@
  */
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
-import type { Config } from "../config/schema.ts";
-import { DEFAULT_DATABASE_BUSY_TIMEOUT_MS } from "../config/constants.ts";
+import type { Config } from "../shared/schemas/config.ts";
+import { DEFAULT_DATABASE_BUSY_TIMEOUT_MS } from "../shared/constants.ts";
 
 /**
  * Database connection interface for pooling

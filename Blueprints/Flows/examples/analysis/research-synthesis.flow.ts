@@ -1,3 +1,9 @@
+/**
+ * @module ResearchSynthesis.Flow
+ * @path Blueprints/Flows/examples/analysis/research-synthesis.flow.ts
+ * @description Module for researchsynthesis.flow.
+ */
+
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
 
 /**

@@ -8,95 +8,17 @@
  */
 
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { RequestPriority } from "../../enums.ts";
-import type { RequestStatusType } from "../../requests/request_status.ts";
+import type { RequestStatusType } from "../../shared/status/request_status.ts";
 import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
 import { RequestListHandler } from "../handlers/request_list_handler.ts";
 import { RequestShowHandler } from "../handlers/request_show_handler.ts";
-
-/**
- * Options for creating a request
- */
-export interface IRequestOptions {
-  agent?: string;
-  priority?: RequestPriority;
-  portal?: string;
-  target_branch?: string;
-  model?: string;
-  flow?: string;
-  skills?: string[];
-  subject?: string;
-}
-
-/**
- * Source of request creation
- */
-export type RequestSource = "cli" | "file" | "interactive";
-
-/**
- * Metadata returned when a request is created
- */
-export interface IRequestMetadata {
-  trace_id: string;
-  filename: string;
-  path: string;
-  status: RequestStatusType;
-  priority: RequestPriority;
-  agent: string;
-  portal?: string;
-  target_branch?: string;
-  model?: string;
-  flow?: string;
-  skills?: string[];
-  input_tokens?: string;
-  output_tokens?: string;
-  total_tokens?: string;
-  token_provider?: string;
-  token_model?: string;
-  token_cost_usd?: string;
-  created: string;
-  created_by: string;
-  source: RequestSource;
-  rejected_path?: string;
-  subject?: string;
-}
-
-/**
- * Request entry when listing
- */
-export interface IRequestEntry {
-  trace_id: string;
-  filename: string;
-  path: string;
-  status: RequestStatusType;
-  priority: string;
-  agent: string;
-  portal?: string;
-  target_branch?: string;
-  model?: string;
-  flow?: string;
-  skills?: string[];
-  input_tokens?: string;
-  output_tokens?: string;
-  total_tokens?: string;
-  token_provider?: string;
-  token_model?: string;
-  token_cost_usd?: string;
-  created: string;
-  created_by: string;
-  source: string;
-  error?: string;
-  rejected_path?: string;
-  subject?: string;
-}
-
-/**
- * Result of showing a request
- */
-export interface IRequestShowResult {
-  metadata: IRequestEntry;
-  content: string;
-}
+import type {
+  IRequestEntry,
+  IRequestMetadata,
+  IRequestOptions,
+  IRequestShowResult,
+  RequestSource,
+} from "../../shared/types/request.ts";
 
 /**
  * RequestCommands provides CLI operations for creating and managing requests.

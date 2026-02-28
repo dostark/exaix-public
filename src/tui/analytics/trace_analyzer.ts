@@ -8,8 +8,8 @@
  */
 
 import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
-import type { TraceAnalysis } from "./types.ts";
-import { LogLevel } from "../../enums.ts";
+import type { TraceAnalysis } from "./shared/types/json.ts";
+import { LogLevel } from "../../shared/enums.ts";
 
 /**
  * Analyze a trace through the system

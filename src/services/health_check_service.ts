@@ -8,22 +8,22 @@
  * @related-files [src/main.ts, src/services/db.ts]
  */
 import type { DatabaseService } from "./db.ts";
-import type { IModelProvider } from "../ai/providers.ts";
-import type { Config } from "../config/schema.ts";
+import { IModelProvider } from "../ai/types.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import {
   DEFAULT_HEALTH_CACHE_TTL_MS,
   DEFAULT_HEALTH_CHECK_TIMEOUT_MS,
   DEFAULT_MEMORY_CRITICAL_PERCENT,
   DEFAULT_MEMORY_WARN_PERCENT,
-} from "../config/constants.ts";
-import { HealthCheckVerdict, HealthStatus } from "../enums.ts";
+} from "../shared/constants.ts";
+import { HealthCheckVerdict, HealthStatus } from "../shared/enums.ts";
 import { EventLogger } from "./event_logger.ts";
 import { LogMethod } from "./decorators/logging.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
-import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
+import { DEFAULT_MCP_VERSION } from "../shared/constants.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { IServiceContext } from "./common/types.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Interface for individual health check implementations

@@ -5,9 +5,9 @@
  * wait-based synchronization, temporary file cleanup, and process capturing.
  */
 
-import { MemorySource, SkillStatus } from "../../src/enums.ts";
-import { PlanStatus, type PlanStatusType } from "../../src/plans/plan_status.ts";
-import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
+import { MemorySource, SkillStatus } from "../../src/shared/enums.ts";
+import { PlanStatus, type PlanStatusType } from "../../src/shared/status/plan_status.ts";
+import { RequestStatus, type RequestStatusType } from "../../src/shared/status/request_status.ts";
 
 // ===== Test Data Factories =====
 

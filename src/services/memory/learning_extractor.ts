@@ -6,7 +6,7 @@
  * @dependencies [MemoryBankSchemas, Enums]
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
-import type { IExecutionMemory, IProposalLearning } from "../../schemas/memory_bank.ts";
+import type { IExecutionMemory, IProposalLearning } from "../../shared/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -14,7 +14,7 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-} from "../../enums.ts";
+} from "../../shared/enums.ts";
 
 /**
  * Extracts learnings from agent executions.

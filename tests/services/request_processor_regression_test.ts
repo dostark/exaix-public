@@ -11,8 +11,8 @@ import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";
 import { REPO_ROOT } from "../helpers/repo_root.ts";
-import { LogLevel } from "../../src/enums.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 
 /**
  * Regression test for: "Request processing fails with test-provider selection"

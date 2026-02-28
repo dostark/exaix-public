@@ -1,3 +1,9 @@
+/**
+ * @module Staged.Flow.Template
+ * @path Blueprints/Flows/templates/staged.flow.template.ts
+ * @description Module for staged.flow.template.
+ */
+
 import { defineFlow } from "../../../src/flows/define_flow.ts";
 
 /**

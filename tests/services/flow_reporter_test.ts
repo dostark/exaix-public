@@ -6,18 +6,18 @@
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
-import { MemorySource } from "../../src/enums.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { FlowReporter, type IFlowReportConfig } from "../../src/services/flow_reporter.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { IFlow, IFlowInput } from "../../src/schemas/flow.ts";
+import type { IFlow, IFlowInput } from "../../src/shared/schemas/flow.ts";
 import type { IFlowResult, IStepResult } from "../../src/flows/flow_runner.ts";
-import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
-import type { Config } from "../../src/config/schema.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../shared/constants.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 
 describe("FlowReporter", () => {
   let tempDir: string;

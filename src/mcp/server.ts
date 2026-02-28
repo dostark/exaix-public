@@ -6,10 +6,10 @@
  * @dependencies [schema, mcp, tools, domain_tools, resources, prompts, structured_logger]
  * @related-files [src/mcp/tools.ts, src/mcp/resources.ts, src/mcp/prompts.ts]
  */
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
-import { MCPConfigSchema, type MCPTool } from "../schemas/mcp.ts";
-import { JSONValue } from "../types.ts";
+import { MCPConfigSchema, type MCPTool } from "../shared/schemas/mcp.ts";
+import { JSONValue } from "../shared/types/json.ts";
 import { ToolHandler } from "./tool_handler.ts";
 import { GitCommitTool } from "./handlers/git_commit_tool.ts";
 import { GitCreateBranchTool } from "./handlers/git_create_branch_tool.ts";

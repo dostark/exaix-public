@@ -6,8 +6,8 @@
  * @dependencies [LogLevel]
  * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
  */
-import { LogLevel } from "../../enums.ts";
-import { JSONValue } from "../../types.ts";
+import { LogLevel } from "../../shared/enums.ts";
+import { JSONValue } from "../../shared/types/json.ts";
 
 /**
  * Actor types:

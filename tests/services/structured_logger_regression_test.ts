@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { FileOutput, IStructuredLogEntry } from "../../src/services/structured_logger.ts";
-import { LogLevel } from "../../src/enums.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
 
 const TEST_LOG_MESSAGE = "Test log message";
 const TEST_LOG_LEVEL = LogLevel.INFO;

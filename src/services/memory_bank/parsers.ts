@@ -7,7 +7,7 @@
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
 
-import type { IDecision, IPattern } from "../../schemas/memory_bank.ts";
+import type { IDecision, IPattern } from "../../shared/schemas/memory_bank.ts";
 
 /**
  * Parse patterns from markdown content

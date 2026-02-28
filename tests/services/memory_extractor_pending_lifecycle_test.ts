@@ -16,13 +16,13 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import type { ILearning, IMemoryUpdateProposal, IProposalLearning } from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
+import type { ILearning, IMemoryUpdateProposal, IProposalLearning } from "../../src/shared/schemas/memory_bank.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
-import type { JSONValue } from "../../src/types.ts";
+import type { JSONValue } from "../../src/shared/types/json.ts";
 
 function makeProposalLearning(overrides: Partial<IProposalLearning> = {}): IProposalLearning {
   return {

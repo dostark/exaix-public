@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
-import { MemoryOperation, MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
+import { MemoryOperation, MemoryScope, MemorySource, SkillStatus } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { exists } from "@std/fs";

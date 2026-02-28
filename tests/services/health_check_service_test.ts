@@ -7,7 +7,7 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 
-import { ExecutionStatus, HealthCheckVerdict, HealthStatus, MockStrategy } from "../../src/enums.ts";
+import { ExecutionStatus, HealthCheckVerdict, HealthStatus, MockStrategy } from "../../src/shared/enums.ts";
 
 import { createMockConfig } from "../helpers/config.ts";
 import {

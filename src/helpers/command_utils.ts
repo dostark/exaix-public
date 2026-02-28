@@ -8,7 +8,7 @@
  */
 
 import { ValidationResult } from "../cli/base/command.ts";
-import type { JSONObject } from "../types.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 
 export const CommandUtils = {
   /**

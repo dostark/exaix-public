@@ -16,7 +16,7 @@ import { type IMemoryNotification, type INotificationService } from "../../servi
 import { type IDashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
-import { type IPortalService } from "../portal_manager_view.ts";
+import { type IPortalService } from "../../shared/interfaces/i_portal_service.ts";
 
 async function renderActivePaneContent(
   panes: IPane[],

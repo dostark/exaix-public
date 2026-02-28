@@ -13,13 +13,14 @@ import type {
   IBlueprint,
   IParsedRequest,
 } from "../../src/services/agent_runner.ts";
-import type { IFlow } from "../../src/schemas/flow.ts";
-import type { Config } from "../../src/config/schema.ts";
-import type { IEventLogger, ILogEvent } from "../../src/services/event_logger.ts";
+import type { IFlow } from "../../src/shared/schemas/flow.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
+import { IEventLogger } from "../../src/services/event_logger.ts";
+import { ILogEvent } from "../../src/services/common/types.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
-import type { JSONValue, LogMetadata } from "../../src/types.ts";
-import { LogLevel } from "../../src/enums.ts";
+import type { JSONValue, LogMetadata } from "../../src/shared/types/json.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
 import { createTestConfig } from "../ai/helpers/test_config.ts";
 
 export function createMockFlowRunner() {

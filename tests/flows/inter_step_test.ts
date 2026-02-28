@@ -13,7 +13,7 @@ import {
   passthrough,
   templateFill,
 } from "../../src/flows/transforms.ts";
-import { jsonExtract } from "../../src/types.ts";
+import { jsonExtract } from "../../src/shared/types/json.ts";
 
 /**
  * Integration tests for inter-step communication transforms

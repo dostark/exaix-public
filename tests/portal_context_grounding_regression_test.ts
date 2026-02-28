@@ -8,7 +8,7 @@
 import { assert, assertStringIncludes } from "@std/assert";
 import { TestEnvironment } from "./integration/helpers/test_environment.ts";
 import { join } from "@std/path";
-import { MockStrategy } from "../src/enums.ts";
+import { MockStrategy } from "../src/shared/enums.ts";
 
 Deno.test("Regression: Portal Context Grounding - deeper file summary in prompt", async () => {
   const env = await TestEnvironment.create({ initGit: false });

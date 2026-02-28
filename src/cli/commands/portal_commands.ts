@@ -8,42 +8,17 @@
  */
 
 import { join, resolve } from "@std/path";
-import type { Config } from "../../config/schema.ts";
+import type { Config } from "../../shared/schemas/config.ts";
 import type { IDatabaseService } from "../../services/db.ts";
 import { ConfigService } from "../../config/service.ts";
 import { ContextCardGenerator } from "../../services/context_card_generator.ts";
-import { JSONValue } from "../../types.ts";
+import type { JSONValue } from "../../shared/types/json.ts";
 import { EventLogger } from "../../services/event_logger.ts";
-import { PortalStatus } from "../../enums.ts";
-import { PortalExecutionStrategy } from "../../enums.ts";
-import { PORTAL_ALIAS_MAX_LENGTH } from "../../config/constants.ts";
+import { PortalStatus } from "../../shared/enums.ts";
+import { PortalExecutionStrategy } from "../../shared/enums.ts";
+import { PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
 
-/**
- * Valid status values for portals.
- * Portals can only be ACTIVE (working) or BROKEN (symlink/target issues).
- */
-
-export interface IPortalInfo {
-  alias: string;
-  targetPath: string;
-  symlinkPath: string;
-  contextCardPath: string;
-  status: PortalStatus;
-  created?: string;
-  lastVerified?: string;
-  defaultBranch?: string;
-  executionStrategy?: PortalExecutionStrategy;
-}
-
-export interface IPortalDetails extends IPortalInfo {
-  permissions?: string;
-}
-
-export interface IVerificationResult {
-  alias: string;
-  status: "ok" | "failed";
-  issues?: string[];
-}
+import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
 
 interface PortalCommandsContext {
   config: Config;
@@ -64,7 +39,7 @@ export class PortalCommands {
     this.db = context.db;
     this.configService = context.configService;
     // Resolve paths relative to system root
-    this.portalsDir = join(this.config.system.root, this.config.paths.portals);
+    this.portalsDir = join(this.config.system.root as string, this.config.paths.portals as string);
     this.contextCardGenerator = new ContextCardGenerator(this.config, this.db);
   }
 
@@ -205,8 +180,8 @@ export class PortalCommands {
 
         const symlinkPath = join(this.portalsDir, entry.name);
         const contextCardPath = join(
-          this.config.system.root,
-          this.config.paths.memory,
+          this.config.system.root!,
+          this.config.paths.memory!,
           "Projects",
           entry.name,
           "portal.md",
@@ -255,8 +230,8 @@ export class PortalCommands {
   async show(alias: string): Promise<IPortalDetails> {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
-      this.config.system.root,
-      this.config.paths.memory,
+      this.config.system.root!,
+      this.config.paths.memory!,
       "Projects",
       alias,
       "portal.md",
@@ -313,8 +288,8 @@ export class PortalCommands {
   async remove(alias: string, options?: { keepCard?: boolean }): Promise<void> {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
-      this.config.system.root,
-      this.config.paths.memory,
+      this.config.system.root!,
+      this.config.paths.memory!,
       "Projects",
       alias,
       "portal.md",
@@ -377,8 +352,8 @@ export class PortalCommands {
       const issues: string[] = [];
       const symlinkPath = join(this.portalsDir, portalAlias);
       const contextCardPath = join(
-        this.config.system.root,
-        this.config.paths.memory,
+        this.config.system.root!,
+        this.config.paths.memory!,
         "Projects",
         portalAlias,
         "portal.md",

@@ -8,9 +8,9 @@
  */
 
 import { z } from "zod";
-import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../enums.ts";
-import type { IModelProvider } from "../ai/providers.ts";
-import { JSONValue } from "../types.ts";
+import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../shared/enums.ts";
+import { IModelProvider } from "../ai/types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 import type { IDatabaseService } from "./db.ts";
 import {
   AgentRunner,

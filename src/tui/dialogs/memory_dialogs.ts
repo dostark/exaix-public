@@ -6,7 +6,7 @@
  * @dependencies [MemoryBankSchema, Constants, Keyboard, DialogBase]
  * @related-files [src/helpers/dialog_base.ts, src/tui/memory_view/dialog_processor.ts]
  */
-import type { IMemoryUpdateProposal } from "../../schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../../shared/schemas/memory_bank.ts";
 import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 import {
@@ -19,7 +19,7 @@ import {
   renderProposalInfo,
   setupDialogRender,
 } from "../../helpers/dialog_base.ts";
-import { DialogStatus } from "../../enums.ts";
+import { DialogStatus } from "../../shared/enums.ts";
 
 // ===== Dialog Types =====
 
@@ -201,7 +201,7 @@ export class ConfirmApproveDialog extends DialogBase<IApproveDialogResult> {
     this.focusIndex = handleBinaryDialogKey(
       key,
       this.focusIndex,
-      () => this.confirm({ proposalId: this.proposal.id }),
+      () => this.confirm({ proposalId: this.proposal.id || "" }),
       () => this.cancel(),
     );
   }
@@ -213,12 +213,12 @@ export class ConfirmApproveDialog extends DialogBase<IApproveDialogResult> {
     renderProposalInfo(this.proposal, innerWidth, theme, lines);
 
     // Description (truncated)
-    const desc = this.proposal.learning.description?.slice(0, innerWidth - 6) ?? "(no description)";
+    const desc = this.proposal.learning?.description?.slice(0, innerWidth - 6) ?? "(no description)";
     lines.push(renderBoxLine(`  ${desc.padEnd(innerWidth - 2)}`, innerWidth, theme));
     lines.push(renderBoxLine("", innerWidth, theme));
 
     // Tags if available
-    if (this.proposal.learning.tags && this.proposal.learning.tags.length > 0) {
+    if (this.proposal.learning?.tags && this.proposal.learning.tags.length > 0) {
       const tagsLine = `Tags: ${this.proposal.learning.tags.join(", ")}`.slice(0, innerWidth - 4);
       lines.push(renderBoxLine(`  ${tagsLine.padEnd(innerWidth - 2)}`, innerWidth, theme));
       lines.push(renderBoxLine("", innerWidth, theme));
@@ -288,7 +288,7 @@ export class ConfirmRejectDialog extends DialogBase<IRejectDialogResult> {
         if (this.focusIndex === 0) {
           this.inputActive = true;
         } else if (this.focusIndex === 1) {
-          this.confirm({ proposalId: this.proposal.id, reason: this.reason });
+          this.confirm({ proposalId: this.proposal.id || "", reason: this.reason });
         } else {
           this.cancel();
         }

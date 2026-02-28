@@ -16,8 +16,8 @@ import {
   MemoryScope,
   MemorySource,
   SkillStatus,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import type {
   IExecutionMemory,
   IGlobalMemory,
@@ -27,7 +27,7 @@ import type {
   IProjectMemory,
   ISkill,
   ISkillMatch,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 import {
   TEST_AGENT_NAME,
   TEST_COMPLETED_AT,
@@ -64,7 +64,7 @@ import {
   TEST_STARTED_AT,
   TEST_SUMMARY_TEXT,
   TEST_TRACE_ID,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 const MSG_NO_EXECUTIONS = "No execution history";
 

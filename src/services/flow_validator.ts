@@ -9,7 +9,7 @@
 import { FlowLoader } from "../flows/flow_loader.ts";
 import { DependencyResolver } from "../flows/dependency_resolver.ts";
 import type { IFlowValidator } from "./request_router.ts";
-import type { IFlow, IFlowStep } from "../schemas/flow.ts";
+import type { IFlow, IFlowStep } from "../shared/schemas/flow.ts";
 
 /**
  * FlowValidatorImpl - Validates flow definitions before execution

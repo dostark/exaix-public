@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { DaemonStatus } from "../../src/enums.ts";
+import { DaemonStatus } from "../../src/shared/enums.ts";
 
 import {
   DaemonControlView,

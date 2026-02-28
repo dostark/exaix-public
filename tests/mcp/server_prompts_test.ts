@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 
 import { initSimpleMCPServer } from "./helpers/test_setup.ts";
 

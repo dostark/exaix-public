@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { PlanStatus } from "../../src/plans/plan_status.ts";
+import { PlanStatus } from "../../src/shared/status/plan_status.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 

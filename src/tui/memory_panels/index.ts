@@ -13,7 +13,7 @@ import type {
   IMemorySearchResult,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../schemas/memory_bank.ts";
+} from "../../shared/schemas/memory_bank.ts";
 import { ANSI } from "../../helpers/colors.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,

@@ -13,11 +13,11 @@ import {
   MemoryScope,
   MemorySource,
   ReviewSource,
-} from "../../../src/enums.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
-import type { IExecutionMemory, ILearning, IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
+} from "../../../src/shared/enums.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
+import type { IExecutionMemory, ILearning, IMemoryUpdateProposal } from "../../../src/shared/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
-import type { JSONObject } from "../../../src/types.ts";
+import type { JSONObject } from "../../../src/shared/types/json.ts";
 
 export function createSuccessfulExecutionMemory(portal: string, traceId: string): IExecutionMemory {
   return {

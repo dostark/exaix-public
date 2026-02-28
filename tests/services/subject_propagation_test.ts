@@ -9,7 +9,7 @@ import { join } from "@std/path";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { IModelProvider } from "../../src/ai/types.ts";
-import { Config } from "../../src/config/schema.ts";
+import { Config } from "../../src/shared/schemas/config.ts";
 import { initActivityTableSchema } from "../helpers/db.ts";
 
 Deno.test("RequestProcessor - Subject Propagation - Agent Upgrades Subject", async () => {
@@ -37,7 +37,7 @@ Follow instructions
 `,
   );
 
-  const config: Config = {
+  const configRaw = {
     system: { root: tempDir },
     paths: {
       workspace: "workspace",
@@ -70,14 +70,15 @@ Follow instructions
       },
       default_provider: "mock",
     },
-  } as any;
+  } as unknown;
+  const config = configRaw as Config;
 
   const db = new DatabaseService(config);
   initActivityTableSchema(db);
 
   // Mock LLM Response with a subject
   const agentSubject = "Refactor Database Schema";
-  const mockProvider: IModelProvider = {
+  const mockProviderRaw = {
     id: "mock",
     generate: () =>
       Promise.resolve(`
@@ -95,7 +96,8 @@ Follow instructions
   ]
 }
 </content>`),
-  } as any;
+  };
+  const mockProvider = (mockProviderRaw as unknown) as IModelProvider;
 
   const processor = new RequestProcessor(config, db, {
     workspacePath: workspaceDir,
@@ -167,7 +169,7 @@ Instructions
 `,
   );
 
-  const config = {
+  const configRaw = {
     system: { root: tempDir },
     paths: {
       workspace: "workspace",
@@ -191,7 +193,8 @@ Instructions
       providers: { mock: { enabled: true, model: "mock-model" } },
       default_provider: "mock",
     },
-  } as any;
+  } as unknown;
+  const config = configRaw as Config;
 
   const db = new DatabaseService(config);
   initActivityTableSchema(db);
@@ -199,7 +202,7 @@ Instructions
   const explicitSubject = "My Custom Subject";
   const agentSubject = "Agent Subject";
 
-  const mockProvider: IModelProvider = {
+  const _mockProviderRaw = {
     id: "mock",
     generate: () =>
       Promise.resolve(`
@@ -210,7 +213,8 @@ Instructions
   "steps": [{"step": 1, "title": "S1", "description": "D1"}]
 }
 </content>`),
-  } as any;
+  };
+  const mockProvider = (_mockProviderRaw as unknown) as IModelProvider;
 
   const processor = new RequestProcessor(config, db, {
     workspacePath: workspaceDir,

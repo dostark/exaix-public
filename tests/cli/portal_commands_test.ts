@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { ExecutionStatus, PortalStatus } from "../../src/enums.ts";
+import { ExecutionStatus, PortalStatus } from "../../src/shared/enums.ts";
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { PortalCommands } from "../../src/cli/commands/portal_commands.ts";

@@ -6,8 +6,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { MemorySource, RequestPriority } from "../../src/enums.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { MemorySource, RequestPriority } from "../../src/shared/enums.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { commonTestData } from "../helpers/test_utils.ts";
 
 import {

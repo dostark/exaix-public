@@ -15,10 +15,10 @@ import {
   TIME_MS_PER_HOUR,
   TIME_MS_PER_MINUTE,
   TIME_MS_PER_SECOND,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 import { colorize, type ITuiTheme } from "../helpers/colors.ts";
 import type { IStructuredLogEntry } from "../services/structured_logger.ts";
-import { LogLevel } from "../enums.ts";
+import { LogLevel } from "../shared/enums.ts";
 
 /**
  * Log rendering options

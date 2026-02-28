@@ -6,8 +6,8 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { FlowOutputFormat } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { FlowOutputFormat } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
 import { ExecutionMemoryBuilder } from "../fixtures/memory_builder.ts";

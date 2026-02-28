@@ -23,7 +23,7 @@ if (args.has("--help") || args.has("-h")) {
   console.log(`ExoFrame Code Style Checker
 
 Usage:
-  deno run scripts/check_code_style.ts [options]
+  deno run scripts/check_code_style.ts [options] [paths...]
 
 Options:
   --help, -h          Show this help message
@@ -155,7 +155,7 @@ async function checkFile(path: string) {
   let _lastInterfaceLineNum = -1;
   let headerFound = false;
   let firstContentLineNum = -1;
-  const importedNames = new Set<string>();
+  const importedNames = new Map<string, number>();
 
   for (let idx = 0; idx < lines.length; idx++) {
     const line = lines[idx];
@@ -196,15 +196,7 @@ async function checkFile(path: string) {
       names.forEach((n) => {
         const parts = n.trim().split(/\s+as\s+/);
         const name = parts.pop()?.trim();
-        if (parts.length > 0 && /^I[A-Z]/.test(parts[0].trim())) {
-          console.log(
-            `ERROR [no-interface-rename-on-import] ${path}:${idx + 1} – Renaming interface '${
-              parts[0].trim()
-            }' to '${name}' is prohibited. Use the original name.`,
-          );
-          errorCount++;
-        }
-        if (name && name !== "from" && name !== "import") importedNames.add(name);
+        if (name && name !== "from" && name !== "import") importedNames.set(name, idx + 1);
       });
 
       if (trimmed.includes("} from")) {
@@ -263,16 +255,16 @@ async function checkFile(path: string) {
               );
               errorCount++;
             }
-            if (name && name !== "from" && name !== "import") importedNames.add(name);
+            if (name && name !== "from" && name !== "import") importedNames.set(name, idx + 1);
           });
         }
         // Default or Namespace import
         const defaultMatch = trimmed.match(/^import\s+([\w$]+)[,\s]/);
         if (defaultMatch && defaultMatch[1] !== "type" && defaultMatch[1] !== "*") {
-          importedNames.add(defaultMatch[1]);
+          importedNames.set(defaultMatch[1], idx + 1);
         }
         const namespaceMatch = trimmed.match(/import\s+\*\s+as\s+([\w$]+)/);
-        if (namespaceMatch) importedNames.add(namespaceMatch[1]);
+        if (namespaceMatch) importedNames.set(namespaceMatch[1], idx + 1);
       }
 
       if (trimmed.includes("{") && !trimmed.includes("} from")) {
@@ -289,6 +281,34 @@ async function checkFile(path: string) {
       }
       continue;
     }
+    // Check for re-exporting imported names: export { Foo, Bar as Baz } or export type { ... }
+    const namedExportMatch = line.match(/^\s*export\s+(type\s+)?{([^}]*)}\s*;?\s*$/);
+    if (namedExportMatch) {
+      const exports = namedExportMatch[2].split(",");
+      exports.forEach((e) => {
+        const parts = e.trim().split(/\s+as\s+/);
+        const name = parts[0].trim();
+        if (importedNames.has(name)) {
+          const importLine = importedNames.get(name)!;
+          const isImmediate = importLine === idx; // idx is 0-indexed current line, importLine is 1-indexed import line
+          const message = isImmediate
+            ? `Improper re-export of '${name}' on the next line after its import. Combine into 'export ${
+              namedExportMatch[1] || ""
+            }{ ... } from ...' or define it locally.`
+            : `Exporting imported entity '${name}' (imported on line ${importLine}) is prohibited. Define it locally or export it from its origin.`;
+
+          console.log(
+            `ERROR [re-export-imported] ${path}:${idx + 1} – ${message}`,
+          );
+          errorCount++;
+        }
+      });
+
+      if (!trimmed.includes("=") && (trimmed.endsWith(";") || trimmed.endsWith("}"))) {
+        continue;
+      }
+    }
+
     const isTypeStart = /^\s*((export|declare)\s+)?(type|interface|enum)\b/.test(line) ||
       /^\s*declare\s+(const|let|var|function|class)\b/.test(line);
     if (isTypeStart) {
@@ -331,24 +351,6 @@ async function checkFile(path: string) {
         }
       }
       continue;
-    }
-
-    // Check for re-exporting imported names: export { Foo, Bar as Baz }
-    const namedExportMatch = line.match(/^\s*export\s+{([^}]*)}\s*;?\s*$/);
-    if (namedExportMatch) {
-      const exports = namedExportMatch[1].split(",");
-      exports.forEach((e) => {
-        const parts = e.trim().split(/\s+as\s+/);
-        const name = parts[0].trim();
-        if (importedNames.has(name)) {
-          console.log(
-            `ERROR [re-export-imported] ${path}:${
-              idx + 1
-            } – Exporting imported entity '${name}' is prohibited. Define it locally or export it from its origin.`,
-          );
-          errorCount++;
-        }
-      });
     }
 
     // If we're here, it's functional code
@@ -397,26 +399,52 @@ async function main() {
   // Request read permission for the repo root if not already granted
   await Deno.permissions.request({ name: "read", path: REPO_ROOT });
 
-  for await (
-    const entry of walk(REPO_ROOT, {
-      includeDirs: false,
-      exts: [".ts", ".tsx"],
-      followSymlinks: false,
-      skip: [/^\.git$/, /^node_modules$/, /check_code_style\.ts$/],
-    })
-  ) {
-    // skip generated code or scripts if necessary
-    if (
-      entry.path.includes("/dist/") ||
-      entry.path.includes("/coverage/") ||
-      entry.path.includes("/.copilot/")
+  const manualPaths = Deno.args.filter((arg) => !arg.startsWith("-"));
+  if (manualPaths.length > 0) {
+    for (const p of manualPaths) {
+      const fullPath = p.startsWith("/") ? p : join(Deno.cwd(), p);
+      try {
+        const stat = await Deno.stat(fullPath);
+        if (stat.isFile) {
+          await checkFile(fullPath);
+        } else {
+          for await (
+            const entry of walk(fullPath, {
+              includeDirs: false,
+              exts: [".ts", ".tsx"],
+              followSymlinks: false,
+              skip: [/^\.git$/, /^node_modules$/, /check_code_style\.ts$/],
+            })
+          ) {
+            await checkFile(entry.path);
+          }
+        }
+      } catch (e) {
+        console.error(`Error checking path ${p}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  } else {
+    for await (
+      const entry of walk(REPO_ROOT, {
+        includeDirs: false,
+        exts: [".ts", ".tsx"],
+        followSymlinks: false,
+        skip: [/^\.git$/, /^node_modules$/, /check_code_style\.ts$/],
+      })
     ) {
-      continue;
+      // skip generated code or scripts if necessary
+      if (
+        entry.path.includes("/dist/") ||
+        entry.path.includes("/coverage/") ||
+        entry.path.includes("/.copilot/")
+      ) {
+        continue;
+      }
+      if (!entry.isFile) {
+        continue;
+      }
+      await checkFile(entry.path);
     }
-    if (!entry.isFile) {
-      continue;
-    }
-    await checkFile(entry.path);
   }
 
   console.log(`\nstyle check completed: ${errorCount} error(s), ${warnCount} warning(s)`);

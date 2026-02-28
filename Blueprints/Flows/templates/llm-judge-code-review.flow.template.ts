@@ -1,3 +1,9 @@
+/**
+ * @module LlmJudgeCodeReview.Flow.Template
+ * @path Blueprints/Flows/templates/llm-judge-code-review.flow.template.ts
+ * @description Module for llmjudgecodereview.flow.template.
+ */
+
 import { defineFlow } from "../../../src/flows/define_flow.ts";
 
 /**

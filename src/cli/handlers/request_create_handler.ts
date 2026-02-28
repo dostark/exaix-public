@@ -10,8 +10,8 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { RequestPriority } from "../../enums.ts";
-import { RequestStatus } from "../../requests/request_status.ts";
+import { RequestPriority } from "../../shared/enums.ts";
+import { RequestStatus } from "../../shared/status/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
@@ -19,7 +19,7 @@ import {
   type IRequestMetadata as RequestMetadata,
   type IRequestOptions as RequestOptions,
   type RequestSource,
-} from "../commands/request_commands.ts";
+} from "../../shared/types/request.ts";
 import { resolveSubject } from "../../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 

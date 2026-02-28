@@ -7,8 +7,8 @@
  * @related-files [src/services/skill_service.ts, src/tui/tui_dashboard.ts]
  */
 
-import { MessageType } from "../enums.ts";
-import { DialogStatus, MemorySource, SkillStatus } from "../enums.ts";
+import { MessageType } from "../shared/enums.ts";
+import { DialogStatus, MemoryScope, MemorySource, SkillStatus } from "../shared/enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { IKeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
@@ -24,35 +24,18 @@ import {
   TUI_STATUS_ICONS,
 } from "../helpers/constants.ts";
 import { KEYS } from "../helpers/keyboard.ts";
+import { type ISkill } from "../shared/schemas/memory_bank.ts";
+import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
+import { type ISkillMatchRequest } from "../shared/types/skill.ts";
+import { type ISkillMatch } from "../shared/schemas/memory_bank.ts";
 
 // ===== Interfaces =====
 
 /**
- * Skill data for TUI display
- */
-export interface ISkillSummary {
-  id: string;
-  name: string;
-  version: string;
-  status: SkillStatus;
-  source: MemorySource | "core" | "project";
-  description?: string;
-  triggers?: {
-    keywords?: string[];
-    taskTypes?: string[];
-    filePatterns?: string[];
-  };
-  instructions?: string;
-}
-
-/**
  * Service interface for skills operations
  */
-export interface ISkillsViewService {
-  listSkills(filter?: { source?: string; status?: string }): Promise<ISkillSummary[]>;
-  getSkill(skillId: string): Promise<ISkillSummary | null>;
-  deleteSkill(skillId: string): Promise<boolean>;
-}
+export type ISkillsViewService = ISkillsService;
+export type ISkillSummary = ISkill;
 
 export interface ISkillsViewExtensions {
   /** Whether detail view is shown */
@@ -262,14 +245,14 @@ export class SkillsManagerView {
 
 // ===== Minimal Mock for Tests =====
 
-export class MinimalSkillsServiceMock implements ISkillsViewService {
-  private skills: ISkillSummary[] = [];
+export class MinimalSkillsServiceMock implements ISkillsService {
+  private skills: ISkill[] = [];
 
-  constructor(skills: ISkillSummary[] = []) {
+  constructor(skills: ISkill[] = []) {
     this.skills = skills;
   }
 
-  listSkills(filter?: { source?: string; status?: string }): Promise<ISkillSummary[]> {
+  listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]> {
     let result = [...this.skills];
     if (filter?.source) {
       result = result.filter((s) => s.source === filter.source);
@@ -280,7 +263,7 @@ export class MinimalSkillsServiceMock implements ISkillsViewService {
     return Promise.resolve(result);
   }
 
-  getSkill(skillId: string): Promise<ISkillSummary | null> {
+  getSkill(skillId: string): Promise<ISkill | null> {
     return Promise.resolve(this.skills.find((s) => s.id === skillId) || null);
   }
 
@@ -293,8 +276,44 @@ export class MinimalSkillsServiceMock implements ISkillsViewService {
     return Promise.resolve(false);
   }
 
-  setSkills(skills: ISkillSummary[]): void {
+  setSkills(skills: ISkill[]): void {
     this.skills = skills;
+  }
+
+  matchSkills(_request: ISkillMatchRequest): Promise<ISkillMatch[]> {
+    return Promise.resolve([]);
+  }
+
+  buildSkillContext(_skillIds: string[]): Promise<string> {
+    return Promise.resolve("");
+  }
+
+  recordSkillUsage(_skillId: string): Promise<void> {
+    return Promise.resolve();
+  }
+
+  deriveSkillFromLearnings(
+    _learningIds: string[],
+    _skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+  ): Promise<ISkill> {
+    return Promise.resolve({
+      id: "new-skill-id",
+      skill_id: "new-skill-id",
+      name: "Derived Skill",
+      description: "Successfully derived skill",
+      created_at: new Date().toISOString(),
+      usage_count: 0,
+      status: SkillStatus.ACTIVE,
+      version: "1.0.0",
+      source: MemorySource.LEARNED,
+      scope: MemoryScope.GLOBAL,
+      triggers: { keywords: [] },
+      instructions: "Do things.",
+    } as ISkill);
+  }
+
+  rebuildIndex(): Promise<void> {
+    return Promise.resolve();
   }
 }
 
@@ -471,11 +490,11 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
       if (skill.triggers.keywords?.length) {
         lines.push(`  Keywords: ${skill.triggers.keywords.join(", ")}`);
       }
-      if (skill.triggers.taskTypes?.length) {
-        lines.push(`  Task Types: ${skill.triggers.taskTypes.join(", ")}`);
+      if (skill.triggers.task_types?.length) {
+        lines.push(`  Task Types: ${skill.triggers.task_types.join(", ")}`);
       }
-      if (skill.triggers.filePatterns?.length) {
-        lines.push(`  File Patterns: ${skill.triggers.filePatterns.join(", ")}`);
+      if (skill.triggers.file_patterns?.length) {
+        lines.push(`  File Patterns: ${skill.triggers.file_patterns.join(", ")}`);
       }
     }
 

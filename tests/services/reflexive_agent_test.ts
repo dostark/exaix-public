@@ -6,9 +6,9 @@
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
-import { CritiqueQuality, CritiqueSeverity } from "../../src/enums.ts";
+import { CritiqueQuality, CritiqueSeverity } from "../../src/shared/enums.ts";
 
-import type { IModelProvider } from "../../src/ai/providers.ts";
+import { IModelProvider } from "../../src/ai/types.ts";
 import {
   createCodeReviewReflexiveAgent,
   createHighQualityReflexiveAgent,

@@ -1,3 +1,9 @@
+/**
+ * @module Script_Test
+ * @path tests_infra/script_test.ts
+ * @description Module for script_test.
+ */
+
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.221.0/assert/mod.ts";
 import { join } from "https://deno.land/std@0.221.0/path/mod.ts";
 

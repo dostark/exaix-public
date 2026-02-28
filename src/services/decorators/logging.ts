@@ -7,7 +7,7 @@
  * @related-files [src/services/event_logger.ts]
  */
 import { EventLogger } from "../event_logger.ts";
-import { toSafeJson } from "../../types.ts";
+import { toSafeJson } from "../../shared/types/json.ts";
 export function LogMethod(logger: EventLogger, action?: string) {
   return function <This, Args extends unknown[], Return>(
     target: (this: This, ...args: Args) => Promise<Return>,

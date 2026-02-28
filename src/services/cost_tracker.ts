@@ -7,7 +7,7 @@
  * @related-files [src/services/db.ts, src/config/schema.ts]
  */
 import { DatabaseService, type SqliteParam } from "./db.ts";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import {
   COST_RATE_ANTHROPIC,
   COST_RATE_GOOGLE,
@@ -17,8 +17,8 @@ import {
   DEFAULT_COST_TRACKING_BATCH_DELAY_MS,
   DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
   TOKENS_PER_COST_UNIT,
-} from "../config/constants.ts";
-import { ProviderType } from "../enums.ts";
+} from "../shared/constants.ts";
+import { ProviderType } from "../shared/enums.ts";
 
 /**
  * Cost tracking for LLM provider usage.

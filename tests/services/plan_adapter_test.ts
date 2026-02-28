@@ -6,13 +6,13 @@
  */
 
 import { describe, it } from "@std/testing/bdd";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
 
 // Import adapter (will create this)
 import { PlanAdapter, PlanValidationError } from "../../src/services/plan_adapter.ts";
-import type { Plan } from "../../src/schemas/plan_schema.ts";
+import type { Plan } from "../../src/shared/schemas/plan_schema.ts";
 
 describe("PlanAdapter", () => {
   const adapter = new PlanAdapter();

@@ -6,14 +6,14 @@
  */
 
 import { join } from "@std/path";
-import { MCPTransport, PortalOperation } from "../../../src/enums.ts";
+import { MCPTransport, PortalOperation } from "../../../src/shared/enums.ts";
 import { ensureDir } from "@std/fs";
 import { assertEquals, assertExists } from "@std/assert";
 import { MCPServer } from "../../../src/mcp/server.ts";
-import type { IPortalPermissions } from "../../../src/schemas/portal_permissions.ts";
+import type { IPortalPermissions } from "../../../src/shared/schemas/portal_permissions.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
-import type { JSONValue } from "../../../src/types.ts";
+import type { JSONValue } from "../../../src/shared/types/json.ts";
 
 export interface IToolPermissionOptions {
   portalAlias?: string;

@@ -6,8 +6,8 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity, MemoryReferenceType, RequestPriority } from "../../src/enums.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { CritiqueSeverity, MemoryReferenceType, RequestPriority } from "../../src/shared/enums.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";

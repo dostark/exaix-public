@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { EvaluationVerdict } from "../../../src/enums.ts";
+import { EvaluationVerdict } from "../../../src/shared/enums.ts";
 import {
   ANSI,
   bold,

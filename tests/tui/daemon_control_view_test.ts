@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { DaemonKeyAction, DaemonStatus } from "../../src/enums.ts";
+import { DaemonKeyAction, DaemonStatus } from "../../src/shared/enums.ts";
 import { setupDaemonTest } from "./daemon_test_utils.ts";
 import {
   CLIDaemonService,

@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { FlowConsensusMethod } from "../../src/enums.ts";
+import { FlowConsensusMethod } from "../../src/shared/enums.ts";
 import {
   createFeedbackLoop,
   FeedbackLoop,
@@ -18,7 +18,7 @@ import {
 } from "../../src/flows/feedback_loop.ts";
 import { GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { CRITERIA } from "../../src/flows/evaluation_criteria.ts";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 /**
  * Mock improvement agent for testing

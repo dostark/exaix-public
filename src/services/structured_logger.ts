@@ -18,15 +18,14 @@
 
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import * as DEFAULTS from "../config/constants.ts";
+import * as DEFAULTS from "../shared/constants.ts";
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
-import { LogLevel } from "../enums.ts";
-import { LogMetadata } from "../types.ts";
-export type { LogMetadata };
+import { LogLevel } from "../shared/enums.ts";
+import { LogMetadata } from "../shared/types/json.ts";
 
 export interface IStructuredLogEntry {
   timestamp: string;

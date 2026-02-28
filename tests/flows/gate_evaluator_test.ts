@@ -6,10 +6,10 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { FlowGateOnFail } from "../../src/enums.ts";
+import { FlowGateOnFail } from "../../src/shared/enums.ts";
 
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
 import { IStepResult } from "../../src/flows/flow_runner.ts";
 

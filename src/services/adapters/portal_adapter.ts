@@ -1,0 +1,96 @@
+/**
+ * @module PortalAdapter
+ * @path src/services/adapters/portal_adapter.ts
+ * @description Module for PortalAdapter.
+ * @architectural-layer Services
+ * @dependencies [IPortalService, PortalCommands]
+ * @related-files [src/cli/commands/portal_commands.ts, src/shared/interfaces/i_portal_service.ts]
+ */
+
+import { PortalCommands } from "../../cli/commands/portal_commands.ts";
+import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
+import { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
+import { PortalExecutionStrategy } from "../../shared/enums.ts";
+
+export class PortalServiceAdapter implements IPortalService {
+  constructor(private commands: PortalCommands) {}
+
+  async add(
+    targetPath: string,
+    alias: string,
+    options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
+  ): Promise<void> {
+    await this.commands.add(targetPath, alias, options);
+  }
+
+  async list(): Promise<IPortalInfo[]> {
+    return await this.commands.list();
+  }
+
+  async listPortals(): Promise<IPortalInfo[]> {
+    return await this.list();
+  }
+
+  async show(alias: string): Promise<IPortalDetails> {
+    return await this.commands.show(alias);
+  }
+
+  async getPortalDetails(alias: string): Promise<IPortalDetails> {
+    return await this.show(alias);
+  }
+
+  async remove(alias: string, options?: { keepCard?: boolean }): Promise<void> {
+    await this.commands.remove(alias, options);
+  }
+
+  async removePortal(alias: string, options?: { keepCard?: boolean }): Promise<boolean> {
+    try {
+      await this.remove(alias, options);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async verify(alias?: string): Promise<IVerificationResult[]> {
+    return await this.commands.verify(alias);
+  }
+
+  async refresh(alias: string): Promise<void> {
+    await this.commands.refresh(alias);
+  }
+
+  async refreshPortal(alias: string): Promise<boolean> {
+    try {
+      await this.refresh(alias);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  openPortal(_alias: string): Promise<boolean> {
+    // TUI-specific, could open editor or change dashboard focus
+    // Stubbed for now
+    return Promise.resolve(true);
+  }
+
+  closePortal(_alias: string): Promise<boolean> {
+    // TUI-specific
+    return Promise.resolve(true);
+  }
+
+  async getPortalFilesystemPath(alias: string): Promise<string> {
+    const details = await this.show(alias);
+    return details.targetPath;
+  }
+
+  async quickJumpToPortalDir(alias: string): Promise<string> {
+    return await this.getPortalFilesystemPath(alias);
+  }
+
+  getPortalActivityLog(_alias: string): string[] {
+    // In a real implementation, this would query the DB for activity related to this portal
+    return ["Portal activity log not yet implemented in adapter."];
+  }
+}

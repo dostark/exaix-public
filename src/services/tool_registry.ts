@@ -7,17 +7,17 @@
  * @dependencies [ConfigSchema, DatabaseService, PathResolver, MiddlewarePipeline]
  * @related-files [src/services/plan_executor.ts, src/mcp/tools.ts]
  */
-import { ConfigSchema } from "../config/schema.ts";
+import { ConfigSchema } from "../shared/schemas/config.ts";
 import { join, resolve } from "@std/path";
 import { expandGlob } from "@std/fs";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
 import { PathResolver } from "./path_resolver.ts";
-import { ActivityActor, LogLevel } from "../enums.ts";
+import { ActivityActor, LogLevel } from "../shared/enums.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { IServiceContext } from "./common/types.ts";
 import { PathAccessError, PathSecurity, PathTraversalError } from "../helpers/path_security.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export interface IToolParameterSchema {
   type: string;

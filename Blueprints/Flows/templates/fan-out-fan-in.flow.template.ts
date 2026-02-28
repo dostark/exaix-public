@@ -1,3 +1,9 @@
+/**
+ * @module FanOutFanIn.Flow.Template
+ * @path Blueprints/Flows/templates/fan-out-fan-in.flow.template.ts
+ * @description Module for fanoutfanin.flow.template.
+ */
+
 import { defineFlow } from "../../../src/flows/define_flow.ts";
 
 /**

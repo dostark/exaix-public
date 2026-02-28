@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
-import { HealthCheckVerdict, HealthStatus } from "../../src/enums.ts";
+import { HealthCheckVerdict, HealthStatus } from "../../src/shared/enums.ts";
 
 Deno.test("HealthCheckService.checkProvider: caches results", async () => {
   const svc = new HealthCheckService("1.0.0");

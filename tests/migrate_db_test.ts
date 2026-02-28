@@ -10,7 +10,7 @@ import { dirname, fromFileUrl, join } from "https://deno.land/std@0.201.0/path/m
 import { exists } from "https://deno.land/std@0.201.0/fs/mod.ts";
 import { Database } from "@db/sqlite";
 import { getRuntimeDir } from "./helpers/paths_helper.ts";
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");

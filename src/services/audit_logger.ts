@@ -9,8 +9,8 @@
 
 import type { DatabaseService } from "./db.ts";
 import { dirname, join } from "@std/path";
-import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../enums.ts";
-import { JSONValue } from "../types.ts";
+import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../shared/enums.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 // ============================================================================
 // Types and Interfaces

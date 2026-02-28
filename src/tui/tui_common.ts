@@ -11,7 +11,7 @@ import { getTheme, type ITuiTheme } from "../helpers/colors.ts";
 import { createSpinnerState, nextFrame, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
 import { createStatusBarState, type IStatusBarState, setStatusMessage } from "../helpers/status_bar.ts";
 import type { IKeyBinding, KeyHandler } from "../helpers/keyboard.ts";
-import { MessageType } from "../enums.ts";
+import { MessageType } from "../shared/enums.ts";
 
 // ===== View State Types =====
 

@@ -7,9 +7,15 @@
 
 import { initTestDbService } from "../../helpers/db.ts";
 import { NotificationService } from "../../../src/services/notification.ts";
-import type { IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../../src/enums.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
+import type { IMemoryUpdateProposal } from "../../../src/shared/schemas/memory_bank.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+} from "../../../src/shared/enums.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
 /**
  * Creates test environment for notification tests

@@ -1,3 +1,7 @@
+/**
+ * @module measure_duplication
+ * @description Script: measure_duplication
+ */
 import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
 import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
 

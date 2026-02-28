@@ -9,8 +9,8 @@
 // Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { FlowInputSource } from "../../src/enums.ts";
-import { MemoryOperation } from "../../src/enums.ts";
+import { FlowInputSource } from "../../src/shared/enums.ts";
+import { MemoryOperation } from "../../src/shared/enums.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";

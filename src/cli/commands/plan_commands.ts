@@ -11,9 +11,9 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../../parsers/markdown.ts";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { PlanStatus, type PlanStatusType } from "../../plans/plan_status.ts";
+import { PlanStatus, type PlanStatusType } from "../../shared/status/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
-import { RequestStatus } from "../../requests/request_status.ts";
+import { RequestStatus } from "../../shared/status/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
@@ -23,43 +23,11 @@ import {
   PLAN_REVIEW_COMMENTS_HEADER,
   REQUEST_REVISION_COMMENT_PREFIX,
   REQUEST_REVISION_COMMENTS_HEADER,
-} from "../../config/constants.ts";
+} from "../../shared/constants.ts";
 
-import { type PlanFrontmatter, PlanFrontmatterSchema } from "../../schemas/plan_schema.ts";
+import { type PlanFrontmatter, PlanFrontmatterSchema } from "../../shared/schemas/plan_schema.ts";
 
-// ===== Interfaces =====
-
-export interface IPlanMetadata {
-  id: string;
-  status: PlanStatusType;
-  trace_id?: string;
-  agent_id?: string;
-  request_id?: string;
-  request_subject?: string;
-  request_agent?: string;
-  request_portal?: string;
-  request_priority?: string;
-  request_created_by?: string;
-  input_tokens?: string;
-  output_tokens?: string;
-  total_tokens?: string;
-  token_provider?: string;
-  token_model?: string;
-  token_cost_usd?: string;
-  created_at?: string;
-  approved_by?: string;
-  approved_at?: string;
-  rejected_by?: string;
-  rejected_at?: string;
-  rejection_reason?: string;
-  reviewed_by?: string;
-  reviewed_at?: string;
-  subject?: string;
-}
-
-export interface IPlanDetails extends IPlanMetadata {
-  content: string;
-}
+import type { IPlanDetails, IPlanMetadata } from "../../shared/types/plan.ts";
 
 /**
  * Extract plan metadata from parsed frontmatter
@@ -70,24 +38,24 @@ function extractPlanMetadata(planId: string, frontmatter: PlanFrontmatter): IPla
   return {
     id: planId,
     status: validated.status || PlanStatus.REVIEW,
-    trace_id: validated.trace_id,
-    agent_id: validated.agent_id,
-    request_id: validated.request_id,
-    created_at: validated.created_at,
+    trace_id: validated.trace_id as string | undefined,
+    agent_id: validated.agent_id as string | undefined,
+    request_id: validated.request_id as string | undefined,
+    created_at: validated.created_at as string | undefined,
     input_tokens: validated.input_tokens?.toString(),
     output_tokens: validated.output_tokens?.toString(),
     total_tokens: validated.total_tokens?.toString(),
-    token_provider: validated.token_provider,
-    token_model: validated.token_model,
+    token_provider: validated.token_provider as string | undefined,
+    token_model: validated.token_model as string | undefined,
     token_cost_usd: validated.token_cost_usd?.toString(),
-    approved_by: validated.approved_by,
-    approved_at: validated.approved_at,
-    rejected_by: validated.rejected_by,
-    rejected_at: validated.rejected_at,
-    rejection_reason: validated.rejection_reason,
-    reviewed_by: validated.reviewed_by,
-    reviewed_at: validated.reviewed_at,
-    subject: validated.subject,
+    approved_by: validated.approved_by as string | undefined,
+    approved_at: validated.approved_at as string | undefined,
+    rejected_by: validated.rejected_by as string | undefined,
+    rejected_at: validated.rejected_at as string | undefined,
+    rejection_reason: validated.rejection_reason as string | undefined,
+    reviewed_by: validated.reviewed_by as string | undefined,
+    reviewed_at: validated.reviewed_at as string | undefined,
+    subject: validated.subject as string | undefined,
   };
 }
 
@@ -109,14 +77,14 @@ export class PlanCommands extends BaseCommand {
   ) {
     super(context);
     const config = context.config;
-    const root = config.system.root;
-    const workspace = config.paths.workspace;
+    const root = config.system.root!;
+    const workspace = config.paths.workspace!;
     // Resolve paths relative to system root and workspace
-    this.workspacePlansDir = join(root, workspace, config.paths.plans);
-    this.workspaceActiveDir = join(root, workspace, config.paths.active);
-    this.workspaceRejectedDir = join(root, workspace, config.paths.rejected);
-    this.workspaceArchiveDir = join(root, workspace, config.paths.archive);
-    this.workspaceRequestsDir = join(root, workspace, config.paths.requests);
+    this.workspacePlansDir = join(root, workspace, config.paths.plans!);
+    this.workspaceActiveDir = join(root, workspace, config.paths.active!);
+    this.workspaceRejectedDir = join(root, workspace, config.paths.rejected!);
+    this.workspaceArchiveDir = join(root, workspace, config.paths.archive!);
+    this.workspaceRequestsDir = join(root, workspace, config.paths.requests!);
     this.parser = new FrontmatterParser();
     this.requestCommands = new RequestCommands(context);
   }
@@ -566,14 +534,16 @@ export class PlanCommands extends BaseCommand {
           const metadata = await this.extractPlanMetadataWithRequest(planId, frontmatter);
 
           return {
-            ...metadata,
+            metadata,
             content: body,
           };
         } catch {
           // Handle plans without frontmatter
           return {
-            id: planId,
-            status: PlanStatus.REVIEW,
+            metadata: {
+              id: planId,
+              status: PlanStatus.REVIEW,
+            },
             content: content,
           };
         }

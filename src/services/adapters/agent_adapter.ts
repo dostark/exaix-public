@@ -1,0 +1,89 @@
+/**
+ * @module AgentAdapter
+ * @path src/services/adapters/agent_adapter.ts
+ * @description Module for AgentAdapter.
+ * @architectural-layer Services
+ * @dependencies [IAgentService, BaseCommand]
+ * @related-files [src/services/agent_manager.ts, src/shared/interfaces/i_agent_service.ts]
+ */
+
+import { BaseCommand, type ICommandContext } from "../../cli/base.ts";
+import { join } from "@std/path";
+import { exists } from "@std/fs";
+import { AgentHealth } from "../../shared/enums.ts";
+import { AgentStatus } from "../../shared/status/agent_status.ts";
+import type { AgentHealthData, AgentLogEntry, IAgentStatusItem } from "../../shared/types/agent.ts";
+import { IAgentService } from "../../shared/interfaces/i_agent_service.ts";
+
+export class AgentServiceAdapter extends BaseCommand implements IAgentService {
+  private agentsDir: string;
+
+  constructor(context: ICommandContext) {
+    super(context);
+    this.agentsDir = join(
+      this.config.system.root!,
+      this.config.paths.workspace!,
+      this.config.paths.agents!,
+    );
+  }
+
+  /**
+   * List agents by scanning the Agents directory in the workspace.
+   */
+  async listAgents(): Promise<IAgentStatusItem[]> {
+    const agents: IAgentStatusItem[] = [];
+
+    try {
+      if (!await exists(this.agentsDir)) {
+        // Return a default system agent if directory doesn't exist
+        return [{
+          id: "system",
+          name: "System Agent",
+          status: AgentStatus.ACTIVE,
+          model: this.config.ai?.model || "default",
+          lastActivity: new Date().toISOString(),
+          capabilities: ["core", "filesystem"],
+          defaultSkills: [],
+        }];
+      }
+
+      for await (const entry of Deno.readDir(this.agentsDir)) {
+        if (entry.isDirectory || (entry.isFile && entry.name.endsWith(".json"))) {
+          const id = entry.name.replace(".json", "");
+          agents.push({
+            id: id,
+            name: id.charAt(0).toUpperCase() + id.slice(1),
+            status: AgentStatus.ACTIVE,
+            model: "default",
+            lastActivity: new Date().toISOString(),
+            capabilities: [],
+            defaultSkills: [],
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to list agents:", error);
+    }
+
+    return agents;
+  }
+
+  /**
+   * Get health data for a specific agent.
+   */
+  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+    return Promise.resolve({
+      status: AgentHealth.HEALTHY,
+      issues: [],
+      uptime: 0,
+    });
+  }
+
+  /**
+   * Get logs for a specific agent.
+   */
+  getAgentLogs(_agentId: string, _limit: number = 50): Promise<AgentLogEntry[]> {
+    // Agent-specific log files are not yet standardized in core.
+    return Promise.resolve([]);
+  }
+}

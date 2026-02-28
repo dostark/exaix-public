@@ -7,9 +7,9 @@
  * @related-files [src/schemas/request.ts, src/services/request_processor.ts]
  */
 import { parse as parseYaml } from "@std/yaml";
-import { type Request, RequestSchema } from "../schemas/request.ts";
+import { type Request, RequestSchema } from "../shared/schemas/request.ts";
 import type { DatabaseService } from "../services/db.ts";
-import { JSONValue, toSafeJson } from "../types.ts";
+import { JSONValue, toSafeJson } from "../shared/types/json.ts";
 
 /**
  * Result of parsing a request markdown file

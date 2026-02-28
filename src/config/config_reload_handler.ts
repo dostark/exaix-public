@@ -8,7 +8,7 @@
  */
 
 import type { ConfigService } from "./service.ts";
-import { LogMetadata } from "../types.ts";
+import { LogMetadata } from "../shared/types/json.ts";
 
 export type ConfigReloadLogger = {
   info: (

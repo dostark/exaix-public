@@ -12,10 +12,10 @@ import { join } from "@std/path";
 import { FlowLoader } from "../../flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../services/flow_validator.ts";
 import { EventLogger } from "../../services/event_logger.ts";
-import type { Config } from "../../config/schema.ts";
+import type { Config } from "../../shared/schemas/config.ts";
 import type { IDatabaseService } from "../../services/db.ts";
-import type { IModelProvider } from "../../ai/providers.ts";
-import type { IFlow } from "../../schemas/flow.ts";
+import { IModelProvider } from "../../ai/types.ts";
+import type { IFlow } from "../../shared/schemas/flow.ts";
 
 interface FlowListOptions {
   json?: boolean;

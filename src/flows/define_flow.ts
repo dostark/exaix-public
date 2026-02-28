@@ -6,9 +6,9 @@
  * @dependencies [FlowSchema, FlowEnums]
  * @related-files [src/schemas/flow.ts, src/enums.ts]
  */
-import { FlowSchema, type IFlow } from "../schemas/flow.ts";
-import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
-import { JSONValue } from "../types.ts";
+import { FlowSchema, type IFlow } from "../shared/schemas/flow.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../shared/enums.ts";
+import { JSONValue } from "../shared/types/json.ts";
 export function defineFlow(config: {
   id: string;
   name: string;

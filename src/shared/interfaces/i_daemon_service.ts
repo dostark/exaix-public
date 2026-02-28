@@ -1,0 +1,41 @@
+/**
+ * @module IdaemonService
+ * @path src/shared/interfaces/i_daemon_service.ts
+ * @description Module for IdaemonService.
+ * @architectural-layer Shared
+ * @dependencies [Enums, DaemonTypes]
+ * @related-files [src/shared/types/daemon.ts]
+ */
+import { DaemonStatus } from "../enums.ts";
+
+export interface IDaemonService {
+  /**
+   * Start the ExoFrame daemon.
+   */
+  start(): Promise<void>;
+
+  /**
+   * Stop the ExoFrame daemon.
+   */
+  stop(): Promise<void>;
+
+  /**
+   * Restart the ExoFrame daemon.
+   */
+  restart(): Promise<void>;
+
+  /**
+   * Get the current status of the daemon.
+   */
+  getStatus(): Promise<DaemonStatus>;
+
+  /**
+   * Get recent log entries from the daemon.
+   */
+  getLogs(): Promise<string[]>;
+
+  /**
+   * Get recent error entries from the daemon.
+   */
+  getErrors(): Promise<string[]>;
+}

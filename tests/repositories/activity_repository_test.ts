@@ -6,7 +6,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 import { assertSpyCalls, spy } from "@std/testing/mock";
 import { DatabaseActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { ActivityRepository } from "../../src/repositories/activity_repository.ts";

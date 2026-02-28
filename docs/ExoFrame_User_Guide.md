@@ -824,7 +824,7 @@ Branch: main
 
 Modified (2):
   M src/auth/handler.ts
-  M src/config/schema.ts
+  M src/shared/schemas/config.ts
 
 # Find all commits for a specific request
 $ exoctl git log --trace 550e8400-e29b-41d4-a716-446655440000
@@ -2381,7 +2381,7 @@ enable_sse = false
 
 **Best Practices:**
 
-1. **Never modify `src/config/constants.ts` directly** - All magic values are defined in `exo.config.toml`
+1. **Never modify `src/shared/constants.ts` directly** - All magic values are defined in `exo.config.toml`
 2. **Use `exo.config.sample.toml` as reference** - Contains documented examples for all settings
 3. **Validate after changes** - Run `exoctl daemon restart` to ensure config is valid
 

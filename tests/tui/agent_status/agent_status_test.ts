@@ -6,8 +6,8 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { AgentStatus, coerceAgentStatus, isAgentStatus } from "../../../src/tui/agent_status/agent_status.ts";
-import { TEST_AGENT_STATUS_INVALID } from "../../config/constants.ts";
+import { AgentStatus, coerceAgentStatus, isAgentStatus } from "../../../src/shared/status/agent_status.ts";
+import { TEST_AGENT_STATUS_INVALID } from "../../shared/constants.ts";
 
 Deno.test("isAgentStatus: accepts known values", () => {
   assertEquals(isAgentStatus(AgentStatus.ACTIVE), true);

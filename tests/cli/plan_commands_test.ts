@@ -6,8 +6,8 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { PlanStatus } from "../../src/plans/plan_status.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { PlanStatus } from "../../src/shared/status/plan_status.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";

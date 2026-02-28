@@ -1,3 +1,9 @@
+/**
+ * @module Bug_Investigation.Flow
+ * @path Blueprints/Flows/bug_investigation.flow.ts
+ * @description Module for bug_investigation.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 /**

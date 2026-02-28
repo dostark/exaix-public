@@ -31,7 +31,7 @@ ExoFrame's Native Flows (`src/flows/`) provide a lightweight (<700 LOC), type-sa
 
 ### Architecture
 
-ExoFrame Flows are implementation independent of the execution engine. They are explicitly defined data structures (Schema: `src/schemas/flow.ts`).
+ExoFrame Flows are implementation independent of the execution engine. They are explicitly defined data structures (Schema: `src/shared/schemas/flow.ts`).
 
 - **Waves**: The runner resolves the dependency graph into "waves" of parallel tasks.
 - **Fail-Fast**: Explicit error handling strategies defined in data.

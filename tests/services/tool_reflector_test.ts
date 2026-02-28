@@ -6,11 +6,11 @@
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
-import type { JSONObject } from "../../src/types.ts";
-import { CritiqueSeverity } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
+import { CritiqueSeverity } from "../../src/shared/enums.ts";
 
-import type { IModelProvider } from "../../src/ai/providers.ts";
+import { IModelProvider } from "../../src/ai/types.ts";
 import {
   createFastToolReflector,
   createStrictToolReflector,
@@ -19,7 +19,7 @@ import {
   IToolResult,
   ToolReflectionSchema,
 } from "../../src/services/tool_reflector.ts";
-import { JSONValue } from "../../src/types.ts";
+import { JSONValue } from "../../src/shared/types/json.ts";
 
 // ============================================================================
 // Mock LLM Provider

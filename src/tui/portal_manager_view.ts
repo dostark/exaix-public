@@ -7,7 +7,9 @@
  * @related-files [src/services/portal_service.ts, src/tui/tui_dashboard.ts]
  */
 
-import { type IPortalDetails, type IPortalInfo } from "../cli/commands/portal_commands.ts";
+import { type IPortalDetails, type IPortalInfo, type IVerificationResult } from "../shared/types/portal.ts";
+import { type IPortalService } from "../shared/interfaces/i_portal_service.ts";
+import { PortalExecutionStrategy } from "../shared/enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "../helpers/dialog_base.ts";
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
@@ -21,7 +23,7 @@ import {
   type ITreeNode,
   type TreeRenderOptions,
 } from "../helpers/tree_view.ts";
-import { DialogStatus, PortalStatus, TuiIcon } from "../enums.ts";
+import { DialogStatus, PortalStatus, TuiIcon } from "../shared/enums.ts";
 import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "../helpers/constants.ts";
 
 // ===== Portal View Extensions =====
@@ -31,20 +33,6 @@ export interface IPortalViewExtensions {
   detailContent: string[];
   /** Last refresh timestamp */
   lastRefresh: number;
-}
-
-// ===== Service Interface =====
-
-export interface IPortalService {
-  listPortals(): Promise<IPortalInfo[]>;
-  getPortalDetails(alias: string): Promise<IPortalDetails>;
-  openPortal(alias: string): Promise<boolean>;
-  closePortal(alias: string): Promise<boolean>;
-  refreshPortal(alias: string): Promise<boolean>;
-  removePortal(alias: string, options?: { keepCard?: boolean }): Promise<boolean>;
-  quickJumpToPortalDir(alias: string): Promise<string>;
-  getPortalFilesystemPath(alias: string): Promise<string>;
-  getPortalActivityLog(alias: string): string[];
 }
 
 // ===== Portal Actions =====
@@ -528,6 +516,34 @@ export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
 
 export class PortalManagerView implements IPortalService {
   constructor(public readonly service: IPortalService) {}
+
+  add(
+    targetPath: string,
+    alias: string,
+    options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
+  ): Promise<void> {
+    return this.service.add(targetPath, alias, options);
+  }
+
+  list(): Promise<IPortalInfo[]> {
+    return this.service.list();
+  }
+
+  show(alias: string): Promise<IPortalDetails> {
+    return this.service.show(alias);
+  }
+
+  remove(alias: string, options?: { keepCard?: boolean }): Promise<void> {
+    return this.service.remove(alias, options);
+  }
+
+  verify(alias?: string): Promise<IVerificationResult[]> {
+    return this.service.verify(alias);
+  }
+
+  refresh(alias: string): Promise<void> {
+    return this.service.refresh(alias);
+  }
 
   createTuiSession(portals: IPortalInfo[], useColors = true): PortalManagerTuiSession {
     return new PortalManagerTuiSession(portals, this.service, useColors);

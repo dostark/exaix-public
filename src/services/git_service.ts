@@ -14,9 +14,9 @@
  * @related-files [src/services/plan_executor.ts]
  */
 
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "./db.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 import {
   DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
   DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
@@ -25,9 +25,9 @@ import {
   DEFAULT_GIT_MAX_RETRIES,
   DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
   DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 import { SecureRandom } from "../helpers/secure_random.ts";
-import { ActivityActor } from "../enums.ts";
+import { ActivityActor } from "../shared/enums.ts";
 
 export interface IGitServiceConfig {
   config: Config;

@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
 import { TestEnvironment } from "./helpers/test_environment.ts";
 

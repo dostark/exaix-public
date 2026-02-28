@@ -11,7 +11,7 @@
 import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { inject } from "../../scripts/inject_agent_context.ts";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 Deno.test("Claude enhancements: verify all required files exist", async () => {
   // Verify all enhanced files were created

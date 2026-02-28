@@ -7,7 +7,7 @@
  * @dependencies [src/types.ts]
  * @related-files [src/flows/runner.ts, src/flows/condition_evaluator.ts]
  */
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Passthrough transform - returns input unchanged

@@ -9,10 +9,10 @@ import { assertEquals } from "@std/assert";
 
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { createMockConfig } from "../helpers/config.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
-import type { IExecutionMemory, IProposalLearning } from "../../src/schemas/memory_bank.ts";
+import type { IExecutionMemory, IProposalLearning } from "../../src/shared/schemas/memory_bank.ts";
 
 Deno.test("MemoryExtractorService: logActivity errors do not break createProposal", async () => {
   const root = await Deno.makeTempDir({ prefix: "memory-extractor-" });

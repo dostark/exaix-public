@@ -10,7 +10,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { type IReviewMetadata, ReviewCommands } from "../src/cli/commands/review_commands.ts";
-import { PlanStatus } from "../src/plans/plan_status.ts";
+import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
 import type { ICommandContext } from "../src/cli/base.ts";
 import { createMockConfig } from "./helpers/config.ts";

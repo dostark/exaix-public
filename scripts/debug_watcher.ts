@@ -1,3 +1,7 @@
+/**
+ * @module debug_watcher
+ * @description Script: debug_watcher
+ */
 import { createWatcherTestContext } from "../tests/helpers/watcher_test_helper.ts";
 import process from "node:process";
 

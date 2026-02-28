@@ -6,9 +6,9 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { MCPTransport } from "../../src/enums.ts";
+import { MCPTransport } from "../../src/shared/enums.ts";
 
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
 import { createMCPRequest, initMCPTestWithoutPortal } from "./helpers/test_setup.ts";
 

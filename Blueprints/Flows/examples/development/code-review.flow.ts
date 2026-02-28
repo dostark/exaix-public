@@ -1,3 +1,9 @@
+/**
+ * @module CodeReview.Flow
+ * @path Blueprints/Flows/examples/development/code-review.flow.ts
+ * @description Module for codereview.flow.
+ */
+
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
 
 /**

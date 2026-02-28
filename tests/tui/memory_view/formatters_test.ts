@@ -16,7 +16,7 @@ import type {
   ILearning,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../../src/schemas/memory_bank.ts";
+} from "../../../src/shared/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -25,7 +25,7 @@ import {
   MemoryScope,
   MemorySource,
   TuiNodeType,
-} from "../../../src/enums.ts";
+} from "../../../src/shared/enums.ts";
 import { createMockService } from "./memory_test_helpers.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
@@ -33,7 +33,7 @@ import {
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
 } from "../../../src/helpers/constants.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
 function node(id: string, label = id, data?: unknown, badge?: number): ITreeNode {
   return {

@@ -1,0 +1,55 @@
+/**
+ * @module IconfigService
+ * @path src/shared/interfaces/i_config_service.ts
+ * @description Module for IconfigService.
+ * @architectural-layer Shared
+ * @dependencies [ConfigSchema]
+ * @related-files [src/shared/schemas/config.ts]
+ */
+
+import type { Config } from "../schemas/config.ts";
+import type { PortalExecutionStrategy } from "../enums.ts";
+
+export interface IPortalConfigEntry {
+  alias: string;
+  target_path: string;
+  created?: string;
+  default_branch?: string;
+  execution_strategy?: PortalExecutionStrategy;
+}
+
+export interface IConfigService {
+  /**
+   * Get the current configuration object.
+   */
+  get(): Config;
+
+  /**
+   * Reload configuration from disk.
+   */
+  reload(): Config;
+
+  /**
+   * Add a new portal to the configuration.
+   */
+  addPortal(
+    alias: string,
+    targetPath: string,
+    options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
+  ): Promise<void>;
+
+  /**
+   * Remove a portal from the configuration.
+   */
+  removePortal(alias: string): Promise<void>;
+
+  /**
+   * Get all configured portals.
+   */
+  getPortals(): IPortalConfigEntry[];
+
+  /**
+   * Get configuration for a specific portal.
+   */
+  getPortal(alias: string): IPortalConfigEntry | undefined;
+}

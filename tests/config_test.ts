@@ -7,10 +7,10 @@
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
 import { parse as parseToml } from "@std/toml";
-import { LogLevel, ProviderCostTier } from "../src/enums.ts";
+import { LogLevel, ProviderCostTier } from "../src/shared/enums.ts";
 
 import { ConfigService } from "../src/config/service.ts";
-import { ConfigSchema } from "../src/config/schema.ts";
+import { ConfigSchema } from "../src/shared/schemas/config.ts";
 import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 

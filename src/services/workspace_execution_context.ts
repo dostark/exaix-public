@@ -15,7 +15,7 @@
  */
 
 import { join, normalize } from "@std/path";
-import type { IPortalConfig } from "../config/schema.ts";
+import type { IPortalConfig } from "../shared/schemas/config.ts";
 import { existsSync } from "@std/fs";
 
 /**

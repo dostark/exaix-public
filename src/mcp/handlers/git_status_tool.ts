@@ -7,10 +7,10 @@
  * @related-files [src/mcp/tool_handler.ts, src/services/git_service.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
-import { type MCPToolResponse } from "../../schemas/mcp.ts";
-import type { JSONValue } from "../../types.ts";
-import { PortalOperation } from "../../enums.ts";
-import { GitStatusToolArgsSchema } from "../../schemas/mcp.ts";
+import { type MCPToolResponse } from "../../shared/schemas/mcp.ts";
+import type { JSONValue } from "../../shared/types/json.ts";
+import { PortalOperation } from "../../shared/enums.ts";
+import { GitStatusToolArgsSchema } from "../../shared/schemas/mcp.ts";
 
 /**
  * GitStatusTool - Queries git repository status in portals

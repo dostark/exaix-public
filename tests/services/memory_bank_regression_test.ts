@@ -6,17 +6,23 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { MemoryType } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { MemoryType } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import {
   type ISearchDeps,
   searchByKeyword,
   searchByTags,
   searchMemoryAdvanced,
 } from "../../src/services/memory_search.ts";
-import { type IProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { type IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
 import { createTestLearning } from "./helpers/memory_test_helpers.ts";
-import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+} from "../../src/shared/enums.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });

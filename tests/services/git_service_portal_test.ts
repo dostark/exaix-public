@@ -13,7 +13,7 @@ import { GitService } from "../../src/services/git_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { GitTestHelper, setupGitRepo } from "../helpers/git_test_helper.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 
 /**
  * TDD Tests for GitService Portal Support

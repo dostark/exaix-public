@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import type { IStructuredLogEntry } from "../../../src/services/structured_logger.ts";
-import { LogLevel } from "../../../src/enums.ts";
+import { LogLevel } from "../../../src/shared/enums.ts";
 import {
   findAgentLogs,
   findRelatedLogs,

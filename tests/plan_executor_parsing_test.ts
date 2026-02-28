@@ -19,7 +19,7 @@ interface Frontmatter {
   created_at?: string;
   [key: string]: unknown;
 }
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 
 Deno.test("Plan Executor - Parsing", async (t) => {
   const testDir = await Deno.makeTempDir({ prefix: "plan-parsing-test-" });

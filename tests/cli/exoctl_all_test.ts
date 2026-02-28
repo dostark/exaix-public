@@ -17,14 +17,14 @@ import {
   PortalOperation,
   PortalStatus,
   RequestPriority,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
-import type { RequestStatusType } from "../../src/requests/request_status.ts";
-import type { PlanStatusType } from "../../src/plans/plan_status.ts";
+import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
+import type { PlanStatusType } from "../../src/shared/status/plan_status.ts";
 import type { BlueprintCreateOptions, BlueprintRemoveOptions } from "../../src/cli/commands/blueprint_commands.ts";
 
 /*

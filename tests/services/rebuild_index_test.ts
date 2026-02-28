@@ -6,16 +6,16 @@
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel } from "../../src/enums.ts";
+import type { ILearning, IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
+import { ConfidenceLevel } from "../../src/shared/enums.ts";
 import { getMemoryGlobalDir, getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Setup Helpers =====

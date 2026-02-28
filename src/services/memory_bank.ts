@@ -13,18 +13,18 @@
 
 import { join } from "@std/path";
 import { ensureDir, ensureDirSync, exists } from "@std/fs";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "./db.ts";
-import { JSONValue } from "../types.ts";
-import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryType } from "../enums.ts";
-import { MemoryStatus } from "../memory/memory_status.ts";
-import { LOCK_ACQUIRE_TIMEOUT_MS } from "../config/constants.ts";
+import { JSONValue } from "../shared/types/json.ts";
+import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryType } from "../shared/enums.ts";
+import { MemoryStatus } from "../shared/status/memory_status.ts";
+import { LOCK_ACQUIRE_TIMEOUT_MS } from "../shared/constants.ts";
 import {
   ExecutionMemorySchema,
   GlobalMemorySchema,
   LearningSchema,
   ProjectMemorySchema,
-} from "../schemas/memory_bank.ts";
+} from "../shared/schemas/memory_bank.ts";
 import {
   searchByKeyword as searchByKeywordHelper,
   searchByTags as searchByTagsHelper,
@@ -38,73 +38,16 @@ import type {
   IGlobalMemory,
   ILearning,
   IMemorySearchResult,
-  IMemoryUpdateProposal,
   IPattern,
   IProjectMemory,
   IReference,
-} from "../schemas/memory_bank.ts";
-
-export type {
-  IActivitySummary,
-  IDecision,
-  IExecutionMemory,
-  IGlobalMemory,
-  ILearning,
-  IMemorySearchResult,
-  IMemoryUpdateProposal,
-  IPattern,
-  IProjectMemory,
-  IReference,
-};
+} from "../shared/schemas/memory_bank.ts";
 
 import { parseDecisions, parsePatterns } from "./memory_bank/parsers.ts";
 import { formatExecutionSummary } from "./memory_bank/formatters.ts";
 import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } from "./memory_bank/index_builder.ts";
-import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
-
-/**
- * Memory Bank Service Interface
- */
-export interface IMemoryBankService {
-  getProjectMemory(portal: string): Promise<IProjectMemory | null>;
-  createProjectMemory(projectMem: IProjectMemory): Promise<void>;
-  updateProjectMemory(portal: string, updates: Partial<Omit<IProjectMemory, "portal">>): Promise<void>;
-  addPattern(portal: string, pattern: IPattern): Promise<void>;
-  addDecision(portal: string, decision: IDecision): Promise<void>;
-  createExecutionRecord(execution: IExecutionMemory): Promise<void>;
-  getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null>;
-  getExecutionHistory(portal?: string, limit?: number): Promise<IExecutionMemory[]>;
-  getGlobalMemory(): Promise<IGlobalMemory | null>;
-  initGlobalMemory(): Promise<void>;
-  addGlobalLearning(learning: ILearning): Promise<void>;
-  promoteLearning(
-    portal: string,
-    promotion: {
-      type: MemoryType.PATTERN | MemoryType.DECISION;
-      name: string;
-      title: string;
-      description: string;
-      category: ILearning["category"];
-      tags: string[];
-      confidence: ILearning["confidence"];
-    },
-  ): Promise<string>;
-  demoteLearning(learningId: string, targetPortal: string): Promise<void>;
-  searchMemory(query: string, options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
-  searchByTags(tags: string[], options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
-  searchByKeyword(keyword: string, options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
-  searchMemoryAdvanced(
-    options: {
-      tags?: string[];
-      keyword?: string;
-      portal?: string;
-      limit?: number;
-    },
-  ): Promise<IMemorySearchResult[]>;
-  getRecentActivity(limit?: number): Promise<IActivitySummary[]>;
-  rebuildIndices(): Promise<void>;
-  rebuildIndicesWithEmbeddings(embeddingService: IMemoryEmbeddingService): Promise<void>;
-}
+import type { IMemoryEmbeddingService } from "../shared/interfaces/i_memory_embedding_service.ts";
+import { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
 
 /**
  * Memory Bank Service
@@ -130,7 +73,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param db - Database service for IActivity Journal integration
    */
   constructor(private config: Config, private db: IDatabaseService) {
-    this.memoryRoot = join(config.system.root, config.paths.memory);
+    this.memoryRoot = join(config.system.root!, config.paths.memory!);
     // Use subdirectory names directly, not full paths (which already include Memory/)
     this.projectsDir = join(this.memoryRoot, "Projects");
     this.executionDir = join(this.memoryRoot, "Execution");
@@ -621,11 +564,15 @@ export class MemoryBankService implements IMemoryBankService {
 
       // Update statistics
       globalMem.statistics.total_learnings = globalMem.learnings.length;
-      globalMem.statistics.by_category[learning.category] = (globalMem.statistics.by_category[learning.category] || 0) +
-        1;
+      if (learning.category) {
+        globalMem.statistics.by_category[learning.category] =
+          (globalMem.statistics.by_category[learning.category] as number || 0) +
+          1;
+      }
 
       if (learning.project) {
-        globalMem.statistics.by_project[learning.project] = (globalMem.statistics.by_project[learning.project] || 0) +
+        globalMem.statistics.by_project[learning.project] =
+          (globalMem.statistics.by_project[learning.project] as number || 0) +
           1;
       }
 
@@ -752,10 +699,10 @@ export class MemoryBankService implements IMemoryBankService {
 
     // Add to project as a pattern (most common case)
     const pattern: IPattern = {
-      name: learning.title,
-      description: learning.description,
+      name: learning.title!,
+      description: learning.description!,
       examples: [],
-      tags: learning.tags,
+      tags: learning.tags || [],
     };
 
     await this.addPattern(targetPortal, pattern);
@@ -765,15 +712,17 @@ export class MemoryBankService implements IMemoryBankService {
 
     // Update statistics
     globalMem.statistics.total_learnings = globalMem.learnings.length;
-    globalMem.statistics.by_category[learning.category] = Math.max(
-      0,
-      (globalMem.statistics.by_category[learning.category] || 1) - 1,
-    );
+    if (learning.category) {
+      globalMem.statistics.by_category[learning.category] = Math.max(
+        0,
+        (globalMem.statistics.by_category[learning.category] as number || 1) - 1,
+      );
+    }
 
     if (learning.project) {
       globalMem.statistics.by_project[learning.project] = Math.max(
         0,
-        (globalMem.statistics.by_project[learning.project] || 1) - 1,
+        (globalMem.statistics.by_project[learning.project] as number || 1) - 1,
       );
     }
 
@@ -814,7 +763,7 @@ export class MemoryBankService implements IMemoryBankService {
     md += `**Category:** ${learning.category}\n`;
     md += `**Confidence:** ${learning.confidence}\n`;
 
-    if (learning.tags.length > 0) {
+    if (learning.tags && learning.tags.length > 0) {
       md += `**Tags:** ${learning.tags.join(", ")}\n`;
     }
 

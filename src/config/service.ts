@@ -11,10 +11,10 @@ import { parse } from "@std/toml";
 import { dirname, isAbsolute, join } from "@std/path";
 import { crypto } from "@std/crypto";
 import { encodeHex } from "@std/encoding/hex";
-import { Config, ConfigSchema } from "./schema.ts";
-import { PortalExecutionStrategy } from "../enums.ts";
+import { Config, ConfigSchema } from "../shared/schemas/config.ts";
+import { PortalExecutionStrategy } from "../shared/enums.ts";
 import { logInfo } from "../services/structured_logger.ts";
-import { ExoPathDefaults } from "./constants.ts";
+import { ExoPathDefaults } from "../shared/constants.ts";
 
 export class ConfigService {
   private readonly configPath: string;
@@ -209,7 +209,7 @@ stability_check = true
       execution_strategy?: PortalExecutionStrategy;
     }
     | undefined {
-    return this.config.portals?.find((p) => p.alias === alias);
+    return (this.config.portals || []).find((p: { alias: string }) => p.alias === alias);
   }
 
   public async updatePortalVerification(_alias: string): Promise<void> {

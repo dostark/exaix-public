@@ -6,9 +6,9 @@
  */
 import { assert, assertEquals, assertExists } from "@std/assert";
 
-import { PortalOperation } from "../src/enums.ts";
+import { PortalOperation } from "../src/shared/enums.ts";
 
-import { MemoryOperation } from "../src/enums.ts";
+import { MemoryOperation } from "../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";

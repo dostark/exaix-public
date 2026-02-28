@@ -11,10 +11,12 @@ import { z } from "zod";
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
-import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
-import { JSONValue } from "../types.ts";
+import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
+import { JSONValue } from "../shared/types/json.ts";
+import { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
+import { IJournalFilterOptions } from "../shared/types/database.ts";
 
 export type SqliteParam = string | number | boolean | null;
 
@@ -51,27 +53,7 @@ interface DatabaseConfigExtended {
   half_open_success_threshold?: number;
 }
 
-export interface IDatabaseService {
-  logActivity(
-    actor: string,
-    actionType: string,
-    target: string | null,
-    payload: Record<string, JSONValue>,
-    traceId?: string,
-    agentId?: string | null,
-  ): void;
-  waitForFlush(): Promise<void>;
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
-  close?(): Promise<void>;
-  preparedGet<T>(query: string, params?: SqliteParam[]): Promise<T | null>;
-  preparedAll<T>(query: string, params?: SqliteParam[]): Promise<T[]>;
-  preparedRun(query: string, params?: SqliteParam[]): Promise<unknown>;
-  getActivitiesByTrace(traceId: string): ActivityRecord[];
-  getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]>;
-  getActivitiesByActionType(actionType: string): ActivityRecord[];
-  getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]>;
-  getRecentActivity(limit?: number): Promise<ActivityRecord[]>;
-}
+export type { IDatabaseService };
 
 export class DatabaseService implements IDatabaseService {
   private db: Database;
@@ -83,7 +65,7 @@ export class DatabaseService implements IDatabaseService {
   private readonly dbBreaker: CircuitBreaker;
 
   constructor(config: Config) {
-    const dbDir = join(config.system.root, config.paths.runtime);
+    const dbDir = join(config.system.root!, config.paths.runtime!);
     const dbPath = join(dbDir, "journal.db");
 
     // Ensure database directory exists (fixes CI issues with temp directories)
@@ -428,7 +410,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Query activity journal with flexible filters
    */
-  async queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  async queryActivity(filter: IJournalFilterOptions): Promise<ActivityRecord[]> {
     // Flush pending logs before querying
     if (this.flushTimer !== null) {
       clearTimeout(this.flushTimer);
@@ -518,7 +500,7 @@ export class DatabaseService implements IDatabaseService {
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.run(...params)));
   }
 
-  private buildWhereClause(filter: JournalFilterOptions, params: SqliteParam[]): string {
+  private buildWhereClause(filter: IJournalFilterOptions, params: SqliteParam[]): string {
     const conditions: string[] = [];
 
     if (filter.traceId) {
@@ -570,21 +552,4 @@ interface RetryOptions {
   maxDelay?: number;
   backoffFactor?: number;
   jitter?: boolean;
-}
-
-/**
- * Filter options for querying activity journal
- */
-export interface JournalFilterOptions {
-  traceId?: string;
-  actionType?: string;
-  agentId?: string;
-  limit?: number;
-  since?: string; // ISO date string
-  payload?: string; // LIKE pattern
-  actor?: string;
-  target?: string;
-  distinct?: string; // field name for DISTINCT
-  count?: boolean; // if true, return count aggregation
-  orConditions?: JournalFilterOptions[]; // OR conditions
 }

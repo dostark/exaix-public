@@ -17,8 +17,8 @@ import {
   MockStructuredLogger,
   MockStructuredLoggerService,
 } from "../../src/tui/tui_dashboard_mocks.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import { RequestPriority } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
+import { RequestPriority } from "../../src/shared/enums.ts";
 import {
   TEST_MODEL_OPENAI,
   TEST_PROPOSAL_ID,
@@ -67,23 +67,25 @@ Deno.test("MockPortalService: all methods", async () => {
   const service = new MockPortalService();
   const portals = await service.listPortals();
   if (!Array.isArray(portals)) throw new Error("Portals not array");
-  const details = await service.getPortalDetails();
+  const details = await service.getPortalDetails("main");
   if (typeof details !== "object" || !details.alias) throw new Error("Invalid portal details");
-  if (await service.openPortal() !== true) throw new Error("openPortal failed");
-  if (await service.closePortal() !== true) throw new Error("closePortal failed");
-  if (await service.refreshPortal() !== true) throw new Error("refreshPortal failed");
-  if (await service.removePortal() !== true) throw new Error("removePortal failed");
-  if (typeof await service.quickJumpToPortalDir() !== "string") throw new Error("quickJumpToPortalDir failed");
-  if (typeof await service.getPortalFilesystemPath() !== "string") throw new Error("getPortalFilesystemPath failed");
-  if (!Array.isArray(service.getPortalActivityLog())) throw new Error("getPortalActivityLog failed");
+  if (await service.openPortal("main") !== true) throw new Error("openPortal failed");
+  if (await service.closePortal("main") !== true) throw new Error("closePortal failed");
+  if (await service.refreshPortal("main") !== true) throw new Error("refreshPortal failed");
+  if (await service.removePortal("main") !== true) throw new Error("removePortal failed");
+  if (typeof await service.quickJumpToPortalDir("main") !== "string") throw new Error("quickJumpToPortalDir failed");
+  if (typeof await service.getPortalFilesystemPath("main") !== "string") {
+    throw new Error("getPortalFilesystemPath failed");
+  }
+  if (!Array.isArray(service.getPortalActivityLog("main"))) throw new Error("getPortalActivityLog failed");
 });
 
 Deno.test("MockPlanService: all methods", async () => {
   const service = new MockPlanService();
   if (!Array.isArray(await service.listPending())) throw new Error("listPending failed");
-  if (typeof await service.getDiff() !== "string") throw new Error("getDiff failed");
-  if (await service.approve() !== true) throw new Error("approve failed");
-  if (await service.reject() !== true) throw new Error("reject failed");
+  if (typeof await service.getDiff("test-plan-id") !== "string") throw new Error("getDiff failed");
+  if (await service.approve("test-plan-id") !== true) throw new Error("approve failed");
+  if (await service.reject("test-plan-id") !== true) throw new Error("reject failed");
 });
 
 Deno.test("MockLogService: all methods", async () => {
@@ -201,10 +203,10 @@ Deno.test("MockStructuredLogger: methods are callable", async () => {
 
 Deno.test("MockStructuredLoggerService: returns empty logs and unsubscribe", async () => {
   const service = new MockStructuredLoggerService();
-  if (!Array.isArray(await service.getStructuredLogs())) throw new Error("getStructuredLogs failed");
-  if (!Array.isArray(await service.getLogsByCorrelationId())) throw new Error("getLogsByCorrelationId failed");
-  if (!Array.isArray(await service.getLogsByTraceId())) throw new Error("getLogsByTraceId failed");
-  if (!Array.isArray(await service.getLogsByAgentId())) throw new Error("getLogsByAgentId failed");
+  if (!Array.isArray(await service.getStructuredLogs({}))) throw new Error("getStructuredLogs failed");
+  if (!Array.isArray(await service.getLogsByCorrelationId("cid"))) throw new Error("getLogsByCorrelationId failed");
+  if (!Array.isArray(await service.getLogsByTraceId("tid"))) throw new Error("getLogsByTraceId failed");
+  if (!Array.isArray(await service.getLogsByAgentId("aid"))) throw new Error("getLogsByAgentId failed");
   const unsubscribe = service.subscribeToLogs((_entry: any) => {});
   if (typeof unsubscribe !== "function") throw new Error("subscribeToLogs failed");
   await service.exportLogs("file", []);

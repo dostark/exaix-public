@@ -7,9 +7,9 @@
  * @related-files [src/tui/request_manager_view.ts]
  */
 
-import { MessageType } from "../../enums.ts";
+import { MessageType } from "../../shared/enums.ts";
 import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
-import { DialogStatus, RequestDialogType } from "../../enums.ts";
+import { DialogStatus, RequestDialogType } from "../../shared/enums.ts";
 
 export type RequestDialogTypeUnion = RequestDialogType | null;
 

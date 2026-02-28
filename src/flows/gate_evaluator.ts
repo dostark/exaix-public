@@ -17,7 +17,7 @@ import {
   getCriteriaByNames,
 } from "./evaluation_criteria.ts";
 import { IStepResult } from "./flow_runner.ts";
-import { FlowGateOnFail } from "../enums.ts";
+import { FlowGateOnFail } from "../shared/enums.ts";
 
 /**
  * Result of gate evaluation

@@ -8,24 +8,20 @@
  */
 
 // --- Adapter: PlanCommands as PlanService ---
-import type { IPlanMetadata, PlanCommands } from "../cli/commands/plan_commands.ts";
+import { type IPlanDetails, type IPlanMetadata } from "../shared/types/plan.ts";
+import { IPlanService } from "../shared/interfaces/i_plan_service.ts";
+import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
+import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
-import { DialogStatus } from "../enums.ts";
+import { DialogStatus } from "../shared/enums.ts";
 import { createGroupNode, createNode, flattenTree, type ITreeNode } from "../helpers/tree_view.ts";
-import type { JSONObject } from "../types.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 
 // ===== Interfaces =====
 
-export interface IPlan {
-  id: string;
-  subject: string;
-  author?: string;
-  status?: PlanStatusType;
-  created_at?: string;
-}
+export type IPlan = IPlanMetadata;
 
 /**
  * Plan-specific state extensions beyond BaseTreeView
@@ -37,13 +33,6 @@ export interface IPlanViewExtensions {
   showDiff: boolean;
   /** Current diff content */
   diff: string;
-}
-
-export interface IPlanService {
-  listPending(): Promise<IPlan[]>;
-  getDiff(planId: string): Promise<string>;
-  approve(planId: string, reviewer: string): Promise<boolean>;
-  reject(planId: string, reviewer: string, reason?: string): Promise<boolean>;
 }
 
 export interface IDbLike {
@@ -167,7 +156,10 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     const filter = this.state.filterText.toLowerCase();
 
     for (const plan of plans) {
-      if (filter && !plan.id.toLowerCase().includes(filter) && !plan.subject.toLowerCase().includes(filter)) {
+      if (
+        filter && !plan.id.toLowerCase().includes(filter) &&
+        !(plan.subject && plan.subject.toLowerCase().includes(filter))
+      ) {
         continue;
       }
 
@@ -601,6 +593,25 @@ export class DbLikePlanServiceAdapter implements IPlanService {
     });
     return true;
   }
+  revise(_planId: string, _comments: string[]): Promise<void> {
+    return Promise.resolve();
+  }
+  list(_status?: PlanStatusType): Promise<IPlan[]> {
+    return this.listPending();
+  }
+  async show(planId: string): Promise<IPlanDetails> {
+    const plans = await this.listPending();
+    const p = plans.find((x) => x.id === planId);
+    return {
+      metadata: {
+        id: planId,
+        subject: p?.subject || "Unknown",
+        status: p?.status || PlanStatus.PENDING,
+        created_at: p?.created_at || new Date().toISOString(),
+      },
+      content: "Content not available in DB-like adapter",
+    } as IPlanDetails;
+  }
 }
 
 /**
@@ -632,6 +643,15 @@ export class PlanCommandsServiceAdapter implements IPlanService {
     await this.cmd.reject(planId, reviewer);
     return true;
   }
+  async revise(planId: string, comments: string[]): Promise<void> {
+    await this.cmd.revise(planId, comments);
+  }
+  async list(status?: PlanStatusType): Promise<IPlan[]> {
+    return await this.cmd.list(status);
+  }
+  async show(planId: string): Promise<IPlanDetails> {
+    return await this.cmd.show(planId);
+  }
 }
 
 /**
@@ -653,5 +673,23 @@ export class MinimalPlanServiceMock implements IPlanService {
   }
   async reject(_planId: string, _reviewer: string, _reason?: string): Promise<boolean> {
     return await Promise.resolve(true);
+  }
+  revise(_planId: string, _comments: string[]): Promise<void> {
+    return Promise.resolve();
+  }
+  list(_status?: PlanStatusType): Promise<IPlan[]> {
+    return Promise.resolve(this.plans);
+  }
+  show(planId: string): Promise<IPlanDetails> {
+    const p = this.plans.find((x) => x.id === planId);
+    return Promise.resolve({
+      metadata: {
+        id: planId,
+        subject: p?.subject || "Mock Plan",
+        status: p?.status || PlanStatus.PENDING,
+        created_at: p?.created_at || new Date().toISOString(),
+      },
+      content: "Mock Content",
+    } as IPlanDetails);
   }
 }

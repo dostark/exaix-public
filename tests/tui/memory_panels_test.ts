@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { MemoryReferenceType } from "../../src/enums.ts";
+import { MemoryReferenceType } from "../../src/shared/enums.ts";
 
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import {
   ExecutionStatus,
@@ -17,9 +17,9 @@ import {
   MemoryScope,
   MemorySource,
   MemoryType,
-} from "../../src/enums.ts";
+} from "../../src/shared/enums.ts";
 
-import { ConfidenceLevel } from "../../src/enums.ts";
+import { ConfidenceLevel } from "../../src/shared/enums.ts";
 import {
   type IPanelRenderOptions,
   MemoryColors,
@@ -38,7 +38,7 @@ import type {
   IMemorySearchResult,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 
 const defaultOptions: IPanelRenderOptions = {
   width: 80,

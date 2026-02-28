@@ -1,3 +1,7 @@
+/**
+ * @module ci
+ * @description Script: ci
+ */
 import { Command } from "jsr:@cliffy/command@^1.0.0-rc.8";
 
 /**

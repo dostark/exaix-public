@@ -12,7 +12,7 @@ import { FileWatcher } from "../src/services/watcher.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import type { ConfigReloadLogger } from "../src/config/config_reload_handler.ts";
 import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
-import { LogLevel } from "../src/enums.ts";
+import { LogLevel } from "../src/shared/enums.ts";
 
 /**
  * Test for "Investigate why exoctl portal add not showing in daemon logs"

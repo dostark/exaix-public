@@ -5,8 +5,14 @@
  * including multi-project patterns, decision logs, and execution records.
  */
 
-import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import type {
   IChanges,
   IDecision,
@@ -15,7 +21,7 @@ import type {
   IPattern,
   IProjectMemory,
   IReference,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 
 /**
  * Builder for IProjectMemory objects to simplify test data creation

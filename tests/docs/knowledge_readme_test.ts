@@ -6,7 +6,7 @@
  */
 
 import { assert, assertStringIncludes } from "@std/assert";
-import { MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 
 async function readMemoryBanksDoc(): Promise<string> {

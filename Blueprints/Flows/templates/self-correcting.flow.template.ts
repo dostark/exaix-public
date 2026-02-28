@@ -1,3 +1,9 @@
+/**
+ * @module SelfCorrecting.Flow.Template
+ * @path Blueprints/Flows/templates/self-correcting.flow.template.ts
+ * @description Module for selfcorrecting.flow.template.
+ */
+
 import { defineFlow } from "../../../src/flows/define_flow.ts";
 
 /**

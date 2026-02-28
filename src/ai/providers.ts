@@ -18,7 +18,6 @@ declare const Deno: { env: { get(key: string): string | undefined } };
 
 import { ProviderRegistry } from "./provider_registry.ts";
 import { IModelOptions, IModelProvider, IResolvedProviderOptions } from "./types.ts";
-export type { IModelOptions, IModelProvider };
 import {
   createOpenAIChatCompletionsRequestInit,
   extractOpenAIContent,
@@ -41,9 +40,9 @@ import {
   DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS,
   DEFAULT_OPENAI_TIMEOUT_MS,
   MOCK_DELAY_MS,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
-import { MockStrategy, ProviderType } from "../enums.ts";
+import { MockStrategy, ProviderType } from "../shared/enums.ts";
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
 
 // ============================================================================

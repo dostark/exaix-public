@@ -5,13 +5,13 @@
  * execution to interactive approval and promote/search workflows.
  */
 
-import { ConfidenceLevel } from "../../src/enums.ts";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { ConfidenceLevel } from "../../src/shared/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
-import { FlowOutputFormat } from "../../src/enums.ts";
+import { FlowOutputFormat } from "../../src/shared/enums.ts";
 
-import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { assertEquals, assertExists, assertGreaterOrEqual, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
@@ -20,7 +20,7 @@ import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { IExecutionMemory, ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
+import type { IExecutionMemory, ILearning, IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Full Workflow Tests =====

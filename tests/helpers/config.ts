@@ -5,11 +5,11 @@
  * ensuring stable behavior across AI, database, and infrastructure tests.
  */
 
-import { type Config, ConfigSchema } from "../../src/config/schema.ts";
+import { type Config, ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
 import * as DEFAULTS from "../../src/config/constants.ts";
-import { SqliteJournalMode } from "../../src/enums.ts";
+import { SqliteJournalMode } from "../../src/shared/enums.ts";
 
 /**
  * Creates a mock configuration for testing.

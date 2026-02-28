@@ -9,7 +9,7 @@
 
 import type { IStructuredLogEntry } from "../services/structured_logger.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
-import type { JSONObject } from "../types.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 
 /**
  * Log stream configuration

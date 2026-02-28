@@ -5,7 +5,7 @@
  * color mode toggles, and UI spinner animation logic.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { ExecutionStatus, MemoryType } from "../../src/enums.ts";
+import { ExecutionStatus, MemoryType } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import {
   createMockExecution,

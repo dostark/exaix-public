@@ -12,9 +12,9 @@
  * @related-files [src/ai/factories/mock_factory.ts, tests/ai/mock_llm_provider_test.ts]
  */
 
-import { MockStrategy } from "../../enums.ts";
+import { MockStrategy } from "../../shared/enums.ts";
 import { IModelOptions, IModelProvider } from "../types.ts";
-import { MOCK_DELAY_MS, MOCK_INPUT_TOKENS, MOCK_OUTPUT_TOKENS } from "../../config/constants.ts";
+import { MOCK_DELAY_MS, MOCK_INPUT_TOKENS, MOCK_OUTPUT_TOKENS } from "../../shared/constants.ts";
 
 // ============================================================================
 // Types and Interfaces

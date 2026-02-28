@@ -8,8 +8,8 @@
  */
 
 import { dirname, join, resolve } from "@std/path";
-import { IFlow } from "../schemas/flow.ts";
-import { FlowSchema } from "../schemas/flow.ts";
+import { IFlow } from "../shared/schemas/flow.ts";
+import { FlowSchema } from "../shared/schemas/flow.ts";
 
 /**
  * Dynamic import required for runtime module loading (documented in CODE_STYLE.md)

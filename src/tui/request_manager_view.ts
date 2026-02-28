@@ -11,8 +11,8 @@ import { KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingCategory } from "../helpers/keyboard.ts";
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
-import { MessageType, RequestPriority } from "../enums.ts";
-import { isRequestStatus, RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
+import { MessageType, RequestPriority } from "../shared/enums.ts";
+import { isRequestStatus, RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
 import {
   createGroupNode,
   createNode,
@@ -37,51 +37,19 @@ import {
   processDialogCompletion as helperProcessDialogCompletion,
   type RequestDialogTypeUnion,
 } from "./request_manager/dialog_handlers.ts";
-import { RequestDialogType } from "../enums.ts";
+import { RequestDialogType } from "../shared/enums.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 
-// --- Adapter: RequestCommands as RequestService ---
-import type { RequestCommands } from "../cli/commands/request_commands.ts";
+import {
+  type IRequestEntry as IRequest,
+  type IRequestMetadata,
+  type IRequestOptions,
+  type IRequestShowResult,
+  type RequestSource,
+} from "../shared/types/request.ts";
+import { IRequestService } from "../shared/interfaces/i_request_service.ts";
+import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
-
-export interface IRequest {
-  trace_id: string;
-  filename: string;
-  subject: string;
-  status: RequestStatusType;
-  priority: string;
-  agent: string;
-  portal?: string;
-  model?: string;
-  created: string;
-  created_by: string;
-  source: string;
-  rejected_path?: string;
-  error?: string;
-  // Phase 17: Skills information
-  skills?: {
-    explicit?: string[]; // User-specified skills
-    autoMatched?: string[]; // Skills matched by triggers
-    fromDefaults?: string[]; // Skills from agent defaults
-    skipped?: string[]; // Skills excluded by user
-  };
-}
-
-export interface IRequestOptions {
-  agent?: string;
-  priority?: RequestPriority;
-  portal?: string;
-  model?: string;
-  skills?: string[]; // Phase 17: Explicit skills override
-  skipSkills?: string[]; // Phase 17: Skills to exclude
-}
-
-export interface IRequestService {
-  listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]>;
-  getRequestContent(requestId: string): Promise<string>;
-  createRequest(description: string, options?: IRequestOptions): Promise<IRequest>;
-  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
-}
 
 /**
  * View state interface
@@ -264,12 +232,13 @@ export class RequestCommandsServiceAdapter implements IRequestService {
 
   async listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]> {
     const requests = await this.cmd.list(status, includeArchived);
-    return requests.map((r) => ({
+    return requests.map((r: any) => ({
       trace_id: r.trace_id,
       filename: r.filename,
-      subject: r.subject ?? `Request ${r.trace_id.slice(0, 8)}`,
-      status: r.status,
-      priority: r.priority,
+      path: r.path || "",
+      subject: r.subject,
+      status: r.status as RequestStatus,
+      priority: r.priority as RequestPriority,
       agent: r.agent,
       portal: r.portal,
       model: r.model,
@@ -279,6 +248,19 @@ export class RequestCommandsServiceAdapter implements IRequestService {
       rejected_path: r.rejected_path,
       error: r.error,
     }));
+  }
+
+  async create(description: string, options?: IRequestOptions, source?: RequestSource): Promise<IRequestMetadata> {
+    return await this.cmd.create(description, options, source);
+  }
+
+  async list(status?: RequestStatusType): Promise<IRequest[]> {
+    return await this.listRequests(status);
+  }
+
+  async show(requestId: string): Promise<IRequestShowResult> {
+    const result = await this.cmd.show(requestId);
+    return result;
   }
 
   async getRequestContent(requestId: string): Promise<string> {
@@ -291,6 +273,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
     return {
       trace_id: metadata.trace_id,
       filename: metadata.filename,
+      path: metadata.path,
       subject: metadata.subject ?? `Request ${metadata.trace_id.slice(0, 8)}`,
       status: metadata.status,
       priority: metadata.priority,
@@ -301,15 +284,19 @@ export class RequestCommandsServiceAdapter implements IRequestService {
       created_by: metadata.created_by,
       source: metadata.source,
       rejected_path: metadata.rejected_path,
-      error: (metadata as any).error,
+      error: undefined,
     };
   }
 
   updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
-    // RequestCommands doesn't have update status method, so we'll need to implement this
-    // For now, return true as a placeholder
-    console.warn(`updateRequestStatus not implemented for ${requestId} -> ${status}`);
-    return Promise.resolve(true);
+    // RequestCommands doesn't have a direct update status method.
+    // For now, we'll simulate by fetching and modifying locally if needed,
+    // or assume the CLI command would handle it if it existed.
+    // A more robust solution would involve a dedicated CLI command for status updates.
+    console.warn(`updateRequestStatus not directly implemented via CLI for ${requestId} -> ${status}`);
+    // If the CLI command for status update existed, it would be called here:
+    // await this.cmd.updateStatus(requestId, status);
+    return Promise.resolve(true); // Assume success for now
   }
 }
 
@@ -318,10 +305,41 @@ export class RequestCommandsServiceAdapter implements IRequestService {
  * Minimal IRequestService mock for TUI session tests.
  */
 export class MinimalRequestServiceMock implements IRequestService {
-  listRequests = (_status?: RequestStatusType, _includeArchived?: boolean) => Promise.resolve([]);
+  constructor(private requests: IRequest[] = []) {}
+  listRequests = (_status?: RequestStatusType, _includeArchived?: boolean) => Promise.resolve(this.requests);
   getRequestContent = (_: string) => Promise.resolve("");
   createRequest = (_: string, __?: IRequestOptions) => Promise.resolve({} as IRequest);
-  updateRequestStatus = (_: string, __: RequestStatusType) => Promise.resolve(true);
+  updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  create(description: string, options?: IRequestOptions, _source?: RequestSource): Promise<IRequestMetadata> {
+    return Promise.resolve({
+      trace_id: "new-request",
+      path: "request-1.md",
+      subject: description,
+      status: RequestStatus.PENDING,
+      priority: options?.priority || RequestPriority.NORMAL,
+      agent: options?.agent || "default",
+      created: new Date().toISOString(),
+      filename: "request-1.md",
+      source: "tui",
+      created_by: "test-user",
+    } as IRequestMetadata);
+  }
+
+  async list(status?: RequestStatusType): Promise<IRequest[]> {
+    return await this.listRequests(status);
+  }
+
+  show(requestId: string): Promise<IRequestShowResult> {
+    const r = this.requests.find((x: IRequest) => x.trace_id === requestId || x.filename === requestId);
+    if (!r) throw new Error("Request not found");
+    return Promise.resolve({
+      metadata: r,
+      content: "Mock content",
+    });
+  }
 }
 
 // --- Phase 13.6: Enhanced TUI Session ---
@@ -544,10 +562,10 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     if (this.state.searchQuery) {
       const query = this.state.searchQuery.toLowerCase();
       filtered = filtered.filter((r) =>
-        r.subject.toLowerCase().includes(query) ||
-        r.trace_id.toLowerCase().includes(query) ||
-        r.agent.toLowerCase().includes(query) ||
-        r.created_by.toLowerCase().includes(query)
+        (r.subject && r.subject.toLowerCase().includes(query)) ||
+        (r.trace_id && r.trace_id.toLowerCase().includes(query)) ||
+        (r.agent && r.agent.toLowerCase().includes(query)) ||
+        (r.created_by && r.created_by.toLowerCase().includes(query))
       );
     }
 
@@ -809,7 +827,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     // For now, just update local state (service may not support this)
     const request = this.requests.find((r) => r.trace_id === this.state.selectedRequestId);
     if (request) {
-      request.priority = value.toLowerCase();
+      request.priority = value.toLowerCase() as RequestPriority;
       this.buildTree();
       this.setStatus(`Priority changed to ${value}`, MessageType.SUCCESS);
     }
@@ -1172,6 +1190,18 @@ export class RequestManagerView implements IRequestService {
 
   updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
     return this.service.updateRequestStatus(requestId, status);
+  }
+
+  create(description: string, options?: IRequestOptions, source?: RequestSource): Promise<IRequestMetadata> {
+    return this.service.create(description, options, source);
+  }
+
+  list(status?: RequestStatusType): Promise<IRequest[]> {
+    return this.service.list(status);
+  }
+
+  show(requestId: string): Promise<IRequestShowResult> {
+    return this.service.show(requestId);
   }
 
   /** Render a list of requests for display. */

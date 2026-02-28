@@ -17,19 +17,19 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { parse as parseToml } from "@std/toml";
 import { parse as parseYaml } from "@std/yaml";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import { GitService, type IGitService } from "./git_service.ts";
-import { type PlanFrontmatter, PlanFrontmatterSchema } from "../schemas/plan_schema.ts";
+import { type PlanFrontmatter, PlanFrontmatterSchema } from "../shared/schemas/plan_schema.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { ReviewRegistry } from "./review_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
-import { ExecutionStatus, PortalExecutionStrategy } from "../enums.ts";
-import { PlanStatus } from "../plans/plan_status.ts";
+import { ExecutionStatus, PortalExecutionStrategy } from "../shared/enums.ts";
+import { PlanStatus } from "../shared/status/plan_status.ts";
 import { type IStructuredPlan, parseStructuredPlanFromMarkdown } from "./structured_plan_parser.ts";
 import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
 import { ArtifactRegistry } from "./artifact_registry.ts";
@@ -38,8 +38,8 @@ import {
   EXECUTION_ARTIFACT_PLAN_SECTION_TITLE,
   EXECUTION_ARTIFACT_SECTION_SEPARATOR,
   EXECUTION_REPORT_FILENAME,
-} from "../config/constants.ts";
-import { JSONValue } from "../types.ts";
+} from "../shared/constants.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export interface IExecutionLoopConfig {
   config: Config;

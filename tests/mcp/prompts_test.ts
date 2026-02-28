@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";

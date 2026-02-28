@@ -1,0 +1,61 @@
+/**
+ * @module IrequestService
+ * @path src/shared/interfaces/i_request_service.ts
+ * @description Module for IrequestService.
+ * @architectural-layer Shared
+ * @dependencies [Enums, RequestTypes]
+ * @related-files [src/shared/types/request.ts]
+ */
+
+import type { RequestStatusType } from "../status/request_status.ts";
+import type {
+  IRequestEntry,
+  IRequestMetadata,
+  IRequestOptions,
+  IRequestShowResult,
+  RequestSource,
+} from "../types/request.ts";
+
+export interface IRequestService {
+  /**
+   * Create a new request with the given description.
+   */
+  create(
+    description: string,
+    options?: IRequestOptions,
+    source?: RequestSource,
+  ): Promise<IRequestMetadata>;
+
+  /**
+   * Alias for create() for TUI compatibility.
+   */
+  createRequest(description: string, options?: IRequestOptions): Promise<IRequestMetadata>;
+
+  /**
+   * List requests, optionally filtered by status.
+   */
+  list(
+    status?: RequestStatusType,
+    includeArchived?: boolean,
+  ): Promise<IRequestEntry[]>;
+
+  /**
+   * Alias for list() for TUI compatibility.
+   */
+  listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequestEntry[]>;
+
+  /**
+   * Show details of a specific request.
+   */
+  show(idOrFilename: string): Promise<IRequestShowResult>;
+
+  /**
+   * Get the markdown content of a request.
+   */
+  getRequestContent(requestId: string): Promise<string>;
+
+  /**
+   * Update the status of a request.
+   */
+  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
+}

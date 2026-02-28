@@ -1,3 +1,7 @@
+/**
+ * @module inspect_embeddings_test
+ * @description Script: inspect_embeddings_test
+ */
 import { assert } from "https://deno.land/std@0.203.0/assert/mod.ts";
 
 // This test writes a temporary embedding file into agents/embeddings and a temporary manifest

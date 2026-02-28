@@ -10,8 +10,8 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { type IRequestEntry } from "../commands/request_commands.ts";
-import { coerceRequestStatus, type RequestStatusType } from "../../requests/request_status.ts";
+import { type IRequestEntry } from "../../shared/types/request.ts";
+import { coerceRequestStatus, type RequestStatusType } from "../../shared/status/request_status.ts";
 import { getWorkspaceArchiveDir, getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./request_paths.ts";
 
 export class RequestListHandler extends BaseCommand {

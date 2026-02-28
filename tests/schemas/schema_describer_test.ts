@@ -7,13 +7,13 @@
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { z } from "zod";
-import { describeSchema } from "../../src/schemas/schema_describer.ts";
+import { describeSchema } from "../../src/shared/schemas/schema_describer.ts";
 import {
   SchemaDescriberEnumValue,
   SchemaDescriberKey,
   SchemaDescriberToken,
   SchemaDescriberType,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 Deno.test("describeSchema: object fields are described", () => {
   const schema = z.object({

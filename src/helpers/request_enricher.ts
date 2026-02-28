@@ -8,7 +8,7 @@
  */
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
-import type { IRequestMetadata } from "../cli/commands/request_commands.ts";
+import type { IRequestMetadata } from "../shared/types/request.ts";
 
 export interface IRequestEnrichable {
   request_id?: string;

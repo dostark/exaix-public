@@ -10,7 +10,7 @@
 import { colorize, type ITuiTheme } from "./colors.ts";
 import { renderLayoutPresetListLines } from "./layout_rendering.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
-import type { JSONObject } from "../types.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 
 // ===== Layout Interfaces =====
 

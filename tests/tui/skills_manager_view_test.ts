@@ -6,14 +6,16 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { AgentStatus } from "../../src/shared/status/agent_status.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type ISkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
-import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
 import { AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { MinimalRequestServiceMock, RequestManagerView } from "../../src/tui/request_manager_view.ts";
+import { IRequest } from "../../src/shared/types/request.ts";
+import { RequestPriority } from "../../src/shared/enums.ts";
 
 // ===== Test Data =====
 
@@ -151,13 +153,14 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
 // ===== RequestManagerView Skills Tests =====
 
 Deno.test("RequestManagerView: shows skills in request detail", async () => {
-  const requests = [
+  const requests: IRequest[] = [
     {
       trace_id: "test-123",
       filename: "request-test.md",
+      path: "request-test.md",
       subject: "Test Request",
       status: RequestStatus.COMPLETED,
-      priority: "normal",
+      priority: RequestPriority.NORMAL,
       agent: "code-reviewer",
       created: new Date().toISOString(),
       created_by: "test@example.com",

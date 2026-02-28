@@ -8,7 +8,7 @@
  */
 
 import type { ActivityRecord, IDatabaseService } from "../services/db.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Domain entity representing an activity/event

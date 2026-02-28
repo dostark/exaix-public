@@ -14,7 +14,7 @@ interface Frontmatter {
   [key: string]: unknown;
 }
 import { assertEquals, assertExists } from "@std/assert";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { parse } from "@std/yaml";
 
 import { join } from "@std/path";

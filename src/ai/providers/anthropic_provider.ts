@@ -13,7 +13,7 @@ import {
   performProviderCall,
   tokenMapperAnthropic,
 } from "../provider_common_utils.ts";
-import * as DEFAULTS from "../../config/constants.ts";
+import * as DEFAULTS from "../../shared/constants.ts";
 import { BaseProvider, IBaseProviderOptions } from "./base_provider.ts";
 
 /**

@@ -7,12 +7,12 @@
  * @related-files [src/services/portal_permissions.ts, src/mcp/handlers/read_file_tool.ts, src/mcp/handlers/write_file_tool.ts]
  */
 import { join, normalize, relative } from "@std/path";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
-import { type MCPToolResponse } from "../schemas/mcp.ts";
+import { type MCPToolResponse } from "../shared/schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
-import { PortalOperation } from "../enums.ts";
-import { JSONValue, LogMetadata, toSafeJson } from "../types.ts";
+import { PortalOperation } from "../shared/enums.ts";
+import { JSONValue, LogMetadata, toSafeJson } from "../shared/types/json.ts";
 
 /**
  * Base class for all MCP tool handlers

@@ -15,10 +15,10 @@
 
 import type { DatabaseService } from "./db.ts";
 import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
-import { PlanStatus } from "../plans/plan_status.ts";
+import { PlanStatus } from "../shared/status/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { IServiceContext } from "./common/types.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export interface IRequestMetadata {
   requestId: string;

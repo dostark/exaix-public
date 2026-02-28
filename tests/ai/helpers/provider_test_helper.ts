@@ -9,7 +9,7 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { Spy, spy, Stub, stub } from "https://deno.land/std@0.203.0/testing/mock.ts"; // No change
 import { ModelProviderError } from "../../../src/ai/providers/common.ts";
 import { EventLogger } from "../../../src/services/event_logger.ts";
-import type { JSONObject } from "../../../src/types.ts";
+import type { JSONObject } from "../../../src/shared/types/json.ts";
 
 /** Configuration for provider-specific response formats */
 export interface IProviderResponseConfig {

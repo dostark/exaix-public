@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { ConfigService } from "../../src/config/service.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 import { DaemonCommands } from "../../src/cli/commands/daemon_commands.ts";
 import { isProcessAlive } from "../../src/cli/process_utils.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
@@ -18,7 +18,7 @@ import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { createStubDb } from "../test_helpers.ts";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 /**
  * Helper class to expose and mock protected methods of DaemonCommands

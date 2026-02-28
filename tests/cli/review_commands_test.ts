@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { FlowStepType, MemoryOperation } from "../../src/enums.ts";
+import { FlowStepType, MemoryOperation } from "../../src/shared/enums.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
@@ -16,7 +16,7 @@ import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 
 describe("ReviewCommands", () => {
   let tempDir: string;

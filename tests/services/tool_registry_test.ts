@@ -6,16 +6,16 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
-import { PortalOperation } from "../../src/enums.ts";
+import { PortalOperation } from "../../src/shared/enums.ts";
 
-import { LearningCategory } from "../../src/enums.ts";
+import { LearningCategory } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
-import { ConfigSchema } from "../../src/config/schema.ts";
+import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 
 // Mock dependencies

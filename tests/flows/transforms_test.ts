@@ -14,7 +14,7 @@ import {
   passthrough,
   templateFill,
 } from "../../src/flows/transforms.ts";
-import { jsonExtract } from "../../src/types.ts";
+import { jsonExtract } from "../../src/shared/types/json.ts";
 
 /**
  * Test suite for built-in transform functions in flow inter-step communication

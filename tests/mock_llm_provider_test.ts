@@ -6,11 +6,11 @@
  */
 
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../src/enums.ts";
+import { McpToolName } from "../src/shared/enums.ts";
 
-import { IModelProvider } from "../src/ai/providers.ts";
-import { MockStrategy } from "../src/enums.ts";
-import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
+import { IModelProvider } from "../src/ai/types.ts";
+import { MockStrategy } from "../src/shared/enums.ts";
+import { TEST_MODEL_ANTHROPIC } from "./shared/constants.ts";
 
 import {
   createFailingMock,

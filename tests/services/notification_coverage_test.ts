@@ -9,8 +9,8 @@ import { assertEquals } from "@std/assert";
 import { createStubDb } from "../test_helpers.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { NotificationService } from "../../src/services/notification.ts";
-import { MemoryScope } from "../../src/enums.ts";
-import { type JSONValue, toSafeJson } from "../../src/types.ts";
+import { MemoryScope } from "../../src/shared/enums.ts";
+import { type JSONValue, toSafeJson } from "../../src/shared/types/json.ts";
 
 interface NotificationRow {
   id: string;

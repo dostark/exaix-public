@@ -8,7 +8,7 @@
  */
 
 import { renderSpinnerFrame } from "../../helpers/spinner.ts";
-import { TuiIcon, TuiNodeType } from "../../enums.ts";
+import { TuiIcon, TuiNodeType } from "../../shared/enums.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
 import {
   TUI_LABEL_EXECUTIONS,
@@ -21,7 +21,7 @@ import {
   TUI_TREE_RECENT_LIMIT,
 } from "../../helpers/constants.ts";
 import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
-import type { IExecutionMemory } from "../../schemas/memory_bank.ts";
+import type { IExecutionMemory } from "../../shared/schemas/memory_bank.ts";
 
 export class TreeBuilder {
   /**
@@ -83,7 +83,7 @@ export class TreeBuilder {
 
     // 4. Pending Scope
     const pending = await service.listPending();
-    const pendingNodes: ITreeNode[] = pending.map((p) => ({
+    const pendingNodes: ITreeNode[] = pending.map((p: any) => ({
       id: `${MemoryTuiScope.PENDING}:${p.id}`,
       type: TuiNodeType.LEARNING,
       label: p.learning.title,

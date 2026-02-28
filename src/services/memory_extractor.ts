@@ -9,22 +9,22 @@
 
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "./db.ts";
-import type { IMemoryBankService } from "./memory_bank.ts";
-import type { JSONObject } from "../types.ts";
+import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 import type {
   IExecutionMemory,
   ILearning,
   IMemoryUpdateProposal,
   IPattern,
   IProposalLearning,
-} from "../schemas/memory_bank.ts";
-import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
-import { MemoryOperation, MemoryReferenceType, MemoryScope } from "../enums.ts";
-import { MemoryStatus } from "../memory/memory_status.ts";
+} from "../shared/schemas/memory_bank.ts";
+import { MemoryUpdateProposalSchema } from "../shared/schemas/memory_bank.ts";
+import { MemoryOperation, MemoryReferenceType, MemoryScope } from "../shared/enums.ts";
+import { MemoryStatus } from "../shared/status/memory_status.ts";
 import { LearningExtractor } from "./memory/learning_extractor.ts";
-import { JSONValue, toSafeJson } from "../types.ts";
+import { JSONValue, toSafeJson } from "../shared/types/json.ts";
 
 /**
  * Memory Extractor Service
@@ -39,7 +39,7 @@ export class MemoryExtractorService {
     private db: IDatabaseService,
     private memoryBank: IMemoryBankService,
   ) {
-    this.pendingDir = join(config.system.root, config.paths.memory, "Pending");
+    this.pendingDir = join(config.system?.root || Deno.cwd(), config.paths?.memory || "Memory", "Pending");
   }
 
   // ===== Extraction Operations =====
@@ -104,7 +104,7 @@ export class MemoryExtractorService {
       },
     });
 
-    return proposal.id;
+    return proposal.id || "";
   }
 
   /**
@@ -134,7 +134,7 @@ export class MemoryExtractorService {
     }
 
     // Sort by created_at descending
-    proposals.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    proposals.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
 
     return proposals;
   }
@@ -184,8 +184,8 @@ export class MemoryExtractorService {
     } else if (proposal.target_project) {
       // Add as pattern to project
       const pattern: IPattern = {
-        name: learning.title,
-        description: learning.description,
+        name: learning.title || "Untitled Learning",
+        description: learning.description || "",
         examples: learning.references?.filter((r: { type: MemoryReferenceType; path: string }) =>
           r.type === MemoryReferenceType.FILE
         ).map((r: { type: MemoryReferenceType; path: string }) =>
@@ -206,7 +206,7 @@ export class MemoryExtractorService {
       target: proposal.target_project || MemoryScope.GLOBAL,
       metadata: {
         proposal_id: proposalId,
-        learning_title: proposal.learning.title,
+        learning_title: proposal.learning?.title || "Untitled",
       },
     });
   }
@@ -233,7 +233,7 @@ export class MemoryExtractorService {
       target: proposal.target_project || MemoryScope.GLOBAL,
       metadata: {
         proposal_id: proposalId,
-        learning_title: proposal.learning.title,
+        learning_title: proposal.learning?.title || "Untitled",
         reason,
       },
     });
@@ -250,7 +250,7 @@ export class MemoryExtractorService {
 
     for (const proposal of pending) {
       try {
-        await this.approvePending(proposal.id);
+        await this.approvePending(proposal.id || "");
         approved++;
       } catch {
         // Skip failed approvals, continue with others

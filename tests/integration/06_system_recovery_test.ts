@@ -6,13 +6,13 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { FlowStepType } from "../../src/enums.ts";
+import { FlowStepType } from "../../src/shared/enums.ts";
 
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
-import { PortalOperation } from "../../src/enums.ts";
+import { PortalOperation } from "../../src/shared/enums.ts";
 
-import { MemoryOperation } from "../../src/enums.ts";
+import { MemoryOperation } from "../../src/shared/enums.ts";
 
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";

@@ -9,8 +9,8 @@
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { IDatabaseService } from "./db.ts";
-import type { Config } from "../config/schema.ts";
-import { JSONValue } from "../types.ts";
+import type { Config } from "../shared/schemas/config.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export interface IPortalInfo {
   alias: string;

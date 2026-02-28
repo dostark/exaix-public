@@ -1,3 +1,9 @@
+/**
+ * @module SecurityAudit.Flow
+ * @path Blueprints/Flows/examples/operations/security-audit.flow.ts
+ * @description Module for securityaudit.flow.
+ */
+
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
 
 /**

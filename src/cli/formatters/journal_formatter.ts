@@ -9,12 +9,13 @@
 
 import { Table } from "@cliffy/table";
 import * as colors from "@std/fmt/colors";
-import type { ActivityRecord, JournalFilterOptions } from "../../services/db.ts";
+import { ActivityRecord } from "../../services/db.ts";
+import { IJournalFilterOptions } from "../../shared/types/database.ts";
 
 export class JournalFormatter {
   static render(
     activities: ActivityRecord[],
-    filter: JournalFilterOptions,
+    filter: IJournalFilterOptions,
     format: "json" | "table" | "text" = "text",
   ): void {
     if (format === "json") {
@@ -34,7 +35,7 @@ export class JournalFormatter {
     }
   }
 
-  private static renderTable(activities: ActivityRecord[], filter: JournalFilterOptions) {
+  private static renderTable(activities: ActivityRecord[], filter: IJournalFilterOptions) {
     // Handle different query types
     if (filter.distinct) {
       // DISTINCT query - show the distinct field values
@@ -92,7 +93,7 @@ export class JournalFormatter {
     table.render();
   }
 
-  private static renderText(activities: ActivityRecord[], filter: JournalFilterOptions) {
+  private static renderText(activities: ActivityRecord[], filter: IJournalFilterOptions) {
     // Handle different query types
     if (filter.distinct) {
       this.renderDistinctText(activities, filter.distinct);

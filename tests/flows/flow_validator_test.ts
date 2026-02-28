@@ -20,10 +20,10 @@ async function setupTestDir() {
   await ensureDir(`${dir}/flows`);
   await Deno.copyFile("src/flows/transforms.ts", `${dir}/flows/transforms.ts`);
   // copy enums.ts into the temp dir
-  const enumsContent = await Deno.readTextFile("src/enums.ts");
+  const enumsContent = await Deno.readTextFile("src/shared/enums.ts");
   await Deno.writeTextFile(`${dir}/enums.ts`, enumsContent);
   // copy types.ts because transforms.ts depends on it
-  await Deno.copyFile("src/types.ts", `${dir}/types.ts`);
+  await Deno.copyFile("src/shared/types/json.ts", `${dir}/types.ts`);
   // copy define_flow but patch its import paths to reference the local files
   const original = await Deno.readTextFile("src/flows/define_flow.ts");
   const patched = original

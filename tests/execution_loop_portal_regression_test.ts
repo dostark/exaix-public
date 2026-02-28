@@ -13,7 +13,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import { ReviewRegistry } from "../src/services/review_registry.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
-import { PlanStatus } from "../src/plans/plan_status.ts";
+import { PlanStatus } from "../src/shared/status/plan_status.ts";
 
 Deno.test("[regression] ExecutionLoop: targets portal directory and creates review", async () => {
   const rootDir = await Deno.makeTempDir({ prefix: "exec-portal-reg-" });

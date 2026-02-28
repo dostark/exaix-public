@@ -9,7 +9,7 @@
 
 import type { DialogBase } from "../../helpers/dialog_base.ts";
 import type { ITreeNode } from "../../helpers/tree_view.ts";
-import { DEFAULT_REFRESH_INTERVAL_MS } from "../../config/constants.ts";
+import { DEFAULT_REFRESH_INTERVAL_MS } from "../../shared/constants.ts";
 
 /**
  * Common state for tree-based views

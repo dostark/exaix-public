@@ -5,10 +5,10 @@
  * required output configurations and wave-based execution constraints.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/shared/enums.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
-import type { IFlow, IFlowStep } from "../../src/schemas/flow.ts";
+import type { IFlow, IFlowStep } from "../../src/shared/schemas/flow.ts";
 
 /**
  * Mock FlowLoader that extends FlowLoader to allow controlling behavior without file system

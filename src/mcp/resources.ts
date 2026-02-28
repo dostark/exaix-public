@@ -9,7 +9,7 @@
 
 import { relative } from "@std/path";
 import { walk } from "@std/fs";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
 
 // ============================================================================

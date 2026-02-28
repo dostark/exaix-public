@@ -1,12 +1,7 @@
-import { IStructuredLogger } from "./structured_logger.ts";
 /**
  * @module GracefulShutdown
  * @path src/services/graceful_shutdown.ts
- * @description Handles SIGTERM/SIGINT signals with proper cleanup of resources.
- *
- * This service ensures all registered cleanup tasks are executed in reverse
- * order (LIFO) before process exit, preventing resource leaks and orphaned processes.
- *
+ * @description Module for GracefulShutdown.
  * @architectural-layer Services
  * @dependencies [StructuredLogger]
  * @related-files [src/main.ts, src/services/structured_logger.ts]

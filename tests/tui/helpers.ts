@@ -11,16 +11,17 @@ import {
   type IRequestService,
   RequestManagerView,
 } from "../../src/tui/request_manager_view.ts";
-import { MemoryScope, MemorySource, PortalStatus, SkillStatus } from "../../src/enums.ts";
+import { MemoryScope, MemorySource, PortalStatus, SkillStatus } from "../../src/shared/enums.ts";
 import { LegacyRequestManagerTuiSession as _LegacyRequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
 import type { ILogEntry } from "../../src/tui/monitor_view.ts";
 import { type IPlan, MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
-import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
+import { RequestStatus, type RequestStatusType } from "../../src/shared/status/request_status.ts";
 import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
-import type { ActivityRecord, IDatabaseService, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
+import { ActivityRecord, IDatabaseService, SqliteParam } from "../../src/services/db.ts";
+import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
 import {
   ISkillSummary,
   ISkillsViewService,
@@ -34,16 +35,16 @@ import type {
   IMemoryUpdateProposal,
   IProjectMemory,
   IProposalLearning,
-} from "../../src/schemas/memory_bank.ts";
-import { JSONObject } from "../../src/types.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
+import { JSONObject } from "../../src/shared/types/json.ts";
 import {
   ConfidenceLevel,
   EvaluationCategory,
   LearningCategory,
   MemoryOperation,
   MemoryReferenceType,
-} from "../../src/enums.ts";
-import { EvaluationCategory as _EvaluationCategory } from "../../src/enums.ts";
+} from "../../src/shared/enums.ts";
+import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enums.ts";
 import { IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { type ITreeNode } from "../../src/helpers/tree_view.ts";
 
@@ -363,7 +364,7 @@ class MockDatabaseService implements IDatabaseService {
   waitForFlush() {
     return Promise.resolve();
   }
-  queryActivity(filter: JournalFilterOptions) {
+  queryActivity(filter: IJournalFilterOptions) {
     let filtered = this._activityRecords;
     if (filter.agentId) {
       filtered = filtered.filter((l) => l.agent_id === filter.agentId);

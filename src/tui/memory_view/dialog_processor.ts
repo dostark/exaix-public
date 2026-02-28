@@ -6,7 +6,7 @@
  * @dependencies [Enums, MemoryDialogs, Constants]
  * @related-files [src/tui/dialogs/memory_dialogs.ts]
  */
-import { DialogStatus } from "../../enums.ts";
+import { DialogStatus } from "../../shared/enums.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,

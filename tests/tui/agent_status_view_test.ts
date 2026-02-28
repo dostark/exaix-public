@@ -13,24 +13,24 @@ import {
   AgentAction,
   AgentHealthData,
   AgentLogEntry,
-  AgentStatusItem,
   AgentStatusView,
-  AgentViewState,
   IAgentService,
+  IAgentStatusItem,
+  IAgentViewState,
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
-import { TEST_MODEL_OPENAI } from "../config/constants.ts";
-import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/enums.ts";
-import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
-import { CritiqueSeverity } from "../../src/enums.ts";
+import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
+import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/shared/enums.ts";
+import { AgentStatus } from "../../src/shared/status/agent_status.ts";
+import { CritiqueSeverity } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { assertEquals, assertExists } from "@std/assert";
 
 // ===== Mock IAgentService for testing =====
 
 class MockAgentService implements IAgentService {
-  private agents: AgentStatusItem[] = [
+  private agents: IAgentStatusItem[] = [
     {
       id: "agent1",
       name: "Agent 1",
@@ -60,7 +60,7 @@ class MockAgentService implements IAgentService {
     },
   ];
 
-  listAgents(): Promise<AgentStatusItem[]> {
+  listAgents(): Promise<IAgentStatusItem[]> {
     return Promise.resolve([...this.agents]);
   }
 
@@ -87,7 +87,7 @@ class MockAgentService implements IAgentService {
     ]);
   }
 
-  setAgents(agents: AgentStatusItem[]): void {
+  setAgents(agents: IAgentStatusItem[]): void {
     this.agents = agents;
   }
 }
@@ -147,11 +147,11 @@ Deno.test("AgentStatusView: formatUptime", () => {
   }
 });
 
-// ===== Phase 13.7: AgentViewState Tests =====
+// ===== Phase 13.7: IAgentViewState Tests =====
 
-Deno.test("AgentViewState: interface has all required properties", () => {
+Deno.test("IAgentViewState: interface has all required properties", () => {
   // TypeScript compile-time check via usage
-  const state: AgentViewState = {
+  const state: IAgentViewState = {
     selectedAgentId: null,
     agentTree: [],
     showHelp: false,
@@ -572,7 +572,7 @@ Deno.test("AgentStatusTuiSession: setAgents", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  const newAgents: AgentStatusItem[] = [
+  const newAgents: IAgentStatusItem[] = [
     {
       id: "new1",
       name: "New Agent",
@@ -737,7 +737,7 @@ Deno.test("AgentStatusTuiSession: getKeyBindings", () => {
 });
 
 Deno.test("MinimalAgentServiceMock: works correctly", async () => {
-  const agents: AgentStatusItem[] = [
+  const agents: IAgentStatusItem[] = [
     {
       id: "test1",
       name: "Test",

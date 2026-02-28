@@ -13,7 +13,7 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import type { IDatabaseService } from "./db.ts";
-import { MemoryScope, MemorySource as _MemorySource, SkillStatus } from "../enums.ts";
+import { MemoryScope, MemorySource as _MemorySource, SkillStatus } from "../shared/enums.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import {
   type ISkill,
@@ -23,8 +23,10 @@ import {
   type ISkillTriggers,
   SkillIndexSchema as _SkillIndexSchema,
   SkillSchema,
-} from "../schemas/memory_bank.ts";
-import { JSONObject, JSONValue, toSafeJson } from "../types.ts";
+} from "../shared/schemas/memory_bank.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../shared/types/json.ts";
+import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
+import { ISkillMatchRequest } from "../shared/types/skill.ts";
 
 /**
  * Skills Service Configuration
@@ -38,38 +40,6 @@ export interface ISkillsConfig {
   skillContextBudget: number;
   /** Minimum confidence score for skill matching (0-1) */
   matchThreshold: number;
-}
-
-/**
- * Request context for skill matching
- */
-export interface ISkillMatchRequest {
-  /** Keywords from the user request */
-  keywords?: string[];
-  /** Type of task (e.g., "feature", "bugfix") */
-  taskType?: string;
-  /** Files involved in the request */
-  filePaths?: string[];
-  /** User-specified tags */
-  tags?: string[];
-  /** Raw request text for additional context */
-  requestText?: string;
-  /** ID of the agent making the request */
-  agentId?: string;
-}
-
-/**
- * Skills Service Interface
- */
-export interface ISkillsService {
-  matchSkills(request: ISkillMatchRequest): Promise<ISkillMatch[]>;
-  buildSkillContext(skillIds: string[]): Promise<string>;
-  recordSkillUsage(skillId: string): Promise<void>;
-  deriveSkillFromLearnings(
-    learningIds: string[],
-    skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
-  ): Promise<ISkill>;
-  rebuildIndex(): Promise<void>;
 }
 
 const DEFAULT_CONFIG: ISkillsConfig = {
@@ -165,6 +135,19 @@ export class SkillsService implements ISkillsService {
     }
 
     return validSkills;
+  }
+
+  async deleteSkill(skillId: string): Promise<boolean> {
+    const skillPath = await this.findSkillPath(skillId);
+    if (!skillPath) return false;
+
+    try {
+      await Deno.remove(skillPath);
+      await this.rebuildIndex();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // Create a new skill

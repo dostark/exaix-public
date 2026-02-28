@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 
 import { RoutingError } from "../../src/services/request_router.ts";
 

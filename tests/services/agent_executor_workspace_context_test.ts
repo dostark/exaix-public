@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { WorkspaceExecutionContextBuilder } from "../../src/services/workspace_execution_context.ts";
-import type { IPortalConfig } from "../../src/config/schema.ts";
+import type { IPortalConfig } from "../../src/shared/schemas/config.ts";
 
 describe("AgentExecutor with IWorkspaceExecutionContext", () => {
   let tempDir: string;

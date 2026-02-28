@@ -9,14 +9,14 @@
 
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { Config } from "../../config/schema.ts";
+import type { Config } from "../../shared/schemas/config.ts";
 import type { IDatabaseService } from "../../services/db.ts";
 import { MemoryBankService } from "../../services/memory_bank.ts";
 import { MemoryExtractorService } from "../../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../services/memory_embedding.ts";
-import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../enums.ts";
+import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../shared/enums.ts";
 import { type ISkillMatchRequest as SkillMatchRequest, SkillsService } from "../../services/skills.ts";
-import type { ILearning, IMemorySearchResult } from "../../schemas/memory_bank.ts";
+import type { ILearning, IMemorySearchResult } from "../../shared/schemas/memory_bank.ts";
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
 import { MemoryFormatter } from "../formatters/memory_formatter.ts";
 import { IMemoryBankSummary, OutputFormat } from "../memory_types.ts";

@@ -1,3 +1,9 @@
+/**
+ * @module Onboarding_Docs.Flow
+ * @path Blueprints/Flows/onboarding_docs.flow.ts
+ * @description Module for onboarding_docs.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 /**

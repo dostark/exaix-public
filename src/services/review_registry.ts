@@ -16,7 +16,7 @@ import {
   type IReviewFilters,
   RegisterReviewSchema,
   ReviewSchema,
-} from "../schemas/review.ts";
+} from "../shared/schemas/review.ts";
 import { type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
 export class ReviewRegistry {

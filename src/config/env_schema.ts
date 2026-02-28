@@ -8,9 +8,9 @@
  */
 
 import { z } from "zod";
-import { ProviderType } from "../enums.ts";
-import { ProviderTypeSchema } from "./ai_config.ts";
-import { AI_TIMEOUT_MS_MAX, AI_TIMEOUT_MS_MIN, KNOWN_PROVIDERS } from "./constants.ts";
+import { ProviderType } from "../shared/enums.ts";
+import { ProviderTypeSchema } from "../shared/schemas/ai_config.ts";
+import { AI_TIMEOUT_MS_MAX, AI_TIMEOUT_MS_MIN, KNOWN_PROVIDERS } from "../shared/constants.ts";
 
 /**
  * Schema for EXO_LLM_* environment variable overrides

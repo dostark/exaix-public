@@ -7,7 +7,7 @@
 
 // Imports removed to fix linting in empty file
 // import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-// import { IModelProvider } from "../../src/ai/providers.ts";
+// import { IModelProvider } from "../../src/ai/types.ts";
 // import { ... } from ...
 
 // ...existing code...

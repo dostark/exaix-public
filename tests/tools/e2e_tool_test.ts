@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/config/schema.ts";
+import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
 import { stub } from "@std/testing/mock";
 

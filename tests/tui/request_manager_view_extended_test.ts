@@ -6,12 +6,12 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity, LogLevel, MCPTransport, SqliteJournalMode } from "../../src/enums.ts";
-import { RequestPriority } from "../../src/enums.ts";
+import { CritiqueSeverity, LogLevel, MCPTransport, SqliteJournalMode } from "../../src/shared/enums.ts";
+import { RequestPriority } from "../../src/shared/enums.ts";
 import type { IRequestEntry, IRequestMetadata, IRequestShowResult } from "../../src/cli/commands/request_commands.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-import { MemorySource } from "../../src/enums.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import {
   createLegacyTuiSession,
   createLegacyTuiSessionWithErrors,

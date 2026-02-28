@@ -6,14 +6,14 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { MemorySource } from "../../src/enums.ts";
+import { MemorySource } from "../../src/shared/enums.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { IRegisterReviewInput } from "../../src/schemas/review.ts";
+import type { IRegisterReviewInput } from "../../src/shared/schemas/review.ts";
 
 describe("ReviewRegistry", () => {
   let registry: ReviewRegistry;

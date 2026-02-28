@@ -13,16 +13,11 @@ import { BaseCommand, type ICommandContext } from "../base.ts";
 import { CLI_DEFAULTS } from "../cli.config.ts";
 import { ConfigService } from "../../config/service.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
-import { DAEMON_STOP_TIMEOUT_MS } from "../../config/constants.ts";
+import { DAEMON_STOP_TIMEOUT_MS } from "../../shared/constants.ts";
 import { isProcessAlive } from "../process_utils.ts";
-import type { JSONObject } from "../../types.ts";
+import type { JSONObject } from "../../shared/types/json.ts";
 
-export interface IDaemonStatus {
-  running: boolean;
-  pid?: number;
-  uptime?: string;
-  version: string;
-}
+import type { IDaemonStatus } from "../../shared/types/daemon.ts";
 
 /**
  * Commands for daemon control
@@ -34,8 +29,8 @@ export class DaemonCommands extends BaseCommand {
 
   constructor(context: ICommandContext & { configService?: ConfigService; Command?: typeof Deno.Command }) {
     super(context);
-    const workspaceRoot = this.config.system.root;
-    this.pidFile = join(workspaceRoot, this.config.paths.runtime, "daemon.pid");
+    const workspaceRoot = this.config.system.root!;
+    this.pidFile = join(workspaceRoot, this.config.paths.runtime!, "daemon.pid");
     this.configService = context.configService;
     this.Command = context.Command ?? Deno.Command;
   }
@@ -45,8 +40,8 @@ export class DaemonCommands extends BaseCommand {
    */
   async start(): Promise<void> {
     try {
-      const workspaceRoot = this.config.system.root;
-      const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
+      const workspaceRoot = this.config.system.root!;
+      const logFile = join(workspaceRoot, this.config.paths.runtime!, "daemon.log");
 
       // Find daemon script relative to this command file
       const currentFile = fromFileUrl(import.meta.url);
@@ -68,7 +63,7 @@ export class DaemonCommands extends BaseCommand {
       }
 
       // Ensure log file directory exists
-      const exoDir = join(workspaceRoot, this.config.paths.runtime);
+      const exoDir = join(workspaceRoot, this.config.paths.runtime!);
       await ensureDir(exoDir);
 
       // Start daemon process in background using shell for true detachment
@@ -278,7 +273,7 @@ export class DaemonCommands extends BaseCommand {
    */
   async logs(lines: number = CLI_DEFAULTS.LOG_LINES, follow: boolean = false): Promise<void> {
     try {
-      const logFile = join(this.config.system.root, this.config.paths.runtime, "daemon.log");
+      const logFile = join(this.config.system.root!, this.config.paths.runtime!, "daemon.log");
 
       if (!await exists(logFile)) {
         await this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });

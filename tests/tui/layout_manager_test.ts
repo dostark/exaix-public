@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertThrows } from "https://deno.land/std@0.203.0/assert/mod.ts";
-import { DaemonStatus } from "../../src/enums.ts";
+import { DaemonStatus } from "../../src/shared/enums.ts";
 
 import {
   createLayoutManager,

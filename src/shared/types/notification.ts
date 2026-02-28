@@ -1,0 +1,29 @@
+/**
+ * @module Notification
+ * @path src/shared/types/notification.ts
+ * @description Module for Notification.
+ * @architectural-layer Shared
+ * @dependencies [Enums]
+ * @related-files [src/shared/interfaces/i_notification_service.ts]
+ */
+
+/**
+ * Structure for system notifications.
+ */
+export interface IMemoryNotification {
+  id?: string;
+  type:
+    | "memory_update_pending"
+    | "memory_approved"
+    | "memory_rejected"
+    | "info"
+    | "success"
+    | "warning"
+    | "error";
+  message: string;
+  proposal_id?: string;
+  trace_id?: string;
+  created_at?: string;
+  dismissed_at?: string | null;
+  metadata?: string;
+}

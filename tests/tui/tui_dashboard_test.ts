@@ -15,7 +15,7 @@ import {
   renderPaneTitleBar,
   renderViewPicker,
 } from "../../src/tui/tui_dashboard.ts";
-import { PortalStatus } from "../../src/enums.ts";
+import { PortalStatus } from "../../src/shared/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";

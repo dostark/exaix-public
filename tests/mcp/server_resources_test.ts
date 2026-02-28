@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MCPTransport } from "../../src/enums.ts";
+import { MCPTransport } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

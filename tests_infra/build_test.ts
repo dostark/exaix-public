@@ -1,3 +1,9 @@
+/**
+ * @module Build_Test
+ * @path tests_infra/build_test.ts
+ * @description Module for build_test.
+ */
+
 import { assert, assertEquals } from "https://deno.land/std@0.221.0/assert/mod.ts";
 import { join } from "https://deno.land/std@0.221.0/path/mod.ts";
 import { exists } from "https://deno.land/std@0.221.0/fs/mod.ts";

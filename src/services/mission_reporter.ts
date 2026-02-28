@@ -14,12 +14,12 @@
  */
 // Removed unused imports
 // import { basename, join, relative } from "@std/path";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
 import { MemoryBankService } from "./memory_bank.ts";
-import type { IExecutionMemory } from "../schemas/memory_bank.ts";
-import { ExecutionStatus } from "../enums.ts";
-import { JSONValue } from "../types.ts";
+import type { IExecutionMemory } from "../shared/schemas/memory_bank.ts";
+import { ExecutionStatus } from "../shared/enums.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 // ============================================================================
 // Types and Interfaces

@@ -1,3 +1,7 @@
+/**
+ * @module debug_monitor_expand
+ * @description Script: debug_monitor_expand
+ */
 import { KEYS } from "../src/helpers/keyboard.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 

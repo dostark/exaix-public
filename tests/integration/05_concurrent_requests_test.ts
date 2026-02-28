@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertNotEquals as _assertNotEquals } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";

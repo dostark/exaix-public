@@ -1,3 +1,7 @@
+/**
+ * @module build_agents_embeddings_test
+ * @description Script: build_agents_embeddings_test
+ */
 import { assert } from "https://deno.land/std@0.203.0/assert/mod.ts";
 
 Deno.test("build mock embeddings produces manifest and files", async () => {

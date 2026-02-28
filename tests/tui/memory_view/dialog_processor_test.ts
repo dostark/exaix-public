@@ -16,7 +16,7 @@ import {
   TUI_STATUS_MSG_PROPOSAL_REJECTED,
 } from "../../../src/helpers/constants.ts";
 import { DialogProcessor } from "../../../src/tui/memory_view/dialog_processor.ts";
-import { DialogStatus } from "../../../src/enums.ts";
+import { DialogStatus } from "../../../src/shared/enums.ts";
 import type {
   AddLearningDialog,
   BulkApproveDialog,
@@ -25,7 +25,7 @@ import type {
   PromoteDialog,
 } from "../../../src/tui/dialogs/memory_dialogs.ts";
 import { createMockDialog, createMockService, createTestContext, testDialogProcess } from "./memory_test_helpers.ts";
-import type { IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../../../src/shared/schemas/memory_bank.ts";
 
 testDialogProcess(
   "DialogProcessor.processConfirmApproveDialog: cancelled",

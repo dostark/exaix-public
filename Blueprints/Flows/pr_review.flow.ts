@@ -1,3 +1,9 @@
+/**
+ * @module Pr_Review.Flow
+ * @path Blueprints/Flows/pr_review.flow.ts
+ * @description Module for pr_review.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 /**

@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { BaseCommand, type ICommandContext } from "../../src/cli/base.ts";

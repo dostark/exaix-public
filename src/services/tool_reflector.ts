@@ -8,15 +8,15 @@
  */
 
 import { z } from "zod";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import type { IDatabaseService } from "./db.ts";
 import { AgentRunner } from "./agent_runner.ts";
 import type { IBlueprint, IParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator } from "./output_validator.ts";
 import type { IOutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
-import { ToolReflectionIssueType, ToolReflectionSeverity } from "../enums.ts";
-import { JSONValue, JSONValueSchema, LogMetadata, toSafeJson } from "../types.ts";
+import { ToolReflectionIssueType, ToolReflectionSeverity } from "../shared/enums.ts";
+import { JSONValue, JSONValueSchema, LogMetadata, toSafeJson } from "../shared/types/json.ts";
 
 export interface IToolCall {
   id: string;

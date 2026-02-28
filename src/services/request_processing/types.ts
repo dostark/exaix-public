@@ -6,7 +6,7 @@
  * @dependencies [RequestStatus]
  * @related-files [src/services/request_processor.ts, src/requests/request_status.ts]
  */
-import type { RequestStatusType } from "../../requests/request_status.ts";
+import type { RequestStatusType } from "../../shared/status/request_status.ts";
 
 export interface IRequestFrontmatter {
   trace_id: string;

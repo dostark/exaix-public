@@ -11,9 +11,9 @@ import { IProviderMetadata, ProviderRegistry } from "./provider_registry.ts";
 import type { IProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
-import { Config } from "../config/schema.ts";
+import { Config } from "../shared/schemas/config.ts";
 import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
-import { PricingTier, ProviderCostTier, TaskComplexity } from "../enums.ts";
+import { PricingTier, ProviderCostTier, TaskComplexity } from "../shared/enums.ts";
 
 /**
  * Criteria for selecting a provider

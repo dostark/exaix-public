@@ -6,9 +6,10 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { IModelProvider, MockProvider, ModelFactory, OllamaProvider } from "../src/ai/providers.ts";
+import { MockProvider, ModelFactory, OllamaProvider } from "../src/ai/providers.ts";
+import { IModelProvider } from "../src/ai/types.ts";
 import { ConnectionError, ModelProviderError, TimeoutError } from "../src/ai/providers/common.ts";
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 
 // ============================================================================
 // Test 1: MockProvider returns configured response

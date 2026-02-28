@@ -1,3 +1,9 @@
+/**
+ * @module Refactoring.Flow
+ * @path Blueprints/Flows/refactoring.flow.ts
+ * @description Module for refactoring.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 /**

@@ -15,7 +15,7 @@ import {
   RATE_LIMIT_WINDOW_MINUTE_MS,
   TOKEN_ESTIMATION_CHARS_PER_TOKEN,
   TOKEN_ESTIMATION_MAX_TOKENS,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 
 /**
  * Configuration for rate limiting

@@ -9,7 +9,7 @@
 
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import * as colors from "@std/fmt/colors";
-import type { JournalFilterOptions } from "../../services/db.ts";
+import { IJournalFilterOptions } from "../../shared/types/database.ts";
 import { JournalFormatter } from "../formatters/journal_formatter.ts";
 
 export interface IJournalCommandOptions {
@@ -45,8 +45,8 @@ export class JournalCommands extends BaseCommand {
     JournalFormatter.render(results, filterOptions, options.format);
   }
 
-  private parseFilterOptions(options: IJournalCommandOptions): JournalFilterOptions {
-    const filterOptions: JournalFilterOptions = {};
+  private parseFilterOptions(options: IJournalCommandOptions): IJournalFilterOptions {
+    const filterOptions: IJournalFilterOptions = {};
 
     if (options.tail) {
       filterOptions.limit = options.tail;

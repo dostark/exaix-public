@@ -12,9 +12,9 @@ import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
-import { DialogStatus } from "../enums.ts";
-import type { JSONObject } from "../types.ts";
+import type { IActivityRecord, IJournalFilterOptions } from "../shared/types/database.ts";
+import { DialogStatus } from "../shared/enums.ts";
+import type { JSONObject } from "../shared/types/json.ts";
 
 // ===== Service Interfaces =====
 
@@ -22,7 +22,7 @@ import type { JSONObject } from "../types.ts";
  * Service interface for log access.
  */
 export interface ILogService {
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]>;
 }
 
 export interface ILogEntry {
@@ -219,7 +219,7 @@ export const MONITOR_KEY_BINDINGS = new MonitorViewBindings().KEY_BINDINGS;
  * View/controller for monitoring logs. Delegates to injected LogService.
  */
 export class MonitorView {
-  private filter: JournalFilterOptions = {};
+  private filter: IJournalFilterOptions = {};
   private isPaused = false;
   private logs: ILogEntry[] = [];
 
@@ -245,7 +245,7 @@ export class MonitorView {
   }
 
   /** Set the filter for logs. */
-  setFilter(filter: JournalFilterOptions): void {
+  setFilter(filter: IJournalFilterOptions): void {
     this.filter = { ...this.filter, ...filter };
   }
 
@@ -343,7 +343,7 @@ export class MinimalLogServiceMock implements ILogService {
     this.logs = logs;
   }
 
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     let filtered = this.logs;
 
     if (filter.agentId) {

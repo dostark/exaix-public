@@ -8,7 +8,7 @@
  */
 
 import { ValidationResult } from "../base/command.ts";
-import type { JSONObject } from "../../types.ts";
+import type { JSONObject } from "../../shared/types/json.ts";
 
 export type ValidationRule = (value: unknown) => string | null;
 

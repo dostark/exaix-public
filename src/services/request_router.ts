@@ -16,11 +16,11 @@ import { type IAgentExecutionResult, type IAgentRunner, type IBlueprint, type IP
 import { EventLogger } from "./event_logger.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { IWorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
-import type { Config, IPortalConfig } from "../config/schema.ts";
-import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import type { Config, IPortalConfig } from "../shared/schemas/config.ts";
+import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import type { IRequestFrontmatter } from "./request_processing/types.ts";
-import type { IFlow } from "../schemas/flow.ts";
+import type { IFlow } from "../shared/schemas/flow.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine

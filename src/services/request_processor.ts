@@ -9,18 +9,18 @@
  */
 
 import { basename, dirname, join } from "@std/path";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import type { DatabaseService } from "./db.ts";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import { AgentRunner, type IAgentExecutionResult, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
 import { buildParsedRequest } from "./request_common.ts";
 import { BlueprintLoader, type ILoadedBlueprint } from "./blueprint_loader.ts";
 import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
-import { TaskComplexity } from "../enums.ts";
-import { RequestStatus } from "../requests/request_status.ts";
-import { PlanStatus } from "../plans/plan_status.ts";
-import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import { TaskComplexity } from "../shared/enums.ts";
+import { RequestStatus } from "../shared/status/request_status.ts";
+import { PlanStatus } from "../shared/status/plan_status.ts";
+import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
@@ -34,7 +34,7 @@ import { LogMethod } from "./decorators/logging.ts";
 import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
 import { IRequestFrontmatter, ParsedRequestFile } from "./request_processing/types.ts";
-import type { LogMetadata } from "../types.ts";
+import type { LogMetadata } from "../shared/types/json.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { IServiceContext } from "./common/types.ts";
 

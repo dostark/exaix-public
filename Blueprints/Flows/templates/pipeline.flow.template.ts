@@ -1,3 +1,9 @@
+/**
+ * @module Pipeline.Flow.Template
+ * @path Blueprints/Flows/templates/pipeline.flow.template.ts
+ * @description Module for pipeline.flow.template.
+ */
+
 import { defineFlow } from "../../../src/flows/define_flow.ts";
 
 /**

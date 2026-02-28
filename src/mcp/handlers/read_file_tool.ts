@@ -1,10 +1,7 @@
-import { type MCPToolResponse, ReadFileToolArgsSchema } from "../../schemas/mcp.ts";
-import { PortalOperation } from "../../enums.ts";
-import type { JSONValue } from "../../types.ts";
 /**
  * @module ReadFileTool
  * @path src/mcp/handlers/read_file_tool.ts
- * @description MCP tool handler for reading files from a portal with security validation.
+ * @description Module for ReadFileTool.
  * @architectural-layer MCP
  * @dependencies [ToolHandler, Path]
  * @related-files [src/mcp/tool_handler.ts]

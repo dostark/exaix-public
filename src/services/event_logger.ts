@@ -10,12 +10,10 @@
 
 import type { IDatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
-import { LogLevel } from "../enums.ts";
+import { LogLevel } from "../shared/enums.ts";
 import { Actor, ILogEvent } from "./common/types.ts";
 import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
-import { JSONValue, LogMetadata, toSafeJson } from "../types.ts";
-
-export type { Actor, ILogEvent };
+import { JSONValue, LogMetadata, toSafeJson } from "../shared/types/json.ts";
 
 /**
  * Configuration for EventLogger

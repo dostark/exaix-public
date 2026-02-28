@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { EvaluationCategory } from "../enums.ts";
+import { EvaluationCategory } from "../shared/enums.ts";
 
 /**
  * Schema for an evaluation criterion

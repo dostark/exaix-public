@@ -8,22 +8,21 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
-import { TuiNodeType } from "../enums.ts";
+import { TuiNodeType } from "../shared/enums.ts";
 // Redundant import removed
 import { MemoryFormatter } from "./memory_view/formatters.ts";
 import { TreeBuilder } from "./memory_view/tree_builder.ts";
 import { DialogProcessor } from "./memory_view/dialog_processor.ts";
 import { KeyHandler } from "./memory_view/key_handlers.ts";
-import { IMemoryServiceInterface, ITreeNode } from "./memory_view/types.ts";
-export type { IMemoryServiceInterface, ITreeNode };
-import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import { type IMemoryServiceInterface, type ITreeNode } from "./memory_view/types.ts";
+import type { Config } from "../shared/schemas/config.ts";
+import { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
 import {
   type IExecutionMemory,
   type IMemorySearchResult,
   type IMemoryUpdateProposal,
-  MemoryBankService,
-} from "../services/memory_bank.ts";
+} from "../shared/schemas/memory_bank.ts";
+import { MemoryBankService } from "../services/memory_bank.ts";
 import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
 import {
@@ -68,7 +67,7 @@ export class MemoryServiceAdapter implements IMemoryServiceInterface {
   private _embedding: MemoryEmbeddingService;
   private projectsDir: string;
 
-  constructor(config: Config, db: DatabaseService) {
+  constructor(config: Config, db: IDatabaseService) {
     this.memoryBank = new MemoryBankService(config, db);
     this.extractor = new MemoryExtractorService(config, db, this.memoryBank);
     this._embedding = new MemoryEmbeddingService(config);

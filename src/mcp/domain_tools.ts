@@ -12,12 +12,12 @@ import {
   ListPlansToolArgsSchema,
   type MCPToolResponse,
   QueryJournalToolArgsSchema,
-} from "../schemas/mcp.ts";
-import { JSONValue } from "../types.ts";
+} from "../shared/schemas/mcp.ts";
+import { JSONValue } from "../shared/types/json.ts";
 import { ToolHandler } from "./tool_handler.ts";
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { PlanCommands } from "../cli/commands/plan_commands.ts";
-import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
+import { PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
 
 /**
  * Tool for creating new ExoFrame requests

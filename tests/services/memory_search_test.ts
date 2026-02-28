@@ -6,14 +6,14 @@
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import type { ILearning, IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Setup Helpers =====

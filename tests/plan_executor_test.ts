@@ -10,7 +10,7 @@ import {
   FlowStepType as _FlowStepType,
   MemoryOperation as _MemoryOperation,
   PortalOperation as _PortalOperation,
-} from "../src/enums.ts";
+} from "../src/shared/enums.ts";
 import { join } from "@std/path";
 import { type IPlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";

@@ -8,7 +8,7 @@
 import { assert, assertEquals } from "@std/assert";
 
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
-import { FlowSchema } from "../../src/schemas/flow.ts";
+import { FlowSchema } from "../../src/shared/schemas/flow.ts";
 
 // Mock flow files for testing
 const mockFlowsDir = "/tmp/test-flows";

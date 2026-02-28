@@ -10,7 +10,7 @@ import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../../src/config/paths.ts";
 import { parse as parseYaml } from "@std/yaml";
-import { BlueprintFrontmatterSchema } from "../../src/schemas/blueprint.ts";
+import { BlueprintFrontmatterSchema } from "../../src/shared/schemas/blueprint.ts";
 
 const paths = getDefaultPaths(".");
 

@@ -6,8 +6,8 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { ExecutionStatus, MessageType, SkillStatus } from "../../../src/enums.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
+import { ExecutionStatus, MessageType, SkillStatus } from "../../../src/shared/enums.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 import {
   addStatusLine,
   clearStatusMessage,

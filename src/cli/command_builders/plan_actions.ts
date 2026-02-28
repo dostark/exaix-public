@@ -8,9 +8,9 @@
  */
 
 import type { PlanCommands } from "../commands/plan_commands.ts";
-import { PlanStatus } from "../../plans/plan_status.ts";
+import { PlanStatus } from "../../shared/status/plan_status.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
 
 export interface IPlanActionContext {
   planCommands: PlanCommands;
@@ -89,53 +89,53 @@ export async function handlePlanShow(
   const { planCommands, display } = context;
 
   try {
-    const plan = await planCommands.show(id);
+    const { metadata, content } = await planCommands.show(id);
     const displayData: JSONObject = {
-      status: plan.status,
-      subject: plan.subject,
-      trace: plan.trace_id,
+      status: metadata.status,
+      subject: metadata.subject,
+      trace: metadata.trace_id,
     };
 
     // Add request information if available
-    if (plan.request_id) {
-      displayData.request = plan.request_id;
+    if (metadata.request_id) {
+      displayData.request = metadata.request_id;
     }
-    if (plan.request_subject) {
-      displayData.request_subject = plan.request_subject;
+    if (metadata.request_subject) {
+      displayData.request_subject = metadata.request_subject;
     }
-    if (plan.request_agent) {
-      displayData.agent = plan.request_agent;
+    if (metadata.request_agent) {
+      displayData.agent = metadata.request_agent;
     }
-    if (plan.request_portal) {
-      displayData.portal = plan.request_portal;
+    if (metadata.request_portal) {
+      displayData.portal = metadata.request_portal;
     }
-    if (plan.request_priority) {
-      displayData.priority = plan.request_priority;
+    if (metadata.request_priority) {
+      displayData.priority = metadata.request_priority;
     }
-    if (plan.request_created_by) {
-      displayData.created_by = plan.request_created_by;
+    if (metadata.request_created_by) {
+      displayData.created_by = metadata.request_created_by;
     }
-    if (plan.input_tokens !== undefined) {
-      displayData.input_tokens = plan.input_tokens;
+    if (metadata.input_tokens !== undefined) {
+      displayData.input_tokens = metadata.input_tokens;
     }
-    if (plan.output_tokens !== undefined) {
-      displayData.output_tokens = plan.output_tokens;
+    if (metadata.output_tokens !== undefined) {
+      displayData.output_tokens = metadata.output_tokens;
     }
-    if (plan.total_tokens !== undefined) {
-      displayData.total_tokens = plan.total_tokens;
+    if (metadata.total_tokens !== undefined) {
+      displayData.total_tokens = metadata.total_tokens;
     }
-    if (plan.token_provider !== undefined) {
-      displayData.token_provider = plan.token_provider;
+    if (metadata.token_provider !== undefined) {
+      displayData.token_provider = metadata.token_provider;
     }
-    if (plan.token_model !== undefined) {
-      displayData.token_model = plan.token_model;
+    if (metadata.token_model !== undefined) {
+      displayData.token_model = metadata.token_model;
     }
-    if (plan.token_cost_usd !== undefined) {
-      displayData.token_cost_usd = plan.token_cost_usd;
+    if (metadata.token_cost_usd !== undefined) {
+      displayData.token_cost_usd = metadata.token_cost_usd;
     }
 
-    display.info("plan.show", plan.id, toSafeJson(displayData) as Record<string, JSONValue>);
-    display.info("plan.content", id, { content: plan.content });
+    display.info("plan.show", metadata.id, toSafeJson(displayData) as Record<string, JSONValue>);
+    display.info("plan.content", id, { content: content });
   } catch (error) {
     display.error("cli.error", "plan show", {
       message: error instanceof Error ? error.message : "Unknown error",

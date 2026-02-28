@@ -13,10 +13,10 @@
  * @related-files [src/services/db.ts, src/services/memory_bank/index.builder.ts]
  */
 
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import { IDatabaseService } from "./db.ts";
-import type { IMemoryUpdateProposal } from "../schemas/memory_bank.ts";
-import { JSONObject, JSONValue, toSafeJson } from "../types.ts";
+import type { IMemoryUpdateProposal } from "../shared/schemas/memory_bank.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../shared/types/json.ts";
 
 /**
  * Notification structure for memory updates
@@ -80,12 +80,12 @@ export class NotificationService implements INotificationService {
    */
   async notifyMemoryUpdate(proposal: IMemoryUpdateProposal): Promise<void> {
     const metadata = JSON.stringify({
-      learning_title: proposal.learning.title,
+      learning_title: proposal.learning?.title || "Untitled",
       reason: proposal.reason,
     });
 
     await this.notify(
-      `Memory update pending: ${proposal.learning.title}`,
+      `Memory update pending: ${proposal.learning?.title || "Untitled"}`,
       "memory_update_pending",
       proposal.id,
       undefined,
@@ -98,7 +98,7 @@ export class NotificationService implements INotificationService {
       target: proposal.target_project || "global",
       metadata: {
         proposal_id: proposal.id,
-        learning_title: proposal.learning.title,
+        learning_title: proposal.learning?.title || "Untitled",
         reason: proposal.reason,
       },
     });

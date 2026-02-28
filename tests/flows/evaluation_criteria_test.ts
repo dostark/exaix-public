@@ -18,7 +18,7 @@ import {
   EvaluationCriterionSchema,
   getCriteriaByNames,
 } from "../../src/flows/evaluation_criteria.ts";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
 // ============================================================
 // CRITERIA Constants Tests

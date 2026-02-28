@@ -9,7 +9,7 @@
 
 import { z } from "zod";
 import { EvaluationCriterion, EvaluationCriterionSchema, getCriteriaByNames } from "./evaluation_criteria.ts";
-import { FlowGateOnFail } from "../enums.ts";
+import { FlowGateOnFail } from "../shared/enums.ts";
 import { GateEvaluator, IGateResult } from "./gate_evaluator.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 

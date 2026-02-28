@@ -5,7 +5,13 @@
  * initialization, listing, and cross-project pattern retrieval.
  */
 
-import { ConfidenceLevel, FlowOutputFormat, LearningCategory, MemoryScope, MemoryType } from "../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  FlowOutputFormat,
+  LearningCategory,
+  MemoryScope,
+  MemoryType,
+} from "../../src/shared/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
 import { LearningBuilder } from "../fixtures/memory_builder.ts";

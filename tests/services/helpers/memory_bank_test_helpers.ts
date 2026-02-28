@@ -5,12 +5,12 @@
  * coordinating database setup and vector similarity mock data.
  */
 
-import type { ILearning, IPattern } from "../../../src/schemas/memory_bank.ts";
-import { IExecutionMemory, IProjectMemory } from "../../../src/schemas/memory_bank.ts";
-import type { IDecision } from "../../../src/schemas/memory_bank.ts";
+import type { ILearning, IPattern } from "../../../src/shared/schemas/memory_bank.ts";
+import { IExecutionMemory, IProjectMemory } from "../../../src/shared/schemas/memory_bank.ts";
+import type { IDecision } from "../../../src/shared/schemas/memory_bank.ts";
 import { MemoryBankService } from "../../../src/services/memory_bank.ts";
 import { initTestDbService } from "../../helpers/db.ts";
-import type { Config } from "../../../src/config/schema.ts";
+import type { Config } from "../../../src/shared/schemas/config.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -18,8 +18,8 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-} from "../../../src/enums.ts";
-import { MemoryStatus } from "../../../src/memory/memory_status.ts";
+} from "../../../src/shared/enums.ts";
+import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
 /**
  * Creates a test setup with MemoryBankService and a pre-created project memory

@@ -8,7 +8,7 @@
 import { assert, assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
+import { PortalExecutionStrategy, PortalOperation } from "../../src/shared/enums.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import {

@@ -7,9 +7,9 @@
  * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
 
-import { IFlow, IFlowStep } from "../schemas/flow.ts";
+import { IFlow, IFlowStep } from "../shared/schemas/flow.ts";
 import { IStepResult } from "./flow_runner.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Context available during condition evaluation

@@ -6,13 +6,13 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { PortalOperation } from "../src/enums.ts";
+import { PortalOperation } from "../src/shared/enums.ts";
 
-import { MemoryOperation } from "../src/enums.ts";
+import { MemoryOperation } from "../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { type ITraceData, MissionReporter, type ReportConfig } from "../src/services/mission_reporter.ts";
-import { ExecutionStatus } from "../src/enums.ts";
+import { ExecutionStatus } from "../src/shared/enums.ts";
 import { MemoryBankService } from "../src/services/memory_bank.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";

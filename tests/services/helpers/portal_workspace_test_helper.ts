@@ -7,8 +7,8 @@
 
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { PortalOperation } from "../../../src/enums.ts";
-import type { IPortalPermissions } from "../../../src/schemas/portal_permissions.ts";
+import { PortalOperation } from "../../../src/shared/enums.ts";
+import type { IPortalPermissions } from "../../../src/shared/schemas/portal_permissions.ts";
 
 export async function setupPortalWorkspaceTestDirs(tempDir: string): Promise<{
   portalDir: string;

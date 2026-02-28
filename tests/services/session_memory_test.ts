@@ -23,7 +23,7 @@ import type {
   IMemorySearchResult,
   IPattern,
   IProjectMemory,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -31,8 +31,8 @@ import {
   MemoryScope,
   MemorySource,
   MemoryType,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 // ===== Mock Services =====
 

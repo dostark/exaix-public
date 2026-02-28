@@ -6,16 +6,16 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { MemoryReferenceType } from "../../src/enums.ts";
+import { MemoryReferenceType } from "../../src/shared/enums.ts";
 
-import { ExecutionStatus } from "../../src/enums.ts";
+import { ExecutionStatus } from "../../src/shared/enums.ts";
 
 import {
   ExecutionMemorySchema,
   type IExecutionMemory as IExecutionMemory,
   type IProjectMemory as IProjectMemory,
   ProjectMemorySchema,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 
 Deno.test("ProjectMemorySchema: validates valid project memory", () => {
   const validProject: IProjectMemory = {

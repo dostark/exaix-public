@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/handle_key.ts]
  */
 
-import { MessageType } from "../../enums.ts";
+import { MessageType } from "../../shared/enums.ts";
 import type { IDashboardViewState, IPane, ITuiView } from "../tui_dashboard.ts";
 import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";

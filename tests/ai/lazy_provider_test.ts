@@ -8,7 +8,7 @@
 import { assertEquals } from "@std/assert";
 import type { IProviderFactory } from "../../src/ai/factories/abstract_provider_factory.ts";
 import { LazyProvider } from "../../src/ai/providers/lazy_provider.ts";
-import { ProviderType } from "../../src/enums.ts";
+import { ProviderType } from "../../src/shared/enums.ts";
 import type { IModelOptions, IModelProvider, IResolvedProviderOptions } from "../../src/ai/types.ts";
 
 Deno.test("LazyProvider: derives id from constructor arg > options.id > provider-model", () => {

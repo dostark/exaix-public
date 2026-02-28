@@ -18,7 +18,7 @@ import {
   SOURCE_ICONS,
   STATUS_ICONS,
 } from "../../src/tui/skills_manager_view.ts";
-import { MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
+import { MemoryScope, MemorySource, SkillStatus } from "../../src/shared/enums.ts";
 import {
   createSkillsManagerTuiSession,
   createSkillsManagerViewWithMock,

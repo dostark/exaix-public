@@ -1,3 +1,9 @@
+/**
+ * @module Migration_Planning.Flow
+ * @path Blueprints/Flows/migration_planning.flow.ts
+ * @description Module for migration_planning.flow.
+ */
+
 import { defineFlow } from "../../src/flows/define_flow.ts";
 
 /**

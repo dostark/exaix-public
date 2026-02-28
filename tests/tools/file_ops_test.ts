@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/config/schema.ts";
+import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 
 Deno.test("ToolRegistry: core file operations", async (t) => {
   const tempDir = await Deno.makeTempDir();

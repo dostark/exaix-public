@@ -9,7 +9,7 @@
 import { AbstractProviderFactory } from "./abstract_provider_factory.ts";
 import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { MockLLMProvider } from "../providers/mock_llm_provider.ts";
-import * as DEFAULTS from "../../config/constants.ts";
+import * as DEFAULTS from "../../shared/constants.ts";
 
 export class MockProviderFactory extends AbstractProviderFactory {
   async create(options: IResolvedProviderOptions): Promise<IModelProvider> {

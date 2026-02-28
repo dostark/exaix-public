@@ -9,7 +9,7 @@
  * @related-files [src/services/execution_loop.ts, src/services/watcher.ts, src/cli/daemon_commands.ts]
  */
 import { ConfigService } from "./config/service.ts";
-import { DaemonStatus, LogLevel } from "./enums.ts";
+import { DaemonStatus, LogLevel } from "./shared/enums.ts";
 import { FileWatcher } from "./services/watcher.ts";
 import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
@@ -29,7 +29,7 @@ import {
 import { GracefulShutdown } from "./services/graceful_shutdown.ts";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { LogMetadata, toSafeJson } from "./types.ts";
+import { LogMetadata, toSafeJson } from "./shared/types/json.ts";
 
 if (import.meta.main) {
   // Simple argument handling for the compiled binary

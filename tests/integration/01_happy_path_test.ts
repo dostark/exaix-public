@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { ExecutionStatus, McpToolName, MemorySource, PortalOperation } from "../../src/enums.ts";
+import { ExecutionStatus, McpToolName, MemorySource, PortalOperation } from "../../src/shared/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";

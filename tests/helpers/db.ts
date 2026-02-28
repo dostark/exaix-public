@@ -10,7 +10,7 @@ import { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";
 import { join } from "@std/path";
 import { REVIEW_STATUS_VALUES } from "../../src/reviews/review_status.ts";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 
 /**
  * SQL statement to create the activity table with all indexes.

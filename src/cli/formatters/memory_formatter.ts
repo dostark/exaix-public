@@ -19,7 +19,7 @@ import type {
   IProjectMemory,
   ISkill,
   ISkillMatch,
-} from "../../schemas/memory_bank.ts";
+} from "../../shared/schemas/memory_bank.ts";
 import {
   CLI_LAYOUT_BOX_INDENT_WIDTH,
   CLI_LAYOUT_BOX_LABEL_WIDTH,
@@ -43,7 +43,7 @@ import {
   CLI_TRUNCATE_ID_SHORT,
   CLI_TRUNCATE_TITLE_MEDIUM,
   CLI_TRUNCATE_TITLE_SHORT,
-} from "../../config/constants.ts";
+} from "../../shared/constants.ts";
 
 /**
  * Handles formatting of Memory Bank data for CLI output.

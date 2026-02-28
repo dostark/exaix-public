@@ -7,10 +7,10 @@
  * @related-files [src/mcp/tool_handler.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
-import { type MCPToolResponse, WriteFileToolArgsSchema } from "../../schemas/mcp.ts";
-import { PortalOperation } from "../../enums.ts";
+import { type MCPToolResponse, WriteFileToolArgsSchema } from "../../shared/schemas/mcp.ts";
+import { PortalOperation } from "../../shared/enums.ts";
 import { dirname } from "@std/path";
-import type { JSONValue } from "../../types.ts";
+import type { JSONValue } from "../../shared/types/json.ts";
 
 /**
  * WriteFileTool - Writes file content to a portal

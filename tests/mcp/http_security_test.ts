@@ -6,12 +6,12 @@
  */
 
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import { MCPTransport } from "../../src/enums.ts";
+import { MCPTransport } from "../../src/shared/enums.ts";
 
 import { MCPServer } from "../../src/mcp/server.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { join } from "@std/path";
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 
 /**

@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { StatusManager } from "../../src/services/request_processing/status_manager.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { createStubDb } from "../test_helpers.ts";
 

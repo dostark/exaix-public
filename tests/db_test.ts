@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { MemorySource } from "../src/enums.ts";
+import { MemorySource } from "../src/shared/enums.ts";
 
 import { initActivityTableSchema, initTestDbService } from "./helpers/db.ts";
 import { DatabaseService } from "../src/services/db.ts";

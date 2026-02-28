@@ -8,10 +8,10 @@
  * @related-files [src/main.ts, src/services/request_processor.ts]
  */
 import { join } from "@std/path";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
 import { EventLogger } from "./event_logger.ts";
-import { DEFAULT_WATCHER_STABILITY_BACKOFF_MS, DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS } from "../config/constants.ts";
+import { DEFAULT_WATCHER_STABILITY_BACKOFF_MS, DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS } from "../shared/constants.ts";
 import { delay } from "../helpers/async_utils.ts";
 
 /**

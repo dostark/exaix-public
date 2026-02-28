@@ -13,17 +13,17 @@ import {
   MemoryScope,
   MemorySource,
   MemoryType,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
-import { ConfidenceLevel } from "../../src/enums.ts";
+import { ConfidenceLevel } from "../../src/shared/enums.ts";
 import type {
   IExecutionMemory,
   IGlobalMemory,
   IMemorySearchResult,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../src/schemas/memory_bank.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
 import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { MinimalMemoryServiceMock } from "./helpers.ts";
 import {

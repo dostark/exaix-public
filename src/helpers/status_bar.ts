@@ -10,7 +10,7 @@
 import { colorize, getTheme, type ITuiTheme, padEnd, visibleLength } from "./colors.ts";
 import { renderSpinner, type SpinnerState, type SpinnerStyle } from "./spinner.ts";
 import { TUI_ICON_SUCCESS } from "./constants.ts";
-import { MessageType } from "../enums.ts";
+import { MessageType } from "../shared/enums.ts";
 
 // ===== Status Bar Interfaces =====
 

@@ -14,7 +14,7 @@ import {
   TUI_LAYOUT_VALUE_WIDTH,
   TUI_MSG_PRESS_QUIT,
 } from "../../helpers/constants.ts";
-import type { IRequest } from "../request_manager_view.ts";
+import { IRequest } from "../../shared/types/request.ts";
 
 /**
  * Formatter for Request Manager View
@@ -33,7 +33,7 @@ export class RequestFormatter {
       }║`,
       `╠══════════════════════════════════════════════════════════════╣`,
       `║ ID:       ${request.trace_id.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
-      `║ Subject:  ${request.subject.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Subject:  ${(request.subject || "").padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Status:   ${request.status.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Priority: ${request.priority.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Agent:    ${request.agent.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
@@ -63,31 +63,42 @@ export class RequestFormatter {
       `║ Applied Skills:                                              ║`,
     ];
 
-    if (request.skills.explicit && request.skills.explicit.length > 0) {
-      const explicitStr = request.skills.explicit.join(", ");
-      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 14;
-      lines.push(`║   Explicit: ${explicitStr.slice(0, limit).padEnd(limit)} ║`);
-    }
-    if (request.skills.autoMatched && request.skills.autoMatched.length > 0) {
-      const autoStr = request.skills.autoMatched.join(", ");
-      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 18;
-      lines.push(`║   Auto-matched: ${autoStr.slice(0, limit).padEnd(limit)} ║`);
-    }
-    if (request.skills.fromDefaults && request.skills.fromDefaults.length > 0) {
-      const defStr = request.skills.fromDefaults.join(", ");
-      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 19;
-      lines.push(`║   From defaults: ${defStr.slice(0, limit).padEnd(limit)} ║`);
-    }
-    if (request.skills.skipped && request.skills.skipped.length > 0) {
-      const skipStr = request.skills.skipped.join(", ");
-      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 13;
-      lines.push(`║   Skipped: ${skipStr.slice(0, limit).padEnd(limit)} ║`);
-    }
-    if (
-      !request.skills.explicit?.length && !request.skills.autoMatched?.length &&
-      !request.skills.fromDefaults?.length
-    ) {
-      lines.push(`║   (none)`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+    const skills = request.skills;
+    if (Array.isArray(skills)) {
+      if (skills.length > 0) {
+        const skillsStr = skills.join(", ");
+        const limit = TUI_LAYOUT_MEDIUM_WIDTH - 12;
+        lines.push(`║   Skills: ${skillsStr.slice(0, limit).padEnd(limit)} ║`);
+      } else {
+        lines.push(`║   (none)`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+      }
+    } else {
+      if (skills.explicit && skills.explicit.length > 0) {
+        const explicitStr = skills.explicit.join(", ");
+        const limit = TUI_LAYOUT_MEDIUM_WIDTH - 14;
+        lines.push(`║   Explicit: ${explicitStr.slice(0, limit).padEnd(limit)} ║`);
+      }
+      if (skills.autoMatched && skills.autoMatched.length > 0) {
+        const autoStr = skills.autoMatched.join(", ");
+        const limit = TUI_LAYOUT_MEDIUM_WIDTH - 18;
+        lines.push(`║   Auto-matched: ${autoStr.slice(0, limit).padEnd(limit)} ║`);
+      }
+      if (skills.fromDefaults && skills.fromDefaults.length > 0) {
+        const defStr = skills.fromDefaults.join(", ");
+        const limit = TUI_LAYOUT_MEDIUM_WIDTH - 19;
+        lines.push(`║   From defaults: ${defStr.slice(0, limit).padEnd(limit)} ║`);
+      }
+      if (skills.skipped && skills.skipped.length > 0) {
+        const skipStr = skills.skipped.join(", ");
+        const limit = TUI_LAYOUT_MEDIUM_WIDTH - 13;
+        lines.push(`║   Skipped: ${skipStr.slice(0, limit).padEnd(limit)} ║`);
+      }
+      if (
+        !skills.explicit?.length && !skills.autoMatched?.length &&
+        !skills.fromDefaults?.length
+      ) {
+        lines.push(`║   (none)`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+      }
     }
 
     return lines;

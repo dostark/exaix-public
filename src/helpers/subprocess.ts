@@ -7,7 +7,7 @@
  * @related-files [src/services/tool_reflector.ts]
  */
 
-import { DEFAULT_SUBPROCESS_TIMEOUT_MS } from "../config/constants.ts";
+import { DEFAULT_SUBPROCESS_TIMEOUT_MS } from "../shared/constants.ts";
 
 export interface ISubprocessOptions {
   timeoutMs?: number;

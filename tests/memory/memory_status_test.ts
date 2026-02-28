@@ -12,7 +12,7 @@ import {
   isMemoryStatus,
   MEMORY_STATUS_VALUES,
   MemoryStatus,
-} from "../../src/memory/memory_status.ts";
+} from "../../src/shared/status/memory_status.ts";
 
 Deno.test("isMemoryStatus: accepts known values", () => {
   for (const status of MEMORY_STATUS_VALUES) {

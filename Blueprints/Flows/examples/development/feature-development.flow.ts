@@ -1,3 +1,9 @@
+/**
+ * @module FeatureDevelopment.Flow
+ * @path Blueprints/Flows/examples/development/feature-development.flow.ts
+ * @description Module for featuredevelopment.flow.
+ */
+
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
 
 /**

@@ -5,7 +5,7 @@
  * simulating daemon state, lifecycle operations, and activity logs.
  */
 
-import { DaemonStatus } from "../../src/enums.ts";
+import { DaemonStatus } from "../../src/shared/enums.ts";
 import { DaemonControlView, MinimalDaemonServiceMock } from "../../src/tui/daemon_control_view.ts";
 
 export function setupDaemonTest(options: {

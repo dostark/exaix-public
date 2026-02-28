@@ -6,7 +6,7 @@
  */
 
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/config/schema.ts";
+import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
 
 Deno.test("ToolRegistry: deno_task", async (t) => {

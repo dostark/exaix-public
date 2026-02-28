@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory, MemoryReferenceType } from "../../src/enums.ts";
+import { EvaluationCategory, MemoryReferenceType } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -17,9 +17,9 @@ import {
   type ILearning,
   type IProjectMemory,
   LearningSchema,
-} from "../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryType } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+} from "../../src/shared/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryType } from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
 

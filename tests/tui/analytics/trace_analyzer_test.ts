@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from "@std/assert";
 
 import { analyzeTrace } from "../../../src/tui/analytics/trace_analyzer.ts";
 import type { IStructuredLogEntry } from "../../../src/services/structured_logger.ts";
-import { LogLevel } from "../../../src/enums.ts";
+import { LogLevel } from "../../../src/shared/enums.ts";
 
 function entry(params: {
   timestamp: string;

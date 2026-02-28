@@ -9,8 +9,8 @@
 
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import type { Config } from "../config/schema.ts";
-import type { ILearning } from "../schemas/memory_bank.ts";
+import type { Config } from "../shared/schemas/config.ts";
+import type { ILearning } from "../shared/schemas/memory_bank.ts";
 
 /**
  * Embedding search result

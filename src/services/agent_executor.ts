@@ -11,12 +11,12 @@
 import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
-import type { Config } from "../config/schema.ts";
+import type { Config } from "../shared/schemas/config.ts";
 import type { DatabaseService } from "./db.ts";
 import type { EventLogger } from "./event_logger.ts";
 import type { PathResolver } from "./path_resolver.ts";
 import type { PortalPermissionsService } from "./portal_permissions.ts";
-import type { IModelProvider } from "../ai/providers.ts";
+import { IModelProvider } from "../ai/types.ts";
 import { SafeError } from "../errors/safe_error.ts";
 import { SafeSubprocess, SubprocessTimeoutError } from "../helpers/subprocess.ts";
 import type { IWorkspaceExecutionContext } from "./workspace_execution_context.ts";
@@ -30,18 +30,18 @@ import {
   DEFAULT_GIT_STATUS_TIMEOUT_MS,
   MAX_NAME_LENGTH,
   MAX_PROMPT_LENGTH,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 import { isReadOnlyAgentCapabilities, requiresGitTracking } from "./agent_capabilities.ts";
 import {
   ChangesetResultSchema,
   type IAgentExecutionOptions,
   type IChangesetResult,
   type IExecutionContext,
-} from "../schemas/agent_executor.ts";
-import { LogLevel, SecurityMode } from "../enums.ts";
-import { InputValidator } from "../schemas/input_validation.ts";
+} from "../shared/schemas/agent_executor.ts";
+import { LogLevel, SecurityMode } from "../shared/enums.ts";
+import { InputValidator } from "../shared/schemas/input_validation.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Agent blueprint loaded from file

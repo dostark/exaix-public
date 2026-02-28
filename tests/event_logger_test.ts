@@ -8,7 +8,7 @@
 import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
 import { initTestDbService } from "./helpers/db.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
-import { LogLevel } from "../src/enums.ts";
+import { LogLevel } from "../src/shared/enums.ts";
 
 // ============================================================================
 // Basic Logging Tests

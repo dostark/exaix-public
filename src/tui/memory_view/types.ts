@@ -13,8 +13,8 @@ import type {
   IMemorySearchResult,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../services/memory_bank.ts";
-import { TuiNodeType } from "../../enums.ts";
+} from "../../shared/schemas/memory_bank.ts";
+import { TuiNodeType } from "../../shared/enums.ts";
 
 export type ITreeNodeType = TuiNodeType;
 

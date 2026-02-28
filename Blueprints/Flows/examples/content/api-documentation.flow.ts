@@ -1,3 +1,9 @@
+/**
+ * @module ApiDocumentation.Flow
+ * @path Blueprints/Flows/examples/content/api-documentation.flow.ts
+ * @description Module for apidocumentation.flow.
+ */
+
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
 
 /**

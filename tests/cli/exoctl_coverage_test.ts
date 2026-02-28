@@ -17,20 +17,20 @@ import {
   PortalOperation,
   PortalStatus,
   SkillStatus as _SkillStatus,
-} from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import { PlanStatus } from "../../src/plans/plan_status.ts";
-import { RequestStatus } from "../../src/requests/request_status.ts";
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
+import { PlanStatus } from "../../src/shared/status/plan_status.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import type { OutputFormat } from "../../src/cli/memory_types.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
-import type { RequestStatusType } from "../../src/requests/request_status.ts";
-import { RequestPriority } from "../../src/enums.ts";
+import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
+import { RequestPriority } from "../../src/shared/enums.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
-import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
 
 // ===== Plan Command Error Handlers =====
 

@@ -6,10 +6,10 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/enums.ts";
+import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/shared/enums.ts";
 import { createCodeReviewReflexiveAgent, type ICritique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
 import type { IAgentExecutionResult, IBlueprint, IParsedRequest } from "../../src/services/agent_runner.ts";
-import type { IModelProvider } from "../../src/ai/providers.ts";
+import { IModelProvider } from "../../src/ai/types.ts";
 import type { IAgentRunner } from "../../src/services/agent_runner.ts";
 import {
   type IOutputValidator,
@@ -18,7 +18,7 @@ import {
   OutputValidator,
 } from "../../src/services/output_validator.ts";
 import { createStubDb } from "../test_helpers.ts";
-import type { JSONValue } from "../../src/types.ts";
+import type { JSONValue } from "../../src/shared/types/json.ts";
 
 function createMockRunner(
   runFn: (blueprint: IBlueprint, request: IParsedRequest) => Promise<IAgentExecutionResult>,

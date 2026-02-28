@@ -12,7 +12,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryType,
-} from "../../src/enums.ts";
+} from "../../src/shared/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { SkillsService } from "../../src/services/skills.ts";
@@ -34,7 +34,7 @@ import {
   TEST_SKILL_NAME,
   TEST_SKILL_REQUEST_TEXT,
   TEST_SKILL_TASK_TYPE,
-} from "../config/constants.ts";
+} from "../shared/constants.ts";
 import { join } from "https://deno.land/std@0.203.0/path/join.ts";
 
 // ===== Search with Embeddings Tests =====

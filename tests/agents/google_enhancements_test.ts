@@ -9,7 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.221.0/assert/mod.t
 import { parse } from "https://deno.land/std@0.221.0/yaml/mod.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../../src/config/paths.ts";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 const paths = getDefaultPaths(".");
 const providersDir = join(paths.blueprints, "../.copilot/providers");

@@ -6,9 +6,9 @@
  */
 
 import { assertEquals, assertThrows } from "@std/assert";
-import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/shared/enums.ts";
 import { z, ZodError } from "zod";
-import { FlowSchema, FlowStepSchema } from "../../src/schemas/flow.ts";
+import { FlowSchema, FlowStepSchema } from "../../src/shared/schemas/flow.ts";
 
 // Test FlowStep schema validation
 Deno.test("FlowStepSchema: validates valid step definition", () => {

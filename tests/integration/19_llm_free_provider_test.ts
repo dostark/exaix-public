@@ -9,7 +9,7 @@
 // This test is ignored by default to avoid calling external endpoints in CI.
 
 import { assert, assertExists, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ModelFactory } from "../../src/ai/providers.ts";

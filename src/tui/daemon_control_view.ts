@@ -12,25 +12,12 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
-import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../enums.ts";
+import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../shared/enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { MessageType } from "../enums.ts";
-
-// ===== Service Interfaces =====
-
-/**
- * Service interface for controlling the ExoFrame daemon.
- */
-export interface IDaemonService {
-  start(): Promise<void>;
-  stop(): Promise<void>;
-  restart(): Promise<void>;
-  getStatus(): Promise<string>;
-  getLogs(): Promise<string[]>;
-  getErrors(): Promise<string[]>;
-}
+import { MessageType } from "../shared/enums.ts";
+import { IDaemonService } from "../shared/interfaces/i_daemon_service.ts";
 
 // ===== View State =====
 
@@ -205,14 +192,17 @@ export class CLIDaemonService implements IDaemonService {
     await this.stop();
     await this.start();
   }
-  async getStatus(): Promise<string> {
+  async getStatus(): Promise<DaemonStatus> {
     const cmd = new Deno.Command("deno", {
       args: ["run", "--allow-all", this.#cliScript, CLI_CMD_DAEMON, CLI_CMD_STATUS],
       stdout: "piped",
       stderr: "null",
     });
     const { stdout } = await cmd.output();
-    return new TextDecoder().decode(stdout).trim();
+    const out = new TextDecoder().decode(stdout).trim().toLowerCase();
+    if (out.includes("running")) return DaemonStatus.RUNNING;
+    if (out.includes("stopped")) return DaemonStatus.STOPPED;
+    return DaemonStatus.UNKNOWN;
   }
   getLogs(): Promise<string[]> {
     // TODO: Implement real log fetching from CLI or file
@@ -300,8 +290,8 @@ export class MinimalDaemonServiceMock implements IDaemonService {
     return Promise.resolve();
   }
 
-  getStatus(): Promise<string> {
-    return Promise.resolve(this.status);
+  getStatus(): Promise<DaemonStatus> {
+    return Promise.resolve(DaemonStatus.RUNNING);
   }
 
   getLogs(): Promise<string[]> {

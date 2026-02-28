@@ -9,7 +9,7 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { z } from "zod";
-import { ArchiveStatus } from "../enums.ts";
+import { ArchiveStatus } from "../shared/enums.ts";
 
 export const ArchiveEntrySchema = z.object({
   trace_id: z.string().uuid(),

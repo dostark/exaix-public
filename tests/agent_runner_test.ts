@@ -11,8 +11,9 @@ import { AgentRunner } from "../src/services/agent_runner.ts";
 import type { IBlueprint, IParsedRequest } from "../src/services/agent_runner.ts";
 import { PORTAL_CONTEXT_KEY } from "../src/config/constants.ts";
 import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
-import type { ISkillMatchRequest, ISkillsService } from "../src/services/skills.ts";
-import type { ISkillMatch } from "../src/schemas/memory_bank.ts";
+import { ISkillsService } from "../src/services/skills.ts";
+import { ISkillMatchRequest } from "../src/shared/types/skill.ts";
+import type { ISkillMatch } from "../src/shared/schemas/memory_bank.ts";
 
 // ============================================================================
 // Test Fixtures

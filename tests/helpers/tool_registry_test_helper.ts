@@ -11,7 +11,7 @@ import type { DatabaseService as DatabaseService } from "../../src/services/db.t
 import { createMockConfig } from "./config.ts";
 import { initTestDbService } from "./db.ts";
 import { getMemoryProjectsDir } from "./paths_helper.ts";
-import { JSONObject, JSONValue, toSafeJson } from "../../src/types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../../src/shared/types/json.ts";
 
 /**
  * Test helper for ToolRegistry tests

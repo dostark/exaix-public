@@ -12,7 +12,7 @@ import { calculatePerformanceStats } from "../../src/tui/analytics/performance_a
 import { detectErrorPatterns } from "../../src/tui/analytics/error_analyzer.ts";
 import { findRelatedLogs, findTraceLogs, groupByCorrelation } from "../../src/tui/analytics/queries.ts";
 import type { IStructuredLogEntry } from "../../src/services/structured_logger.ts";
-import { LogLevel } from "../../src/enums.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
 
 // Helper to create mock log entries
 function createLogEntry(

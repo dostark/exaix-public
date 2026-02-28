@@ -7,7 +7,7 @@
 
 import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import { MessageType } from "../../src/enums.ts";
+import { MessageType } from "../../src/shared/enums.ts";
 
 export interface IRequestManagerMockHandlers {
   handleSearchResult: (value: string) => void;

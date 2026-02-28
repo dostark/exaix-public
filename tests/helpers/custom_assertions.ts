@@ -8,7 +8,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import type { MemoryBankService } from "../../src/services/memory_bank.ts";
 import type { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
-import { ExecutionStatus } from "../../src/enums.ts";
+import { ExecutionStatus } from "../../src/shared/enums.ts";
 
 /**
  * Asserts that the command output contains all expected strings

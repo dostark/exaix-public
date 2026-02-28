@@ -7,8 +7,8 @@
  * @related-files [src/ai/factories/llama_factory.ts, src/ai/factories/ollama_factory.ts]
  */
 import { IModelOptions, IModelProvider } from "../providers.ts";
-import type { Config } from "../../config/schema.ts";
-import * as DEFAULTS from "../../config/constants.ts";
+import type { Config } from "../../shared/schemas/config.ts";
+import * as DEFAULTS from "../../shared/constants.ts";
 import { fetchJsonWithRetries, type OllamaResponse } from "../provider_common_utils.ts";
 
 /**

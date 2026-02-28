@@ -6,7 +6,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../shared/constants.ts";
 import {
   handlePlanApprove,
   handlePlanList,
@@ -17,7 +17,7 @@ import {
 } from "../../src/cli/command_builders/plan_actions.ts";
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
-import { LogLevel } from "../../src/enums.ts";
+import { LogLevel } from "../../src/shared/enums.ts";
 
 function createDisplay() {
   const calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];

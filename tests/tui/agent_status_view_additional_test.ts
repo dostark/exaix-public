@@ -6,19 +6,19 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AgentHealth, LogLevel } from "../../src/enums.ts";
-import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
+import { AgentHealth, LogLevel } from "../../src/shared/enums.ts";
+import { AgentStatus } from "../../src/shared/status/agent_status.ts";
 
 import {
   AgentHealthData,
   AgentLogEntry,
-  AgentStatusItem,
   AgentStatusView,
   IAgentService,
+  IAgentStatusItem,
 } from "../../src/tui/agent_status_view.ts";
 
 class EmptyAgentService implements IAgentService {
-  listAgents(): Promise<AgentStatusItem[]> {
+  listAgents(): Promise<IAgentStatusItem[]> {
     return Promise.resolve([]);
   }
   getAgentLogs(): Promise<AgentLogEntry[]> {
@@ -30,7 +30,7 @@ class EmptyAgentService implements IAgentService {
 }
 
 class DetailedAgentService implements IAgentService {
-  listAgents(): Promise<AgentStatusItem[]> {
+  listAgents(): Promise<IAgentStatusItem[]> {
     return Promise.resolve([
       {
         id: "agent-x",

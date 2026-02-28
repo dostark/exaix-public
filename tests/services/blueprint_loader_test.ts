@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../../src/enums.ts";
+import { McpToolName } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import {
@@ -15,7 +15,7 @@ import {
   createBlueprintLoader,
   loadBlueprint,
 } from "../../src/services/blueprint_loader.ts";
-import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
 import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 // Test directory setup

@@ -6,7 +6,7 @@
  * @dependencies [FlowStep]
  * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
-import { IFlowStep } from "../schemas/flow.ts";
+import { IFlowStep } from "../shared/schemas/flow.ts";
 
 /**
  * Error thrown when flow validation fails due to dependency issues

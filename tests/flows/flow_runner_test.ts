@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertRejects } from "@std/assert";
-import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 import {
   FlowExecutionError,
   FlowRunner,
@@ -14,11 +14,12 @@ import {
   type IFlowEventLogger,
   type IFlowStepRequest,
 } from "../../src/flows/flow_runner.ts";
-import { IFlow, IFlowInput, IFlowStepInput } from "../../src/schemas/flow.ts";
+import { IFlow, IFlowInput, IFlowStepInput } from "../../src/shared/schemas/flow.ts";
 import { IAgentExecutionResult } from "../../src/services/agent_runner.ts";
 import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
-import { JSONValue } from "../../src/types.ts";
-import { ActivityRecord, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
+import { JSONValue } from "../../src/shared/types/json.ts";
+import { ActivityRecord, SqliteParam } from "../../src/services/db.ts";
+import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
 
 /** Local type matching the shape logged by FlowRunner for flow.token_summary events */
 interface TokenSummary {
@@ -1682,7 +1683,7 @@ class MockDatabaseService {
     }));
   }
 
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  queryActivity(filter: IJournalFilterOptions): Promise<ActivityRecord[]> {
     return Promise.resolve(this.activities.filter((a) => {
       if (filter.traceId && a.trace_id !== filter.traceId) return false;
       if (filter.actionType && a.action_type !== filter.actionType) return false;

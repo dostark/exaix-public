@@ -8,10 +8,10 @@
 import { assertEquals, assertExists } from "@std/assert";
 
 import { CRITERIA, EvaluationResult as _EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
-import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/shared/enums.ts";
 import { JudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { createJudgeEvaluator, JudgeEvaluator } from "../../src/flows/judge_evaluator.ts";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 /**
  * Mock AgentRunner for testing JudgeEvaluator

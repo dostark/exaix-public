@@ -12,7 +12,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
-import { JSONValue } from "../types.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 /**
  * Fully loaded and validated blueprint

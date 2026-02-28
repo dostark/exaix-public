@@ -15,11 +15,11 @@ import {
   TUI_LAYOUT_DIALOG_WIDTH,
   TUI_LAYOUT_MEDIUM_WIDTH,
 } from "./constants.ts";
-import type { IMemoryUpdateProposal } from "../schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../shared/schemas/memory_bank.ts";
 
 // ===== Dialog Types =====
 
-import { DialogStatus } from "../enums.ts";
+import { DialogStatus } from "../shared/enums.ts";
 import { KEYS } from "./keyboard.ts";
 
 export type DialogState = DialogStatus;

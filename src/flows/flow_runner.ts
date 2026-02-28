@@ -7,12 +7,12 @@
  * @related-files [src/flows/flow_loader.ts, src/services/request_router.ts, src/services/flow_reporter.ts]
  */
 
-import { IFlow, IFlowStep } from "../schemas/flow.ts";
+import { IFlow, IFlowStep } from "../shared/schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
 import { IAgentExecutionResult } from "../services/agent_runner.ts";
 import { ConditionEvaluator } from "./condition_evaluator.ts";
 import { appendToRequest, extractSection, mergeAsContext, passthrough, templateFill } from "./transforms.ts";
-import { jsonExtract, JSONValue } from "../types.ts";
+import { jsonExtract, JSONValue } from "../shared/types/json.ts";
 import type { IDatabaseService } from "../services/db.ts";
 
 export interface IFlowRunner {

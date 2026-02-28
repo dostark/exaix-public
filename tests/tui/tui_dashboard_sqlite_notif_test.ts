@@ -6,8 +6,14 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+} from "../../src/shared/enums.ts";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 
 Deno.test("TUI Dashboard + SQLite: handles notification service integration", async () => {

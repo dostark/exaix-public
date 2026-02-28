@@ -7,9 +7,9 @@
 
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/config/schema.ts";
+import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
-import type { JSONObject } from "../../src/types.ts";
+import type { JSONObject } from "../../src/shared/types/json.ts";
 
 Deno.test("ToolRegistry: patch_file", async (t) => {
   const tempDir = await Deno.makeTempDir();

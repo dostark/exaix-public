@@ -5,7 +5,7 @@
  * workspaces, including mock service injection and temporary portal setup.
  */
 
-import type { Config } from "../../src/config/schema.ts";
+import type { Config } from "../../src/shared/schemas/config.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";

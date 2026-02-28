@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts]
  */
 
-import { MessageType } from "../../enums.ts";
+import { MessageType } from "../../shared/enums.ts";
 import type { IPane, ITuiView } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 

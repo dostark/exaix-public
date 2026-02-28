@@ -13,7 +13,7 @@ import type {
   ILearning,
   IMemoryUpdateProposal,
   IProjectMemory,
-} from "../../services/memory_bank.ts";
+} from "../../shared/schemas/memory_bank.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
@@ -22,6 +22,7 @@ import {
   TUI_PREFIX_PROJECT,
 } from "../../helpers/constants.ts";
 import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../../helpers/markdown_renderer.ts";
+import { ConfidenceLevel } from "../../shared/enums.ts";
 import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
 
 export class MemoryFormatter {
@@ -111,20 +112,20 @@ export class MemoryFormatter {
     const learning = proposal.learning;
 
     // Build content with color badges
-    const categoryBadge = renderCategoryBadge(learning.category, useColors);
-    const confidenceBadge = renderConfidence(learning.confidence, useColors);
+    const categoryBadge = renderCategoryBadge(learning?.category || "observation", useColors);
+    const confidenceBadge = renderConfidence(learning?.confidence || ConfidenceLevel.MEDIUM, useColors);
 
     const content = [
-      `# ${learning.title}`,
+      `# ${learning?.title || "Proposed Learning"}`,
       "",
       `**Category:** ${categoryBadge}`,
       `**Confidence:** ${confidenceBadge}`,
       `**Scope:** ${proposal.target_scope}`,
       proposal.target_project ? `**Project:** ${proposal.target_project}` : "",
-      `**Tags:** ${learning.tags?.join(", ") ?? "none"}`,
+      `**Tags:** ${learning?.tags?.join(", ") ?? "none"}`,
       "",
       "## Description",
-      learning.description,
+      learning?.description || "",
       "",
       "## Reason for Proposal",
       proposal.reason,

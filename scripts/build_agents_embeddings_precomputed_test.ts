@@ -1,3 +1,7 @@
+/**
+ * @module build_agents_embeddings_precomputed_test
+ * @description Script: build_agents_embeddings_precomputed_test
+ */
 import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { join } from "https://deno.land/std@0.203.0/path/mod.ts";
 
