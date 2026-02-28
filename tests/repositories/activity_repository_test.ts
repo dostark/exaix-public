@@ -68,6 +68,7 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
+    close: () => Promise.resolve(),
   };
 
   const repo = new DatabaseActivityRepository(mockDb);
@@ -289,6 +290,7 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
+    close: () => Promise.resolve(),
   };
 
   const repo = new DatabaseActivityRepository(mockDb);

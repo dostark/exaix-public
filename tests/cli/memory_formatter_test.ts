@@ -64,7 +64,7 @@ import {
   TEST_STARTED_AT,
   TEST_SUMMARY_TEXT,
   TEST_TRACE_ID,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 
 const MSG_NO_EXECUTIONS = "No execution history";
 

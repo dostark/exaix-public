@@ -12,7 +12,7 @@ import { LogLevel, ProviderCostTier } from "../src/shared/enums.ts";
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/shared/schemas/config.ts";
 import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
-import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ExoPathDefaults } from "../src/shared/constants.ts";
 
 Deno.test("ConfigSchema accepts valid minimal config", () => {
   const validConfig = {

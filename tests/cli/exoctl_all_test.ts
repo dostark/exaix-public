@@ -8,9 +8,8 @@
 import "./helpers/set_test_mode.ts";
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
 import {
-  CritiqueSeverity,
   FlowInputSource,
   MemoryOperation,
   MemorySource,
@@ -22,9 +21,10 @@ import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
+import type { IRequestOptions, RequestSource } from "../../src/shared/types/request.ts";
 import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
 import type { PlanStatusType } from "../../src/shared/status/plan_status.ts";
+import type { IPlanMetadata } from "../../src/shared/types/plan.ts";
 import type { BlueprintCreateOptions, BlueprintRemoveOptions } from "../../src/cli/commands/blueprint_commands.ts";
 
 /*
@@ -151,14 +151,14 @@ Deno.test("request list prints entries when present", async () => {
       Promise.resolve([
         {
           trace_id: "abcd1234efgh5678",
-          priority: CritiqueSeverity.CRITICAL,
+          priority: RequestPriority.CRITICAL,
           agent: "agent-x",
           created_by: "tester",
           created: "now",
           status: MemoryStatus.PENDING,
           filename: "/tmp/req.md",
           path: "/tmp",
-          source: MemorySource.USER,
+          source: "cli" as RequestSource,
         },
       ]);
     const out = await captureConsoleOutput(async () => {
@@ -175,13 +175,13 @@ Deno.test("request show prints content when request exists", async () => {
         metadata: {
           trace_id: id,
           status: MemoryStatus.PENDING,
-          priority: "normal",
+          priority: RequestPriority.NORMAL,
           agent: MemorySource.AGENT,
           created_by: "tester",
           created: "time",
           filename: "/tmp/req.md",
           path: "/tmp",
-          source: MemorySource.USER,
+          source: "cli" as RequestSource,
         },
         content: "Hello world",
       });
@@ -397,7 +397,10 @@ Deno.test("portal verify summarizes healthy and broken portals", async () => {
 Deno.test("plan show prints content", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.planCommands.show = (id: string) =>
-      Promise.resolve({ id, status: "review", content: "Plan details here", trace_id: "t1" });
+      Promise.resolve({
+        metadata: { id, status: "review", trace_id: "t1" } as IPlanMetadata,
+        content: "Plan details here",
+      });
     const out = await captureConsoleOutput(async () => {
       await mod.__test_command.parse(["plan", "show", "plan-1"]);
     });
@@ -546,7 +549,7 @@ Deno.test("request list --json outputs JSON", async () => {
       Promise.resolve([
         {
           trace_id: "t1",
-          priority: "normal",
+          priority: RequestPriority.NORMAL,
           agent: "a",
           created_by: "u",
           created: "t",

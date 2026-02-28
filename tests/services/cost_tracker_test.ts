@@ -14,7 +14,7 @@ import {
   PROVIDER_ANTHROPIC,
   PROVIDER_OPENAI,
   TOKENS_PER_COST_UNIT,
-} from "../../src/config/constants.ts";
+} from "../../src/shared/constants.ts";
 
 /**
  * Tests for CostTracker service.

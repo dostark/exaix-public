@@ -6,7 +6,7 @@
  */
 
 import { join } from "@std/path";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
 
 export function getWorkspaceDir(argDir: string) {
   return join(argDir, ExoPathDefaults.workspace);

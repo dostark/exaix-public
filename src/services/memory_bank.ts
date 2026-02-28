@@ -47,7 +47,7 @@ import { parseDecisions, parsePatterns } from "./memory_bank/parsers.ts";
 import { formatExecutionSummary } from "./memory_bank/formatters.ts";
 import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } from "./memory_bank/index_builder.ts";
 import type { IMemoryEmbeddingService } from "../shared/interfaces/i_memory_embedding_service.ts";
-import { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
+import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
 
 /**
  * Memory Bank Service
@@ -199,6 +199,25 @@ export class MemoryBankService implements IMemoryBankService {
       console.error(`Error reading project memory for ${portal}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Get list of project names (aliases) from memory banks.
+   *
+   * @returns Array of project names
+   */
+  async getProjects(): Promise<string[]> {
+    const projects: string[] = [];
+    try {
+      for await (const entry of Deno.readDir(this.projectsDir)) {
+        if (entry.isDirectory) {
+          projects.push(entry.name);
+        }
+      }
+    } catch {
+      // Directory may not exist
+    }
+    return projects;
   }
 
   /**

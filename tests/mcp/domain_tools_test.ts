@@ -1,10 +1,3 @@
-/**
- * @module MCPDomainToolsTest
- * @path tests/mcp/domain_tools_test.ts
- * @description Verifies specialized MCP tools for project domain analysis, ensuring
- * structured extraction of system boundaries and module relationships.
- */
-
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { stub } from "@std/testing/mock";
 import { join } from "@std/path";
@@ -12,7 +5,7 @@ import { ensureDir } from "@std/fs";
 import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "../../src/mcp/domain_tools.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
 
 // Mock Config
 const createMockConfig = (rootDir: string): Config => ({

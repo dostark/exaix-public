@@ -1,6 +1,6 @@
 // Usage: deno run --allow-read scripts/inspect_embeddings.ts --query "foo" --top 5
 import { parse } from "https://deno.land/std@0.203.0/flags/mod.ts";
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 import * as fsMod from "https://deno.land/std@0.203.0/fs/mod.ts";
 
 function dot(a: number[], b: number[]) {

@@ -9,9 +9,9 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
-import type { IPlanMetadata } from "../src/cli/commands/plan_commands.ts";
+import type { IPlanMetadata } from "../src/shared/types/plan.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
 import type { Config } from "../src/shared/schemas/config.ts";
 
@@ -311,14 +311,14 @@ This plan references a request and should show request context.
 
     // Test plan show includes request context
     const planDetails = await planCommands.show(planId);
-    assertEquals(planDetails.id, planId);
-    assertEquals(planDetails.status, "review");
-    assertEquals(planDetails.request_id, requestId);
-    assertEquals(planDetails.request_subject, "Test Request Title");
-    assertEquals(planDetails.request_agent, "test-agent");
-    assertEquals(planDetails.request_portal, "test-portal");
-    assertEquals(planDetails.request_priority, "high");
-    assertEquals(planDetails.request_created_by, "test@example.com");
+    assertEquals(planDetails.metadata.id, planId);
+    assertEquals(planDetails.metadata.status, "review");
+    assertEquals(planDetails.metadata.request_id, requestId);
+    assertEquals(planDetails.metadata.request_subject, "Test Request Title");
+    assertEquals(planDetails.metadata.request_agent, "test-agent");
+    assertEquals(planDetails.metadata.request_portal, "test-portal");
+    assertEquals(planDetails.metadata.request_priority, "high");
+    assertEquals(planDetails.metadata.request_created_by, "test@example.com");
     assertEquals(
       planDetails.content.trim(),
       "# Test Plan\n\nThis plan references a request and should show request context.",

@@ -10,7 +10,7 @@ import { EventLogger } from "../src/services/event_logger.ts";
 import { createStubDb } from "./test_helpers.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import type { IDatabaseService } from "../src/services/db.ts";
-import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { RequestCommands } from "../src/cli/commands/request_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
@@ -81,6 +81,7 @@ Deno.test("[regression] EventLogger works with empty db (no methods) - should no
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
+    close: () => Promise.resolve(),
   };
 
   // Create EventLogger with the simulated broken db

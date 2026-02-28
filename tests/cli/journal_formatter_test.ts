@@ -32,7 +32,7 @@ import {
   JOURNAL_TRUNCATE_MAX,
   JournalAction,
   JournalFormat,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 
 const baseActivities: ActivityRecord[] = [
   {

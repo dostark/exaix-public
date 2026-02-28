@@ -7,11 +7,12 @@
 
 import { assert, assertEquals } from "@std/assert";
 import { PlanStatus } from "../../src/shared/status/plan_status.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
 import {
   DbLikePlanServiceAdapter,
+  type IPlan,
   MinimalPlanServiceMock,
   PlanCommandsServiceAdapter,
   PlanReviewerTuiSession,
@@ -90,7 +91,7 @@ async function setupPlanReviewerTest(options: {
 
 // Helper for TUI session tests with service overrides
 function createInteractiveSession(
-  plans: Array<{ id: string; subject: string }> = [{ id: "p1", subject: "Plan 1" }],
+  plans: IPlan[] = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }],
   overrides: Partial<MinimalPlanServiceMock> = {},
 ) {
   const mockService = new MinimalPlanServiceMock();
@@ -131,7 +132,7 @@ Deno.test("returns plan content as diff via PlanCommands", async () => {
 Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
   const { view, root, planId } = await setupPlanReviewerTest({
     planId: "p3",
-    frontmatter: { status: "review", subject: "Refactor" },
+    frontmatter: { status: PlanStatus.REVIEW, subject: "Refactor" },
   });
 
   try {
@@ -150,7 +151,7 @@ Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
 Deno.test("DB-like path logs reviewer and reason", async () => {
   const logs: ReviewerLog[] = [];
   const dbLike = {
-    getPendingPlans: () => Promise.resolve([{ id: "p", subject: "T" }]),
+    getPendingPlans: () => Promise.resolve([{ id: "p", subject: "T", status: PlanStatus.REVIEW }]),
     getPlanDiff: () => Promise.resolve("diff"),
     updatePlanStatus: (_id: string, _status: string) => Promise.resolve(),
     logActivity: (evt: ReviewerLog) => {
@@ -220,7 +221,7 @@ Deno.test("handles very large plan content via PlanCommands", async () => {
 
 Deno.test("PlanReviewerTuiSession: error handling in #triggerAction (service throws)", async () => {
   let called = false;
-  const plans = [{ id: "p1", subject: "T1" }];
+  const plans = [{ id: "p1", subject: "T1", status: PlanStatus.REVIEW }];
   const { session } = createInteractiveSession(plans, {
     listPending: () => Promise.resolve([]),
     getDiff: () => Promise.resolve(""),
@@ -250,13 +251,16 @@ Deno.test("PlanReviewerTuiSession: error handling in #triggerAction (service thr
 Deno.test("PlanReviewerView: reject throws if reason missing", async () => {
   // Do not provide getPendingPlans so PlanCommands path is used
   const view = new PlanReviewerView({
-    listPending: () => Promise.resolve([]),
+    listPending: () => Promise.resolve([] as IPlan[]),
     getDiff: () => Promise.resolve(""),
     approve: () => Promise.resolve(true),
     reject: (_id: string, _r: string, reason?: string) => {
       if (!reason) return Promise.reject(new Error("Rejection reason is required"));
       return Promise.resolve(true);
     },
+    revise: () => Promise.resolve(),
+    list: () => Promise.resolve([]),
+    show: (id: string) => Promise.resolve({ metadata: { id, status: PlanStatus.REVIEW }, content: "" } as any),
   });
   let threw = false;
   try {
@@ -295,7 +299,7 @@ Deno.test("PlanReviewerTuiSession: edge cases (no plans, invalid selection)", ()
 Deno.test("PlanReviewerView: works with DB-like service", async () => {
   let updated = false, logged = false;
   const dbLike = {
-    getPendingPlans: () => Promise.resolve([{ id: "p", subject: "T" }]),
+    getPendingPlans: () => Promise.resolve([{ id: "p", subject: "T", status: PlanStatus.REVIEW }]),
     getPlanDiff: (id: string) => Promise.resolve(`diff-${id}`),
     updatePlanStatus: () => {
       updated = true;
@@ -382,8 +386,8 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - home key", async () => {
 Deno.test("PlanReviewerTuiSession keyboard actions - a (approve plan)", async () => {
   let approvedPlan = "";
   const plans = [
-    { id: "plan1", subject: "Plan 1" },
-    { id: "plan2", subject: "Plan 2" },
+    { id: "plan1", subject: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "plan2", subject: "Plan 2", status: PlanStatus.REVIEW },
   ];
   const { session } = createInteractiveSession(plans, {
     approve: (planId: string) => {
@@ -403,8 +407,8 @@ Deno.test("PlanReviewerTuiSession keyboard actions - a (approve plan)", async ()
 Deno.test("PlanReviewerTuiSession keyboard actions - r (reject plan)", async () => {
   let rejectedPlan = "";
   const plans = [
-    { id: "plan1", subject: "Plan 1" },
-    { id: "plan2", subject: "Plan 2" },
+    { id: "plan1", subject: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "plan2", subject: "Plan 2", status: PlanStatus.REVIEW },
   ];
   const { session } = createInteractiveSession(plans, {
     reject: (planId: string) => {
@@ -422,7 +426,7 @@ Deno.test("PlanReviewerTuiSession keyboard actions - r (reject plan)", async () 
 });
 
 Deno.test("PlanReviewerTuiSession keyboard actions - error handling", async () => {
-  const plans = [{ id: "plan1", subject: "Plan 1" }];
+  const plans = [{ id: "plan1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const { session } = createInteractiveSession(plans, {
     approve: () => {
       throw new Error("Failed to approve plan");
@@ -450,7 +454,7 @@ Deno.test("PlanReviewerTuiSession keyboard actions - no plans", async () => {
 });
 
 Deno.test("PlanReviewerTuiSession keyboard actions - invalid keys ignored", async () => {
-  const plans = [{ id: "plan1", subject: "Plan 1" }];
+  const plans = [{ id: "plan1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   const initialIndex = session.getSelectedIndex();
@@ -507,7 +511,7 @@ Deno.test("Phase 13.4: Plan tree rendering", () => {
 });
 
 Deno.test("Phase 13.4: Help screen toggle", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   // Initially help is hidden
@@ -523,7 +527,7 @@ Deno.test("Phase 13.4: Help screen toggle", async () => {
 });
 
 Deno.test("Phase 13.4: Help screen rendering", () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   const helpLines = session.renderHelp();
@@ -534,7 +538,7 @@ Deno.test("Phase 13.4: Help screen rendering", () => {
 });
 
 Deno.test("Phase 13.4: Confirm dialog for approve", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   let approveTriggered = false;
   const { session } = createInteractiveSession(plans, {
     approve: () => {
@@ -556,7 +560,7 @@ Deno.test("Phase 13.4: Confirm dialog for approve", async () => {
 });
 
 Deno.test("Phase 13.4: Confirm dialog for reject", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans: IPlan[] = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   let rejectTriggered = false;
   const { session } = createInteractiveSession(plans, {
     reject: () => {
@@ -577,7 +581,7 @@ Deno.test("Phase 13.4: Confirm dialog for reject", async () => {
 });
 
 Deno.test("Phase 13.4: Diff view toggle", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans: IPlan[] = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const { session } = createInteractiveSession(plans, {
     getDiff: () => Promise.resolve("+ added line\n- removed line"),
   });
@@ -596,7 +600,7 @@ Deno.test("Phase 13.4: Diff view toggle", async () => {
 });
 
 Deno.test("Phase 13.4: Diff rendering", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans: IPlan[] = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const { session } = createInteractiveSession(plans, {
     getDiff: () => Promise.resolve("+ added\n- removed\n@@ context @@"),
   });
@@ -671,7 +675,7 @@ Deno.test("Phase 13.4: Refresh view with R key", async () => {
 });
 
 Deno.test("Phase 13.4: Loading state management", async () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans: IPlan[] = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   let resolvePromise: () => void;
   const slowPromise = new Promise<string>((resolve) => {
     resolvePromise = () => resolve("diff content");
@@ -699,7 +703,7 @@ Deno.test("Phase 13.4: Loading state management", async () => {
 });
 
 Deno.test("Phase 13.4: Action buttons include help shortcut", () => {
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   const buttons = session.renderActionButtons();
@@ -797,7 +801,7 @@ Deno.test("Phase 13.4: Left arrow collapses expanded group", async () => {
 Deno.test("Phase 13.4: createTuiSession accepts useColors parameter", () => {
   const mockService = new MinimalPlanServiceMock();
   const view = new PlanReviewerView(mockService);
-  const plans = [{ id: "p1", subject: "Plan 1" }];
+  const plans = [{ id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW }];
 
   // Create with colors
   const tuiWithColors = view.createTuiSession(plans, true);

@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ExoPathDefaults } from "../src/shared/constants.ts";
 import type { IBlueprintMetadata } from "../src/shared/schemas/blueprint.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import type { Config } from "../src/shared/schemas/config.ts";

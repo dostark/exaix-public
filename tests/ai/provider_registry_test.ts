@@ -15,8 +15,8 @@ import { IResolvedProviderOptions } from "../../src/ai/types.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
 import { MockStrategy, PricingTier, ProviderType } from "../../src/shared/enums.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
-import { TEST_MODEL_ANTHROPIC } from "../shared/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";
 
 // ============================================================================
 // Basic Registry Tests

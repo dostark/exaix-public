@@ -16,7 +16,7 @@ import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { PricingTier, TaskComplexity } from "../../src/shared/enums.ts";
 import { createTestConfig } from "./helpers/test_config.ts";
-import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
 
 async function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {

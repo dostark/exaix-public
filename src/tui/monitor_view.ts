@@ -16,14 +16,7 @@ import type { IActivityRecord, IJournalFilterOptions } from "../shared/types/dat
 import { DialogStatus } from "../shared/enums.ts";
 import type { JSONObject } from "../shared/types/json.ts";
 
-// ===== Service Interfaces =====
-
-/**
- * Service interface for log access.
- */
-export interface ILogService {
-  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]>;
-}
+import { IJournalService as ILogService } from "../shared/interfaces/i_journal_service.ts";
 
 export interface ILogEntry {
   id: string;
@@ -230,10 +223,10 @@ export class MonitorView {
   /** Refresh logs from the service. */
   async refreshLogs(): Promise<void> {
     if (!this.isPaused) {
-      const activities = await this.logService.queryActivity(this.filter);
-      this.logs = activities.map((log): ILogEntry => ({
+      const activities = await this.logService.query(this.filter);
+      this.logs = activities.map((log: IActivityRecord): ILogEntry => ({
         ...log,
-        payload: typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload,
+        payload: (typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload) as JSONObject,
       }));
     }
   }
@@ -343,7 +336,7 @@ export class MinimalLogServiceMock implements ILogService {
     this.logs = logs;
   }
 
-  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
+  query(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     let filtered = this.logs;
 
     if (filter.agentId) {
@@ -364,6 +357,10 @@ export class MinimalLogServiceMock implements ILogService {
 
   setLogs(logs: ILogEntry[]): void {
     this.logs = logs;
+  }
+
+  getDistinctValues(_field: string): Promise<string[]> {
+    return Promise.resolve([]);
   }
 }
 
@@ -712,8 +709,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     }
   }
 
-  private doRefresh(): void {
-    this.monitorView.refreshLogs();
+  private async doRefresh(): Promise<void> {
+    await this.monitorView.refreshLogs();
     this.buildTree();
     this.statusMessage = "Logs refreshed";
   }

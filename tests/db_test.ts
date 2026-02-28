@@ -1,11 +1,4 @@
-/**
- * @module DatabaseServiceTest
- * @path tests/db_test.ts
- * @description Verifies the DatabaseService, ensuring correct schema initialization,
- * batched activity logging, transaction safety, and persistent storage of trace-linked data.
- */
-
-import { assert, assertEquals, assertExists } from "@std/assert";
+import { assertEquals, assertExists } from "@std/assert";
 import { MemorySource } from "../src/shared/enums.ts";
 
 import { initActivityTableSchema, initTestDbService } from "./helpers/db.ts";
@@ -431,6 +424,8 @@ Deno.test("DatabaseService: handles rapid concurrent logging", async () => {
     await cleanup();
   }
 });
+
+import { assert } from "@std/assert";
 
 Deno.test("DatabaseService: handles transaction rollback on error", async () => {
   const { db, cleanup } = await initTestDbService();

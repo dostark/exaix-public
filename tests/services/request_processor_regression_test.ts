@@ -1,10 +1,3 @@
-/**
- * @module RequestProcessorRegressionTest
- * @path tests/services/request_processor_regression_test.ts
- * @description Regression tests for the RequestProcessor, verifying long-term stability for
- * provider selection, budget enforcement, and trace correlation in complex scenarios.
- */
-
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { ConfigService } from "../../src/config/service.ts";

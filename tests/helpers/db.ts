@@ -1,10 +1,3 @@
-/**
- * @module DatabaseTestHelpers
- * @path tests/helpers/db.ts
- * @description Provides common utilities for database setup and cleanup,
- * ensuring isolated SQLite environments for activity logging tests.
- */
-
 import { Database } from "@db/sqlite";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";

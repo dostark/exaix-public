@@ -32,6 +32,7 @@ export class DashboardCommands extends BaseCommand {
   async show(): Promise<void> {
     await this.launchDashboard({
       databaseService: this.db,
+      config: this.config,
     });
   }
 }

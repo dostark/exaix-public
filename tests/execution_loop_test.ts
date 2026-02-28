@@ -25,7 +25,7 @@ import {
 import { ensureDir } from "@std/fs/ensure-dir";
 import { IModelProvider } from "../src/ai/types.ts";
 import type { ActivityRecord } from "../src/services/db.ts";
-import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
+import { EXECUTION_REPORT_FILENAME } from "../src/shared/constants.ts";
 
 /**
  * Tests for Step 4.3: Execution Loop (Resilient)

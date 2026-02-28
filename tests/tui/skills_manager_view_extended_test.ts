@@ -19,10 +19,12 @@ import {
   STATUS_ICONS,
 } from "../../src/tui/skills_manager_view.ts";
 import { MemoryScope, MemorySource, SkillStatus } from "../../src/shared/enums.ts";
+import { type ISkillsService as _ISkillsService } from "../../src/shared/interfaces/i_skills_service.ts";
 import {
   createSkillsManagerTuiSession,
   createSkillsManagerViewWithMock,
   createTestSkills,
+  sampleSkill,
   sampleTestSkills,
   testSkillsSessionRender,
 } from "./helpers.ts";
@@ -83,14 +85,17 @@ Deno.test("SkillsManagerView: getCachedSkills returns copy of skills", async () 
 
   assertEquals(cached.length, skills.length);
   // Verify it's a copy
-  cached.push({
-    id: "extra",
-    name: "Extra",
-    version: "1.0.0",
-    status: SkillStatus.ACTIVE,
-    source: MemorySource.CORE,
-  });
-  assertNotEquals(view.getCachedSkills().length, cached.length);
+  const expandedCached = [
+    ...cached,
+    sampleSkill({
+      id: "extra",
+      name: "Extra",
+      version: "1.0.0",
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.CORE,
+    }),
+  ];
+  assertNotEquals(view.getCachedSkills().length, expandedCached.length);
 });
 
 Deno.test("SkillsManagerView: selectSkill and getSelectedSkill work", () => {
@@ -462,15 +467,15 @@ testSkillsSessionRender(
 
 Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)", async () => {
   const skills: ISkillSummary[] = [
-    {
+    sampleSkill({
       id: "long-instructions",
       name: "Long Instructions",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemoryScope.PROJECT,
+      source: MemorySource.PROJECT,
       description: "Skill with long instructions",
       instructions: Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join("\n"),
-    },
+    }),
   ];
   const { service: _service, view } = createSkillsManagerViewWithMock(skills);
   const session = view.createTuiSession(false);

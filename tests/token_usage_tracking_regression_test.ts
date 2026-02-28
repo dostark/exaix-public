@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { tokenMapperAnthropic, tokenMapperGoogle, tokenMapperOpenAI } from "../src/ai/provider_common_utils.ts";
-import { COST_RATE_ANTHROPIC, COST_RATE_GOOGLE, COST_RATE_OPENAI } from "../src/config/constants.ts";
+import { COST_RATE_ANTHROPIC, COST_RATE_GOOGLE, COST_RATE_OPENAI } from "../src/shared/constants.ts";
 import {
   TEST_COMPLETION_TOKENS_ANTHROPIC,
   TEST_COMPLETION_TOKENS_GOOGLE,
@@ -27,7 +27,7 @@ import {
   TEST_TOTAL_TOKENS_ANTHROPIC,
   TEST_TOTAL_TOKENS_GOOGLE,
   TEST_TOTAL_TOKENS_OPENAI,
-} from "./shared/constants.ts";
+} from "./config/constants.ts";
 
 Deno.test("[regression] Token usage logged at info level with cost calculation", () => {
   // Test that tokenMapperGoogle includes cost calculation

@@ -12,7 +12,7 @@ import { OpenAIProviderFactory } from "../src/ai/factories/openai_factory.ts";
 import { IResolvedProviderOptions } from "../src/ai/types.ts";
 import { MockStrategy, ProviderType } from "../src/shared/enums.ts";
 import { SecureCredentialStore } from "../src/helpers/credential_security.ts";
-import * as TEST_CONSTANTS from "./shared/constants.ts";
+import * as TEST_CONSTANTS from "./config/constants.ts";
 
 const TEST_KEY_ANTHROPIC = "sk-ant-test-key";
 const TEST_KEY_OPENAI = "sk-test-key";

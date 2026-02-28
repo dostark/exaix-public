@@ -7,14 +7,9 @@
  * @related-files [src/services/memory_bank.ts, src/enums.ts]
  */
 
-import type {
-  IExecutionMemory,
-  IGlobalMemory,
-  IMemorySearchResult,
-  IMemoryUpdateProposal,
-  IProjectMemory,
-} from "../../shared/schemas/memory_bank.ts";
 import { TuiNodeType } from "../../shared/enums.ts";
+
+import { IMemoryService } from "../../shared/interfaces/i_memory_service.ts";
 
 export type ITreeNodeType = TuiNodeType;
 
@@ -28,21 +23,4 @@ export interface ITreeNode {
   data?: unknown;
 }
 
-export interface IMemoryServiceInterface {
-  getProjects(): Promise<string[]>;
-  getProjectMemory(portal: string): Promise<IProjectMemory | null>;
-  getGlobalMemory(): Promise<IGlobalMemory | null>;
-  getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null>;
-  getExecutionHistory(options?: {
-    portal?: string;
-    limit?: number;
-  }): Promise<IExecutionMemory[]>;
-  search(
-    query: string,
-    options?: { portal?: string; limit?: number },
-  ): Promise<IMemorySearchResult[]>;
-  listPending(): Promise<IMemoryUpdateProposal[]>;
-  getPending(proposalId: string): Promise<IMemoryUpdateProposal | null>;
-  approvePending(proposalId: string): Promise<void>;
-  rejectPending(proposalId: string, reason: string): Promise<void>;
-}
+export type { IMemoryService };

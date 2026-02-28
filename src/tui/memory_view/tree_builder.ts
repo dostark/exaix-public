@@ -20,14 +20,14 @@ import {
   TUI_TREE_PAGINATION_LIMIT,
   TUI_TREE_RECENT_LIMIT,
 } from "../../helpers/constants.ts";
-import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
+import type { IMemoryService, ITreeNode } from "./types.ts";
 import type { IExecutionMemory } from "../../shared/schemas/memory_bank.ts";
 
 export class TreeBuilder {
   /**
    * Build the memory hierarchy tree
    */
-  static async buildTree(service: IMemoryServiceInterface): Promise<ITreeNode[]> {
+  static async buildTree(service: IMemoryService): Promise<ITreeNode[]> {
     const tree: ITreeNode[] = [];
 
     // 1. Global Scope

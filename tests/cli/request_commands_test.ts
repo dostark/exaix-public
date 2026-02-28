@@ -59,6 +59,8 @@ describe("RequestCommands", () => {
       assertEquals(result.agent, "default");
 
       // Verify file exists
+      if (!result.path) throw new Error("Path should be defined");
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "---"); // YAML delimiters
       assertStringIncludes(content, `trace_id: "${result.trace_id}"`);
@@ -72,6 +74,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Fix critical bug", { priority: RequestPriority.CRITICAL });
       assertEquals(result.priority, RequestPriority.CRITICAL);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "priority: critical");
     });
@@ -80,6 +83,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Write tests", { agent: "test_writer" });
       assertEquals(result.agent, "test_writer");
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "agent: test_writer");
     });
@@ -87,6 +91,7 @@ describe("RequestCommands", () => {
     it("should accept portal option", async () => {
       const result = await requestCommands.create("Add feature", { portal: "MyProject" });
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "portal: MyProject");
     });
@@ -111,6 +116,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Test request");
 
       const expectedDir = getWorkspaceRequestsDir(tempDir);
+      if (!result.path) throw new Error("Path should be defined");
       assertStringIncludes(result.path, expectedDir);
     });
 
@@ -145,6 +151,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Test request");
       assertExists(result.created_by);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, `created_by: ${result.created_by}`);
     });
@@ -153,6 +160,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Test");
       assertEquals(result.source, "cli");
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "source: cli");
     });
@@ -185,6 +193,7 @@ describe("RequestCommands", () => {
     it("should accept flow option", async () => {
       const result = await requestCommands.create("Test flow request", { flow: "code-review" });
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "flow: code-review");
     });
@@ -209,6 +218,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Implement dark mode", { subject: "Dark Mode" });
       assertEquals(result.subject, "Dark Mode");
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "subject: Dark Mode");
     });
@@ -217,6 +227,7 @@ describe("RequestCommands", () => {
       const result = await requestCommands.create("Implement dark mode for all pages");
       assertEquals(result.subject, "Implement dark mode for all pages");
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "subject: Implement dark mode for all pages");
     });
@@ -229,6 +240,7 @@ describe("RequestCommands", () => {
 
       const result = await requestCommands.createFromFile(inputFile);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "Implement feature from file");
       assertEquals(result.source, MemoryReferenceType.FILE);
@@ -273,6 +285,7 @@ describe("RequestCommands", () => {
 
       const result = await requestCommands.createFromFile(inputFile);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "Test content with whitespace");
     });
@@ -296,8 +309,10 @@ describe("RequestCommands", () => {
       await requestCommands.create("Request 1");
       // Create another request and manually modify its status
       const result2 = await requestCommands.create("Request 2");
+      if (!result2.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result2.path);
       const updated = content.replace("status: pending", "status: in_progress");
+      if (!result2.path) throw new Error("Path should be defined");
       await Deno.writeTextFile(result2.path, updated);
 
       const pending = await requestCommands.list(RequestStatus.PENDING);
@@ -460,11 +475,13 @@ Minimal content for show
 
       // Create another request and modify its trace_id to share prefix
       const request2 = await requestCommands.create("Request 2");
+      if (!request2.path) throw new Error("Path should be defined");
       const content2 = await Deno.readTextFile(request2.path);
       // Use same first 8 characters as request1
       const sharedPrefix = request1.trace_id.slice(0, 8);
       const fakeTraceId = `${sharedPrefix}-fake-uuid-different`;
       const updated2 = content2.replace(request2.trace_id, fakeTraceId);
+      if (!request2.path) throw new Error("Path should be defined");
       await Deno.writeTextFile(request2.path, updated2);
 
       // Now searching by the shared 8-char prefix should be ambiguous
@@ -560,6 +577,7 @@ Minimal content for show
       const result = await requestCommands.create(description);
 
       // File should be created and readable
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "---");
       assertExists(result.trace_id);
@@ -569,6 +587,7 @@ Minimal content for show
       const description = "A".repeat(10000); // 10KB description
       const result = await requestCommands.create(description);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "A".repeat(100)); // Just check some content exists
       assertEquals(result.status, RequestStatus.PENDING);
@@ -578,6 +597,7 @@ Minimal content for show
       const description = "Implement 日本語 support with émojis 🚀";
       const result = await requestCommands.create(description);
 
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "日本語");
       assertStringIncludes(content, "🚀");
@@ -659,6 +679,7 @@ Minimal content for show
       });
 
       assertEquals(result.portal, "MyPortal");
+      if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "portal: MyPortal");
     });

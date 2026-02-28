@@ -14,9 +14,12 @@ import { StructuredLogViewer } from "../structured_log_viewer.ts";
 import { DaemonControlView } from "../daemon_control_view.ts";
 import { AgentStatusView } from "../agent_status_view.ts";
 import { RequestManagerView } from "../request_manager_view.ts";
-import { MemoryServiceAdapter, MemoryView } from "../memory_view.ts";
+import { MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
 import { type ITuiView } from "../tui_dashboard.ts";
+import type { ILogService } from "../../shared/interfaces/i_log_service.ts";
+import { IJournalService } from "../../shared/interfaces/i_journal_service.ts";
+import { IMemoryService } from "../../shared/interfaces/i_memory_service.ts";
 import {
   MockAgentService,
   MockDaemonService,
@@ -41,8 +44,15 @@ import { PlanServiceAdapter } from "../../services/adapters/plan_adapter.ts";
 import { RequestServiceAdapter } from "../../services/adapters/request_adapter.ts";
 import { DaemonServiceAdapter } from "../../services/adapters/daemon_adapter.ts";
 import { AgentServiceAdapter } from "../../services/adapters/agent_adapter.ts";
+import { MemoryServiceAdapter } from "../../services/adapters/memory_adapter.ts";
+import { JournalServiceAdapter } from "../../services/adapters/journal_adapter.ts";
+import { LogServiceAdapter } from "../../services/adapters/log_adapter.ts";
+import { ConfigServiceAdapter as _ConfigServiceAdapter } from "../../services/adapters/config_adapter.ts";
+
 import { MemoryBankService } from "../../services/memory_bank.ts";
+import { MemoryExtractorService } from "../../services/memory_extractor.ts";
 import { SkillsService } from "../../services/skills.ts";
+import { getGlobalLogger } from "../../services/structured_logger.ts";
 
 import { IDatabaseService } from "../../shared/interfaces/i_database_service.ts";
 import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
@@ -51,9 +61,7 @@ import { IStructuredLogger } from "../../shared/interfaces/i_log_service.ts";
 import { IDaemonService } from "../../shared/interfaces/i_daemon_service.ts";
 import { IAgentService } from "../../shared/interfaces/i_agent_service.ts";
 import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
-import { IMemoryBankService } from "../../shared/interfaces/i_memory_bank_service.ts";
 import { ISkillsService } from "../../shared/interfaces/i_skills_service.ts";
-import { IMemoryServiceInterface } from "../memory_view/types.ts";
 import { type Config } from "../../shared/schemas/config.ts";
 import { type ICommandContext } from "../../cli/base.ts";
 
@@ -66,13 +74,13 @@ export interface IDashboardViewOptions {
 export interface IDashboardServices {
   portalService: IPortalService;
   planService: IPlanService;
-  logService: IDatabaseService;
+  logService: IJournalService | IDatabaseService;
   structuredLogger: IStructuredLogger;
   structuredLoggerService: ILogService;
   daemonService: IDaemonService;
   agentService: IAgentService;
   requestService: IRequestService;
-  memoryService: IMemoryBankService | IMemoryServiceInterface;
+  memoryService: IMemoryService;
   skillsService: ISkillsService;
 }
 
@@ -89,13 +97,13 @@ export function initDashboardViews(
 ): IDashboardViewsAndServices {
   let portalService: IPortalService;
   let planService: IPlanService;
-  let logService: IDatabaseService;
+  let logService: IJournalService | IDatabaseService;
   let structuredLogger: IStructuredLogger;
   let structuredLoggerService: ILogService;
   let daemonService: IDaemonService;
   let agentService: IAgentService;
   let requestService: IRequestService;
-  let memoryService: IMemoryBankService | IMemoryServiceInterface;
+  let memoryService: IMemoryService;
   let skillsService: ISkillsService;
 
   if (options.testMode || !options.config || !options.databaseService) {
@@ -117,14 +125,22 @@ export function initDashboardViews(
 
     portalService = new PortalServiceAdapter(new PortalCommands(context));
     planService = new PlanServiceAdapter(new PlanCommands(context));
-    logService = options.databaseService;
-    structuredLogger = new MockStructuredLogger(); // TODO: Real structured logger if needed
-    structuredLoggerService = new MockStructuredLoggerService(); // TODO: Real service if needed
+    // logService for MonitorView (IJournalService)
+    logService = new JournalServiceAdapter(options.databaseService);
+    // structuredLogger and service for StructuredLogViewer
+    const logger = getGlobalLogger();
+    structuredLogger = logger;
+    structuredLoggerService = new LogServiceAdapter(logger);
+
     daemonService = new DaemonServiceAdapter(new DaemonCommands(context));
     agentService = new AgentServiceAdapter(context);
     requestService = new RequestServiceAdapter(new RequestCommands(context));
+
+    // MemoryService for MemoryView
     const memoryBank = new MemoryBankService(options.config, options.databaseService);
-    memoryService = memoryBank;
+    const extractor = new MemoryExtractorService(options.config, options.databaseService, memoryBank);
+    memoryService = new MemoryServiceAdapter(memoryBank, extractor);
+
     const memoryDir = join(options.config.system.root!, options.config.paths.memory!);
     skillsService = new SkillsService({ memoryDir }, options.databaseService);
   }
@@ -145,7 +161,7 @@ export function initDashboardViews(
   const views = [
     Object.assign(new PortalManagerView(portalService), { name: "PortalManagerView" }),
     Object.assign(new PlanReviewerView(planService), { name: "PlanReviewerView" }),
-    Object.assign(new MonitorView(logService), { name: "MonitorView" }),
+    Object.assign(new MonitorView(logService as IJournalService), { name: "MonitorView" }),
     Object.assign(
       new StructuredLogViewer(structuredLoggerService, structuredLogger, {
         testMode: options.testMode,
@@ -159,9 +175,7 @@ export function initDashboardViews(
     Object.assign(new RequestManagerView(requestService), { name: "RequestManagerView" }),
     Object.assign(
       new MemoryView(
-        options.config && options.databaseService
-          ? new MemoryServiceAdapter(options.config, options.databaseService)
-          : (memoryService as IMemoryServiceInterface),
+        memoryService as IMemoryService,
       ),
       { name: "MemoryView" },
     ),

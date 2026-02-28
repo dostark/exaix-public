@@ -8,8 +8,8 @@
  */
 
 import { z } from "zod";
-import { AgentExecutionErrorType, SecurityMode } from "../shared/enums.ts";
-import { JSONValueSchema } from "../shared/types/json.ts";
+import { AgentExecutionErrorType, SecurityMode } from "../../shared/enums.ts";
+import { JSONValueSchema } from "../../shared/types/json.ts";
 
 /**
  * Security mode for agent execution

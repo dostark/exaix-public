@@ -1,6 +1,6 @@
 # Phase 43: TUI and Core Separation
 
-## Status: NOT_STARTED
+## Status: IN_PROGRESS
 
 Decouple the TUI implementation from the ExoFrame core by enforcing a strict interface-driven boundary. This is a prerequisite for moving the TUI into a separate Git repository (Phase 44).
 
@@ -124,36 +124,36 @@ Utilities used by the TUI for rendering, dialogs, keyboard, and tree-view mechan
 ```
 src/shared/
   interfaces/
-    request_service.ts     [NEW] IRequestService interface
-    plan_service.ts        [NEW] IPlanService interface
-    portal_service.ts      [NEW] IPortalService interface
-    memory_service.ts      [NEW] IMemoryService interface
-    journal_service.ts     [NEW] IJournalService interface
-    log_service.ts         [NEW] ILogService interface
-    notification_service.ts [NEW] INotificationService interface (re-export)
-    daemon_service.ts      [NEW] IDaemonService interface
-    config_service.ts      [NEW] IConfigService interface
-    mod.ts                 [NEW] Barrel export
+    [x] request_service.ts     [NEW] IRequestService interface
+    [x] plan_service.ts        [NEW] IPlanService interface
+    [x] portal_service.ts      [NEW] IPortalService interface
+    [x] memory_service.ts      [NEW] IMemoryService interface
+    [x] journal_service.ts     [NEW] IJournalService interface
+    [x] log_service.ts         [NEW] ILogService interface
+    [x] notification_service.ts [NEW] INotificationService interface (re-export)
+    [x] daemon_service.ts      [NEW] IDaemonService interface
+    [x] config_service.ts      [NEW] IConfigService interface
+    [ ] mod.ts                 [NEW] Barrel export
   types/
-    json.ts                [MOVE from src/types.ts — JSONObject, JSONValue]
-    mod.ts                 [NEW] Barrel export
-  enums.ts                 [MOVE from src/enums.ts]
+    [x] json.ts                [MOVE from src/types.ts — JSONObject, JSONValue]
+    [ ] mod.ts                 [NEW] Barrel export
+  [x] enums.ts                 [MOVE from src/enums.ts]
   schemas/
-    memory_bank.ts         [MOVE from src/schemas/memory_bank.ts]
-    plan_schema.ts         [MOVE from src/schemas/plan_schema.ts]
-    mod.ts                 [NEW] Barrel export
+    [x] memory_bank.ts         [MOVE from src/schemas/memory_bank.ts]
+    [x] plan_schema.ts         [MOVE from src/schemas/plan_schema.ts]
+    [ ] mod.ts                 [NEW] Barrel export
   status/
-    request_status.ts      [MOVE from src/requests/request_status.ts]
-    plan_status.ts         [MOVE from src/plans/plan_status.ts]
-    memory_status.ts       [MOVE from src/memory/memory_status.ts]
-    mod.ts                 [NEW] Barrel export
-  constants.ts             [MOVE from src/config/constants.ts]
+    [x] request_status.ts      [MOVE from src/requests/request_status.ts]
+    [x] plan_status.ts         [MOVE from src/plans/plan_status.ts]
+    [x] memory_status.ts       [MOVE from src/memory/memory_status.ts]
+    [ ] mod.ts                 [NEW] Barrel export
+  [x] constants.ts             [MOVE from src/config/constants.ts]
 ```
 
 **Success Criteria:**
-- `deno check src/shared/**/*.ts` passes.
-- All existing imports from `src/enums.ts`, `src/types.ts`, `src/schemas/`, `src/requests/request_status.ts`, `src/plans/plan_status.ts`, `src/memory/memory_status.ts`, and `src/config/constants.ts` are updated project-wide to point to `src/shared/`.
-- All existing tests pass unchanged.
+- [x] `deno check src/shared/**/*.ts` passes.
+- [x] All existing imports from `src/enums.ts`, `src/types.ts`, `src/schemas/`, `src/requests/request_status.ts`, `src/plans/plan_status.ts`, `src/memory/memory_status.ts`, and `src/config/constants.ts` are updated project-wide to point to `src/shared/`.
+- [x] All existing tests pass unchanged.
 
 **Planned Tests:**
 - `deno test --allow-all` — Full regression.
@@ -257,9 +257,9 @@ export interface IConfigService {
 ```
 
 **Success Criteria:**
-- All 9 interface files compile with `deno check`.
-- Interfaces cover **every method** the TUI currently calls on concrete command/service classes.
-- Each interface uses only types from `src/shared/` — no circular imports.
+- [x] All 9 interface files compile with `deno check`.
+- [x] Interfaces cover **every method** the TUI currently calls on concrete command/service classes.
+- [x] Each interface uses only types from `src/shared/` — no circular imports.
 
 **Planned Tests:**
 - `deno check src/shared/interfaces/*.ts` — Type-check only (interfaces have no runtime behavior).
@@ -272,17 +272,18 @@ export interface IConfigService {
 
 **Files to create:**
 
-| Adapter File | Implements | Delegates To |
-|---|---|---|
-| `src/services/adapters/request_adapter.ts` | `IRequestService` | `RequestCommands` |
-| `src/services/adapters/plan_adapter.ts` | `IPlanService` | `PlanCommands` |
-| `src/services/adapters/portal_adapter.ts` | `IPortalService` | `PortalCommands` |
-| `src/services/adapters/memory_adapter.ts` | `IMemoryService` | `MemoryBankService`, `MemoryExtractorService`, `MemoryEmbeddingService` |
-| `src/services/adapters/journal_adapter.ts` | `IJournalService` | `DatabaseService` |
-| `src/services/adapters/log_adapter.ts` | `ILogService` | `StructuredLogger` |
-| `src/services/adapters/daemon_adapter.ts` | `IDaemonService` | `DaemonService` |
-| `src/services/adapters/config_adapter.ts` | `IConfigService` | `loadConfig()` |
-| `src/services/adapters/mod.ts` | Barrel | All adapters |
+| Adapter File | Implements | Delegates To | Status |
+|---|---|---|---|
+| `src/services/adapters/request_adapter.ts` | `IRequestService` | `RequestCommands` | [x] |
+| `src/services/adapters/plan_adapter.ts` | `IPlanService` | `PlanCommands` | [x] |
+| `src/services/adapters/portal_adapter.ts` | `IPortalService` | `PortalCommands` | [x] |
+| `src/services/adapters/memory_adapter.ts` | `IMemoryService` | `MemoryBankService`, `MemoryExtractorService`, `MemoryEmbeddingService` | [ ] |
+| `src/services/adapters/journal_adapter.ts` | `IJournalService` | `DatabaseService` | [ ] |
+| `src/services/adapters/log_adapter.ts` | `ILogService` | `StructuredLogger` | [ ] |
+| `src/services/adapters/daemon_adapter.ts` | `IDaemonService` | `DaemonService` | [x] |
+| `src/services/adapters/agent_adapter.ts` | `IAgentService` | `AgentManager` | [x] |
+| `src/services/adapters/config_adapter.ts` | `IConfigService` | `loadConfig()` | [ ] |
+| `src/services/adapters/mod.ts` | Barrel | All adapters | [ ] |
 
 **Example:**
 ```typescript
@@ -458,15 +459,15 @@ export interface ITuiApplicationContext {
 
 ## Execution Batches
 
-| Batch | Steps | Scope | Risk |
+| Batch | Steps | Scope | Status |
 |---|---|---|---|
-| **1 — Foundation** | Step 1 (shared directory) | Infrastructure | Low — pure file moves |
-| **2 — Contracts** | Step 2 (interfaces) | Architecture | Low — new files only |
-| **3 — Bridges** | Step 3 (adapters) | Architecture | Medium — must match runtime behavior |
-| **4 — Consolidation** | Step 4 (helper moves) | Refactoring | Medium — many import updates |
-| **5 — Migration** | Step 5 (TUI refactoring) | The bulk effort | High — touches all 46 TUI files |
-| **6 — Integration** | Step 6 (launch logic) | Integration | Medium — end-to-end validation |
-| **7 — Guard** | Step 7 (CI check) | CI/CD | Low — script + config |
+| **1 — Foundation** | Step 1 (shared directory) | Infrastructure | **IN_PROGRESS** |
+| **2 — Contracts** | Step 2 (interfaces) | Architecture | **COMPLETED** |
+| **3 — Bridges** | Step 3 (adapters) | Architecture | **IN_PROGRESS** |
+| **4 — Consolidation** | Step 4 (helper moves) | Refactoring | **NOT_STARTED** |
+| **5 — Migration** | Step 5 (TUI refactoring) | The bulk effort | **NOT_STARTED** |
+| **6 — Integration** | Step 6 (launch logic) | Integration | **NOT_STARTED** |
+| **7 — Guard** | Step 7 (CI check) | CI/CD | **NOT_STARTED** |
 
 ---
 

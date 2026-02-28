@@ -24,7 +24,8 @@ import {
   type IMemoryUpdateProposal,
   type IProjectMemory,
 } from "../../../src/shared/schemas/memory_bank.ts";
-import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
+import { type IMemoryService } from "../../../src/tui/memory_view/types.ts";
+import { MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
 import { DialogBase } from "../../../src/helpers/dialog_base.ts";
 // ===== Interfaces =====
 
@@ -39,7 +40,7 @@ export interface IMemoryViewServiceOptions {
 
 // ===== Mock Service =====
 
-export class ExtendedMockMemoryService implements IMemoryServiceInterface {
+export class ExtendedMockMemoryService implements IMemoryService {
   private projects: string[] = ["TestPortal"];
   private projectMemories: Map<string, IProjectMemory | null> = new Map();
   private globalMemory: IGlobalMemory | null = null;
@@ -246,7 +247,7 @@ export function createMockGlobalMemory(): IGlobalMemory {
 
 export function createTestSession(): MemoryViewTuiSession {
   const mockService = new ExtendedMockMemoryService();
-  return new MemoryViewTuiSession(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
+  return new MemoryViewTuiSession(mockService as Partial<IMemoryService> as IMemoryService);
 }
 
 export function createConfiguredService(options: IMemoryViewServiceOptions = {}): ExtendedMockMemoryService {
@@ -276,7 +277,7 @@ export async function setupSession(
 }
 
 export function createSessionWithService(service: ExtendedMockMemoryService): MemoryViewTuiSession {
-  return new MemoryViewTuiSession(service as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
+  return new MemoryViewTuiSession(service as Partial<IMemoryService> as IMemoryService);
 }
 
 export async function testExecutionDetailRendering(exec: IExecutionMemory): Promise<string> {

@@ -16,7 +16,7 @@ import {
   DEFAULT_WATCHER_STABILITY_BACKOFF_MS,
   DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS,
   DEFAULT_WATCHER_STABILITY_MIN_FILE_SIZE,
-} from "../src/config/constants.ts";
+} from "../src/shared/constants.ts";
 
 /**
  * Tests for Step 2.1: The File Watcher (Stable Read)

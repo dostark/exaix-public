@@ -14,36 +14,17 @@ import { DialogBase } from "../helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { ITreeViewState } from "./base/tree_view_state.ts";
-import type { IStructuredLogEntry, IStructuredLogger } from "../services/structured_logger.ts";
+import {
+  ILogger as IStructuredLogger,
+  ILogService as IStructuredLogService,
+} from "../shared/interfaces/i_log_service.ts";
+import { IStructuredLogEntry, LogQueryOptions } from "../shared/types/logging.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { DialogStatus, LogLevel } from "../shared/enums.ts";
 
-// ===== Service Interfaces =====
-
-/**
- * Service interface for structured log access.
- */
-export interface IStructuredLogService {
-  getStructuredLogs(options: LogQueryOptions): Promise<IStructuredLogEntry[]>;
-  subscribeToLogs(callback: (entry: IStructuredLogEntry) => void): () => void;
-  getLogsByCorrelationId(correlationId: string): Promise<IStructuredLogEntry[]>;
-  getLogsByTraceId(traceId: string): Promise<IStructuredLogEntry[]>;
-  getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]>;
-  exportLogs(filename: string, entries: IStructuredLogEntry[]): Promise<void>;
-}
-
-export interface LogQueryOptions {
-  level?: LogLevel[];
-  context?: Partial<IStructuredLogEntry["context"]>;
-  timeRange?: { start: Date; end: Date };
-  limit?: number;
-  includePerformance?: boolean;
-  correlationId?: string;
-  traceId?: string;
-  agentId?: string;
-}
+export type { IStructuredLogService, LogQueryOptions };
 
 // ===== View State =====
 
@@ -342,7 +323,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
   }
 
   private setupRealTimeStreaming(): void {
-    this.unsubscribeRealTime = this.logService.subscribeToLogs((entry) => {
+    this.unsubscribeRealTime = this.logService.subscribeToLogs((entry: IStructuredLogEntry) => {
       this.handleNewLogEntry(entry);
     });
   }

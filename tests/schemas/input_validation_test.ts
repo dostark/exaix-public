@@ -21,8 +21,8 @@ import {
   TraceIdSchema,
   UserRequestSchema,
 } from "../../src/shared/schemas/input_validation.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
-import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 
 Deno.test("Input Validation - BlueprintNameSchema", async (t) => {
   await t.step("accepts valid blueprint names", () => {

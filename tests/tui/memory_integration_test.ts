@@ -24,7 +24,8 @@ import type {
   IMemoryUpdateProposal,
   IProjectMemory,
 } from "../../src/shared/schemas/memory_bank.ts";
-import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { type IMemoryService } from "../../src/tui/memory_view/types.ts";
+import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { MinimalMemoryServiceMock } from "./helpers.ts";
 import {
   renderCategoryBadge,
@@ -39,7 +40,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock Service with Full Data =====
 
-class MockMemoryServiceFull extends MinimalMemoryServiceMock implements IMemoryServiceInterface {
+class MockMemoryServiceFull extends MinimalMemoryServiceMock implements IMemoryService {
   private projects = ["my-app", "api-service", "web-client"];
 
   constructor() {

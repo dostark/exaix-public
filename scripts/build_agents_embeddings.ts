@@ -4,7 +4,7 @@
 
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { walk } from "https://deno.land/std@0.203.0/fs/mod.ts";
-import type { JSONObject } from "../src/types.ts";
+import type { JSONObject } from "../src/shared/types/json.ts";
 
 const AGENTS_DIR = ".copilot";
 const OUT_DIR = `${AGENTS_DIR}/embeddings`;

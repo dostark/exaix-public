@@ -7,7 +7,7 @@
  * @related-files [src/config/schema.ts, src/config/constants.ts]
  */
 
-import * as DEFAULTS from "./constants.ts";
+import * as DEFAULTS from "../shared/constants.ts";
 
 export interface IExoPaths {
   workspace: string;

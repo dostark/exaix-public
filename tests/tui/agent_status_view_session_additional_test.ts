@@ -6,12 +6,11 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
-
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { type IAgentStatusItem } from "../../src/shared/types/agent.ts";
 import { AgentStatusTuiSession, AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { AgentHealth, TuiGroupBy } from "../../src/shared/enums.ts";
 import { AgentStatus } from "../../src/shared/status/agent_status.ts";
-import { type IAgentStatusItem } from "../../src/tui/agent_status_view.ts";
 
 function makeAgent(id: string, overrides: Partial<IAgentStatusItem> = {}): IAgentStatusItem {
   return {

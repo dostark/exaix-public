@@ -9,7 +9,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { MemoryFormatter } from "../../../src/tui/memory_view/formatters.ts";
 import { MemoryTuiScope } from "../../../src/tui/memory_view/memory_scope.ts";
-import type { IMemoryServiceInterface, ITreeNode } from "../../../src/tui/memory_view/types.ts";
+import type { IMemoryService, ITreeNode } from "../../../src/tui/memory_view/types.ts";
 import type {
   IExecutionMemory,
   IGlobalMemory,
@@ -114,7 +114,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
   const n = node(`${TUI_PREFIX_EXECUTION}${exec.trace_id}`, "exec", null);
   const service = {
     getExecutionByTraceId: () => Promise.resolve(exec),
-  } as Partial<IMemoryServiceInterface> as IMemoryServiceInterface;
+  } as Partial<IMemoryService> as IMemoryService;
 
   const result = await MemoryFormatter.formatExecutionDetail(n, service);
   assertStringIncludes(result, "# Execution:");

@@ -8,7 +8,7 @@
  */
 
 import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
-import type { CorrelationAnalysis } from "./shared/types/json.ts";
+import type { CorrelationAnalysis } from "./types.ts";
 import { LogLevel } from "../../shared/enums.ts";
 
 /**

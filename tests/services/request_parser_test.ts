@@ -26,7 +26,7 @@ import {
   TEST_REQUEST_STATUS_UNKNOWN,
   TEST_REQUEST_STATUS_VALID,
   TEST_REQUEST_TRACE_ID,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 import type { JSONObject } from "../../src/shared/types/json.ts";
 
 interface LoggedError {

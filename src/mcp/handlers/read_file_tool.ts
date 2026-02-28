@@ -7,6 +7,10 @@
  * @related-files [src/mcp/tool_handler.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
+import type { JSONValue } from "../../shared/types/json.ts";
+import type { MCPToolResponse } from "../../shared/schemas/mcp.ts";
+import { ReadFileToolArgsSchema } from "../../shared/schemas/mcp.ts";
+import { PortalOperation } from "../../shared/enums.ts";
 
 /**
  * ReadFileTool - Reads file content from a portal

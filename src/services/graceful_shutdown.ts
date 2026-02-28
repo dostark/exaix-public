@@ -7,6 +7,8 @@
  * @related-files [src/main.ts, src/services/structured_logger.ts]
  */
 
+import type { IStructuredLogger } from "./structured_logger.ts";
+
 /**
  * Cleanup task interface for graceful shutdown
  */

@@ -13,7 +13,7 @@ import {
   SchemaDescriberKey,
   SchemaDescriberToken,
   SchemaDescriberType,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 
 Deno.test("describeSchema: object fields are described", () => {
   const schema = z.object({

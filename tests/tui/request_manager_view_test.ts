@@ -9,6 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asse
 import { MemorySource, RequestPriority } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { commonTestData } from "../helpers/test_utils.ts";
+import type { IRequest } from "../../src/shared/types/request.ts";
 
 import {
   MinimalRequestServiceMock,
@@ -40,8 +41,8 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
     {
       trace_id: "87654321-abcd-1234-5678-123456789abc",
       subject: "IRequest 87654321",
-      status: "planned",
-      priority: "high",
+      status: RequestStatus.PLANNED,
+      priority: RequestPriority.HIGH,
       agent: "code-reviewer",
     },
   ]);
@@ -88,7 +89,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       filename: "request-1.md",
       subject: "IRequest 1",
       status: RequestStatus.PENDING,
-      priority: "normal",
+      priority: RequestPriority.NORMAL,
       agent: "default",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
@@ -98,7 +99,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       filename: "request-2.md",
       subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
-      priority: "normal",
+      priority: RequestPriority.NORMAL,
       agent: "default",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
@@ -208,7 +209,8 @@ Deno.test("RequestManagerTuiSession - create request via dialog", async () => {
   const mockService = new MinimalRequestServiceMock();
   mockService.createRequest = (desc: string) => {
     createdDescription = desc;
-    return Promise.resolve(commonTestData.mockObjects.newRequest());
+    const mockReq = commonTestData.mockObjects.newRequest();
+    return Promise.resolve({ ...mockReq, priority: RequestPriority.NORMAL } as IRequest);
   };
 
   const view = new RequestManagerView(mockService);
@@ -357,7 +359,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
       trace_id: "req-2",
       subject: "Feature request",
       status: RequestStatus.COMPLETED,
-      priority: "high",
+      priority: RequestPriority.HIGH,
       agent: "designer",
     },
   ]);
@@ -394,13 +396,13 @@ Deno.test("Phase 13.6: Filter by status", () => {
 
 Deno.test("Phase 13.6: Filter by agent", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests: IRequest[] = [
     {
       trace_id: "req-1",
       filename: "request-1.md",
       subject: "IRequest 1",
       status: RequestStatus.PENDING,
-      priority: "normal",
+      priority: RequestPriority.NORMAL,
       agent: "developer",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
@@ -411,7 +413,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       filename: "request-2.md",
       subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
-      priority: "high",
+      priority: RequestPriority.HIGH,
       agent: "designer",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",

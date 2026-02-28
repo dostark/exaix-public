@@ -8,13 +8,13 @@
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import { DaemonKeyAction, DaemonStatus } from "../../src/shared/enums.ts";
 import { setupDaemonTest } from "./daemon_test_utils.ts";
+import { type IDaemonService } from "../../src/shared/interfaces/i_daemon_service.ts";
 import {
   CLIDaemonService,
   DAEMON_KEY_BINDINGS,
   DAEMON_STATUS_COLORS,
   DAEMON_STATUS_ICONS,
   DaemonControlView,
-  IDaemonService,
   IDaemonViewState,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";

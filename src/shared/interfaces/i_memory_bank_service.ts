@@ -138,4 +138,9 @@ export interface IMemoryBankService {
    * Rebuild memory indices including semantic embeddings.
    */
   rebuildIndicesWithEmbeddings(embeddingService: IMemoryEmbeddingService): Promise<void>;
+
+  /**
+   * Get list of project names (aliases) from memory banks.
+   */
+  getProjects(): Promise<string[]>;
 }

@@ -16,7 +16,7 @@ import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { IFlow, IFlowInput } from "../../src/shared/schemas/flow.ts";
 import type { IFlowResult, IStepResult } from "../../src/flows/flow_runner.ts";
-import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../shared/constants.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
 
 describe("FlowReporter", () => {

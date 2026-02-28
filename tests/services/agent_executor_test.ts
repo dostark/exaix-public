@@ -24,8 +24,8 @@ import { AgentExecutor, type IBlueprint } from "../../src/services/agent_executo
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
-import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { PathResolver } from "../../src/services/path_resolver.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";

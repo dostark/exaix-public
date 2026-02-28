@@ -12,7 +12,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import { AuditLogger } from "../src/services/audit_logger.ts";
 import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../src/shared/enums.ts";
 import { join } from "@std/path";
-import { TEST_MODEL_ANTHROPIC } from "./shared/constants.ts";
+import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
 
 /**
  * Clean up audit folder created during tests

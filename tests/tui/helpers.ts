@@ -5,26 +5,31 @@
  * session simulators, and assertion utilities for all terminal views.
  */
 
+import { RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import {
-  type IRequest,
+  type IRequestEntry as IRequest,
+  type IRequestMetadata as _IRequestMetadata,
   type IRequestOptions,
-  type IRequestService,
-  RequestManagerView,
-} from "../../src/tui/request_manager_view.ts";
+  type IRequestShowResult,
+} from "../../src/shared/types/request.ts";
+import { type IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
 import { MemoryScope, MemorySource, PortalStatus, SkillStatus } from "../../src/shared/enums.ts";
 import { LegacyRequestManagerTuiSession as _LegacyRequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
-import { MonitorView } from "../../src/tui/monitor_view.ts";
-import type { ILogEntry } from "../../src/tui/monitor_view.ts";
+import { ILogEntry, MonitorView } from "../../src/tui/monitor_view.ts";
 import { type IPlan, MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
 import { RequestStatus, type RequestStatusType } from "../../src/shared/status/request_status.ts";
-import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
-import { ActivityRecord, IDatabaseService, SqliteParam } from "../../src/services/db.ts";
-import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
+import type {
+  IPortalDetails,
+  IPortalInfo,
+  IVerificationResult as _IVerificationResult,
+} from "../../src/shared/types/portal.ts";
+import { ActivityRecord as _ActivityRecord, IDatabaseService, SqliteParam } from "../../src/services/db.ts";
+import { IActivityRecord, IJournalFilterOptions } from "../../src/shared/types/database.ts";
 import {
   ISkillSummary,
-  ISkillsViewService,
+  MinimalSkillsServiceMock,
   SkillsManagerTuiSession,
   SkillsManagerView,
 } from "../../src/tui/skills_manager_view.ts";
@@ -43,9 +48,11 @@ import {
   LearningCategory,
   MemoryOperation,
   MemoryReferenceType,
+  RequestPriority,
 } from "../../src/shared/enums.ts";
 import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enums.ts";
-import { IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { type IMemoryService } from "../../src/shared/interfaces/i_memory_service.ts";
+import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { type ITreeNode } from "../../src/helpers/tree_view.ts";
 
 export interface IPortalInfoOverrides {
@@ -114,23 +121,35 @@ export function createMockRequestService(initial: IRequest[] = []) {
     constructor(requests: IRequest[] = []) {
       this.requests = requests;
     }
-    listRequests(status?: RequestStatusType): Promise<IRequest[]> {
+    list(status?: RequestStatusType, _includeArchived?: boolean): Promise<IRequest[]> {
+      let result = this.requests;
       if (status) {
-        return Promise.resolve(this.requests.filter((r) => r.status === status));
+        result = result.filter((r) => r.status === status);
       }
-      return Promise.resolve(this.requests);
+      return Promise.resolve(result);
     }
-    getRequestContent(id: string) {
+    listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]> {
+      return this.list(status, includeArchived);
+    }
+    show(idOrFilename: string): Promise<IRequestShowResult> {
+      const request = this.requests.find((r) => r.trace_id === idOrFilename || r.filename === idOrFilename);
+      if (!request) throw new Error("Request not found");
+      return Promise.resolve({
+        metadata: request,
+        content: `Content for ${idOrFilename}`,
+      });
+    }
+    getRequestContent(id: string): Promise<string> {
       const request = this.requests.find((r) => r.trace_id === id);
       return Promise.resolve(request ? `Content for ${id}` : "");
     }
-    createRequest(_description: string, options?: IRequestOptions) {
+    create(description: string, options?: IRequestOptions) {
       const newRequest: IRequest = {
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
-        subject: _description,
+        subject: description,
         status: RequestStatus.PENDING,
-        priority: (options?.priority as string) || "normal",
+        priority: (options?.priority as RequestPriority) || RequestPriority.NORMAL,
         agent: options?.agent || "default",
         portal: options?.portal,
         model: options?.model,
@@ -140,6 +159,9 @@ export function createMockRequestService(initial: IRequest[] = []) {
       };
       this.requests.push(newRequest);
       return Promise.resolve(newRequest);
+    }
+    createRequest(description: string, options?: IRequestOptions) {
+      return this.create(description, options);
     }
     updateRequestStatus(id: string, status: RequestStatusType) {
       const request = this.requests.find((r) => r.trace_id === id);
@@ -280,36 +302,60 @@ export function samplePortals(arr: IPortalInfoOverrides[]): IPortalInfo[] {
   return arr.map((a) => samplePortal(a));
 }
 
+import { IPortalService } from "../../src/shared/interfaces/i_portal_service.ts";
+import { IJournalService } from "../../src/shared/interfaces/i_journal_service.ts";
+
 export function createMockPortalService(initial: IPortalInfo[] = []) {
-  class MockPortalService {
+  class MockPortalService implements IPortalService {
     portals: IPortalInfo[];
     actions: { type: string; id: string }[];
     constructor(portals: IPortalInfo[] = []) {
       this.portals = portals;
       this.actions = [];
     }
-    listPortals() {
+    list(): Promise<IPortalInfo[]> {
+      return this.listPortals();
+    }
+    listPortals(): Promise<IPortalInfo[]> {
       return Promise.resolve(this.portals);
     }
     openPortal(id: string) {
-      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) return Promise.resolve(false);
       this.actions.push({ type: "open", id });
       return Promise.resolve(true);
     }
     closePortal(id: string) {
-      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) return Promise.resolve(false);
       this.actions.push({ type: "close", id });
       return Promise.resolve(true);
     }
     refreshPortal(id: string) {
-      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) return Promise.resolve(false);
       this.actions.push({ type: "refresh", id });
       return Promise.resolve(true);
     }
+    refresh(id: string) {
+      this.refreshPortal(id);
+      return Promise.resolve();
+    }
     removePortal(id: string) {
-      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) return Promise.resolve(false);
       this.actions.push({ type: "remove", id });
       return Promise.resolve(true);
+    }
+    remove(id: string) {
+      this.removePortal(id);
+      return Promise.resolve();
+    }
+    add(path: string, alias: string) {
+      this.portals.push({ alias, targetPath: path, status: PortalStatus.ACTIVE, symlinkPath: "", contextCardPath: "" });
+      return Promise.resolve();
+    }
+    show(alias: string): Promise<IPortalDetails> {
+      return this.getPortalDetails(alias);
+    }
+    verify() {
+      return Promise.resolve([]);
     }
     getPortalDetails(alias: string) {
       const found = this.portals.find((p) => p.alias === alias);
@@ -358,13 +404,29 @@ export function createPortalTuiWithPortals(arr: IPortalInfoOverrides[] = []) {
 // -------------------------
 // Monitor helpers
 // -------------------------
-class MockDatabaseService implements IDatabaseService {
-  constructor(private readonly _activityRecords: ActivityRecord[] = []) {}
+class MockDatabaseService implements IDatabaseService, IJournalService {
+  constructor(private readonly _activityRecords: IActivityRecord[] = []) {}
   logActivity() {}
   waitForFlush() {
     return Promise.resolve();
   }
-  queryActivity(filter: IJournalFilterOptions) {
+  private fromActivityRecord(record: IActivityRecord): ILogEntry {
+    try {
+      return {
+        ...record,
+        payload: JSON.parse(record.payload),
+      };
+    } catch {
+      return {
+        ...record,
+        payload: { error: "Parse error", raw: record.payload },
+      };
+    }
+  }
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
+    return this.query(filter);
+  }
+  query(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     let filtered = this._activityRecords;
     if (filter.agentId) {
       filtered = filtered.filter((l) => l.agent_id === filter.agentId);
@@ -381,6 +443,17 @@ class MockDatabaseService implements IDatabaseService {
     }
     return Promise.resolve(filtered);
   }
+  getDistinctValues(column: string): Promise<string[]> {
+    const values = new Set<string>();
+    for (const a of this._activityRecords) {
+      const val = (a as any)[column];
+      if (val) values.add(String(val));
+    }
+    return Promise.resolve([...values]);
+  }
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
   preparedGet<T>(_query: string, _params?: SqliteParam[]) {
     return Promise.resolve({} as T);
   }
@@ -390,34 +463,34 @@ class MockDatabaseService implements IDatabaseService {
   preparedRun(_query: string, _params?: SqliteParam[]) {
     return Promise.resolve({});
   }
-  getActivitiesByTrace(traceId: string) {
+  getActivitiesByTrace(traceId: string): IActivityRecord[] {
     return this._activityRecords.filter((r) => r.trace_id === traceId);
   }
   getActivitiesByTraceSafe(traceId: string) {
     return Promise.resolve(this.getActivitiesByTrace(traceId));
   }
-  getActivitiesByActionType(actionType: string) {
+  getActivitiesByActionType(actionType: string): IActivityRecord[] {
     return this._activityRecords.filter((r) => r.action_type === actionType);
   }
   getActivitiesByActionTypeSafe(actionType: string) {
     return Promise.resolve(this.getActivitiesByActionType(actionType));
   }
-  getRecentActivity(limit: number = 100) {
+  getRecentActivity(limit: number = 100): Promise<IActivityRecord[]> {
     return Promise.resolve(this._activityRecords.slice(-limit).reverse());
   }
   // Test-only method used in some tests
-  addLog(log: ActivityRecord) {
+  addLog(log: IActivityRecord) {
     this._activityRecords.push(log);
     return Promise.resolve();
   }
 }
 
-export function createMockDatabaseService(activityRecords: ActivityRecord[] = []) {
+export function createMockDatabaseService(activityRecords: IActivityRecord[] = []) {
   return new MockDatabaseService(activityRecords);
 }
 
 export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverrides> = []) {
-  const activityRecords: ActivityRecord[] = arr.map((a) => ({
+  const activityRecords: IActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
     trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
     actor: (a.actor as string | null) ?? null,
@@ -430,8 +503,9 @@ export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverri
   }));
 
   const db = createMockDatabaseService(activityRecords);
-  const monitorView = new MonitorView(db);
+  const monitorView = new MonitorView(db as any);
   // For testing, set the monitor view's internal logs as parsed ILogEntry[]
+  // @ts-ignore: private access
   monitorView["logs"] = activityRecords.map((log) => ({
     id: log.id,
     trace_id: log.trace_id,
@@ -439,7 +513,7 @@ export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverri
     agent_id: log.agent_id,
     action_type: log.action_type,
     target: log.target,
-    payload: JSON.parse(log.payload) as ILogEntryPayload,
+    payload: JSON.parse(log.payload),
     timestamp: log.timestamp,
     count: log.count,
   }));
@@ -604,9 +678,12 @@ export function countLinesContaining(lines: string[], text: string): number {
 // -------------------------
 export function createLegacyMockRequestService() {
   return {
+    list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
+    show: (_id: string) => Promise.resolve({ metadata: {} as any, content: "" }),
     getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Partial<IRequest> as IRequest),
+    create: () => Promise.resolve({} as any),
+    createRequest: () => Promise.resolve({} as any),
     updateRequestStatus: () => Promise.resolve(true),
   };
 }
@@ -622,10 +699,16 @@ export function createLegacyTuiSessionWithTracking() {
   let deleteCalled = false;
 
   const mockService = {
+    list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
+    show: () => Promise.resolve({ metadata: {} as any, content: "" }),
     getRequestContent: (_id: string) => {
       viewCalled = true;
       return Promise.resolve("content");
+    },
+    create: () => {
+      createCalled = true;
+      return Promise.resolve(commonTestData.mockObjects.newRequest() as IRequest);
     },
     createRequest: () => {
       createCalled = true;
@@ -646,7 +729,13 @@ export function createLegacyTuiSessionWithTracking() {
 export function createLegacyTuiSessionWithLongTraceId() {
   const mockService = {
     listRequests: () => Promise.resolve([]),
+    list: () => Promise.resolve([]),
+    show: () => Promise.resolve({ metadata: {} as any, content: "" }),
     getRequestContent: () => Promise.resolve(""),
+    create: () =>
+      Promise.resolve({
+        trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
+      } as Partial<IRequest> as IRequest),
     createRequest: () =>
       Promise.resolve({
         trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
@@ -661,7 +750,10 @@ export function createLegacyTuiSessionWithLongTraceId() {
 export function createLegacyTuiSessionWithErrors() {
   const mockService = {
     listRequests: () => Promise.resolve([]),
+    list: () => Promise.reject(new Error("List error")),
+    show: () => Promise.reject(new Error("Show error")),
     getRequestContent: () => Promise.reject(new Error("View error")),
+    create: () => Promise.reject(new Error("Create error")),
     createRequest: () => Promise.reject(new Error("Create error")),
     updateRequestStatus: () => Promise.reject(new Error("Delete error")),
   };
@@ -780,20 +872,7 @@ export function createTestSkills(): ISkillSummary[] {
   return sampleTestSkills();
 }
 
-export class MinimalSkillsServiceMock implements ISkillsViewService {
-  constructor(public skills: ISkillSummary[] = []) {}
-  listSkills() {
-    return Promise.resolve(this.skills);
-  }
-  getSkill(skillId: string) {
-    return Promise.resolve(this.skills.find((s) => s.id === skillId) || null);
-  }
-  deleteSkill(skillId: string) {
-    const exists = this.skills.some((s) => s.id === skillId);
-    this.skills = this.skills.filter((s) => s.id !== skillId);
-    return Promise.resolve(exists);
-  }
-}
+// MinimalSkillsServiceMock is now imported from src/tui/skills_manager_view.ts
 
 export function createMockSkillsService(initial: ISkillSummaryOverrides[] = []) {
   return new MinimalSkillsServiceMock(sampleSkills(initial));
@@ -911,7 +990,7 @@ export async function createInitializedMemoryViewSession(proposals: IMemoryUpdat
   return { service, session };
 }
 
-export class MinimalMemoryServiceMock implements IMemoryServiceInterface {
+export class MinimalMemoryServiceMock implements IMemoryService {
   proposals: IMemoryUpdateProposal[] = [];
   approvedCount = 0;
 

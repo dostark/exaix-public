@@ -10,7 +10,7 @@ import { MemoryScope } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import type { IMemoryServiceInterface } from "../../src/tui/memory_view.ts";
+import type { IMemoryService } from "../../src/tui/memory_view/types.ts";
 import { MockMemoryService } from "../../src/tui/tui_dashboard_mocks.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -18,7 +18,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 function createTestSession(): MemoryViewTuiSession {
   const mockService = new MockMemoryService();
-  return new MemoryViewTuiSession(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
+  return new MemoryViewTuiSession(mockService as Partial<IMemoryService> as IMemoryService);
 }
 
 async function enterSearchAndType(session: MemoryViewTuiSession, text: string): Promise<void> {
@@ -343,7 +343,7 @@ Deno.test("MemoryViewTuiSession: getFocusableElements returns panel list", () =>
 
 Deno.test("MemoryView: creates TUI session", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<IMemoryService> as IMemoryService);
 
   const session = view.createTuiSession();
   assertExists(session);
@@ -351,7 +351,7 @@ Deno.test("MemoryView: creates TUI session", () => {
 
 Deno.test("MemoryView: getService returns service instance", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<IMemoryService> as IMemoryService);
 
   const service = view.getService();
   assertExists(service);

@@ -42,6 +42,7 @@ import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts
 import { IKeyBinding, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
+import { type Config } from "../shared/schemas/config.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
 import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
@@ -558,6 +559,7 @@ export async function launchTuiDashboard(
     nonInteractive?: boolean;
     notificationService?: INotificationService;
     databaseService?: IDatabaseService;
+    config?: Config;
   } = {},
 ): Promise<ITuiDashboard | undefined> {
   if (options.testMode) {
@@ -609,9 +611,14 @@ function createMockNotificationService(localNotifs: IMemoryNotification[]): INot
 function createTestDashboard(options: {
   notificationService?: INotificationService;
   databaseService?: IDatabaseService;
+  config?: Config;
 }): ITuiDashboard {
   // Initialize views using registry
-  const { views, services } = initDashboardViews({ testMode: true, databaseService: options.databaseService });
+  const { views, services } = initDashboardViews({
+    testMode: true,
+    databaseService: options.databaseService,
+    config: options.config,
+  });
   const portalView = views[0];
   // If needed, check type at runtime:
   // if (!(portalView instanceof PortalManagerView)) {
@@ -814,9 +821,14 @@ async function createProductionDashboard(options: {
   nonInteractive?: boolean;
   notificationService?: INotificationService;
   databaseService?: IDatabaseService;
+  config?: Config;
 }): Promise<ITuiDashboard | undefined> {
   // Initialize views using registry
-  const { views, services } = initDashboardViews({ testMode: false, databaseService: options.databaseService });
+  const { views, services } = initDashboardViews({
+    testMode: false,
+    databaseService: options.databaseService,
+    config: options.config,
+  });
   const _portalView = views[0];
   const portalService = services.portalService;
 

@@ -6,26 +6,45 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { type IPortalService, PortalManagerView } from "../../src/tui/portal_manager_view.ts";
+import { type IPortalService } from "../../src/shared/interfaces/i_portal_service.ts";
+import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { PortalStatus } from "../../src/shared/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
+import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../src/shared/types/portal.ts";
 
 // Minimal IPortalService mock for tests
 class MinimalIPortalServiceMock implements IPortalService {
+  add(_targetPath: string, _alias: string, _options?: any) {
+    return Promise.resolve();
+  }
+  list = (): Promise<IPortalInfo[]> => {
+    return this.listPortals();
+  };
   listPortals = (): Promise<IPortalInfo[]> => {
     throw new Error("PortalCommands instance not provided");
   };
+  show = (alias: string): Promise<IPortalDetails> => {
+    return this.getPortalDetails(alias);
+  };
   getPortalDetails = (_: string) => Promise.resolve({} as Partial<IPortalDetails> as IPortalDetails);
+  remove(_alias: string, _options?: any) {
+    return Promise.resolve();
+  }
+  removePortal = (_: string) => Promise.resolve(true);
+  verify(_alias?: string) {
+    return Promise.resolve([] as IVerificationResult[]);
+  }
+  refresh(_alias: string) {
+    return Promise.resolve();
+  }
+  refreshPortal = (_: string) => Promise.resolve(true);
   openPortal = (_: string) => {
     throw new Error("openPortal not implemented");
   };
   closePortal = (_: string) => {
     throw new Error("closePortal not implemented");
   };
-  refreshPortal = (_: string) => Promise.resolve(true);
-  removePortal = (_: string) => Promise.resolve(true);
   quickJumpToPortalDir = (_: string) => Promise.resolve("");
   getPortalFilesystemPath = (_: string) => Promise.resolve("");
   getPortalActivityLog = (_: string) => [];
@@ -1013,12 +1032,18 @@ Deno.test("Phase 13.3: Update portals preserves selection when possible", () => 
 
 Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
   const service: IPortalService = {
+    add: () => Promise.resolve(),
+    list: () => Promise.resolve([]),
     listPortals: () => Promise.resolve([]),
-    getPortalDetails: () => Promise.resolve({} as Partial<IPortalDetails> as IPortalDetails),
+    show: (alias: string) => Promise.resolve({ alias } as Partial<IPortalDetails> as IPortalDetails),
+    getPortalDetails: (alias: string) => Promise.resolve({ alias } as Partial<IPortalDetails> as IPortalDetails),
+    remove: () => Promise.resolve(),
+    removePortal: () => Promise.resolve(true),
+    verify: () => Promise.resolve([]),
+    refresh: () => Promise.resolve(),
+    refreshPortal: () => Promise.resolve(true),
     openPortal: () => Promise.resolve(true),
     closePortal: () => Promise.resolve(true),
-    refreshPortal: () => Promise.resolve(true),
-    removePortal: () => Promise.resolve(true),
     quickJumpToPortalDir: () => Promise.resolve(""),
     getPortalFilesystemPath: () => Promise.resolve(""),
     getPortalActivityLog: () => [],

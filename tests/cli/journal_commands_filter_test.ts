@@ -31,7 +31,7 @@ import {
   JOURNAL_UNKNOWN_FILTER_PREFIX,
   JournalAction,
   JournalFormat,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 
 Deno.test("JournalCommands maps explicit options into query filters", async () => {
   const { db, config, cleanup } = await initTestDbService();

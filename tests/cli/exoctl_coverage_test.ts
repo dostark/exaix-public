@@ -8,7 +8,6 @@
 import "./helpers/set_test_mode.ts";
 import { assert, assertEquals } from "@std/assert";
 import {
-  CritiqueSeverity,
   FlowInputSource,
   FlowOutputFormat,
   MemoryOperation,
@@ -25,12 +24,12 @@ import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import type { OutputFormat } from "../../src/cli/memory_types.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
+import type { IRequestOptions, RequestSource } from "../../src/shared/types/request.ts";
 import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
 import { RequestPriority } from "../../src/shared/enums.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 // ===== Plan Command Error Handlers =====
 
@@ -976,7 +975,7 @@ Deno.test("request list shows different priority icons", async () => {
       Promise.resolve([
         {
           trace_id: "t1",
-          priority: CritiqueSeverity.CRITICAL,
+          priority: RequestPriority.CRITICAL,
           agent: "a",
           created_by: "u",
           created: "t",
@@ -987,7 +986,7 @@ Deno.test("request list shows different priority icons", async () => {
         },
         {
           trace_id: "t2",
-          priority: "high",
+          priority: RequestPriority.HIGH,
           agent: "a",
           created_by: "u",
           created: "t",
@@ -998,7 +997,7 @@ Deno.test("request list shows different priority icons", async () => {
         },
         {
           trace_id: "t3",
-          priority: "low",
+          priority: RequestPriority.LOW,
           agent: "a",
           created_by: "u",
           created: "t",
@@ -1046,7 +1045,7 @@ Deno.test("end-to-end flow request workflow", async () => {
     ctx.requestCommands.list = (_status?: RequestStatusType) => {
       return Promise.resolve([{
         trace_id: "flow-test-123",
-        priority: "normal",
+        priority: RequestPriority.NORMAL,
         flow: "web-dev-flow",
         agent: "agent",
         status: RequestStatus.PENDING,
@@ -1067,7 +1066,7 @@ Deno.test("end-to-end flow request workflow", async () => {
           filename: "flow-test-123.md",
           path: "/tmp/flow-test-123.md",
           status: RequestStatus.PENDING,
-          priority: "normal",
+          priority: RequestPriority.NORMAL,
           agent: "default",
           flow: "web-dev-flow",
           created: new Date().toISOString(),

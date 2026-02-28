@@ -15,8 +15,8 @@ import {
   createBlueprintLoader,
   loadBlueprint,
 } from "../../src/services/blueprint_loader.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
-import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 
 // Test directory setup
 let testDir: string;

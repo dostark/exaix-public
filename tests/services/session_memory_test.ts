@@ -12,7 +12,7 @@ import {
   type Insight,
   SessionMemoryService,
 } from "../../src/services/session_memory.ts";
-import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
+import type { IMemoryBankService } from "../../src/shared/interfaces/i_memory_bank_service.ts";
 import type { IEmbeddingSearchResult, IMemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import type {
   IActivitySummary,
@@ -125,6 +125,9 @@ class MockMemoryBankService implements IMemoryBankService {
   }
   rebuildIndicesWithEmbeddings(_embeddingService: IMemoryEmbeddingService): Promise<void> {
     return Promise.resolve();
+  }
+  getProjects(): Promise<string[]> {
+    return Promise.resolve([]);
   }
 }
 

@@ -11,16 +11,14 @@ import {
   AGENT_STATUS_COLORS,
   AGENT_STATUS_ICONS,
   AgentAction,
-  AgentHealthData,
-  AgentLogEntry,
   AgentStatusView,
-  IAgentService,
-  IAgentStatusItem,
   IAgentViewState,
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
+import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../../src/shared/types/agent.ts";
+import { IAgentService } from "../../src/shared/interfaces/i_agent_service.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/shared/enums.ts";
 import { AgentStatus } from "../../src/shared/status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/shared/enums.ts";

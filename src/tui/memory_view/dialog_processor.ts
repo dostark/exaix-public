@@ -23,10 +23,10 @@ import {
   TUI_STATUS_MSG_PROPOSAL_APPROVED,
   TUI_STATUS_MSG_PROPOSAL_REJECTED,
 } from "../../helpers/constants.ts";
-import type { IMemoryServiceInterface } from "./types.ts";
+import type { IMemoryService } from "./types.ts";
 
 export interface IDialogProcessorContext {
-  service: IMemoryServiceInterface;
+  service: IMemoryService;
   onStatusUpdate: (message: string) => void;
   onTreeReload: () => Promise<void>;
   onPendingCountReload: () => Promise<void>;

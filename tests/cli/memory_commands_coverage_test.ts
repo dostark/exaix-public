@@ -34,7 +34,7 @@ import {
   TEST_SKILL_NAME,
   TEST_SKILL_REQUEST_TEXT,
   TEST_SKILL_TASK_TYPE,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 import { join } from "https://deno.land/std@0.203.0/path/join.ts";
 
 // ===== Search with Embeddings Tests =====

@@ -52,6 +52,7 @@ export function createStubDb(overrides: Partial<IDatabaseService> = {}): IDataba
       return [];
     },
     getRecentActivity: (_limit?: number) => Promise.resolve([]),
+    close: () => Promise.resolve(),
   };
 
   return Object.assign(base, overrides);

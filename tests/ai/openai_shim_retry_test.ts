@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { getTestModel } from "./helpers/test_model.ts";
 import { isCi } from "../helpers/env.ts";
-import { DEFAULT_OPENAI_BASE_URL } from "../../src/config/constants.ts";
+import { DEFAULT_OPENAI_BASE_URL } from "../../src/shared/constants.ts";
 
 function isCiGuardActive(): boolean {
   return isCi() && Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") !== "1";

@@ -14,7 +14,7 @@ import { DEFAULT_DATABASE_BUSY_TIMEOUT_MS } from "../shared/constants.ts";
 /**
  * Database connection interface for pooling
  */
-export interface IDatabaseConnection {
+export interface DatabaseConnection {
   instance: Database;
   close(): Promise<void>;
 }
@@ -22,7 +22,7 @@ export interface IDatabaseConnection {
 /**
  * SQLite database connection implementation
  */
-export class SQLiteConnection implements IDatabaseConnection {
+export class SQLiteConnection implements DatabaseConnection {
   constructor(
     public instance: Database,
     private config: Config,
@@ -37,9 +37,9 @@ export class SQLiteConnection implements IDatabaseConnection {
  * Database connection pool for managing concurrent database access
  */
 export class DatabaseConnectionPool {
-  private pool: IDatabaseConnection[] = [];
-  private available: IDatabaseConnection[] = [];
-  private waiting: Array<{ resolve: (conn: IDatabaseConnection) => void; timeoutId: number }> = [];
+  private pool: DatabaseConnection[] = [];
+  private available: DatabaseConnection[] = [];
+  private waiting: Array<{ resolve: (conn: DatabaseConnection) => void; timeoutId: number }> = [];
   private destroyed = false;
 
   constructor(
@@ -55,7 +55,7 @@ export class DatabaseConnectionPool {
   /**
    * Acquire a database connection from the pool
    */
-  async acquire(): Promise<IDatabaseConnection> {
+  async acquire(): Promise<DatabaseConnection> {
     if (this.destroyed) {
       throw new Error("Connection pool has been destroyed");
     }
@@ -102,7 +102,7 @@ export class DatabaseConnectionPool {
   /**
    * Release a connection back to the pool
    */
-  release(conn: IDatabaseConnection): void {
+  release(conn: DatabaseConnection): void {
     if (this.destroyed) {
       conn.close().catch(console.error);
       return;
@@ -122,7 +122,7 @@ export class DatabaseConnectionPool {
   /**
    * Create a new database connection
    */
-  private async createConnection(): Promise<IDatabaseConnection> {
+  private async createConnection(): Promise<DatabaseConnection> {
     const dbPath = join(this.config.system.root, this.config.paths.runtime, "journal.db");
     const db = new Database(dbPath);
 

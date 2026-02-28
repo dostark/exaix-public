@@ -9,7 +9,7 @@
 
 import { LogLevel } from "../../shared/enums.ts";
 import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
-import type { PerformanceStats } from "./shared/types/json.ts";
+import type { PerformanceStats } from "./types.ts";
 
 /**
  * Calculate performance statistics for a set of logs

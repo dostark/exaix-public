@@ -6,7 +6,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../shared/constants.ts";
+import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
 import { handleRequestShow, type IRequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { EventLogger, type IEventLoggerConfig } from "../../src/services/event_logger.ts";

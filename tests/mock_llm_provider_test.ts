@@ -10,7 +10,7 @@ import { McpToolName } from "../src/shared/enums.ts";
 
 import { IModelProvider } from "../src/ai/types.ts";
 import { MockStrategy } from "../src/shared/enums.ts";
-import { TEST_MODEL_ANTHROPIC } from "./shared/constants.ts";
+import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
 
 import {
   createFailingMock,

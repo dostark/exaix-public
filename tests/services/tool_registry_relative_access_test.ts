@@ -9,7 +9,7 @@ import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { ExoPathDefaults } from "../../src/shared/constants.ts";
 
 Deno.test("ToolRegistry - Relative Path Access in Portal via baseDir", async () => {
   const portalDir = await Deno.makeTempDir({ prefix: "verif-portal-" });

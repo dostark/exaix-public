@@ -8,7 +8,7 @@
 import { type Config, ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
-import * as DEFAULTS from "../../src/config/constants.ts";
+import * as DEFAULTS from "../../src/shared/constants.ts";
 import { SqliteJournalMode } from "../../src/shared/enums.ts";
 
 /**

@@ -1,10 +1,3 @@
-/**
- * @module ReproZombiePlanLifecycle
- * @path tests/repro_zombie_plan_lifecycle.ts
- * @description Technical reproduction case for "zombie" plan lifecycles, ensuring that
- * manually executed plans correctly update their final status and clear execution locks.
- */
-
 import { assert } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";

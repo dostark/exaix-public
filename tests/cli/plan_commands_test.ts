@@ -26,7 +26,7 @@ import {
   PLAN_REVIEW_COMMENTS_HEADER,
   REQUEST_REVISION_COMMENT_PREFIX,
   REQUEST_REVISION_COMMENTS_HEADER,
-} from "../../src/config/constants.ts";
+} from "../../src/shared/constants.ts";
 
 describe("PlanCommands", () => {
   let tempDir: string;
@@ -564,9 +564,9 @@ This is a test plan with some content.
 
       const result = await planCommands.show(planId);
 
-      assertEquals(result.id, planId);
-      assertEquals(result.status, PlanStatus.REVIEW);
-      assertEquals(result.trace_id, "trace-show-001");
+      assertEquals(result.metadata.id, planId);
+      assertEquals(result.metadata.status, PlanStatus.REVIEW);
+      assertEquals(result.metadata.trace_id, "trace-show-001");
       assertEquals(result.content.includes("# Test Plan"), true);
       assertEquals(result.content.includes("## Actions"), true);
     });
@@ -589,8 +589,8 @@ Just some content.
 
       const result = await planCommands.show(planId);
 
-      assertEquals(result.id, planId);
-      assertEquals(result.status, PlanStatus.REVIEW);
+      assertEquals(result.metadata.id, planId);
+      assertEquals(result.metadata.status, PlanStatus.REVIEW);
       assertEquals(result.content.includes("# Plan without frontmatter"), true);
     });
 
@@ -625,12 +625,12 @@ This plan was rejected for testing purposes.
 
       const result = await planCommands.show(planId);
 
-      assertEquals(result.id, planId);
-      assertEquals(result.status, PlanStatus.REJECTED);
-      assertEquals(result.trace_id, "trace-rejected-001");
-      assertEquals(result.rejected_at, rejectedAt);
-      assertEquals(result.rejected_by, rejectedBy);
-      assertEquals(result.rejection_reason, rejectionReason);
+      assertEquals(result.metadata.id, planId);
+      assertEquals(result.metadata.status, PlanStatus.REJECTED);
+      assertEquals(result.metadata.trace_id, "trace-rejected-001");
+      assertEquals(result.metadata.rejected_at, rejectedAt);
+      assertEquals(result.metadata.rejected_by, rejectedBy);
+      assertEquals(result.metadata.rejection_reason, rejectionReason);
       assertEquals(result.content.includes("# Rejected Test Plan"), true);
     });
   });

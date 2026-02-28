@@ -15,7 +15,7 @@ import {
   TEST_PROVIDER_TIMEOUT_MS_SHORT,
   TEST_RETRY_BACKOFF_BASE_MS_ZERO,
   TEST_RETRY_MAX_ATTEMPTS_SINGLE,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
 
 function jsonResponse(body: unknown, init?: ResponseInit): Response {

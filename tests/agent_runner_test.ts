@@ -9,9 +9,9 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../src/ai/providers.ts";
 import { AgentRunner } from "../src/services/agent_runner.ts";
 import type { IBlueprint, IParsedRequest } from "../src/services/agent_runner.ts";
-import { PORTAL_CONTEXT_KEY } from "../src/config/constants.ts";
+import { PORTAL_CONTEXT_KEY } from "../src/shared/constants.ts";
 import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
-import { ISkillsService } from "../src/services/skills.ts";
+import { ISkillsService } from "../src/shared/interfaces/i_skills_service.ts";
 import { ISkillMatchRequest } from "../src/shared/types/skill.ts";
 import type { ISkillMatch } from "../src/shared/schemas/memory_bank.ts";
 
@@ -797,6 +797,18 @@ class MockSkillsService implements ISkillsService {
 
   rebuildIndex(): Promise<void> {
     return Promise.resolve();
+  }
+
+  listSkills(): Promise<any[]> {
+    return Promise.resolve([]);
+  }
+
+  getSkill(_id: string): Promise<any> {
+    return Promise.resolve(null);
+  }
+
+  deleteSkill(_id: string): Promise<boolean> {
+    return Promise.resolve(true);
   }
 }
 

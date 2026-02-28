@@ -16,7 +16,7 @@ import { ModelFactory } from "../../src/ai/providers.ts";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { getTestModel } from "../ai/helpers/test_model.ts";
 import { getWorkspaceDir, getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
-import { DEFAULT_OPENAI_BASE_URL } from "../../src/config/constants.ts";
+import { DEFAULT_OPENAI_BASE_URL } from "../../src/shared/constants.ts";
 
 const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
 Deno.test(

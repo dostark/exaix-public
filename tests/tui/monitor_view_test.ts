@@ -173,6 +173,13 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
     addLog(log: ActivityRecord) {
       return this.inner.addLog(log);
     }
+    query(filter: IJournalFilterOptions) {
+      calls.push(`query:${JSON.stringify(filter)}`);
+      return this.inner.query(filter);
+    }
+    getDistinctValues(field: string) {
+      return this.inner.getDistinctValues(field);
+    }
   }
   const db = new CountingDb([
     {

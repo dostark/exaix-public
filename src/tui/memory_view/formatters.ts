@@ -23,7 +23,7 @@ import {
 } from "../../helpers/constants.ts";
 import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../../helpers/markdown_renderer.ts";
 import { ConfidenceLevel } from "../../shared/enums.ts";
-import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
+import type { IMemoryService, ITreeNode } from "./types.ts";
 
 export class MemoryFormatter {
   /**
@@ -77,7 +77,7 @@ export class MemoryFormatter {
   /**
    * Format project detail for display
    */
-  static async formatProjectDetail(node: ITreeNode, service: IMemoryServiceInterface): Promise<string> {
+  static async formatProjectDetail(node: ITreeNode, service: IMemoryService): Promise<string> {
     const portal = node.id.replace(TUI_PREFIX_PROJECT, "");
     const memory = node.data as IProjectMemory | null;
     if (!memory) {
@@ -91,7 +91,7 @@ export class MemoryFormatter {
   /**
    * Format execution detail for display
    */
-  static async formatExecutionDetail(node: ITreeNode, service: IMemoryServiceInterface): Promise<string> {
+  static async formatExecutionDetail(node: ITreeNode, service: IMemoryService): Promise<string> {
     const traceId = node.id.replace(TUI_PREFIX_EXECUTION, "");
     const memory = node.data as IExecutionMemory | null;
     if (!memory) {

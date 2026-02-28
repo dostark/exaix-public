@@ -6,11 +6,21 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity, LogLevel, MCPTransport, SqliteJournalMode } from "../../src/shared/enums.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
-import type { IRequestEntry, IRequestMetadata, IRequestShowResult } from "../../src/cli/commands/request_commands.ts";
+import {
+  CritiqueSeverity as _CritiqueSeverity,
+  LogLevel,
+  MCPTransport,
+  MemorySource,
+  RequestPriority,
+  SqliteJournalMode,
+} from "../../src/shared/enums.ts";
+import {
+  type IRequest,
+  type IRequestEntry,
+  type IRequestMetadata,
+  type IRequestShowResult,
+} from "../../src/shared/types/request.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-import { MemorySource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import {
   createLegacyTuiSession,
@@ -19,7 +29,6 @@ import {
   createLegacyTuiSessionWithTracking,
 } from "./helpers.ts";
 import {
-  type IRequest,
   MinimalRequestServiceMock,
   PRIORITY_ICONS,
   REQUEST_KEY_BINDINGS,
@@ -30,6 +39,7 @@ import {
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
+import { type IRequestService as _IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Data =====
@@ -41,23 +51,22 @@ function createTestRequests(): IRequest[] {
       filename: "request-001.md",
       subject: "Test Request 1",
       status: RequestStatus.PENDING,
-      priority: "normal",
+      priority: RequestPriority.NORMAL,
       agent: "default",
       created: "2025-01-01T10:00:00Z",
       created_by: "test@example.com",
       source: "cli",
-      // waitForFlush is only on db mock, not Request
     },
     {
       trace_id: "req-002",
       filename: "request-002.md",
       subject: "Test Request 2",
       status: RequestStatus.PENDING,
-      priority: "high",
+      priority: RequestPriority.HIGH,
       agent: "code-reviewer",
       created: "2025-01-01T11:00:00Z",
       created_by: "user@example.com",
-      source: "portal",
+      source: "cli", // Changing "portal" to "cli" to match RequestSource union
       skills: {
         explicit: ["security-audit"],
         autoMatched: ["code-review"],
@@ -70,18 +79,18 @@ function createTestRequests(): IRequest[] {
       filename: "request-003.md",
       subject: "Test Request 3",
       status: RequestStatus.COMPLETED,
-      priority: CritiqueSeverity.CRITICAL,
+      priority: RequestPriority.CRITICAL,
       agent: "architect",
       created: "2025-01-01T12:00:00Z",
       created_by: "admin@example.com",
-      source: "daemon",
+      source: "cli",
     },
     {
       trace_id: "req-004",
       filename: "request-004.md",
       subject: "Cancelled Request",
       status: RequestStatus.CANCELLED,
-      priority: "low",
+      priority: RequestPriority.LOW,
       agent: "default",
       created: "2025-01-01T13:00:00Z",
       created_by: "test@example.com",
@@ -92,7 +101,7 @@ function createTestRequests(): IRequest[] {
       filename: "request-005.md",
       subject: "Failed Request",
       status: RequestStatus.FAILED,
-      priority: "high",
+      priority: RequestPriority.HIGH,
       agent: "researcher",
       created: "2025-01-01T14:00:00Z",
       created_by: "test@example.com",
@@ -106,11 +115,18 @@ function createTestSessionWithMockService(
 ): RequestManagerTuiSession {
   const requests = createTestRequests();
   const mockService = {
+    list: () => Promise.resolve(requests),
     listRequests: () => Promise.resolve(requests),
+    show: (id: string) =>
+      Promise.resolve({
+        metadata: requests.find((r) => r.trace_id === id) || requests[0],
+        content: getRequestContentResult instanceof Error ? "" : getRequestContentResult,
+      }),
     getRequestContent: (_id: string) =>
       getRequestContentResult instanceof Error
         ? Promise.reject(getRequestContentResult)
         : Promise.resolve(getRequestContentResult),
+    create: () => Promise.resolve({} as IRequest),
     createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
@@ -373,7 +389,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     filename: "request-empty.md",
     subject: "Request with empty skills",
     status: RequestStatus.PENDING,
-    priority: "normal",
+    priority: RequestPriority.NORMAL,
     agent: "default",
     created: "2025-01-01T10:00:00Z",
     created_by: "test@example.com",
@@ -382,8 +398,11 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
   };
 
   const mockService = {
+    list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
+    show: () => Promise.resolve({ metadata: {} as any, content: "Content" }),
     getRequestContent: (_id: string) => Promise.resolve("Content"),
+    create: () => Promise.resolve({} as IRequest),
     createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
@@ -425,7 +444,7 @@ Deno.test("RequestManagerTuiSession: filter by priority", () => {
   const session = view.createTuiSession(requests);
 
   const state = session.getState();
-  state.filterPriority = "high";
+  state.filterPriority = RequestPriority.HIGH;
   session.buildTree();
   assertEquals(session.getFilteredRequests().length, 2); // high priority requests
 });

@@ -11,6 +11,9 @@ import { AuthenticationError, ConnectionError, ModelProviderError, RateLimitErro
 import type { IModelOptions } from "./types.ts";
 import { DEFAULT_AI_RETRY_BACKOFF_BASE_MS, DEFAULT_AI_RETRY_MAX_ATTEMPTS } from "../shared/constants.ts";
 import { withRetry } from "./providers/common.ts";
+
+// Re-export withRetry for base_provider
+export { withRetry };
 import {
   COST_RATE_ANTHROPIC,
   COST_RATE_GOOGLE,

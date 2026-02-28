@@ -14,17 +14,7 @@ import { MemoryFormatter } from "./memory_view/formatters.ts";
 import { TreeBuilder } from "./memory_view/tree_builder.ts";
 import { DialogProcessor } from "./memory_view/dialog_processor.ts";
 import { KeyHandler } from "./memory_view/key_handlers.ts";
-import { type IMemoryServiceInterface, type ITreeNode } from "./memory_view/types.ts";
-import type { Config } from "../shared/schemas/config.ts";
-import { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
-import {
-  type IExecutionMemory,
-  type IMemorySearchResult,
-  type IMemoryUpdateProposal,
-} from "../shared/schemas/memory_bank.ts";
-import { MemoryBankService } from "../services/memory_bank.ts";
-import { MemoryExtractorService } from "../services/memory_extractor.ts";
-import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
+import { type IMemoryService, type ITreeNode } from "./memory_view/types.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,
@@ -56,80 +46,7 @@ export interface IMemoryViewState {
   lastRefresh: number;
 }
 
-// ===== Service Adapter =====
-
-/**
- * Adapter to wrap MemoryBankService for TUI usage
- */
-export class MemoryServiceAdapter implements IMemoryServiceInterface {
-  private memoryBank: MemoryBankService;
-  private extractor: MemoryExtractorService;
-  private _embedding: MemoryEmbeddingService;
-  private projectsDir: string;
-
-  constructor(config: Config, db: IDatabaseService) {
-    this.memoryBank = new MemoryBankService(config, db);
-    this.extractor = new MemoryExtractorService(config, db, this.memoryBank);
-    this._embedding = new MemoryEmbeddingService(config);
-    this.projectsDir = `${config.system.root}/Memory/Projects`;
-  }
-
-  async getProjects(): Promise<string[]> {
-    const projects: string[] = [];
-    try {
-      for await (const entry of Deno.readDir(this.projectsDir)) {
-        if (entry.isDirectory) {
-          projects.push(entry.name);
-        }
-      }
-    } catch {
-      // Directory may not exist
-    }
-    return projects;
-  }
-
-  getProjectMemory(portal: string) {
-    return this.memoryBank.getProjectMemory(portal);
-  }
-
-  getGlobalMemory() {
-    return this.memoryBank.getGlobalMemory();
-  }
-
-  getExecutionByTraceId(traceId: string) {
-    return this.memoryBank.getExecutionByTraceId(traceId);
-  }
-
-  getExecutionHistory(options: {
-    portal?: string;
-    limit?: number;
-  } = {}): Promise<IExecutionMemory[]> {
-    return this.memoryBank.getExecutionHistory(options.portal, options.limit);
-  }
-
-  search(
-    query: string,
-    options: { portal?: string; limit?: number } = {},
-  ): Promise<IMemorySearchResult[]> {
-    return this.memoryBank.searchMemory(query, options);
-  }
-
-  listPending(): Promise<IMemoryUpdateProposal[]> {
-    return this.extractor.listPending();
-  }
-
-  getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
-    return this.extractor.getPending(proposalId);
-  }
-
-  async approvePending(proposalId: string) {
-    await this.extractor.approvePending(proposalId);
-  }
-
-  async rejectPending(proposalId: string, reason: string) {
-    await this.extractor.rejectPending(proposalId, reason);
-  }
-}
+// Service Adapter moved to src/services/adapters/memory_adapter.ts
 
 // ===== TUI Session =====
 
@@ -140,11 +57,11 @@ export class MemoryServiceAdapter implements IMemoryServiceInterface {
  */
 export class MemoryViewTuiSession extends TuiSessionBase {
   private state: IMemoryViewState;
-  private service: IMemoryServiceInterface;
+  private service: IMemoryService;
   private flatNodes: ITreeNode[] = [];
   private keyHandler: KeyHandler;
 
-  constructor(service: IMemoryServiceInterface, useColors = true) {
+  constructor(service: IMemoryService, useColors = true) {
     super();
     this.service = service;
     this.keyHandler = new KeyHandler();
@@ -783,9 +700,9 @@ export class MemoryViewTuiSession extends TuiSessionBase {
  * Controller for Memory Bank TUI interface.
  */
 export class MemoryView {
-  private service: IMemoryServiceInterface;
+  private service: IMemoryService;
 
-  constructor(service: IMemoryServiceInterface) {
+  constructor(service: IMemoryService) {
     this.service = service;
   }
 
@@ -796,7 +713,7 @@ export class MemoryView {
     return new MemoryViewTuiSession(this.service);
   }
 
-  getService(): IMemoryServiceInterface {
+  getService(): IMemoryService {
     return this.service;
   }
 }

@@ -17,7 +17,7 @@ import {
   GitRepositoryError,
   GitService,
 } from "../src/services/git_service.ts";
-import { DEFAULT_GIT_EXIT_CODE_FATAL } from "../src/config/constants.ts";
+import { DEFAULT_GIT_EXIT_CODE_FATAL } from "../src/shared/constants.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.ts";
 

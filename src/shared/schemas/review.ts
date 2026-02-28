@@ -8,8 +8,8 @@
  */
 
 import { z } from "zod";
-import { REVIEW_STATUS_VALUES } from "../reviews/review_status.ts";
-import type { IReviewStatus } from "../reviews/review_status.ts";
+import { REVIEW_STATUS_VALUES } from "../../reviews/review_status.ts";
+import type { IReviewStatus } from "../../reviews/review_status.ts";
 
 /**
  * Review status values

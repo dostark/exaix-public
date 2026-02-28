@@ -85,6 +85,28 @@ export interface IStructuredLogger {
   ): Promise<T>;
 }
 
+/**
+ * Output that allows subscribing to log entries.
+ */
+export class ObservableOutput implements ILogOutput {
+  private subscribers: Set<(entry: IStructuredLogEntry) => void> = new Set();
+
+  write(entry: IStructuredLogEntry): void {
+    for (const subscriber of this.subscribers) {
+      try {
+        subscriber(entry);
+      } catch (err) {
+        console.error("[ObservableOutput] Subscriber error:", err);
+      }
+    }
+  }
+
+  subscribe(callback: (entry: IStructuredLogEntry) => void): () => void {
+    this.subscribers.add(callback);
+    return () => this.subscribers.delete(callback);
+  }
+}
+
 // ============================================================================
 // Output Implementations
 // ============================================================================
@@ -150,6 +172,13 @@ export class FileOutput implements ILogOutput {
     } else {
       this.currentFilePath = basePath;
     }
+  }
+
+  /**
+   * Get the log directory or base file path.
+   */
+  getBasePath(): string {
+    return this.basePath;
   }
 
   async write(entry: IStructuredLogEntry): Promise<void> {
@@ -250,6 +279,13 @@ export class StructuredLogger implements IStructuredLogger {
 
   constructor(config: IStructuredLoggerConfig) {
     this.config = config;
+  }
+
+  /**
+   * Get configured outputs for the logger.
+   */
+  getOutputs(): ILogOutput[] {
+    return [...this.config.outputs];
   }
 
   setContext(context: Partial<IStructuredLogEntry["context"]>): void {

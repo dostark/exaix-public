@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import type { IMemoryBankService } from "./memory_bank.ts";
+import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
 import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
 import type { ILearning, IMemorySearchResult } from "../shared/schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../shared/enums.ts";

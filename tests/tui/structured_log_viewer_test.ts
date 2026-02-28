@@ -11,11 +11,8 @@ import {
   type LogQueryOptions,
   StructuredLogViewer,
 } from "../../src/tui/structured_log_viewer.ts";
-import {
-  type IStructuredLogEntry,
-  type IStructuredLogger,
-  type LogMetadata,
-} from "../../src/services/structured_logger.ts";
+import { type IStructuredLogEntry, type IStructuredLogger } from "../../src/services/structured_logger.ts";
+import type { LogMetadata } from "../../src/shared/types/json.ts";
 import { LogLevel } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { InputDialog } from "../../src/helpers/dialog_base.ts";

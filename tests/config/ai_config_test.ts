@@ -32,7 +32,7 @@ import {
   DEFAULT_OPENAI_MODEL,
   DEFAULT_OPENAI_RETRY_BACKOFF_MS,
   DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS,
-} from "../../src/config/constants.ts";
+} from "../../src/shared/constants.ts";
 import { ProviderType } from "../../src/shared/enums.ts";
 import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { initializeRegistry } from "../../src/ai/provider_factory.ts";

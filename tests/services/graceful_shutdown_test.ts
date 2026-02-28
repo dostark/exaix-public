@@ -16,7 +16,7 @@ import {
   TEST_EVENT_UNHANDLED_REJECTION,
   TEST_SIGNAL_SIGINT,
   TEST_SIGNAL_SIGTERM,
-} from "../shared/constants.ts";
+} from "../config/constants.ts";
 
 /**
  * Tests for GracefulShutdown - Comprehensive Graceful Shutdown Handling

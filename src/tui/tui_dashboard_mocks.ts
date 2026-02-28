@@ -57,7 +57,8 @@ import { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.t
 import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import { INotificationService } from "../shared/interfaces/i_notification_service.ts";
 import { ILogService, IStructuredLogger } from "../shared/interfaces/i_log_service.ts";
-import { IMemoryServiceInterface } from "./memory_view/types.ts";
+import { IJournalService } from "../shared/interfaces/i_journal_service.ts";
+import { IMemoryService } from "../shared/interfaces/i_memory_service.ts";
 import { PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
 import { RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
 import { AgentStatus, type AgentStatusType as _AgentStatusType } from "../shared/status/agent_status.ts";
@@ -186,9 +187,9 @@ export class MockPlanService implements IPlanService {
 
 /**
  * MockLogService
- * Implements IDatabaseService for MonitorView and other components.
+ * Implements IDatabaseService and IJournalService for MonitorView and other components.
  */
-export class MockLogService implements IDatabaseService {
+export class MockLogService implements IDatabaseService, IJournalService {
   logActivity(
     _actor: string,
     _actionType: string,
@@ -203,6 +204,14 @@ export class MockLogService implements IDatabaseService {
   }
 
   queryActivity(_filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
+    return Promise.resolve([]);
+  }
+
+  query(_filters: IJournalFilterOptions): Promise<IActivityRecord[]> {
+    return Promise.resolve([]);
+  }
+
+  getDistinctValues(_field: string): Promise<string[]> {
     return Promise.resolve([]);
   }
 
@@ -364,7 +373,7 @@ export class MockAgentService implements IAgentService {
 /**
  * MockMemoryService
  */
-export class MockMemoryService implements IMemoryBankService, IMemoryServiceInterface {
+export class MockMemoryService implements IMemoryBankService, IMemoryService {
   getProjectMemory(portal: string): Promise<IProjectMemory | null> {
     return Promise.resolve({
       portal,

@@ -21,7 +21,7 @@ import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import type { ILearning, IMemoryUpdateProposal, IProposalLearning } from "../../src/shared/schemas/memory_bank.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
-import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
+import type { IMemoryBankService } from "../../src/shared/interfaces/i_memory_bank_service.ts";
 import type { JSONValue } from "../../src/shared/types/json.ts";
 
 function makeProposalLearning(overrides: Partial<IProposalLearning> = {}): IProposalLearning {

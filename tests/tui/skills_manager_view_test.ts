@@ -11,7 +11,7 @@ import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type ISkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
-import { TEST_MODEL_OPENAI } from "../shared/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { MinimalRequestServiceMock, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import { IRequest } from "../../src/shared/types/request.ts";

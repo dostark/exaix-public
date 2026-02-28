@@ -7,7 +7,7 @@
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
-import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 
 // ============================================================================
 // Unit Tests for SecureCredentialStore
