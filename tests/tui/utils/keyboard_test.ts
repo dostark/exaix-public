@@ -17,7 +17,7 @@ import {
   type KeyValue,
   matchesKey,
   parseKey,
-} from "../../../src/helpers/keyboard.ts";
+} from "../../../src/tui/helpers/keyboard.ts";
 
 // ===== Key Constants Tests =====
 

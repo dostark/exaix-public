@@ -8,14 +8,14 @@
  */
 
 import process from "node:process";
-import { type ITuiTheme as Theme } from "../../helpers/colors.ts";
-import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READY } from "../../helpers/constants.ts";
+import { type ITuiTheme as Theme } from "../helpers/colors.ts";
+import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READY } from "../helpers/constants.ts";
 import { type IPane, renderGlobalHelpOverlay, renderPaneTitleBar, renderViewIndicator } from "../tui_dashboard.ts";
 import { renderNotificationPanel } from "../tui_helpers/notifications.ts";
 import { type IMemoryNotification, type INotificationService } from "../../services/notification.ts";
 import { type IDashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { type IPortalService } from "../../shared/interfaces/i_portal_service.ts";
 
 async function renderActivePaneContent(

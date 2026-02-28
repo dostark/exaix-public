@@ -18,8 +18,8 @@ import {
 import { PortalStatus } from "../../src/shared/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
-import { getTheme } from "../../src/helpers/colors.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
+import { getTheme } from "../../src/tui/helpers/colors.ts";
 
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;

@@ -24,7 +24,7 @@ import {
   success,
   visibleLength,
   warning,
-} from "../../../src/helpers/colors.ts";
+} from "../../../src/tui/helpers/colors.ts";
 
 // ===== ANSI Constants Tests =====
 

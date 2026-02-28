@@ -8,7 +8,7 @@
  */
 
 import { MessageType } from "../../shared/enums.ts";
-import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../helpers/constants.ts";
 
 import type { IPane, ITuiView } from "../tui_dashboard.ts";
 

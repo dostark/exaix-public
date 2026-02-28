@@ -7,8 +7,8 @@
  * @related-files [src/helpers/dialog_base.ts, src/tui/memory_view/dialog_processor.ts]
  */
 import type { IMemoryUpdateProposal } from "../../shared/schemas/memory_bank.ts";
-import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
-import { KEYS } from "../../helpers/keyboard.ts";
+import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../helpers/constants.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import {
   DialogBase,
   type IDialogRenderOptions,
@@ -18,7 +18,7 @@ import {
   renderDialogEnding,
   renderProposalInfo,
   setupDialogRender,
-} from "../../helpers/dialog_base.ts";
+} from "../helpers/dialog_base.ts";
 import { DialogStatus } from "../../shared/enums.ts";
 
 // ===== Dialog Types =====

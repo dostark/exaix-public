@@ -2,7 +2,7 @@
  * @module debug_monitor_expand
  * @description Script: debug_monitor_expand
  */
-import { KEYS } from "../src/helpers/keyboard.ts";
+import { KEYS } from "../src/tui/helpers/keyboard.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
 const { monitorView } = await createMonitorViewWithLogs([

@@ -16,7 +16,7 @@ import {
   MemoryType as _MemoryType,
 } from "../../../src/shared/enums.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
-import { KEYS } from "../../../src/helpers/keyboard.ts";
+import { KEYS } from "../../../src/tui/helpers/keyboard.ts";
 import {
   type IExecutionMemory,
   type IGlobalMemory,
@@ -26,7 +26,7 @@ import {
 } from "../../../src/shared/schemas/memory_bank.ts";
 import { type IMemoryService } from "../../../src/tui/memory_view/types.ts";
 import { MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
-import { DialogBase } from "../../../src/helpers/dialog_base.ts";
+import { DialogBase } from "../../../src/tui/helpers/dialog_base.ts";
 // ===== Interfaces =====
 
 export interface IMemoryViewServiceOptions {

@@ -22,9 +22,9 @@ import {
   ConfirmRejectDialog,
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
-import { type DialogBase } from "../helpers/dialog_base.ts";
-import { renderSpinner } from "../helpers/markdown_renderer.ts";
-import { KEYS } from "../helpers/keyboard.ts";
+import { type DialogBase } from "./helpers/dialog_base.ts";
+import { renderSpinner } from "./helpers/markdown_renderer.ts";
+import { KEYS } from "./helpers/keyboard.ts";
 import { coerceMemoryTuiScope, type IMemoryTuiScopeType, MemoryTuiScope } from "./memory_view/memory_scope.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 

@@ -611,3 +611,28 @@ export const EXECUTION_REPORT_TOOL_OUTPUT_MAX_CHARS = 4000;
 export const EXECUTION_REPORT_PROMPT_MAX_CHARS = 20000;
 export const EXECUTION_REPORT_TEMPERATURE = 0.2;
 export const EXECUTION_REPORT_MAX_TOKENS = 2000;
+
+// ============================================================================
+// Shared UI Icons (used by both Core and TUI)
+// ============================================================================
+
+export const ICON_SUCCESS = "✅";
+export const ICON_FAILURE = "❌";
+export const ICON_WARNING = "⚠️";
+export const ICON_INFO = "ℹ️";
+
+export const SHARED_PRIORITY_ICONS: Record<string, string> = {
+  critical: "🔴",
+  high: "🟠",
+  normal: "⚪",
+  low: "🔵",
+  default: "⚪",
+};
+
+export const SHARED_DEFAULT_ICONS: Record<string, string> = {
+  info: ICON_SUCCESS,
+  warn: ICON_WARNING,
+  error: ICON_FAILURE,
+  debug: "🔍",
+  fatal: "💀",
+};

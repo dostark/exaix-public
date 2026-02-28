@@ -10,7 +10,7 @@ import { type IPortalService } from "../../src/shared/interfaces/i_portal_servic
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { PortalStatus } from "../../src/shared/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../src/shared/types/portal.ts";
 
 // Minimal IPortalService mock for tests

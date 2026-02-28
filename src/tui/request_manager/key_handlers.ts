@@ -7,10 +7,10 @@
  * @related-files [src/tui/request_manager_view.ts]
  */
 
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { TuiNodeType } from "../../shared/enums.ts";
-import type { ITreeNode } from "../../helpers/tree_view.ts";
-import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../../helpers/tree_view.ts";
+import type { ITreeNode } from "../helpers/tree_view.ts";
+import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../helpers/tree_view.ts";
 
 /**
  * Navigation handler for tree navigation

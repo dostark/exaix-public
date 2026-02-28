@@ -9,7 +9,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { AgentStatus } from "../../src/shared/status/agent_status.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type ISkillSummary } from "../../src/tui/skills_manager_view.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";

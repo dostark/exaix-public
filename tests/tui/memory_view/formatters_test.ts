@@ -32,7 +32,7 @@ import {
   TUI_MSG_PRESS_QUIT,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
-} from "../../../src/helpers/constants.ts";
+} from "../../../src/tui/helpers/constants.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
 function node(id: string, label = id, data?: unknown, badge?: number): ITreeNode {

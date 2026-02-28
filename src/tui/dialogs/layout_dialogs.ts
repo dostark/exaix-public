@@ -7,14 +7,14 @@
  * @related-files [src/helpers/layout_manager.ts, src/tui/dashboard_view.ts]
  */
 
-import { KEYS } from "../../helpers/keyboard.ts";
-import { colorize, type ITuiTheme } from "../../helpers/colors.ts";
+import { KEYS } from "../helpers/keyboard.ts";
+import { colorize, type ITuiTheme } from "../helpers/colors.ts";
 import {
   TUI_DASHBOARD_ICONS,
   TUI_LAYOUT_PRESET_LIST_WIDTH,
   TUI_VIEW_PICKER_INNER_WIDTH,
-} from "../../helpers/constants.ts";
-import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../../helpers/layout_rendering.ts";
+} from "../helpers/constants.ts";
+import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
 
 // ===== View Picker Dialog =====
 

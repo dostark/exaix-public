@@ -7,8 +7,8 @@
  * @related-files [src/services/notification.ts, src/tui/tui_dashboard.ts]
  */
 
-import { KEYS } from "../../helpers/keyboard.ts";
-import { colorize, type ITuiTheme } from "../../helpers/colors.ts";
+import { KEYS } from "../helpers/keyboard.ts";
+import { colorize, type ITuiTheme } from "../helpers/colors.ts";
 import type { IDashboardViewState, IPane } from "../tui_dashboard.ts";
 import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
 

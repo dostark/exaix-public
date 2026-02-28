@@ -8,7 +8,7 @@
  */
 
 import type { ITreeNode } from "./types.ts";
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
 
 export interface IShortcutHandlers {

@@ -7,8 +7,8 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { DialogStatus } from "../../src/shared/enums.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
-import { DialogBase } from "../../src/helpers/dialog_base.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
+import { DialogBase } from "../../src/tui/helpers/dialog_base.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,

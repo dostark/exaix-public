@@ -10,11 +10,11 @@
 import { MessageType } from "../shared/enums.ts";
 import { DialogStatus, MemoryScope, MemorySource, SkillStatus } from "../shared/enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { type DialogBase } from "../helpers/dialog_base.ts";
-import { IKeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
+import { type DialogBase } from "./helpers/dialog_base.ts";
+import { IKeyBinding, KeyBindingCategory } from "./helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../helpers/tree_view.ts";
-import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "./helpers/tree_view.ts";
+import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import {
   TUI_LAYOUT_DIALOG_WIDTH,
   TUI_LAYOUT_MEDIUM_WIDTH,
@@ -22,8 +22,8 @@ import {
   TUI_SKILL_ICON,
   TUI_SOURCE_ICONS,
   TUI_STATUS_ICONS,
-} from "../helpers/constants.ts";
-import { KEYS } from "../helpers/keyboard.ts";
+} from "./helpers/constants.ts";
+import { KEYS } from "./helpers/keyboard.ts";
 import { type ISkill } from "../shared/schemas/memory_bank.ts";
 import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import { type ISkillMatchRequest } from "../shared/types/skill.ts";

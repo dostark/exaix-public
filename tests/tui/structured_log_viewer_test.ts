@@ -14,8 +14,8 @@ import {
 import { type IStructuredLogEntry, type IStructuredLogger } from "../../src/services/structured_logger.ts";
 import type { LogMetadata } from "../../src/shared/types/json.ts";
 import { LogLevel } from "../../src/shared/enums.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
-import { InputDialog } from "../../src/helpers/dialog_base.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
+import { InputDialog } from "../../src/tui/helpers/dialog_base.ts";
 
 class MockLogService implements IStructuredLogService {
   logs: IStructuredLogEntry[] = [];

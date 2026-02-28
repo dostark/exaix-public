@@ -8,8 +8,8 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
-import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
-import type { ITreeNode } from "../helpers/tree_view.ts";
+import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./helpers/spinner.ts";
+import type { ITreeNode } from "./helpers/tree_view.ts";
 import {
   collapseAll,
   expandAll,
@@ -21,12 +21,12 @@ import {
   getPrevNodeId,
   renderTree,
   toggleNode,
-} from "../helpers/tree_view.ts";
+} from "./helpers/tree_view.ts";
 import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../shared/enums.ts";
 import { AgentStatus, type AgentStatusType as _AgentStatusType } from "../shared/status/agent_status.ts";
-import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
-import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
+import { ConfirmDialog, InputDialog } from "./helpers/dialog_base.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import {
   TUI_AGENT_HEALTH_ICONS,
@@ -34,7 +34,7 @@ import {
   TUI_LAYOUT_NARROW_WIDTH,
   TUI_LIMIT_MEDIUM,
   TUI_LOG_LEVEL_ICONS,
-} from "../helpers/constants.ts";
+} from "./helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
 

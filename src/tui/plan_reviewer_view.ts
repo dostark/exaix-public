@@ -13,11 +13,11 @@ import { IPlanService } from "../shared/interfaces/i_plan_service.ts";
 import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
-import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
+import { ConfirmDialog, type DialogBase, InputDialog } from "./helpers/dialog_base.ts";
 import { DialogStatus } from "../shared/enums.ts";
-import { createGroupNode, createNode, flattenTree, type ITreeNode } from "../helpers/tree_view.ts";
+import { createGroupNode, createNode, flattenTree, type ITreeNode } from "./helpers/tree_view.ts";
 import type { JSONObject } from "../shared/types/json.ts";
-import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
 
 // ===== Interfaces =====
 

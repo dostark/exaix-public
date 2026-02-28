@@ -6,8 +6,8 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { getTheme } from "../../src/helpers/colors.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { getTheme } from "../../src/tui/helpers/colors.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import {
   AVAILABLE_VIEWS,
   createLayoutPresetState,

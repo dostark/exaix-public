@@ -21,8 +21,8 @@ import {
   renderQuickHelp,
   scrollHelpDialog,
   toggleHelpDialog,
-} from "../../../src/helpers/help_renderer.ts";
-import type { IKeyBinding } from "../../../src/helpers/keyboard.ts";
+} from "../../../src/tui/helpers/help_renderer.ts";
+import type { IKeyBinding } from "../../../src/tui/helpers/keyboard.ts";
 
 // ===== renderHelpScreen tests =====
 
@@ -33,7 +33,7 @@ Deno.test("renderHelpScreen: renders basic help screen", () => {
   });
   assertExists(result);
   assertEquals(result.length > 0, true);
-  assertEquals(result.some((l) => l.includes("Test Help")), true);
+  assertEquals(result.some((l: string) => l.includes("Test Help")), true);
 });
 
 Deno.test("renderHelpScreen: renders sections", () => {
@@ -50,8 +50,8 @@ Deno.test("renderHelpScreen: renders sections", () => {
     title: "Help",
     sections,
   });
-  assertEquals(result.some((l) => l.includes("Navigation")), true);
-  assertEquals(result.some((l) => l.includes("Move up")), true);
+  assertEquals(result.some((l: string) => l.includes("Navigation")), true);
+  assertEquals(result.some((l: string) => l.includes("Move up")), true);
 });
 
 Deno.test("renderHelpScreen: renders multiple sections", () => {
@@ -69,8 +69,8 @@ Deno.test("renderHelpScreen: renders multiple sections", () => {
     title: "Help",
     sections,
   });
-  assertEquals(result.some((l) => l.includes("Section 1")), true);
-  assertEquals(result.some((l) => l.includes("Section 2")), true);
+  assertEquals(result.some((l: string) => l.includes("Section 1")), true);
+  assertEquals(result.some((l: string) => l.includes("Section 2")), true);
 });
 
 Deno.test("renderHelpScreen: renders footer", () => {
@@ -79,7 +79,7 @@ Deno.test("renderHelpScreen: renders footer", () => {
     sections: [],
     footer: "Press ? to close",
   });
-  assertEquals(result.some((l) => l.includes("close")), true);
+  assertEquals(result.some((l: string) => l.includes("close")), true);
 });
 
 Deno.test("renderHelpScreen: respects width option", () => {
@@ -104,7 +104,7 @@ Deno.test("renderHelpScreen: respects useColors option", () => {
     useColors: false,
   });
   // With colors should have ANSI codes
-  assertEquals(resultColors.some((l) => l.includes("\x1b[")), true);
+  assertEquals(resultColors.some((l: string) => l.includes("\x1b[")), true);
 });
 
 // ===== keyBindingsToHelpSections tests =====
@@ -144,30 +144,46 @@ Deno.test("getNavigationHelpSection: returns navigation section", () => {
   const section = getNavigationHelpSection();
   assertEquals(section.title, "Navigation");
   assertEquals(section.items.length > 0, true);
-  assertEquals(section.items.some((i) => i.key.includes("up")), true);
-  assertEquals(section.items.some((i) => i.key.includes("down")), true);
+  assertEquals(
+    section.items.some((i: { key: string; description?: string; action?: string }) => i.key.includes("up")),
+    true,
+  );
+  assertEquals(
+    section.items.some((i: { key: string; description?: string; action?: string }) => i.key.includes("down")),
+    true,
+  );
 });
 
 Deno.test("getSearchHelpSection: returns search section", () => {
   const section = getSearchHelpSection();
   assertEquals(section.title, "Search");
   assertEquals(section.items.length > 0, true);
-  assertEquals(section.items.some((i) => i.description.includes("search")), true);
+  assertEquals(
+    section.items.some((i: { key: string; description?: string; action?: string }) =>
+      i.description?.includes("search")
+    ),
+    true,
+  );
 });
 
 Deno.test("getTreeHelpSection: returns tree section", () => {
   const section = getTreeHelpSection();
   assertEquals(section.title, "Tree Navigation");
   assertEquals(section.items.length > 0, true);
-  assertEquals(section.items.some((i) => i.description.includes("Expand")), true);
+  assertEquals(
+    section.items.some((i: { key: string; description?: string; action?: string }) =>
+      i.description?.includes("Expand")
+    ),
+    true,
+  );
 });
 
 Deno.test("getGlobalHelpSection: returns global section", () => {
   const section = getGlobalHelpSection();
   assertEquals(section.title, "Global");
   assertEquals(section.items.length > 0, true);
-  assertEquals(section.items.some((i) => i.key === "?"), true);
-  assertEquals(section.items.some((i) => i.key === "q"), true);
+  assertEquals(section.items.some((i: { key: string; description?: string; action?: string }) => i.key === "?"), true);
+  assertEquals(section.items.some((i: { key: string; description?: string; action?: string }) => i.key === "q"), true);
 });
 
 // ===== renderQuickHelp tests =====
@@ -202,8 +218,8 @@ Deno.test("renderQuickHelp: separates items with spaces", () => {
 Deno.test("getStandardQuickHelp: returns standard items", () => {
   const items = getStandardQuickHelp();
   assertEquals(items.length > 0, true);
-  assertEquals(items.some((i) => i.key === "?"), true);
-  assertEquals(items.some((i) => i.action === "Help"), true);
+  assertEquals(items.some((i: { key: string; action?: string }) => i.key === "?"), true);
+  assertEquals(items.some((i: { key: string; action?: string }) => i.action === "Help"), true);
 });
 
 // ===== Help Dialog State tests =====

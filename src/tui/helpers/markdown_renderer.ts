@@ -7,7 +7,7 @@
  * @related-files [src/enums.ts, src/helpers/constants.ts]
  */
 
-import { ConfidenceLevel } from "../shared/enums.ts";
+import { ConfidenceLevel } from "../../shared/enums.ts";
 import { TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 
 // ===== Interfaces =====

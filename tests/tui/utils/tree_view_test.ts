@@ -27,7 +27,7 @@ import {
   renderTreeLine,
   toggleNode,
   TREE_ICONS,
-} from "../../../src/helpers/tree_view.ts";
+} from "../../../src/tui/helpers/tree_view.ts";
 import { createTestTree } from "../helpers.ts";
 
 // ===== Tree Icons Tests =====
@@ -100,7 +100,7 @@ Deno.test("flattenTree: tracks isLast correctly", () => {
   const flat = flattenTree(tree);
 
   // root2 should be last at depth 0
-  const root2 = flat.find((f) => f.node.id === "root2");
+  const root2 = flat.find((f: { node: { id: string } }) => f.node.id === "root2");
   assertExists(root2);
   assertEquals(root2.isLast, true);
 });

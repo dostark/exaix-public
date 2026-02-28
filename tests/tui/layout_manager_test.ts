@@ -35,7 +35,7 @@ import {
   renderSwapIndicator,
   renderViewPickerDialog,
 } from "../../src/tui/dialogs/layout_dialogs.ts";
-import { getTheme } from "../../src/helpers/colors.ts";
+import { getTheme } from "../../src/tui/helpers/colors.ts";
 import { createPanes, createTestPane, setupLayoutManager } from "./layout_test_helper.ts";
 
 const theme = getTheme(true);
@@ -486,8 +486,8 @@ Deno.test("renderLayoutPresetPicker: renders preset list", () => {
   const lines = renderLayoutPresetPicker(presets, 0, theme);
 
   assertEquals(lines.length > 0, true);
-  assertEquals(lines.some((l) => l.includes("Layout Presets")), true);
-  assertEquals(lines.some((l) => l.includes("Single")), true);
+  assertEquals(lines.some((l: string) => l.includes("Layout Presets")), true);
+  assertEquals(lines.some((l: string) => l.includes("Single")), true);
 });
 
 Deno.test("renderPaneBorder: renders focused pane", () => {
@@ -554,7 +554,7 @@ Deno.test("renderViewPickerDialog: renders dialog when open", () => {
   const lines = renderViewPickerDialog(state, theme);
 
   assertEquals(lines.length > 0, true);
-  assertEquals(lines.some((l) => l.includes("Select View")), true);
+  assertEquals(lines.some((l: string) => l.includes("Select View")), true);
 });
 
 Deno.test("handleViewPickerKey: navigates up/down", () => {
@@ -608,7 +608,7 @@ Deno.test("renderLayoutPresetDialog: renders dialog when open", () => {
   const lines = renderLayoutPresetDialog(state, theme);
 
   assertEquals(lines.length > 0, true);
-  assertEquals(lines.some((l) => l.includes("Layout Presets")), true);
+  assertEquals(lines.some((l: string) => l.includes("Layout Presets")), true);
 });
 
 Deno.test("handleLayoutPresetKey: selects preset on enter", () => {
@@ -632,7 +632,7 @@ Deno.test("renderNamedLayoutDialog: renders save mode", () => {
   const state = { ...createNamedLayoutState(), isOpen: true, mode: "save" as const };
   const lines = renderNamedLayoutDialog(state, theme);
 
-  assertEquals(lines.some((l) => l.includes("Save Layout")), true);
+  assertEquals(lines.some((l: string) => l.includes("Save Layout")), true);
 });
 
 Deno.test("renderNamedLayoutDialog: renders load mode with layouts", () => {
@@ -644,8 +644,8 @@ Deno.test("renderNamedLayoutDialog: renders load mode with layouts", () => {
   };
   const lines = renderNamedLayoutDialog(state, theme);
 
-  assertEquals(lines.some((l) => l.includes("Load Layout")), true);
-  assertEquals(lines.some((l) => l.includes("layout-1")), true);
+  assertEquals(lines.some((l: string) => l.includes("Load Layout")), true);
+  assertEquals(lines.some((l: string) => l.includes("layout-1")), true);
 });
 
 Deno.test("handleNamedLayoutKey: activates input on enter in save mode", () => {

@@ -35,8 +35,8 @@ import {
   renderSpinner,
   stripMarkdown,
   wrapText,
-} from "../../src/helpers/markdown_renderer.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+} from "../../src/tui/helpers/markdown_renderer.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 // ===== Mock Service with Full Data =====
 

@@ -23,8 +23,8 @@ import {
   TUI_LAYOUT_DEFAULT_HEIGHT,
   TUI_LAYOUT_FULL_WIDTH,
   TUI_TREE_ICONS,
-} from "../helpers/constants.ts";
-import { colorize, getTheme, type ITuiTheme } from "../helpers/colors.ts";
+} from "./helpers/constants.ts";
+import { colorize, getTheme, type ITuiTheme } from "./helpers/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
   type IDashboardContext,
@@ -38,14 +38,14 @@ import {
   restoreLayout as helperRestoreLayout,
   saveLayout as helperSaveLayout,
 } from "./tui_helpers/layout_persistence.ts";
-import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import { IKeyBinding, KEYS } from "../helpers/keyboard.ts";
+import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
+import { IKeyBinding, KEYS } from "./helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
 import { type Config } from "../shared/schemas/config.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
-import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
+import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "./helpers/layout_rendering.ts";
 import {
   closePane as helperClosePane,
   maximizePane as helperMaximizePane,

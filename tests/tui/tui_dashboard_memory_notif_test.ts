@@ -8,7 +8,7 @@
 import { assertEquals } from "@std/assert";
 import { MemoryOperation, MemoryScope } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 import { type IProposalLearning } from "../../src/shared/schemas/memory_bank.ts";
 

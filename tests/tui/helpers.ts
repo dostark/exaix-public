@@ -53,7 +53,7 @@ import {
 import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enums.ts";
 import { type IMemoryService } from "../../src/shared/interfaces/i_memory_service.ts";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import { type ITreeNode } from "../../src/helpers/tree_view.ts";
+import { type ITreeNode } from "../../src/tui/helpers/tree_view.ts";
 
 export interface IPortalInfoOverrides {
   alias?: string;

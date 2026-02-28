@@ -24,7 +24,7 @@ import {
   stopLoading,
   stopSpinner,
   updateProgress,
-} from "../../../src/helpers/spinner.ts";
+} from "../../../src/tui/helpers/spinner.ts";
 
 // ===== Spinner Definitions Tests =====
 
@@ -41,7 +41,11 @@ Deno.test("SPINNERS: dots has frames", () => {
 });
 
 Deno.test("SPINNERS: all spinners have required properties", () => {
-  for (const [style, config] of Object.entries(SPINNERS)) {
+  for (
+    const [style, config] of Object.entries(SPINNERS) as Array<
+      [string, { frames: string[]; interval: number; style: string }]
+    >
+  ) {
     assertGreater(config.frames.length, 0, `${style} should have frames`);
     assertGreater(config.interval, 0, `${style} should have interval`);
     assertEquals(config.style, style);

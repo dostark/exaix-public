@@ -12,7 +12,7 @@ import type { IDatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../shared/enums.ts";
 import { Actor, ILogEvent } from "./common/types.ts";
-import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
+import { SHARED_DEFAULT_ICONS } from "../shared/constants.ts";
 import { JSONValue, LogMetadata, toSafeJson } from "../shared/types/json.ts";
 
 /**
@@ -66,11 +66,11 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 
 /** Default icons for each log level */
 const DEFAULT_ICONS: Record<LogLevel, string> = {
-  [LogLevel.INFO]: TUI_DEFAULT_ICONS.info,
-  [LogLevel.WARN]: TUI_DEFAULT_ICONS.warn,
-  [LogLevel.ERROR]: TUI_DEFAULT_ICONS.error,
-  [LogLevel.DEBUG]: TUI_DEFAULT_ICONS.debug,
-  [LogLevel.FATAL]: TUI_DEFAULT_ICONS.fatal,
+  [LogLevel.INFO]: SHARED_DEFAULT_ICONS.info,
+  [LogLevel.WARN]: SHARED_DEFAULT_ICONS.warn,
+  [LogLevel.ERROR]: SHARED_DEFAULT_ICONS.error,
+  [LogLevel.DEBUG]: SHARED_DEFAULT_ICONS.debug,
+  [LogLevel.FATAL]: SHARED_DEFAULT_ICONS.fatal,
 };
 
 /** Cached user identity to avoid repeated git calls */

@@ -7,7 +7,7 @@
  * @related-files [src/helpers/keyboard.ts]
  */
 
-import type { IKeyBinding, KeyHandler } from "../../helpers/keyboard.ts";
+import type { IKeyBinding, KeyHandler } from "../helpers/keyboard.ts";
 
 /**
  * Base class for key binding collections.

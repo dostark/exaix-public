@@ -6,7 +6,7 @@
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { ExecutionStatus, MemoryType } from "../../src/shared/enums.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import {
   createMockExecution,
   createMockGlobalMemory,

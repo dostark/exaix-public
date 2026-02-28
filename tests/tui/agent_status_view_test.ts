@@ -22,7 +22,7 @@ import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/shared/enums.ts";
 import { AgentStatus } from "../../src/shared/status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/shared/enums.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import { assertEquals, assertExists } from "@std/assert";
 
 // ===== Mock IAgentService for testing =====

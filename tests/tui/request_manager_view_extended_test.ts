@@ -40,7 +40,7 @@ import {
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
 import { type IRequestService as _IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 // ===== Test Data =====
 

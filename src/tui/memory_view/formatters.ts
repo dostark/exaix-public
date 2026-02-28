@@ -20,8 +20,8 @@ import {
   TUI_MSG_PRESS_QUIT,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
-} from "../../helpers/constants.ts";
-import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../../helpers/markdown_renderer.ts";
+} from "../helpers/constants.ts";
+import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../helpers/markdown_renderer.ts";
 import { ConfidenceLevel } from "../../shared/enums.ts";
 import type { IMemoryService, ITreeNode } from "./types.ts";
 

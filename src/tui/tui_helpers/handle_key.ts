@@ -9,7 +9,7 @@
 
 import type { IPane, ITuiDashboard, ITuiView } from "../tui_dashboard.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 
 // ===== Helper Functions =====
 

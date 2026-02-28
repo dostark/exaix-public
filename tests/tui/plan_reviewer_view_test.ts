@@ -8,7 +8,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { PlanStatus } from "../../src/shared/status/plan_status.ts";
 import { ExoPathDefaults } from "../../src/shared/constants.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 import {
   DbLikePlanServiceAdapter,

@@ -7,7 +7,7 @@
 
 import process from "node:process";
 import { type IPane } from "../../src/tui/tui_dashboard.ts";
-import { noColorTheme } from "../../src/helpers/colors.ts";
+import { noColorTheme } from "../../src/tui/helpers/colors.ts";
 import { prodRender } from "../../src/tui/dashboard/renderer.ts";
 import { type IMemoryNotification, type INotificationService } from "../../src/services/notification.ts";
 import { type IPortalDetails, type IPortalInfo } from "../../src/shared/types/portal.ts";

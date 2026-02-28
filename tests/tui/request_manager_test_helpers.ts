@@ -5,8 +5,8 @@
  * of request lifecycles and interactive input dialogs.
  */
 
-import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
-import { KEYS } from "../../src/helpers/keyboard.ts";
+import { ConfirmDialog, InputDialog } from "../../src/tui/helpers/dialog_base.ts";
+import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import { MessageType } from "../../src/shared/enums.ts";
 
 export interface IRequestManagerMockHandlers {

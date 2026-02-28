@@ -7,7 +7,7 @@
  * @related-files [src/tui/memory_view/memory_scope.ts]
  */
 
-import { renderSpinnerFrame } from "../../helpers/spinner.ts";
+import { renderSpinnerFrame } from "../helpers/spinner.ts";
 import { TuiIcon, TuiNodeType } from "../../shared/enums.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
 import {
@@ -19,7 +19,7 @@ import {
   TUI_PREFIX_PROJECT,
   TUI_TREE_PAGINATION_LIMIT,
   TUI_TREE_RECENT_LIMIT,
-} from "../../helpers/constants.ts";
+} from "../helpers/constants.ts";
 import type { IMemoryService, ITreeNode } from "./types.ts";
 import type { IExecutionMemory } from "../../shared/schemas/memory_bank.ts";
 

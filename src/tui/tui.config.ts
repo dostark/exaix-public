@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts]
  */
 
-import { TUI_LOG_ICONS } from "../helpers/constants.ts";
+import { TUI_LOG_ICONS } from "./helpers/constants.ts";
 
 export const LOG_ICONS: Record<string, string> = {
   "request_created": TUI_LOG_ICONS["request_created"],

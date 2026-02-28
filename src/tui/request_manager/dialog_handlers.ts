@@ -8,7 +8,7 @@
  */
 
 import { MessageType } from "../../shared/enums.ts";
-import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
+import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { DialogStatus, RequestDialogType } from "../../shared/enums.ts";
 
 export type RequestDialogTypeUnion = RequestDialogType | null;

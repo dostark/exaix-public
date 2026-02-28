@@ -11,7 +11,7 @@ import { MessageType } from "../../shared/enums.ts";
 import type { IDashboardViewState, IPane, ITuiView } from "../tui_dashboard.ts";
 import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 
 export interface IProdHandleCtx {
   prodState: IDashboardViewState;

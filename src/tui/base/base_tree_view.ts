@@ -7,12 +7,12 @@
  * @related-files [src/tui/tui_common.ts, src/tui/base/tree_view_state.ts]
  */
 
-import { KEYS } from "../../helpers/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { TuiSessionBase } from "../tui_common.ts";
-import type { DialogBase } from "../../helpers/dialog_base.ts";
-import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
-import type { IKeyBinding } from "../../helpers/keyboard.ts";
-import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../../helpers/spinner.ts";
+import type { DialogBase } from "../helpers/dialog_base.ts";
+import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
+import type { IKeyBinding } from "../helpers/keyboard.ts";
+import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
 import {
   collapseAll,
   expandAll,
@@ -23,7 +23,7 @@ import {
   renderTree,
   toggleNode,
   type TreeRenderOptions,
-} from "../../helpers/tree_view.ts";
+} from "../helpers/tree_view.ts";
 import { createTreeViewState, type ITreeViewState } from "./tree_view_state.ts";
 
 /**

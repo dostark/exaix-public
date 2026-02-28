@@ -11,7 +11,7 @@ import { z } from "zod";
 import { EvaluationCriterion, EvaluationCriterionSchema, getCriteriaByNames } from "./evaluation_criteria.ts";
 import { FlowGateOnFail } from "../shared/enums.ts";
 import { GateEvaluator, IGateResult } from "./gate_evaluator.ts";
-import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
+import { ICON_FAILURE, ICON_SUCCESS } from "../shared/constants.ts";
 
 /**
  * Context data for agent requests
@@ -260,7 +260,7 @@ export class FeedbackLoop {
           gateResult.evaluation.criteriaScores,
         )
       ) {
-        const status = result.passed ? TUI_ICON_SUCCESS : TUI_ICON_FAILURE;
+        const status = result.passed ? ICON_SUCCESS : ICON_FAILURE;
         parts.push(
           `  ${status} ${name}: ${(result.score * 100).toFixed(1)}%`,
         );

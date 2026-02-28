@@ -13,7 +13,7 @@ import {
   TUI_LAYOUT_MEDIUM_WIDTH,
   TUI_LAYOUT_VALUE_WIDTH,
   TUI_MSG_PRESS_QUIT,
-} from "../../helpers/constants.ts";
+} from "../helpers/constants.ts";
 import { IRequest } from "../../shared/types/request.ts";
 
 /**

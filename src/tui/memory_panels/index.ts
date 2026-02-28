@@ -14,7 +14,7 @@ import type {
   IMemoryUpdateProposal,
   IProjectMemory,
 } from "../../shared/schemas/memory_bank.ts";
-import { ANSI } from "../../helpers/colors.ts";
+import { ANSI } from "../helpers/colors.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_DETAIL_MAX_SUMMARY_CHARS,
@@ -23,7 +23,7 @@ import {
   TUI_LIMIT_LONG,
   TUI_LIMIT_MEDIUM,
   TUI_LIMIT_SHORT,
-} from "../../helpers/constants.ts";
+} from "../helpers/constants.ts";
 
 // ===== Color Constants =====
 

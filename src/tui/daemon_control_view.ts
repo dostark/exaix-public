@@ -8,13 +8,13 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
-import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
-import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
-import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./helpers/spinner.ts";
+import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
+import { ConfirmDialog, InputDialog } from "./helpers/dialog_base.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
 import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../shared/enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
+import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { MessageType } from "../shared/enums.ts";
 import { IDaemonService } from "../shared/interfaces/i_daemon_service.ts";
