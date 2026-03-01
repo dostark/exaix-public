@@ -18,7 +18,7 @@ import {
   renderLayoutPresetPicker,
   renderPaneBorder,
   renderResizeIndicator,
-} from "../../src/helpers/layout_manager.ts";
+} from "../../src/tui/helpers/layout_manager.ts";
 import {
   AVAILABLE_VIEWS,
   createLayoutPresetState,

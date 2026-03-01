@@ -7,7 +7,7 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../shared/types/logging.ts";
 
 /**
  * Find related logs by correlation ID

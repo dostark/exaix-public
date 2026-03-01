@@ -6,12 +6,12 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
+import { StructuredLogViewer } from "../../src/tui/structured_log_viewer.ts";
 import {
-  type IStructuredLogService,
-  type LogQueryOptions,
-  StructuredLogViewer,
-} from "../../src/tui/structured_log_viewer.ts";
-import { type IStructuredLogEntry, type IStructuredLogger } from "../../src/services/structured_logger.ts";
+  type ILogger as IStructuredLogger,
+  type ILogService as IStructuredLogService,
+} from "../../src/shared/interfaces/i_log_service.ts";
+import { type IStructuredLogEntry, type LogQueryOptions } from "../../src/shared/types/logging.ts";
 import type { LogMetadata } from "../../src/shared/types/json.ts";
 import { LogLevel } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
@@ -59,8 +59,8 @@ class MockLogService implements IStructuredLogService {
 }
 
 class MockStructuredLogger implements IStructuredLogger {
-  setContext(_context: Partial<IStructuredLogEntry["context"]>): void {}
-  child(_additionalContext: Partial<IStructuredLogEntry["context"]>): IStructuredLogger {
+  setContext(_context: Partial<any>): void {}
+  child(_additionalContext: Partial<any>): IStructuredLogger {
     return this;
   }
   debug(_message: string, _metadata?: LogMetadata): void {}

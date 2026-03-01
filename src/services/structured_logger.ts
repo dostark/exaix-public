@@ -26,38 +26,11 @@ import * as DEFAULTS from "../shared/constants.ts";
 
 import { LogLevel } from "../shared/enums.ts";
 import { LogMetadata } from "../shared/types/json.ts";
+import { ILogger, ILogOutput } from "../shared/interfaces/i_log_service.ts";
+import { IStructuredLogEntry } from "../shared/types/logging.ts";
 
-export interface IStructuredLogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  context: {
-    trace_id?: string;
-    request_id?: string;
-    user_id?: string;
-    agent_id?: string;
-    portal?: string;
-    session_id?: string;
-    operation?: string;
-    correlation_id?: string;
-  };
-  metadata?: LogMetadata;
-  error?: {
-    name: string;
-    message: string;
-    stack?: string;
-    code?: string;
-  };
-  performance?: {
-    duration_ms?: number;
-    memory_mb?: number;
-    cpu_percent?: number;
-  };
-}
-
-export interface ILogOutput {
-  write(entry: IStructuredLogEntry): void | Promise<void>;
-}
+export type IStructuredLogger = ILogger;
+export { type ILogger, type ILogOutput, type IStructuredLogEntry };
 
 export interface IStructuredLoggerConfig {
   minLevel: LogLevel;
@@ -65,24 +38,6 @@ export interface IStructuredLoggerConfig {
   enablePerformanceTracking: boolean;
   serviceName?: string;
   version?: string;
-}
-
-/**
- * Interface for StructuredLogger to support mocks and strict typing
- */
-export interface IStructuredLogger {
-  setContext(context: Partial<IStructuredLogEntry["context"]>): void;
-  child(additionalContext: Partial<IStructuredLogEntry["context"]>): IStructuredLogger;
-  debug(message: string, metadata?: LogMetadata): void;
-  info(message: string, metadata?: LogMetadata): void;
-  warn(message: string, metadata?: LogMetadata): void;
-  error(message: string, error?: Error, metadata?: LogMetadata): void;
-  fatal(message: string, error?: Error, metadata?: LogMetadata): void;
-  time<T>(
-    operation: string,
-    fn: () => Promise<T>,
-    metadata?: LogMetadata,
-  ): Promise<T>;
 }
 
 /**

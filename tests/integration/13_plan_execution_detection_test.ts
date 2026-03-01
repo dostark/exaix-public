@@ -6,8 +6,12 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { parse as parseYaml } from "@std/yaml";
+import { join } from "@std/path";
+import { ensureDir } from "@std/fs";
+import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
+import { TestEnvironment } from "./helpers/test_environment.ts";
+import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
 
 interface Frontmatter {
   trace_id?: string;
@@ -17,10 +21,6 @@ interface Frontmatter {
   created_at?: string;
   [key: string]: unknown;
 }
-import { join } from "@std/path";
-import { ensureDir } from "@std/fs";
-import { TestEnvironment } from "./helpers/test_environment.ts";
-import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
 
 Deno.test("Integration: Plan Execution Detection - approved plan detected", async () => {
   const env = await TestEnvironment.create({

@@ -1,16 +1,16 @@
 /**
  * @module LayoutManager
- * @path src/helpers/layout_manager.ts
+ * @path src/tui/helpers/layout_manager.ts
  * @description Layout Manager for split-view TUI dashboards, providing presets, resizing, and named layout persistence.
- * @architectural-layer Helpers
+ * @architectural-layer TUI Helpers
  * @dependencies [Colors, LayoutRendering, Constants]
- * @related-files [src/helpers/layout_rendering.ts]
+ * @related-files [src/tui/helpers/layout_rendering.ts]
  */
 
-import { colorize, type ITuiTheme } from "../tui/helpers/colors.ts";
-import { renderLayoutPresetListLines } from "../tui/helpers/layout_rendering.ts";
-import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../tui/helpers/constants.ts";
-import type { JSONObject } from "../shared/types/json.ts";
+import { colorize, type ITuiTheme } from "./colors.ts";
+import { renderLayoutPresetListLines } from "./layout_rendering.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
+import type { JSONObject } from "../../shared/types/json.ts";
 
 // ===== Layout Interfaces =====
 

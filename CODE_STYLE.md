@@ -242,16 +242,33 @@ runtime bugs.
 
 ---
 
-## 6. Additional Style Notes
+## 6. Module Structure & Placement
 
 - **Module Structure Order:** Every module **must** follow this specific structural order:
-  1. **Header Comment:** A brief description of the module and the Implementation Plan step it satisfies. (Warning if missing).
+  1. **Header Comment:** A brief description of the module and the Implementation Plan step it satisfies (warning if missing).
   2. **Imports:** All import declarations.
   3. **Exports:** All exported interfaces, types, and enums.
   4. **Functional Code:** Classes, functions, and variable initializations.
 - **Top-of-module placement:** Imports and exported interfaces must appear at the top of the file, before any functional code.
 
-## 7. Related Documents
+---
+
+## 7. Module Boundaries & TUI Isolation
+
+ExoFrame enforces a strict boundary between the Terminal User Interface (TUI) and the core system. This decoupling is essential for maintainability and independent evolution of the layers.
+
+- **Strict TUI Isolation**: Code in `src/tui/` is prohibited from importing any modules from `src/cli/`, `src/services/`, or `src/config/`.
+- **Communication via Interfaces**: TUI components must interact with core functionality exclusively through service interfaces defined in `src/shared/interfaces/`.
+- **Allowed TUI Dependencies**:
+  - Other modules within `src/tui/` (using relative paths).
+  - Shared assets, enums, schemas, and types located in `src/shared/`.
+- **No Direct Instantiation**: TUI code must never instantiate core service classes. Instead, services must be accessed through the `ITuiApplicationContext` or provided via dependency injection.
+- **TUI-owned Helpers**: Utilities specifically for terminal rendering and interaction (e.g., keyboard handling, tree views, spinners) must reside in `src/tui/helpers/`. These are private to the TUI and must not be imported by Core modules.
+- **Core-to-TUI Direction**: The core system may only import from `src/tui/` to initialize and launch the dashboard interface.
+
+---
+
+## 8. Related Documents
 
 This file is the single source for code style. Original sections remain in the
 following documents only as cross‑references:

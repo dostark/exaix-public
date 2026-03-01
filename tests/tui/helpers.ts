@@ -54,6 +54,8 @@ import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enum
 import { type IMemoryService } from "../../src/shared/interfaces/i_memory_service.ts";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { type ITreeNode } from "../../src/tui/helpers/tree_view.ts";
+import { IPortalService } from "../../src/shared/interfaces/i_portal_service.ts";
+import { IJournalService } from "../../src/shared/interfaces/i_journal_service.ts";
 
 export interface IPortalInfoOverrides {
   alias?: string;
@@ -301,9 +303,6 @@ export function samplePortal(overrides: IPortalInfoOverrides = {}): IPortalInfo 
 export function samplePortals(arr: IPortalInfoOverrides[]): IPortalInfo[] {
   return arr.map((a) => samplePortal(a));
 }
-
-import { IPortalService } from "../../src/shared/interfaces/i_portal_service.ts";
-import { IJournalService } from "../../src/shared/interfaces/i_journal_service.ts";
 
 export function createMockPortalService(initial: IPortalInfo[] = []) {
   class MockPortalService implements IPortalService {

@@ -8,7 +8,7 @@
  */
 
 import { LogLevel } from "../../shared/enums.ts";
-import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../shared/types/logging.ts";
 import type { ErrorPattern } from "./types.ts";
 
 /**

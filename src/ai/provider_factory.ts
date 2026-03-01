@@ -7,8 +7,6 @@
  * @dependencies [ProviderRegistry, ConfigService, DatabaseService, CostTracker]
  * @related-files [src/ai/provider_registry.ts, src/ai/providers.ts]
  */
-// Minimal Deno env interface for type-safe env access
-declare const Deno: { env: { get(key: string): string | undefined } };
 
 import * as DEFAULTS from "../shared/constants.ts";
 import { Config } from "../shared/schemas/config.ts";
@@ -31,7 +29,10 @@ import { PricingTier } from "../shared/enums.ts";
 import { IModelProvider, IProviderInfo, IResolvedProviderOptions } from "./types.ts";
 import { ProviderFactoryError } from "./errors.ts";
 import type { EventLogger } from "../services/event_logger.ts";
+
 import { LazyProvider } from "./providers/lazy_provider.ts";
+
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 // ============================================================================
 // ProviderFactory Implementation

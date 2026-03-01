@@ -11,12 +11,14 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "./helpers/tree_view.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import { type DialogBase } from "./helpers/dialog_base.ts";
-import { type IKeyBinding, KeyBindingCategory } from "./helpers/keyboard.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
 import type { IActivityRecord, IJournalFilterOptions } from "../shared/types/database.ts";
 import { DialogStatus } from "../shared/enums.ts";
 import type { JSONObject } from "../shared/types/json.ts";
-
-import { IJournalService as ILogService } from "../shared/interfaces/i_journal_service.ts";
+import { IJournalService } from "../shared/interfaces/i_journal_service.ts";
+import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import { TUI_LAYOUT_NARROW_WIDTH } from "./helpers/constants.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 export interface ILogEntry {
   id: string;
@@ -31,7 +33,7 @@ export interface ILogEntry {
 
 // ===== View State =====
 
-export interface IMonitorViewExtensions {
+export interface ILogViewExtensions {
   /** Whether detail view is shown */
   showDetail: boolean;
   /** Detail content for expanded log */
@@ -41,12 +43,6 @@ export interface IMonitorViewExtensions {
   /** Current grouping mode */
   groupBy: "agent" | "action" | "none";
 }
-
-// ===== Icons and Visual Constants =====
-import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { TUI_LAYOUT_NARROW_WIDTH } from "./helpers/constants.ts";
-import { KEYS } from "./helpers/keyboard.ts";
-import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 export { LOG_COLORS, LOG_ICONS };
 
@@ -216,7 +212,7 @@ export class MonitorView {
   private isPaused = false;
   private logs: ILogEntry[] = [];
 
-  constructor(private readonly logService: ILogService) {
+  constructor(private readonly logService: IJournalService) {
     this.refreshLogs();
   }
 
@@ -329,7 +325,7 @@ export class MonitorView {
 /**
  * Minimal LogService mock for TUI session tests
  */
-export class MinimalLogServiceMock implements ILogService {
+export class MinimalLogServiceMock implements IJournalService {
   private logs: ILogEntry[] = [];
 
   constructor(logs: ILogEntry[] = []) {
@@ -369,7 +365,7 @@ export class MinimalLogServiceMock implements ILogService {
  */
 export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   public readonly monitorView: MonitorView;
-  public monitorExtensions: IMonitorViewExtensions;
+  protected logViewExtensions: ILogViewExtensions;
   public autoRefreshTimer: number | null = null;
   // Track what dialog is pending
   public pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
@@ -377,7 +373,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   constructor(monitorView: MonitorView, useColors = true) {
     super(useColors);
     this.monitorView = monitorView;
-    this.monitorExtensions = {
+    this.logViewExtensions = {
       showDetail: false,
       detailContent: "",
       bookmarkedIds: new Set(),
@@ -399,11 +395,11 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   }
 
   isDetailVisible(): boolean {
-    return this.monitorExtensions.showDetail;
+    return this.logViewExtensions.showDetail;
   }
 
   getDetailContent(): string {
-    return this.monitorExtensions.detailContent;
+    return this.logViewExtensions.detailContent;
   }
 
   getSearchQuery(): string {
@@ -411,11 +407,11 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   }
 
   getBookmarkedIds(): Set<string> {
-    return this.monitorExtensions.bookmarkedIds;
+    return this.logViewExtensions.bookmarkedIds;
   }
 
   getGroupBy(): "agent" | "action" | "none" {
-    return this.monitorExtensions.groupBy;
+    return this.logViewExtensions.groupBy;
   }
 
   isAutoRefreshEnabled(): boolean {
@@ -435,14 +431,14 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   protected override buildTree(items: ILogEntry[] = []): void {
     const logs = items.length > 0 ? items : this.monitorView.getFilteredLogs();
 
-    if (this.monitorExtensions.groupBy === "none") {
+    if (this.logViewExtensions.groupBy === "none") {
       // Flat list
       this.state.tree = logs.map((log) => {
         const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
         return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
       });
-    } else if (this.monitorExtensions.groupBy === "agent") {
+    } else if (this.logViewExtensions.groupBy === "agent") {
       // Group by agent
       const byAgent = new Map<string, ILogEntry[]>();
       for (const log of logs) {
@@ -466,7 +462,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
           children,
         );
       });
-    } else if (this.monitorExtensions.groupBy === "action") {
+    } else if (this.logViewExtensions.groupBy === "action") {
       // Group by action type
       const byAction = new Map<string, ILogEntry[]>();
       for (const log of logs) {
@@ -522,8 +518,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     lines.push("║                      LOG DETAILS                              ║");
     lines.push("╠═══════════════════════════════════════════════════════════════╣");
 
-    if (this.monitorExtensions.detailContent) {
-      const contentLines = this.monitorExtensions.detailContent.split("\n");
+    if (this.logViewExtensions.detailContent) {
+      const contentLines = this.logViewExtensions.detailContent.split("\n");
       for (const line of contentLines) {
         lines.push(`║ ${line.padEnd(63)} ║`);
       }
@@ -597,10 +593,10 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     const logs = this.monitorView.getFilteredLogs();
     const paused = this.isPaused() ? " [PAUSED]" : "";
     const autoRefresh = this.state.refreshConfig.enabled ? " [AUTO]" : "";
-    const bookmarks = this.monitorExtensions.bookmarkedIds.size > 0
-      ? ` [${this.monitorExtensions.bookmarkedIds.size} bookmarked]`
+    const bookmarks = this.logViewExtensions.bookmarkedIds.size > 0
+      ? ` [${this.logViewExtensions.bookmarkedIds.size} bookmarked]`
       : "";
-    const grouping = this.monitorExtensions.groupBy !== "none" ? ` [Group: ${this.monitorExtensions.groupBy}]` : "";
+    const grouping = this.logViewExtensions.groupBy !== "none" ? ` [Group: ${this.logViewExtensions.groupBy}]` : "";
     return `${logs.length} logs${paused}${autoRefresh}${bookmarks}${grouping}`;
   }
 
@@ -612,8 +608,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       const logs = this.monitorView.getFilteredLogs();
       const log = logs.find((l) => l.id === logId);
       if (log) {
-        this.monitorExtensions.detailContent = this.formatLogDetail(log);
-        this.monitorExtensions.showDetail = true;
+        this.logViewExtensions.detailContent = this.formatLogDetail(log);
+        this.logViewExtensions.showDetail = true;
       }
     } finally {
       this.setLoading(false);
@@ -655,30 +651,30 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       return;
     }
 
-    if (this.monitorExtensions.bookmarkedIds.has(selectedId)) {
-      this.monitorExtensions.bookmarkedIds.delete(selectedId);
+    if (this.logViewExtensions.bookmarkedIds.has(selectedId)) {
+      this.logViewExtensions.bookmarkedIds.delete(selectedId);
       this.statusMessage = "Bookmark removed";
     } else {
-      this.monitorExtensions.bookmarkedIds.add(selectedId);
+      this.logViewExtensions.bookmarkedIds.add(selectedId);
       this.statusMessage = "Log bookmarked";
     }
   }
 
   isBookmarked(logId: string): boolean {
-    return this.monitorExtensions.bookmarkedIds.has(logId);
+    return this.logViewExtensions.bookmarkedIds.has(logId);
   }
 
   toggleGrouping(): void {
-    if (this.monitorExtensions.groupBy === "none") {
-      this.monitorExtensions.groupBy = "agent";
-    } else if (this.monitorExtensions.groupBy === "agent") {
-      this.monitorExtensions.groupBy = "action";
+    if (this.logViewExtensions.groupBy === "none") {
+      this.logViewExtensions.groupBy = "agent";
+    } else if (this.logViewExtensions.groupBy === "agent") {
+      this.logViewExtensions.groupBy = "action";
     } else {
-      this.monitorExtensions.groupBy = "none";
+      this.logViewExtensions.groupBy = "none";
     }
     this.buildTree();
     this.selectFirstLog();
-    this.statusMessage = `Grouping: ${this.monitorExtensions.groupBy}`;
+    this.statusMessage = `Grouping: ${this.logViewExtensions.groupBy}`;
   }
 
   toggleAutoRefresh(): void {
@@ -973,9 +969,9 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     if (await this.handleDialogKeys(key)) return true;
 
     // 2. Handle detail view
-    if (this.monitorExtensions.showDetail) {
+    if (this.logViewExtensions.showDetail) {
       if (key === KEYS.ESCAPE || key === KEYS.Q) {
-        this.monitorExtensions.showDetail = false;
+        this.logViewExtensions.showDetail = false;
       }
       return true;
     }

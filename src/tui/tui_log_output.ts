@@ -8,7 +8,7 @@
  */
 
 import type { IStructuredLogEntry } from "../shared/types/logging.ts";
-import type { ILogOutput } from "../services/structured_logger.ts";
+import type { ILogOutput } from "../shared/interfaces/i_log_service.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
 
 /**

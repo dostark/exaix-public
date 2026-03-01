@@ -24,14 +24,12 @@ import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } fro
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { DialogStatus, LogLevel } from "../shared/enums.ts";
 
-export type { IStructuredLogService, LogQueryOptions };
-
 // ===== View State =====
 
 /**
  * View-specific extensions for StructuredLogViewer
  */
-export interface LogViewExtensions {
+export interface ILogViewExtensions {
   /** Bookmarked log IDs */
   bookmarkedIds: Set<string>;
   /** Current grouping mode */
@@ -265,7 +263,7 @@ export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS = new StructuredLogViewerKeyBind
  * View/controller for structured log monitoring with real-time streaming.
  */
 export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
-  protected logViewExtensions: LogViewExtensions;
+  protected logViewExtensions: ILogViewExtensions;
   private logService: IStructuredLogService;
   private structuredLogger: IStructuredLogger;
   private unsubscribeRealTime?: () => void;
@@ -304,7 +302,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
     }
   }
 
-  private createInitialExtensions(testMode = false): LogViewExtensions {
+  private createInitialExtensions(testMode = false): ILogViewExtensions {
     return {
       bookmarkedIds: new Set(),
       groupBy: "correlation",
@@ -616,7 +614,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
 
   /** Toggle grouping mode. */
   toggleGrouping(): void {
-    const modes: Array<LogViewExtensions["groupBy"]> = [
+    const modes: Array<ILogViewExtensions["groupBy"]> = [
       "correlation",
       "trace",
       "agent",
@@ -1013,7 +1011,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
   // ===== Testing Helpers =====
 
   /** Exposed for testing to access view-specific state */
-  getExtensions(): LogViewExtensions {
+  getExtensions(): ILogViewExtensions {
     return this.logViewExtensions;
   }
 

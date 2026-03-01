@@ -13,6 +13,7 @@ interface Rule {
   regex: RegExp;
   message: string;
   severity: "error" | "warn";
+  pathFilter?: (path: string) => boolean;
 }
 
 const args = new Set(Deno.args);
@@ -133,6 +134,7 @@ const rules: Rule[] = [
     message:
       "Re-exporting entities from other modules (e.g., 'export { ... } from ...' or 'export * from ...') is prohibited. Each module must only export entities it defines.",
     severity: "error" as const,
+    pathFilter: (path: string) => !path.endsWith("/mod.ts") && !path.endsWith("/index.ts"),
   },
 ];
 
@@ -152,7 +154,6 @@ async function checkFile(path: string) {
   let firstImportLineNum = -1;
   let lastImportLineNum = -1;
   let firstInterfaceLineNum = -1;
-  let _lastInterfaceLineNum = -1;
   let headerFound = false;
   let firstContentLineNum = -1;
   const importedNames = new Map<string, number>();
@@ -271,6 +272,15 @@ async function checkFile(path: string) {
         inMultiLineImport = true;
       }
 
+      if (firstInterfaceLineNum !== -1) {
+        console.log(
+          `ERROR [import-placement] ${path}:${
+            idx + 1
+          } – Imports must precede all interface/type definitions (interface started at line ${firstInterfaceLineNum}).`,
+        );
+        errorCount++;
+      }
+
       if (functionalCodeLineNum !== -1) {
         console.log(
           `ERROR [import-placement] ${path}:${
@@ -283,7 +293,7 @@ async function checkFile(path: string) {
     }
     // Check for re-exporting imported names: export { Foo, Bar as Baz } or export type { ... }
     const namedExportMatch = line.match(/^\s*export\s+(type\s+)?{([^}]*)}\s*;?\s*$/);
-    if (namedExportMatch) {
+    if (namedExportMatch && !path.endsWith("/mod.ts") && !path.endsWith("/index.ts")) {
       const exports = namedExportMatch[2].split(",");
       exports.forEach((e) => {
         const parts = e.trim().split(/\s+as\s+/);
@@ -313,7 +323,6 @@ async function checkFile(path: string) {
       /^\s*declare\s+(const|let|var|function|class)\b/.test(line);
     if (isTypeStart) {
       if (firstInterfaceLineNum === -1) firstInterfaceLineNum = idx + 1;
-      _lastInterfaceLineNum = idx + 1;
 
       const openers = (trimmed.match(/{/g) || []).length;
       const closers = (trimmed.match(/}/g) || []).length;
@@ -370,15 +379,68 @@ async function checkFile(path: string) {
   } else if (firstImportLineNum !== -1 && firstImportLineNum < firstContentLineNum) {
     // This is unlikely given how headerFound is set, but good as a guard
   }
-
-  // Check: Import vs Interface order
+  // Check order: Interfaces/Types after all Imports
   if (firstImportLineNum !== -1 && firstInterfaceLineNum !== -1 && firstInterfaceLineNum < lastImportLineNum) {
-    // Note: This check is a bit simplistic as types can be mixed with imports if they are imported types,
-    // but actual 'export interface' declarations should ideally be after all imports.
-    // However, the rule says "immediately following imports".
+    console.log(
+      `ERROR [import-placement] ${path}:${firstInterfaceLineNum} – Interface/type definitions must follow all imports (last import at line ${lastImportLineNum}).`,
+    );
+    errorCount++;
+  }
+
+  // TUI Boundary Isolation Checks - implemented during main loop for efficiency
+  const isTuiFile = path.includes("/src/tui/");
+  const tuiSegments = path.split("/src/tui/")[1]?.split("/").filter(Boolean) || [];
+  const tuiDepth = tuiSegments.length - 1;
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    if (isTuiFile) {
+      if (line.match(/import\b.*?\bfrom\s+["'](?:\.\.\/)+cli\//)) {
+        console.log(
+          `ERROR [tui-boundary-cli] ${path}:${idx + 1} – TUI modules must not import from 'src/cli/'.`,
+        );
+        errorCount++;
+      }
+      if (line.match(/import\b.*?\bfrom\s+["'](?:\.\.\/)+services\/(?!adapters\/|tui_service_factory\.ts)/)) {
+        console.log(
+          `ERROR [tui-boundary-services] ${path}:${idx + 1} – TUI modules must not import from 'src/services/'.`,
+        );
+        errorCount++;
+      }
+      if (line.match(/import\b.*?\bfrom\s+["'](?:\.\.\/)+config\//)) {
+        console.log(
+          `ERROR [tui-boundary-config] ${path}:${idx + 1} – TUI modules must not import from 'src/config/'.`,
+        );
+        errorCount++;
+      }
+      const helperMatch = line.match(/import\b.*?\bfrom\s+["']((\.\.\/)+)helpers\//);
+      if (helperMatch) {
+        const dotCount = (helperMatch[1].match(/\.\.\//g) || []).length;
+        if (dotCount > tuiDepth) {
+          console.log(
+            `ERROR [tui-boundary-helpers] ${path}:${idx + 1} – TUI modules must not import from 'src/helpers/'.`,
+          );
+          errorCount++;
+        }
+      }
+    } else if (!path.includes("/tests/tui/")) {
+      if (line.match(/import\b.*?\bfrom\s+["'].*?tui\/helpers\//)) {
+        console.log(
+          `ERROR [core-boundary-tui-helpers] ${path}:${
+            idx + 1
+          } – Non-TUI modules must not import from 'src/tui/helpers/'.`,
+        );
+        errorCount++;
+      }
+    }
   }
 
   rules.forEach((rule) => {
+    // Skip rule if path does not match rule's pathFilter
+    if (rule.pathFilter && !rule.pathFilter(path)) {
+      return;
+    }
+
     lines.forEach((line, idx) => {
       if (rule.regex.test(line)) {
         const location = `${path}:${idx + 1}`;

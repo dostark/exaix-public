@@ -7,19 +7,19 @@
  * @related-files [src/services/structured_logger.ts, src/tui/structured_log_viewer.ts]
  */
 
-import type { IStructuredLogEntry } from "../shared/types/logging.ts";
-import type { StructuredLogger } from "../services/structured_logger.ts";
-import type { IStructuredLogService, LogQueryOptions } from "./structured_log_viewer.ts";
+import type { IStructuredLogEntry, LogQueryOptions } from "../shared/types/logging.ts";
+import type { ILogger } from "../shared/interfaces/i_log_service.ts";
+import type { ILogService } from "../shared/interfaces/i_log_service.ts";
 
 /**
- * Implementation of IStructuredLogService using StructuredLogger
+ * Implementation of ILogService using ILogger
  */
-export class StructuredLoggerService implements IStructuredLogService {
+export class StructuredLoggerService implements ILogService {
   private logBuffer: IStructuredLogEntry[] = [];
   private subscribers: Array<(entry: IStructuredLogEntry) => void> = [];
   private maxBufferSize = 10000;
 
-  constructor(private structuredLogger: StructuredLogger) {
+  constructor(private structuredLogger: ILogger) {
     // Set up context for service logs
     this.structuredLogger = this.structuredLogger.child({
       operation: "log_service",
