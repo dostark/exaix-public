@@ -9,7 +9,8 @@
 
 import { MessageType } from "../../shared/enums.ts";
 import type { IDashboardViewState, IPane, ITuiView } from "../tui_dashboard.ts";
-import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
+import type { IMemoryNotification } from "../../shared/types/notification.ts";
+import type { INotificationService } from "../../shared/interfaces/i_notification_service.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../helpers/keyboard.ts";
 

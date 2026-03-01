@@ -16,7 +16,7 @@
  */
 
 import { MessageType } from "../shared/enums.ts";
-import { type INotificationService } from "../services/notification.ts";
+import { type INotificationService } from "../shared/interfaces/i_notification_service.ts";
 import {
   TUI_DASHBOARD_ICONS,
   TUI_DASHBOARD_VIEW_PICKER_WIDTH,
@@ -823,11 +823,23 @@ async function createProductionDashboard(options: {
   databaseService?: IDatabaseService;
   config?: Config;
 }): Promise<ITuiDashboard | undefined> {
-  // Initialize views using registry
+  // Validate required options
+  if (!options.config || !options.databaseService) {
+    console.error("Production dashboard requires config and databaseService");
+    return undefined;
+  }
+
+  // Create services using core factory (this is the boundary crossing point)
+  const { createTuiServices } = await import("../../services/tui_service_factory.ts");
+  const serviceBundle = createTuiServices({
+    config: options.config,
+    databaseService: options.databaseService,
+  });
+
+  // Initialize views using registry with pre-created services
   const { views, services } = initDashboardViews({
     testMode: false,
-    databaseService: options.databaseService,
-    config: options.config,
+    services: serviceBundle,
   });
   const _portalView = views[0];
   const portalService = services.portalService;

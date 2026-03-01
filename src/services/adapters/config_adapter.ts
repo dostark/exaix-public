@@ -4,6 +4,7 @@
  * @description Adapter for Config Service.
  * @architectural-layer Services
  * @dependencies [IConfigService, ConfigService]
+ * @related-files [src/config/service.ts, src/shared/interfaces/i_config_service.ts]
  */
 
 import { IConfigService, IPortalConfigEntry } from "../../shared/interfaces/i_config_service.ts";

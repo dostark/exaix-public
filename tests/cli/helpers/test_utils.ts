@@ -1,5 +1,7 @@
 /**
- * CLI Test Utilities
+ * @module CliTestUtilities
+ * @path tests/cli/helpers/test_utils.ts
+ * @description Shared testing utilities for CLI commands, including context setup and output capture.
  */
 
 import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";

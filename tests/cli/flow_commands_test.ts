@@ -28,22 +28,24 @@ async function createMockContext(
     cleanup,
   };
 }
-
 function getFlowDir(ctx: CLIContext) {
   return join(ctx.config.system.root, ctx.config.paths.blueprints, "Flows");
 }
 
-function seedFlowModuleSupportFiles(
-  ctx: CLIContext,
-  flowDir: string,
-) {
-  copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
-  const flowsDir = join(ctx.config.system.root, ctx.config.paths.blueprints, "flows");
-  ensureDirSync(flowsDir);
-  copySync("src/flows/transforms.ts", join(flowsDir, "transforms.ts"));
-  copySync("src/shared/types/json.ts", join(ctx.config.system.root, ctx.config.paths.blueprints, "types.ts"));
-  copySync("src/shared/enums.ts", join(ctx.config.system.root, ctx.config.paths.blueprints, "enums.ts"));
-  copySync("src/schemas", join(ctx.config.system.root, ctx.config.paths.blueprints, "schemas"));
+function seedFlowModuleSupportFiles(ctx: CLIContext, _flowDir: string) {
+  // We need the shared directory and define_flow.ts in Blueprints/Flows for dynamic import to work
+  const blueprintsDir = join(ctx.config.system.root, ctx.config.paths.blueprints);
+  const flowsDir = join(blueprintsDir, "Flows");
+  copySync("src/shared", join(flowsDir, "shared"));
+
+  // copy transforms.ts because shared/schemas/flow.ts depends on it
+  ensureDirSync(join(flowsDir, "flows"));
+  copySync("src/flows/transforms.ts", join(flowsDir, "flows/transforms.ts"));
+
+  // copy define_flow but patch its import paths
+  const original = Deno.readTextFileSync("src/flows/define_flow.ts");
+  const patched = original.replace(/\.\.\/shared\//g, "./shared/");
+  Deno.writeTextFileSync(join(flowsDir, "define_flow.ts"), patched);
 }
 
 async function withFlowsDir(

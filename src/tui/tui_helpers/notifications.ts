@@ -10,7 +10,8 @@
 import { KEYS } from "../helpers/keyboard.ts";
 import { colorize, type ITuiTheme } from "../helpers/colors.ts";
 import type { IDashboardViewState, IPane } from "../tui_dashboard.ts";
-import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
+import type { IMemoryNotification } from "../../shared/types/notification.ts";
+import type { INotificationService } from "../../shared/interfaces/i_notification_service.ts";
 
 interface ITuiNotification extends IMemoryNotification {
   icon?: string;

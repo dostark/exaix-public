@@ -7,10 +7,8 @@
  * @related-files [src/services/plan_service.ts, src/tui/tui_dashboard.ts]
  */
 
-// --- Adapter: PlanCommands as PlanService ---
 import { type IPlanDetails, type IPlanMetadata } from "../shared/types/plan.ts";
 import { IPlanService } from "../shared/interfaces/i_plan_service.ts";
-import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./helpers/dialog_base.ts";
@@ -611,46 +609,6 @@ export class DbLikePlanServiceAdapter implements IPlanService {
       },
       content: "Content not available in DB-like adapter",
     } as IPlanDetails;
-  }
-}
-
-/**
- * Adapter: PlanCommands as IPlanService
- */
-export class PlanCommandsServiceAdapter implements IPlanService {
-  constructor(private readonly cmd: PlanCommands) {}
-  async listPending(): Promise<IPlan[]> {
-    const rows: IPlanMetadata[] = await this.cmd.list(PlanStatus.REVIEW);
-    return rows.map((r: IPlanMetadata) => ({
-      id: r.id,
-      subject: r.request_subject ?? r.id,
-      author: r.agent_id ?? r.reviewed_by,
-      status: r.status,
-      created_at: r.created_at,
-    }));
-  }
-  async getDiff(planId: string): Promise<string> {
-    const plan = await this.cmd.show(planId);
-    return plan.content;
-  }
-  async approve(planId: string, reviewer: string): Promise<boolean> {
-    await this.cmd.approve(planId, [reviewer]);
-    return true;
-  }
-  async reject(planId: string, reviewer: string, _reason?: string): Promise<boolean> {
-    // Note: PlanCommands.reject might not support reason in all versions,
-    // but we can pass it if it does.
-    await this.cmd.reject(planId, reviewer);
-    return true;
-  }
-  async revise(planId: string, comments: string[]): Promise<void> {
-    await this.cmd.revise(planId, comments);
-  }
-  async list(status?: PlanStatusType): Promise<IPlan[]> {
-    return await this.cmd.list(status);
-  }
-  async show(planId: string): Promise<IPlanDetails> {
-    return await this.cmd.show(planId);
   }
 }
 

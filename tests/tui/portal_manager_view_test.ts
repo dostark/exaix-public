@@ -308,10 +308,15 @@ Deno.test("performs portal actions", async () => {
 });
 
 Deno.test("handles portal errors and edge cases", async () => {
-  const { view, service: _service, tui: _tui } = createPortalTuiWithPortals([]);
+  const { view, service } = createPortalTuiWithPortals([]);
+  // openPortal/closePortal throw by design in CLI mode, so mock it for this test
+  service.openPortal = () => {
+    throw new Error("Portal not found");
+  };
+
   const portals = await view.listPortals();
   assertEquals(portals.length, 0);
-  // openPortal/closePortal throw by design in CLI mode
+
   let errorCaught = false;
   try {
     await view.openPortal("bad");

@@ -4,6 +4,7 @@
  * @description Formal service interface for Journal operations consumed by the TUI.
  * @architectural-layer Shared
  * @dependencies [DatabaseTypes]
+ * @related-files [src/services/adapters/journal_adapter.ts, src/services/db.ts]
  */
 
 import type { IActivityRecord, IJournalFilterOptions } from "../types/database.ts";

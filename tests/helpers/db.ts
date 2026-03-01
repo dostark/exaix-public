@@ -1,3 +1,9 @@
+/**
+ * @module DatabaseTestHelpers
+ * @path tests/helpers/db.ts
+ * @description Helper functions for database testing, including schema initialization and mock DB service setup.
+ */
+
 import { Database } from "@db/sqlite";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";

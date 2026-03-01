@@ -4,6 +4,7 @@
  * @description Formal service interface for High-level Memory operations consumed by the TUI.
  * @architectural-layer Shared
  * @dependencies [MemoryBankSchemas]
+ * @related-files [src/services/adapters/memory_adapter.ts, src/shared/schemas/memory_bank.ts]
  */
 
 import type {

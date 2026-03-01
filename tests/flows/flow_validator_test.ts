@@ -14,22 +14,16 @@ import { copySync, ensureDir } from "@std/fs";
 // Utility: create isolated temp dir for each test and helpers
 async function setupTestDir() {
   const dir = await Deno.makeTempDir({ prefix: "exo-flow-" });
-  // copy schemas into the temp dir
-  copySync("src/schemas", `${dir}/schemas`);
-  // copy flows/transforms.ts because it's imported by schemas/flow.ts
+  // copy shared directory into the temp dir to preserve internal structure
+  copySync("src/shared", `${dir}/shared`);
+  // copy flows/transforms.ts because it's imported by shared/schemas/flow.ts
   await ensureDir(`${dir}/flows`);
   await Deno.copyFile("src/flows/transforms.ts", `${dir}/flows/transforms.ts`);
-  // copy enums.ts into the temp dir
-  const enumsContent = await Deno.readTextFile("src/shared/enums.ts");
-  await Deno.writeTextFile(`${dir}/enums.ts`, enumsContent);
-  // copy types.ts because transforms.ts depends on it
-  await Deno.copyFile("src/shared/types/json.ts", `${dir}/types.ts`);
-  // copy define_flow but patch its import paths to reference the local files
+
+  // copy define_flow but patch its import paths to reference the local shared files
   const original = await Deno.readTextFile("src/flows/define_flow.ts");
   const patched = original
-    .replace("../schemas/flow.ts", "./schemas/flow.ts")
-    .replace("../enums.ts", "./enums.ts")
-    .replace("../types.ts", "./types.ts");
+    .replace(/\.\.\/shared\//g, "./shared/"); // simply shift from ../shared/ to ./shared/
   await Deno.writeTextFile(`${dir}/define_flow.ts`, patched);
   return dir;
 }

@@ -86,19 +86,21 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
   const planCommands = {
     show: () =>
       Promise.resolve({
-        id: "p1",
-        status: "review",
-        trace_id: "t",
+        metadata: {
+          id: "p1",
+          status: "review",
+          trace_id: "t",
+          request_id: "r",
+          request_subject: "subject",
+          input_tokens: "120",
+          output_tokens: "45",
+          total_tokens: "165",
+          token_provider: TEST_PROVIDER_ID_OPENAI,
+          token_model: TEST_MODEL_OPENAI,
+          token_cost_usd: "0.0025",
+        },
         content: "C",
-        request_id: "r",
-        request_subject: "subject",
-        input_tokens: 120,
-        output_tokens: 45,
-        total_tokens: 165,
-        token_provider: TEST_PROVIDER_ID_OPENAI,
-        token_model: TEST_MODEL_OPENAI,
-        token_cost_usd: 0.0025,
-      }),
+      } as any),
   };
 
   const context: IPlanActionContext = {
@@ -109,12 +111,12 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
 
   assertEquals(calls.length, 2);
   assertEquals(calls[0].a, "plan.show");
-  assertEquals(calls[0].c.input_tokens, 120);
-  assertEquals(calls[0].c.output_tokens, 45);
-  assertEquals(calls[0].c.total_tokens, 165);
+  assertEquals(calls[0].c.input_tokens, "120");
+  assertEquals(calls[0].c.output_tokens, "45");
+  assertEquals(calls[0].c.total_tokens, "165");
   assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_OPENAI);
   assertEquals(calls[0].c.token_model, TEST_MODEL_OPENAI);
-  assertEquals(calls[0].c.token_cost_usd, 0.0025);
+  assertEquals(calls[0].c.token_cost_usd, "0.0025");
   assertEquals(calls[0].c.request_subject, "subject");
   assertEquals(calls[1].a, "plan.content");
 });

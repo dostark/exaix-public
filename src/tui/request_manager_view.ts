@@ -41,7 +41,6 @@ import {
   type RequestSource,
 } from "../shared/types/request.ts";
 import { IRequestService } from "../shared/interfaces/i_request_service.ts";
-import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "./helpers/constants.ts";
 
 /**
@@ -216,82 +215,6 @@ export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindin
 }
 
 export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
-
-/**
- * Adapter: RequestCommands as IRequestService
- */
-export class RequestCommandsServiceAdapter implements IRequestService {
-  constructor(private readonly cmd: RequestCommands) {}
-
-  async listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]> {
-    const requests = await this.cmd.list(status, includeArchived);
-    return requests.map((r: any) => ({
-      trace_id: r.trace_id,
-      filename: r.filename,
-      path: r.path || "",
-      subject: r.subject,
-      status: r.status as RequestStatus,
-      priority: r.priority as RequestPriority,
-      agent: r.agent,
-      portal: r.portal,
-      model: r.model,
-      created: r.created,
-      created_by: r.created_by,
-      source: r.source,
-      rejected_path: r.rejected_path,
-      error: r.error,
-    }));
-  }
-
-  async create(description: string, options?: IRequestOptions, source?: RequestSource): Promise<IRequestMetadata> {
-    return await this.cmd.create(description, options, source);
-  }
-
-  async list(status?: RequestStatusType): Promise<IRequest[]> {
-    return await this.listRequests(status);
-  }
-
-  async show(requestId: string): Promise<IRequestShowResult> {
-    const result = await this.cmd.show(requestId);
-    return result;
-  }
-
-  async getRequestContent(requestId: string): Promise<string> {
-    const result = await this.cmd.show(requestId);
-    return result.content;
-  }
-
-  async createRequest(description: string, options?: IRequestOptions): Promise<IRequest> {
-    const metadata = await this.cmd.create(description, options);
-    return {
-      trace_id: metadata.trace_id,
-      filename: metadata.filename,
-      path: metadata.path,
-      subject: metadata.subject ?? `Request ${metadata.trace_id.slice(0, 8)}`,
-      status: metadata.status,
-      priority: metadata.priority,
-      agent: metadata.agent,
-      portal: metadata.portal,
-      model: metadata.model,
-      created: metadata.created,
-      created_by: metadata.created_by,
-      source: metadata.source,
-      rejected_path: metadata.rejected_path,
-      error: undefined,
-    };
-  }
-
-  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
-    // RequestCommands doesn't have a direct update status method.
-    // For now, we'll simulate by fetching and modifying locally if needed,
-    // or assume the CLI command would handle it if it existed.
-    // A more robust solution would involve a dedicated CLI command for status updates.
-    console.warn(`updateRequestStatus not directly implemented via CLI for ${requestId} -> ${status}`);
-    // If the CLI command for status update existed, it would be called here:
-    // await this.cmd.updateStatus(requestId, status);
-    return Promise.resolve(true); // Assume success for now
-  }
-}
 
 // --- Minimal RequestService mock for TUI session tests ---
 /**

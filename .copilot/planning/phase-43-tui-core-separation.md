@@ -461,13 +461,58 @@ export interface ITuiApplicationContext {
 
 | Batch | Steps | Scope | Status |
 |---|---|---|---|
-| **1 — Foundation** | Step 1 (shared directory) | Infrastructure | **IN_PROGRESS** |
+| **1 — Foundation** | Step 1 (shared directory) | Infrastructure | **COMPLETED** |
 | **2 — Contracts** | Step 2 (interfaces) | Architecture | **COMPLETED** |
-| **3 — Bridges** | Step 3 (adapters) | Architecture | **IN_PROGRESS** |
-| **4 — Consolidation** | Step 4 (helper moves) | Refactoring | **NOT_STARTED** |
-| **5 — Migration** | Step 5 (TUI refactoring) | The bulk effort | **NOT_STARTED** |
-| **6 — Integration** | Step 6 (launch logic) | Integration | **NOT_STARTED** |
+| **3 — Bridges** | Step 3 (adapters) | Architecture | **COMPLETED** |
+| **4 — Consolidation** | Step 4 (helper moves) | Refactoring | **COMPLETED** |
+| **5 — Migration** | Step 5 (TUI refactoring) | The bulk effort | **COMPLETED** |
+| **6 — Integration** | Step 6 (launch logic) | Integration | **COMPLETED** |
 | **7 — Guard** | Step 7 (CI check) | CI/CD | **NOT_STARTED** |
+
+---
+
+## Completion Summary
+
+### Step 4: Move TUI-Owned Helpers ✅
+**Completed:** Relocated 11 TUI-exclusive helper modules from `src/helpers/` to `src/tui/helpers/`:
+- colors.ts, constants.ts, dialog_base.ts, dialog_rendering.ts, help_renderer.ts
+- keyboard.ts, layout_rendering.ts, markdown_renderer.ts, spinner.ts, status_bar.ts, tree_view.ts
+
+**Shared Infrastructure:** Added shared UI constants to `src/shared/constants.ts`:
+- `ICON_SUCCESS`, `ICON_FAILURE`, `ICON_WARNING`, `ICON_INFO`
+- `SHARED_PRIORITY_ICONS`, `SHARED_DEFAULT_ICONS`
+
+**Verification:**
+- 80+ TUI source files updated
+- 60+ test files updated
+- `deno check` passes with 0 errors
+
+### Step 5: Refactor TUI to Use Service Interfaces ✅
+**Completed:** Eliminated all direct imports of CLI command classes and concrete service implementations from TUI.
+
+**Key Changes:**
+- Created `src/services/tui_service_factory.ts` - Core factory for TUI service instances
+- Updated `src/tui/dashboard/view_registry.ts` - Accepts pre-created `ITuiServiceBundle`
+- Removed `PlanCommandsServiceAdapter` from `plan_reviewer_view.ts`
+- Removed `RequestCommandsServiceAdapter` from `request_manager_view.ts`
+- Tests updated to use core adapters from `src/services/adapters/`
+
+**TUI Boundary Verification:**
+- ✅ Zero imports from `src/cli/`
+- ✅ Zero imports from `src/services/` (except adapters)
+- ✅ Only imports from `src/shared/`, `src/tui/`, and `src/services/adapters/`
+
+### Step 6: Update TUI Entry Point ✅
+**Completed:** Production dashboard now uses core service factory.
+
+**Changes to `src/tui/tui_dashboard.ts`:**
+- `createProductionDashboard()` calls `createTuiServices()` from core factory
+- Services created in core and passed to TUI via service bundle
+- Clean separation: TUI only consumes interfaces
+
+**Verification:**
+- `deno check` passes with 0 errors
+- TUI boundary is clean
 
 ---
 

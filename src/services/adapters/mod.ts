@@ -2,6 +2,9 @@
  * @module Adapters
  * @path src/services/adapters/mod.ts
  * @description Barrel export for all service adapters.
+ * @architectural-layer Services
+ * @dependencies [Individual Adapters]
+ * @related-files [src/services/adapters/*.ts]
  */
 
 export * from "./request_adapter.ts";

@@ -33,13 +33,13 @@ import {
   PRIORITY_ICONS,
   REQUEST_KEY_BINDINGS,
   RequestAction,
-  RequestCommandsServiceAdapter,
   RequestManagerTuiSession,
   RequestManagerView,
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
 import { type IRequestService as _IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
+import { RequestServiceAdapter } from "../../src/services/adapters/request_adapter.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 // ===== Test Data =====
@@ -768,9 +768,9 @@ Deno.test("LegacyRequestManagerTuiSession: error handling in actions", async () 
   assertStringIncludes(session.getStatusMessage(), "Error:");
 });
 
-// ===== RequestCommandsServiceAdapter Tests =====
+// ===== RequestServiceAdapter Tests =====
 
-Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", async () => {
+Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not implemented)", async () => {
   // Provide a minimal valid ICommandContext
   const dummyContext = {
     config: {
@@ -964,9 +964,9 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
     }
   }
   const mockCmd = new MockRequestCommands(dummyContext);
-  const adapter = new RequestCommandsServiceAdapter(mockCmd);
+  const adapter = new RequestServiceAdapter(mockCmd);
 
-  // This should log a warning but return true
+  // This returns false as updateRequestStatus is not implemented
   const result = await adapter.updateRequestStatus("test-id", RequestStatus.COMPLETED);
-  assertEquals(result, true);
+  assertEquals(result, false);
 });

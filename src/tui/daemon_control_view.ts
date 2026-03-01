@@ -291,7 +291,7 @@ export class MinimalDaemonServiceMock implements IDaemonService {
   }
 
   getStatus(): Promise<DaemonStatus> {
-    return Promise.resolve(DaemonStatus.RUNNING);
+    return Promise.resolve(this.status);
   }
 
   getLogs(): Promise<string[]> {

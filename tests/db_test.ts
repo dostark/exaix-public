@@ -1,3 +1,9 @@
+/**
+ * @module DatabaseServiceTest
+ * @path tests/db_test.ts
+ * @description Unit tests for DatabaseService (Activity Journal storage and retrieval).
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { MemorySource } from "../src/shared/enums.ts";
 

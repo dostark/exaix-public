@@ -33,27 +33,6 @@ import {
   MockStructuredLoggerService,
 } from "../tui_dashboard_mocks.ts";
 
-import { PortalCommands } from "../../cli/commands/portal_commands.ts";
-import { PlanCommands } from "../../cli/commands/plan_commands.ts";
-import { RequestCommands } from "../../cli/commands/request_commands.ts";
-import { DaemonCommands } from "../../cli/commands/daemon_commands.ts";
-import { join } from "@std/path";
-
-import { PortalServiceAdapter } from "../../services/adapters/portal_adapter.ts";
-import { PlanServiceAdapter } from "../../services/adapters/plan_adapter.ts";
-import { RequestServiceAdapter } from "../../services/adapters/request_adapter.ts";
-import { DaemonServiceAdapter } from "../../services/adapters/daemon_adapter.ts";
-import { AgentServiceAdapter } from "../../services/adapters/agent_adapter.ts";
-import { MemoryServiceAdapter } from "../../services/adapters/memory_adapter.ts";
-import { JournalServiceAdapter } from "../../services/adapters/journal_adapter.ts";
-import { LogServiceAdapter } from "../../services/adapters/log_adapter.ts";
-import { ConfigServiceAdapter as _ConfigServiceAdapter } from "../../services/adapters/config_adapter.ts";
-
-import { MemoryBankService } from "../../services/memory_bank.ts";
-import { MemoryExtractorService } from "../../services/memory_extractor.ts";
-import { SkillsService } from "../../services/skills.ts";
-import { getGlobalLogger } from "../../services/structured_logger.ts";
-
 import { IDatabaseService } from "../../shared/interfaces/i_database_service.ts";
 import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
 import { IPlanService } from "../../shared/interfaces/i_plan_service.ts";
@@ -63,12 +42,29 @@ import { IAgentService } from "../../shared/interfaces/i_agent_service.ts";
 import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
 import { ISkillsService } from "../../shared/interfaces/i_skills_service.ts";
 import { type Config } from "../../shared/schemas/config.ts";
-import { type ICommandContext } from "../../cli/base.ts";
+
+/**
+ * Service bundle interface for TUI initialization
+ */
+export interface ITuiServiceBundle {
+  portalService: IPortalService;
+  planService: IPlanService;
+  journalService: IJournalService;
+  structuredLogger: IStructuredLogger;
+  structuredLoggerService: ILogService;
+  daemonService: IDaemonService;
+  agentService: IAgentService;
+  requestService: IRequestService;
+  memoryService: IMemoryService;
+  skillsService: ISkillsService;
+}
 
 export interface IDashboardViewOptions {
   testMode?: boolean;
   databaseService?: IDatabaseService;
   config?: Config;
+  /** Pre-created service bundle (from core factory) */
+  services?: ITuiServiceBundle;
 }
 
 export interface IDashboardServices {
@@ -90,7 +86,15 @@ export interface IDashboardViewsAndServices {
 }
 
 /**
- * Initialize all views for the TUI dashboard
+ * Initialize all views for the TUI dashboard.
+ *
+ * @param options - Dashboard initialization options
+ * @returns Views and services for the dashboard
+ *
+ * @remarks
+ * If `options.services` is provided, those services will be used directly.
+ * Otherwise, mock services are created for test mode, or an error is thrown
+ * for production mode (services should be created by the core factory).
  */
 export function initDashboardViews(
   options: IDashboardViewOptions = {},
@@ -106,7 +110,21 @@ export function initDashboardViews(
   let memoryService: IMemoryService;
   let skillsService: ISkillsService;
 
-  if (options.testMode || !options.config || !options.databaseService) {
+  // Use provided services or create mocks for test mode
+  if (options.services) {
+    // Use pre-created services from core factory
+    portalService = options.services.portalService;
+    planService = options.services.planService;
+    logService = options.services.journalService;
+    structuredLogger = options.services.structuredLogger;
+    structuredLoggerService = options.services.structuredLoggerService;
+    daemonService = options.services.daemonService;
+    agentService = options.services.agentService;
+    requestService = options.services.requestService;
+    memoryService = options.services.memoryService;
+    skillsService = options.services.skillsService;
+  } else if (options.testMode || !options.config || !options.databaseService) {
+    // Test mode: use mock services
     portalService = new MockPortalService();
     planService = new MockPlanService();
     logService = options.databaseService || new MockLogService();
@@ -118,31 +136,12 @@ export function initDashboardViews(
     memoryService = new MockMemoryService();
     skillsService = new MockSkillsService();
   } else {
-    const context: ICommandContext = {
-      config: options.config,
-      db: options.databaseService,
-    };
-
-    portalService = new PortalServiceAdapter(new PortalCommands(context));
-    planService = new PlanServiceAdapter(new PlanCommands(context));
-    // logService for MonitorView (IJournalService)
-    logService = new JournalServiceAdapter(options.databaseService);
-    // structuredLogger and service for StructuredLogViewer
-    const logger = getGlobalLogger();
-    structuredLogger = logger;
-    structuredLoggerService = new LogServiceAdapter(logger);
-
-    daemonService = new DaemonServiceAdapter(new DaemonCommands(context));
-    agentService = new AgentServiceAdapter(context);
-    requestService = new RequestServiceAdapter(new RequestCommands(context));
-
-    // MemoryService for MemoryView
-    const memoryBank = new MemoryBankService(options.config, options.databaseService);
-    const extractor = new MemoryExtractorService(options.config, options.databaseService, memoryBank);
-    memoryService = new MemoryServiceAdapter(memoryBank, extractor);
-
-    const memoryDir = join(options.config.system.root!, options.config.paths.memory!);
-    skillsService = new SkillsService({ memoryDir }, options.databaseService);
+    // Production mode without pre-created services: this should not happen
+    // Services should be created by the core factory (src/services/tui_service_factory.ts)
+    throw new Error(
+      "Production mode requires pre-created services. " +
+        "Use createTuiServices() from src/services/tui_service_factory.ts",
+    );
   }
 
   const services: IDashboardServices = {

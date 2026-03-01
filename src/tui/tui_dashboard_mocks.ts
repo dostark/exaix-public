@@ -11,6 +11,7 @@ import {
   AgentHealth,
   ConfidenceLevel,
   DaemonStatus,
+  ExecutionStatus,
   LearningCategory,
   LogLevel,
   MemoryOperation,
@@ -324,8 +325,8 @@ export class MockRequestService implements IRequestService {
     });
   }
 
-  getRequestContent(_requestId: string): Promise<string> {
-    return Promise.resolve("Mock content");
+  getRequestContent(requestId: string): Promise<string> {
+    return Promise.resolve(`Mock content for ${requestId}`);
   }
 
   updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
@@ -348,10 +349,26 @@ export class MockAgentService implements IAgentService {
         capabilities: ["code-review", "testing"],
         defaultSkills: ["tdd-methodology"],
       },
+      {
+        id: "agent-2",
+        name: "Architect",
+        model: "gpt-4o",
+        status: AgentStatus.ACTIVE,
+        lastActivity: new Date().toISOString(),
+        capabilities: ["design", "documentation"],
+        defaultSkills: ["architectural-patterns"],
+      },
     ]);
   }
 
-  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+  getAgentHealth(agentId: string): Promise<AgentHealthData> {
+    if (agentId === "agent-2") {
+      return Promise.resolve({
+        status: AgentHealth.WARNING,
+        issues: ["Mock warning"],
+        uptime: 1800,
+      });
+    }
     return Promise.resolve({
       status: AgentHealth.HEALTHY,
       issues: [],
@@ -365,6 +382,11 @@ export class MockAgentService implements IAgentService {
         timestamp: new Date().toISOString(),
         level: LogLevel.INFO,
         message: `Agent ${agentId} ready`,
+      },
+      {
+        timestamp: new Date().toISOString(),
+        level: LogLevel.DEBUG,
+        message: `Agent ${agentId} heartbeating`,
       },
     ]);
   }
@@ -401,15 +423,47 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
     return Promise.resolve();
   }
 
-  getExecutionByTraceId(_traceId: string): Promise<IExecutionMemory | null> {
-    return Promise.resolve(null);
+  getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null> {
+    return Promise.resolve({
+      trace_id: traceId,
+      request_id: "request-1",
+      portal: "main",
+      status: ExecutionStatus.COMPLETED,
+      agent: "test-agent",
+      started_at: new Date().toISOString(),
+      summary: "Mock execution",
+      steps: [],
+      artifacts: [],
+      context_files: [],
+      context_portals: [],
+      changes: { files_created: [], files_modified: [], files_deleted: [] },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as IExecutionMemory);
   }
 
   getExecutionHistory(
     _portalOrOptions?: string | { portal?: string; limit?: number },
     _limit?: number,
   ): Promise<IExecutionMemory[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([
+      {
+        trace_id: "trace-1",
+        request_id: "request-1",
+        portal: "main",
+        status: ExecutionStatus.COMPLETED,
+        agent: "test-agent",
+        started_at: new Date().toISOString(),
+        summary: "Mock history item",
+        steps: [],
+        artifacts: [],
+        context_files: [],
+        context_portals: [],
+        changes: { files_created: [], files_modified: [], files_deleted: [] },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as IExecutionMemory,
+    ]);
   }
 
   getGlobalMemory(): Promise<IGlobalMemory | null> {
@@ -444,7 +498,23 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
   }
 
   searchMemory(_query: string, _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([
+      {
+        id: "mem-1",
+        score: 0.9,
+        type: MemoryType.LEARNING,
+        title: "Mock Memory",
+        summary: "Mock memory summary",
+        content: "Mock memory content",
+        metadata: {
+          title: "Mock Memory",
+          source: MemorySource.AGENT,
+          scope: MemoryScope.PROJECT,
+          created_at: new Date().toISOString(),
+          tags: ["test"],
+        },
+      },
+    ]);
   }
 
   searchByTags(_tags: string[], _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
@@ -676,6 +746,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
   }
 
   getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
+    if (proposalId === "proposal-unknown") return Promise.resolve(null);
     return Promise.resolve({
       id: proposalId,
       operation: MemoryOperation.ADD,
@@ -749,14 +820,44 @@ export class MockSkillsService implements ISkillsService {
   }
 
   listSkills(_filter?: { source?: string; status?: string }): Promise<ISkill[]> {
-    return Promise.resolve([]);
+    return Promise.resolve([
+      {
+        id: "user-skill-id",
+        skill_id: "user-skill",
+        name: "User Skill",
+        description: "A user skill",
+        version: "1.0.0",
+        created_at: new Date().toISOString(),
+        usage_count: 0,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
+        triggers: { keywords: [] },
+        instructions: "Do it.",
+      } as ISkill,
+    ]);
   }
 
-  getSkill(_skillId: string): Promise<ISkill | null> {
-    return Promise.resolve(null);
+  getSkill(skillId: string): Promise<ISkill | null> {
+    return Promise.resolve({
+      id: skillId,
+      skill_id: skillId,
+      name: "Mock Skill",
+      description: "A mock skill",
+      version: "1.0.0",
+      created_at: new Date().toISOString(),
+      usage_count: 0,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.LEARNED,
+      scope: MemoryScope.GLOBAL,
+      triggers: { keywords: [] },
+      instructions: "Do things.",
+    } as ISkill);
   }
 
-  deleteSkill(_skillId: string): Promise<boolean> {
+  deleteSkill(skillId: string): Promise<boolean> {
+    // protect user skills from deletion in tests
+    if (skillId === "tdd-methodology") return Promise.resolve(false);
     return Promise.resolve(true);
   }
 }

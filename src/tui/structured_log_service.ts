@@ -7,7 +7,8 @@
  * @related-files [src/services/structured_logger.ts, src/tui/structured_log_viewer.ts]
  */
 
-import type { IStructuredLogEntry, StructuredLogger } from "../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../shared/types/logging.ts";
+import type { StructuredLogger } from "../services/structured_logger.ts";
 import type { IStructuredLogService, LogQueryOptions } from "./structured_log_viewer.ts";
 
 /**

@@ -4,6 +4,7 @@
  * @description Adapter implementing ILogService for TUI by wrapping StructuredLogger.
  * @architectural-layer Services
  * @dependencies [ILogService, StructuredLogger]
+ * @related-files [src/services/structured_logger.ts, src/tui/structured_log_service.ts]
  */
 
 import { ILogService } from "../../shared/interfaces/i_log_service.ts";
@@ -23,63 +24,75 @@ export class LogServiceAdapter implements ILogService {
    */
   async getStructuredLogs(options: LogQueryOptions): Promise<IStructuredLogEntry[]> {
     const fileOutput = this.logger.getOutputs().find((o) => o instanceof FileOutput) as FileOutput;
-    if (!fileOutput) {
-      return [];
-    }
+    if (!fileOutput) return [];
 
     const logPath = fileOutput.getBasePath();
     const logs: IStructuredLogEntry[] = [];
     const limit = options.limit || 100;
 
     try {
-      // If logPath is a directory, find .jsonl files
-      const stat = await Deno.stat(logPath);
-      const filesToRead: string[] = [];
-
-      if (stat.isDirectory) {
-        for await (const entry of Deno.readDir(logPath)) {
-          if (entry.isFile && entry.name.endsWith(".jsonl")) {
-            filesToRead.push(join(logPath, entry.name));
-          }
-        }
-      } else {
-        filesToRead.push(logPath);
-      }
-
-      // Sort files by name (usually contains timestamp) descending to get newest first
-      filesToRead.sort().reverse();
+      const filesToRead = await this.getLogFiles(logPath);
 
       for (const file of filesToRead) {
         if (logs.length >= limit) break;
-
-        const content = await Deno.readTextFile(file);
-        const lines = content.trim().split("\n").reverse(); // Newest first
-
-        for (const line of lines) {
-          if (!line) continue;
-          try {
-            const entry = JSON.parse(line) as IStructuredLogEntry;
-
-            // Apply filters
-            if (options.level && !options.level.includes(entry.level)) continue;
-            if (options.traceId && entry.context.trace_id !== options.traceId) continue;
-            if (
-              options.correlationId && entry.context.correlation_id !== options.correlationId
-            ) continue;
-            if (options.agentId && entry.context.agent_id !== options.agentId) continue;
-
-            logs.push(entry);
-            if (logs.length >= limit) break;
-          } catch {
-            // Skip invalid JSON lines
-          }
-        }
+        await this.processLogFile(file, options, logs, limit);
       }
     } catch (error) {
       console.error("Error reading structured logs:", error);
     }
 
     return logs;
+  }
+
+  private async getLogFiles(logPath: string): Promise<string[]> {
+    const files: string[] = [];
+    try {
+      const stat = await Deno.stat(logPath);
+      if (stat.isDirectory) {
+        for await (const entry of Deno.readDir(logPath)) {
+          if (entry.isFile && entry.name.endsWith(".jsonl")) {
+            files.push(join(logPath, entry.name));
+          }
+        }
+      } else {
+        files.push(logPath);
+      }
+    } catch {
+      return [];
+    }
+    return files.sort().reverse();
+  }
+
+  private async processLogFile(
+    file: string,
+    options: LogQueryOptions,
+    logs: IStructuredLogEntry[],
+    limit: number,
+  ): Promise<void> {
+    const content = await Deno.readTextFile(file);
+    const lines = content.trim().split("\n").reverse();
+
+    for (const line of lines) {
+      if (!line) continue;
+      if (logs.length >= limit) break;
+
+      try {
+        const entry = JSON.parse(line) as IStructuredLogEntry;
+        if (this.matchesFilters(entry, options)) {
+          logs.push(entry);
+        }
+      } catch {
+        // Skip invalid JSON
+      }
+    }
+  }
+
+  private matchesFilters(entry: IStructuredLogEntry, options: LogQueryOptions): boolean {
+    if (options.level && !options.level.includes(entry.level)) return false;
+    if (options.traceId && entry.context.trace_id !== options.traceId) return false;
+    if (options.correlationId && entry.context.correlation_id !== options.correlationId) return false;
+    if (options.agentId && entry.context.agent_id !== options.agentId) return false;
+    return true;
   }
 
   /**

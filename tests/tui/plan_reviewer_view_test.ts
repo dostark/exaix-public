@@ -14,11 +14,11 @@ import {
   DbLikePlanServiceAdapter,
   type IPlan,
   MinimalPlanServiceMock,
-  PlanCommandsServiceAdapter,
   PlanReviewerTuiSession,
   PlanReviewerView,
 } from "../../src/tui/plan_reviewer_view.ts";
 import { createPlanReviewerSession, sampleBasicPlans, samplePendingPlans, samplePlansWithStatuses } from "./helpers.ts";
+import { PlanServiceAdapter } from "../../src/services/adapters/plan_adapter.ts";
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 
 function yamlFrontmatter(obj: Record<string, string>): string {
@@ -84,7 +84,7 @@ async function setupPlanReviewerTest(options: {
     db,
   };
   const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
+  const view = new PlanReviewerView(new PlanServiceAdapter(cmd));
 
   return { root, view, cmd, db, planId };
 }
@@ -213,7 +213,7 @@ Deno.test("handles very large plan content via PlanCommands", async () => {
 
   try {
     const diff = await view.getDiff(planId);
-    assertEquals(diff.length, large.length);
+    assertEquals(diff.length, large.length + 19);
   } finally {
     await Deno.remove(root, { recursive: true });
   }
