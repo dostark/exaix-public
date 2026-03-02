@@ -1,17 +1,9 @@
-3. DIAGNOSE:
-   <thinking>
-   - Expected: cleanup() called in finally block
-   - Actual: cleanup() might be missing or called conditionally
-   - Gap: Test setup doesn't guarantee cleanup
-   - Files: tests/config_test.ts, possibly tests/helpers/db.ts
-     </thinking>
-
-4. FIX:
+1.
    - Check if cleanup is in try/finally
    - Verify all code paths call cleanup
    - Update test to use proper pattern from agents/tests/testing.md
 
-5. DOCUMENT:
+1.
    - Add comment explaining cleanup requirement
    - Update Implementation Plan step if this was part of config work
 
@@ -25,3 +17,8 @@ Component: tests/config_test.ts
 
 ```markdown
 I have a bug: PathResolver crashes with "Permission denied" for valid Portal paths
+
+Use systematic debugging approach:
+
+1. CONTEXT INJECTION:
+   deno run --allow-read scripts/inject_agent_context.ts claude "debugging PathResolver Portal permissions" 8

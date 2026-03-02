@@ -6,3 +6,20 @@ When following the manual test scenario for plan approval and changeset approval
 - After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exoctl changeset list` returns an empty list.
 
 ## Reproduction Steps
+
+1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.
+
+1.
+1.
+1.
+1.
+1.
+
+## Expected vs Observed Behavior
+
+**Expected:**
+
+- Approved plans should be visible in `exoctl plan list` (with or without status filter).
+- Created changesets should be listed by `exoctl changeset list` after plan approval and execution.
+
+**Observed:**

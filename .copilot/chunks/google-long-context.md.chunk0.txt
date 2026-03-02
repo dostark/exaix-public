@@ -8,3 +8,8 @@ Key points
 - **Structural Delimiters**: Use clear headers (e.g., `# FILE: src/main.ts`) to help the agent navigate the large window.
 
 ## Long-Context Thinking Protocol
+
+1. **Saturate**: Identify and load all primary and secondary docs related to the task.
+
+1.
+1.

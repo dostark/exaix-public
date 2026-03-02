@@ -6,7 +6,7 @@ const context = createTestContext(db);
 
 // GOOD: Extract to helper
 const ctx = await createTestFixture();
-```
+```text
 
 ### 2. Provider Pattern Duplication
 
@@ -24,6 +24,6 @@ export abstract class BaseProvider {
     this.model = config.model || defaults.defaultModel;
   }
 }
-```
+```text
 
 ### 3. Test Assertion Patterns

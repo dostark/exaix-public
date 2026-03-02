@@ -1,4 +1,4 @@
-2. **Database Schema**: Examine existing table structure
+1.
    - What tables currently exist in journal.db?
    - Is the migration system working for other tables?
 

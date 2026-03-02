@@ -1,10 +1,10 @@
-```
+```text
 Blueprints/
 ├── Agents/          # Agent configuration blueprints
 ├── Flows/           # Flow orchestration blueprints
 ├── Skills/          # ← NEW: Skill capability blueprints
 └── src/             # Flow implementation code
-```
+```text
 
 ---
 

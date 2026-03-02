@@ -14,3 +14,15 @@
 ❌ "Something is broken"
 
 ## Integration with Development Workflow
+
+1. **Discovery**: Create issue document with reproduction steps
+1.
+1.
+1.
+1.
+1.
+1.
+
+## Updating Knowledge Base
+
+When an issue is **resolved**, valuable learnings should be propagated to the project's embeddings (`.copilot/embeddings/`) to improve future context retrieval and prevent recurrence.

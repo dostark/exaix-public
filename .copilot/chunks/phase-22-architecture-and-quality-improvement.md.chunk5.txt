@@ -1,13 +1,24 @@
-- **Availability Risk**: Single corrupted repo can block entire system
-- **Recovery Time**: Requires manual process restart (no auto-recovery)
-- **Performance**: Sequential file processing O(n) instead of batched O(1)
-- **Debugging**: No logging or error context for git failures
+#### Proposed Solution
 
-**Qualitative Impact**:
+# Step 1: Add Timeout and AbortSignal Infrastructure
 
-- **System Reliability**: 🔴 Critical single point of failure
-- **User Experience**: Complete system hangs with no feedback
-- **Operational Burden**: Manual intervention required for recovery
-- **Scalability**: Cannot handle multiple concurrent git operations safely
+Create a new utility module for safe subprocess execution:
 
-#### Root Cause Analysis
+# Step 2: Refactor Git Operations with Safe Execution
+
+#### Implementation Plan
+
+# Phase 1: Infrastructure (2 hours)
+
+- [x] Create `src/utils/subprocess.ts` with SafeSubprocess class
+- [x] Add comprehensive error types and logging
+- [x] Write unit tests for subprocess utility
+
+# Phase 2: AgentExecutor Refactor (4 hours)
+
+- [x] Replace `auditGitChanges()` with timeout-protected version
+- [x] Replace `revertUnauthorizedChanges()` with concurrent batching
+- [x] Add proper error handling and logging
+- [x] Update method signatures if needed
+
+# Phase 3: Integration Testing (2 hours)

@@ -18,6 +18,6 @@ exoctl changeset list
 
 # Try to approve - fails
 exoctl changeset approve request-a300d5a5
-```
+```text
 
 ## Observed Behavior

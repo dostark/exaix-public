@@ -9,7 +9,7 @@
    - Specific file or function to check
    - Hypothesis about root cause
 
-2. **Area 2**: Additional investigation
+1.
    - Related systems to verify
 
 ## Related Files
@@ -32,5 +32,7 @@ Why this priority level? Impact on users/system.
 - **Commit**: Link to commit or PR
 - **Verified**: How the fix was tested
 
-````
+````text
 ## Naming Convention
+
+Use descriptive, kebab-case filenames:

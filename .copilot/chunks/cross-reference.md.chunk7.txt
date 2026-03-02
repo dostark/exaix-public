@@ -1,20 +1,7 @@
-- **Main guide**: [copilot/exoframe.md](copilot/exoframe.md)
-- **Quick summary**: [copilot/summary.md](copilot/summary.md)
-- **Pattern**: Consult `.copilot/manifest.json` first
+"You are a developer working on ExoFrame. Before starting work, consult this cross-reference map to find the most relevant agent documentation. Use the task-to-doc mapping table to quickly locate guidance for your specific task type."
 
-### OpenAI
+## Examples
 
-- **Main guide**: [providers/openai.md](providers/openai.md)
-- **RAG guide**: [providers/openai-rag.md](providers/openai-rag.md)
-- **Prompt templates**: See `.copilot/prompts/openai-*.md`
-- **Budgets**: Uses simple/standard/complex output budgets (see openai.md)
-
-### Google
-
-- **Main guide**: [providers/google.md](providers/google.md)
-- **Long-context**: [providers/google-long-context.md](providers/google-long-context.md)
-- **Context window**: 1M-2M tokens (use "Saturation" pattern)
-
-## Common Task Patterns
-
-### Test-Driven Development (TDD)
+- Example prompt: "I need to add a security feature. Which docs should I read?" → Answer: Start with [.copilot/tests/testing.md](tests/testing.md) security section and [.copilot/source/exoframe.md](source/exoframe.md) system constraints.
+- Example prompt: "How do I set up Claude with RAG?" → Answer: Read [providers/claude-rag.md](providers/claude-rag.md) for the complete workflow.
+- Example prompt: "What's the TDD workflow?" → Answer: See [source/exoframe.md](source/exoframe.md) and [tests/testing.md](tests/testing.md) for patterns and helpers.

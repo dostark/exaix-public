@@ -1,14 +1,20 @@
-1. **Validation:** Check if `config.tools.fetch_url.enabled` is true.
-2. **Whitelist Check:** Parse hostname from `url` and verify it matches `allowed_domains`.
-3. **Fetch:** Use `fetch(url, { signal: AbortSignal.timeout(timeout_ms) })`.
-4. **Size Check:** Check `Content-Length` header or stream counting. Abort if > `max_response_size_kb`.
-5. **Conversion:** If `format="markdown"`, use a basic HTML-to-Markdown converter (or just return `innerText` for MVP).
+**Context:** The existing `search*files` tool only matches filenames. To find code usage or patterns, agents must `read*file` indiscriminately, wasting tokens and context window space. `grep` allows precise, content-based discovery.
+
+**Purpose:** Find code patterns efficiently without reading every file.
+
+**Parameters (Zod):**
+(See `src/services/tool_registry.ts`)
+
+**Implementation Logic:**
+
+1. **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
+
+- Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
+1.
+   ```json
+   [
+     { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
+   ]
+   ```
 
 **Security:**
-
-- 🛡️ **SSRF Protection:** Agents cannot access local IPs (127.0.0.1, 192.168.x.x) or metadata services (169.254.169.254).
-- 🛡️ **Whitelist:** Strict opt-in domain list.
-
----
-
-### 2.2 Content Discovery: `grep_search`

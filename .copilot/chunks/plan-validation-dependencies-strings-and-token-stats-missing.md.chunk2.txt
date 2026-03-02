@@ -1,8 +1,6 @@
-## Validation Details
 - steps.0.dependencies.0: Expected number, received string
 - steps.1.dependencies.0: Expected number, received string
 - steps.2.dependencies.0: Expected number, received string
-```
 
 ## Expected Behavior
 

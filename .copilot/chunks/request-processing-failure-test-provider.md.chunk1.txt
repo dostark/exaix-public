@@ -17,7 +17,7 @@ exoctl request "Create folder src/, create file src/utils.ts, add hello world fu
 # 6. Check results
 exoctl plan list  # Shows: count: 0, message: No plans found
 exoctl journal    # Shows validation failure
-```
+```text
 
 ## Observed Behavior
 

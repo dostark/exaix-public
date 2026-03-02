@@ -1,12 +1,6 @@
-Update context:
-- Last updated: [git log --oneline --all -- docs/Building_with_AI_Agents.md | head -1]
-- Commits since then: [git log LAST_HASH..HEAD --oneline]
-- Focus areas: [agents/ enhancements / CI/CD / testing / etc.]
-
-After writing:
 1. Rebuild agents infrastructure (build_agents_index.ts, build_agents_embeddings.ts, validate)
-2. Update Essential Patterns table with new commands
-3. Update Question Templates with new prompt examples
+
+1.
 ```
 
 ## Example Usage
@@ -15,3 +9,22 @@ After writing:
 
 ```text
 Add new content to docs/Building_with_AI_Agents.md documenting recent work.
+
+Requirements:
+
+1. Follow proper Part numbering (next available: Part XVII)
+
+1.
+1.
+1.
+
+Content structure:
+
+- Part title: "The Self-Documenting Agent System (January 2026)"
+- Opening: The bootstrap problem (not using agents/ to enhance agents/)
+- Technical details: Step 10.5 enhancements (claude.md, claude-rag.md, prompts/, cross-reference.md)
+- Before/After: No templates → 8 copy-paste ready prompts
+- Patterns: Documentation as a product, dual-interface system
+- Meta-insight: Using agents/ to improve agents/ (the irony)
+
+Update context:

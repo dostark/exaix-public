@@ -1,22 +1,29 @@
-1. Add `--flow <flow:string>` option
-2. Update help text to mention flow support
-3. Pass flow option to `RequestCommands.create()`
-
-**Success Criteria:**
-
-- [x] `exoctl request --help` shows `--flow` option
-- [x] Option accepts flow ID string
-- [x] Flow parameter passed to request creation
-- [x] CLI integration test verifies `--flow` option works correctly
-
----
-
-## Step 30.4: Update Request Validation ✅ COMPLETED
-
 **Action:** Enhance validation in `RequestCommands.create()`:
 
 1. Check flow file exists and is readable
-2. Validate flow has proper structure (optional - basic YAML parsing)
-3. Provide clear error messages for invalid flows
+
+1.
 
 **Success Criteria:**
+
+- [x] Non-existent flow returns "Flow 'invalid-flow' not found"
+- [x] Malformed flow files return appropriate error
+- [x] Valid flows pass validation
+
+**Test Description:** Unit tests cover flow validation scenarios: valid flow, missing flow, malformed flow.
+
+---
+
+## Step 30.5: Update Activity Logging ✅ COMPLETED
+
+**Action:** Modify activity logging in request creation to include flow information:
+
+1. Add `flow` field to logged payload
+
+1.
+
+**Success Criteria:**
+
+- [x] Activity journal shows `flow` field in request.created events
+- [x] Log messages distinguish between agent and flow requests
+- [x] Trace ID properly set for flow requests

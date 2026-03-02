@@ -2,11 +2,11 @@
    - Files: `src/database/event_logger.ts`, `src/services/llm_service.ts`
    - Verify if token usage data is available at logging points
 
-2. **LLM Integration**: Examine how LLM responses are processed
+1.
    - Check if token counts are extracted from provider responses
    - Verify cost calculation logic exists
 
-3. **Database Schema**: Confirm activity table supports additional payload fields
+1.
    - File: `src/database/schema.ts`
 
 ## Related Files
@@ -17,3 +17,7 @@
 - `src/config/constants.ts` - Cost calculation constants
 
 ## Workaround
+
+None currently known. Manual cost tracking required via external monitoring.
+
+## Priority Justification

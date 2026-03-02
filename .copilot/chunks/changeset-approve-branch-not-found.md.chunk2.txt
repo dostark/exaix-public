@@ -2,7 +2,7 @@
    - Check `findRepoForBranch` method implementation
    - Confirm portal symlink resolution works
 
-2. **Branch Location**: Determine which repository contains the feat/ branches
+1.
    - Portal repos vs workspace root
    - Symlink target validation
 

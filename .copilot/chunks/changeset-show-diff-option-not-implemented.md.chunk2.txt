@@ -1,11 +1,3 @@
-- Modified `src/cli/exoctl.ts` to add the `--diff` option to the changeset show command
-- When `--diff` is provided, outputs only the unified diff (raw git diff format)
-- When `--diff` is not provided, shows the full changeset details as before
-- Both `--diff` and `-d` (short form) are supported
-- Help text now documents the new option
-
-**Testing:**
-
 - ✅ `--diff` option recognized in help output
 - ✅ `--diff` outputs only the diff content
 - ✅ `-d` (short form) works identically
@@ -13,3 +5,5 @@
 - ✅ Error handling preserved
 
 ---
+
+```

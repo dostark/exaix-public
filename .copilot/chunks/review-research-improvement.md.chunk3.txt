@@ -1,3 +1,7 @@
+- Count existing templates
+- Assess template quality and coverage
+- Identify missing patterns
+
 **Output:** List of current capabilities with gaps noted.
 
 ## Phase 2: Research (Compare to State-of-the-Art)

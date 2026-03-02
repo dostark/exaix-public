@@ -6,9 +6,9 @@
 Deduplication checklist:
 
 1. Search for similar test file names
-2. Compare test case names for duplicates
-3. Merge unique cases into canonical location
-4. Delete duplicate files
+
+1.
+1.
 
 ### Security Tests as First-Class Citizens
 
@@ -17,3 +17,5 @@ Every security boundary needs explicit tests. Label security tests with `[securi
 ### Database Initialization
 
 ✅ DO: Use `initTestDbService()` for DatabaseService tests. Prefer `initActivityTableSchema()` for reconnection tests and avoid raw SQL table creation in test files.
+
+### CLI Test Context — Recommended Pattern

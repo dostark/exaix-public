@@ -1,8 +1,12 @@
-- **Strategy Respect**: Respects portal-configured execution strategies (BRANCH or WORKTREE) while maintaining security through Git command guards.
-- **Removed Dangerous Rollbacks**: Eliminated the global `git reset --hard` and `git checkout main` logic from `handleFailure`.
-- **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks when using WORKTREE strategy.
-- **System Root Guard**: Added a guard in `setupGitForExecution` to skip Git initialization in the system root for non-portal tasks.
+1. **Destructive Operations Prohibited**: Any git rollback operations like `git reset --hard` are **strictly prohibited** in any circumstances within a portal or the runtime workspace. Rollbacks must be handled through safe mechanisms (e.g., `git restore` on specific files or deleting the temporary worktree/branch) that do not risk deleting uncommitted or unrelated work.
 
-### 4. Tool Registry Guards (`src/services/tool_registry.ts`)
+1.
 
-- **Argument Validation**: Enhanced `validateGitArguments` to block destructive Git options and protected branch operations when triggered via the `run_command` tool.
+## Recommended Fix
+
+1. **Pass Repo Path**: Ensure `PlanExecutor` and `ExecutionLoop` always receive and pass the explicit portal repository path when creating `GitService`.
+
+1.
+1.
+
+## Fix Plan

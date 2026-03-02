@@ -1,5 +1,3 @@
-Use descriptive, kebab-case filenames:
-
 - `request-processing-failure-test-provider.md`
 - `daemon-startup-timeout-ci.md`
 - `portal-permissions-not-enforced.md`
@@ -10,10 +8,10 @@ Use descriptive, kebab-case filenames:
 ## Status Workflow
 
 1. **open** - Issue created, needs investigation
-2. **in-progress** - Actively being worked on
-3. **blocked** - Waiting on external dependency or decision
-4. **resolved** - Fixed and verified
-5. **wontfix** - Decided not to fix (explain why in document)
+1.
+1.
+1.
+1.
 
 ## Priority Levels
 
@@ -23,3 +21,5 @@ Use descriptive, kebab-case filenames:
 - **low** - Minor issue, cosmetic, nice-to-have
 
 ## Labels
+
+Common labels to use:

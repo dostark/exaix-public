@@ -64,6 +64,20 @@ All available agent documentation is indexed in `.copilot/manifest.json`. Use th
 
 ## 5. Pull Request Checklist
 
+### 5.1 Commit Message Guidelines
+
+Use Conventional Commits for all changes:
+
+- Format: `<type>(<scope>): <subject>`
+- Subject in imperative mood and ≤72 characters
+- Include a body for non-trivial changes (what/why, wrapped at 72 chars)
+- Reference issues and breaking changes in footer when applicable
+
+Authoritative guidance:
+
+- [`.copilot/prompts/commit-message.md`](.copilot/prompts/commit-message.md)
+- [`Blueprints/Skills/commit-message.skill.md`](Blueprints/Skills/commit-message.skill.md)
+
 - [ ] **(AI Agents)** Consulted relevant `.copilot/` documentation and cited in implementation plan.
 - [ ] No new magic numbers or strings introduced.
 - [ ] New configuration options added to `exo.config.sample.toml`.

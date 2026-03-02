@@ -1,17 +1,19 @@
-1. Read [providers/claude.md](providers/claude.md) for prompt templates
-2. Use [providers/claude-rag.md](providers/claude-rag.md) for context injection
-3. Follow tool-use patterns (parallel reads, thinking protocol)
-4. Reference task-specific system prompts for TDD/refactoring/debugging
+- **Main guide**: [providers/claude.md](providers/claude.md)
+- **RAG setup**: [providers/claude-rag.md](providers/claude-rag.md)
+- **System prompts**: TDD, Refactoring, Debugging, Documentation (in claude.md)
+- **Context window**: 200k tokens (4-6 chunks recommended)
 
-### "I want to use Gemini effectively"
+### VS Code Copilot
 
-1. Read [providers/google.md](providers/google.md) for optimized prompts
-2. Use [providers/google-long-context.md](providers/google-long-context.md) to decide when to use RAG vs full context
-3. Follow thinking protocol (Saturate → Analyze → Plan)
+- **Main guide**: [copilot/exoframe.md](copilot/exoframe.md)
+- **Quick summary**: [copilot/summary.md](copilot/summary.md)
+- **Pattern**: Consult `.copilot/manifest.json` first
 
-### "I want to add security tests"
+### OpenAI
 
-1. Review [tests/testing.md](tests/testing.md) security section
-2. Label tests with `[security]` tag
-3. Test path traversal, injection, leakage
-4. Use PathResolver for all path validation
+- **Main guide**: [providers/openai.md](providers/openai.md)
+- **RAG guide**: [providers/openai-rag.md](providers/openai-rag.md)
+- **Prompt templates**: See `.copilot/prompts/openai-*.md`
+- **Budgets**: Uses simple/standard/complex output budgets (see openai.md)
+
+### Google

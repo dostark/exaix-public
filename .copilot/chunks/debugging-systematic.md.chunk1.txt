@@ -14,6 +14,14 @@ Use systematic debugging approach:
 1. CONTEXT INJECTION:
    deno run --allow-read scripts/inject_agent_context.ts claude "debugging database cleanup testing" 6
 
-2. REPRODUCE:
+1.
    Run: deno test --allow-read --allow-write tests/config_test.ts
    Show the exact error message and stack trace
+
+1.
+   <thinking>
+   - Expected: cleanup() called in finally block
+   - Actual: cleanup() might be missing or called conditionally
+   - Gap: Test setup doesn't guarantee cleanup
+   - Files: tests/config_test.ts, possibly tests/helpers/db.ts
+     </thinking>

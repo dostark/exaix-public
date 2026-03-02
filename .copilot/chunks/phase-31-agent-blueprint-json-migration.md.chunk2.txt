@@ -1,12 +1,3 @@
-```text
-Blueprints/Agents/
-├── *.md (main agents) - ✅ COMPLETED
-├── examples/*.md - ✅ COMPLETED
-└── templates/*.md - ✅ COMPLETED
-```
-
-**Total Files**: ✅ **24 agent blueprints successfully migrated**
-
 ### Files to Update
 
 **Main Agents** (12 files) - ✅ **COMPLETED**:
@@ -31,3 +22,15 @@ Blueprints/Agents/
 - security-auditor.md ✅
 
 **Template Agents** (7 files) - ✅ **COMPLETED**:
+
+- collaborative-agent.md.template ✅
+- conversational-agent.md.template ✅
+- judge-agent.md.template ✅
+- pipeline-agent.md.template ✅
+- reflexive-agent.md.template ✅
+- research-agent.md.template ✅
+- specialist-agent.md.template ✅
+
+## Technical Implementation
+
+### JSON Schema Structure

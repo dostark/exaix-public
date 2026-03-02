@@ -1,18 +1,26 @@
----
+**Goal:** Reduce duplication by 200-300 lines, reduce complexity from 15-25 to <10
 
-## Implementation Plan
+**Files affected:**
 
-### Implementation Summary
+- `src/tui/plan_reviewer_view.ts`
+- `src/tui/portal_manager_view.ts`
+- `src/tui/monitor_view.ts`
+- `src/tui/skills_manager_view.ts`
+- `src/tui/structured_log_viewer.ts`
 
-| Phase | Module             | Duration | Duplication Target | Complexity Target |
-| ----- | ------------------ | -------- | ------------------ | ----------------- |
-| 33.1  | TUI Views          | Week 1   | -1.5% to -2%       | -40%              |
-| 33.2  | Test Helpers       | Week 2   | -1%                | -50% test time    |
-| 33.3  | CLI Commands       | Week 3   | -0.8%              | -35%              |
-| 33.4  | Provider Factories | Week 4   | -0.6%              | -60% init time    |
-| 33.5  | Services & Final   | Week 5   | -0.5%              | 99% uptime        |
-| 33.6  | Metrics & CI/CD    | Week 6   | Monitoring         | Continuous        |
+**Architecture improvements:**
 
----
+1. Create `src/tui/base/base_view.ts` - Abstract base class with MVC pattern
 
-## Phase 33.1: TUI Views Refactoring [x] COMPLETED
+1.
+1.
+
+**SOLID principles:**
+
+- **S**: Separate rendering, state, events into distinct classes
+- **O**: Extensible base view for new views
+- **L**: All views inherit from base without breaking behavior
+- **I**: Focused interfaces for rendering, events, state
+- **D**: Depend on view abstractions, not concrete implementations
+
+**Success criteria:**

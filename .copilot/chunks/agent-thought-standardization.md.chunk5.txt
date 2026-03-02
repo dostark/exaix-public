@@ -1,24 +1,23 @@
-1. Review current `<thought>` sections across all 18+ agent files
-2. Update each agent blueprint to use the new structure
-3. Test agent outputs to ensure reasoning quality is maintained
-4. Update documentation and examples
+- Don't log sensitive data (passwords, tokens)
+- Use appropriate log levels
+- Include contextual information (user ID, request ID)
 
-### Examples
+## Implementation Strategy
 
-#### Before (Unstructured)
+1. Review existing logger utility
 
-```xml
-<thought>
-The user wants to add logging. I need to check what logging library is used. Probably need to add log statements in key places. Make sure not to log sensitive data.
+1.
+1.
+
+## Risk Assessment
+Risk: Performance impact from excessive logging. Mitigation: Use async logging and configurable levels.
 </thought>
 ```
 
-#### After (Structured)
+### Validation
 
-```xml
-<thought>
-## Problem Analysis
-User wants to implement comprehensive logging for error tracking and debugging.
+- **Automated**: Regex patterns can validate section presence
+- **Manual**: Code review ensures reasoning quality
+- **Testing**: Agent outputs should demonstrate structured thinking
 
-## Context Assessment
-Project uses Deno with std/log. Existing logging patterns in src/utils/logger.ts should be extended.
+### Do / Don't

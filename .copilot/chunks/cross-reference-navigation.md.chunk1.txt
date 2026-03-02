@@ -1,14 +1,7 @@
-First, consult `.copilot/cross-reference.md` for the workflow:
-1. Task type: "Add new feature"
-2. Primary Docs: `.copilot/source/exoframe.md` + `.copilot/tests/testing.md`
-3. Secondary Docs: `.copilot/docs/documentation.md`
-4. Workflow example: "I want to add a new feature"
-
-Then proceed with:
 1. Read Implementation Plan to find/create step
-2. Follow TDD from `source/exoframe.md`
-3. Use test helpers from `tests/testing.md`
-4. Update docs per `documentation.md`
+
+1.
+1.
 ```
 
 ---
@@ -17,3 +10,32 @@ Then proceed with:
 
 ```text
 I want to perform a security audit on Portal permission boundaries.
+
+First, consult `.copilot/cross-reference.md` for the workflow:
+
+1. Task type: "Security audit"
+
+1.
+1.
+
+Then design security tests covering:
+
+- Path traversal attempts (../)
+- Symlink escape detection
+- Absolute path restrictions
+- Cross-portal access attempts
+
+---
+
+### Fix TypeScript Errors
+
+```text
+I have TypeScript errors in `src/flows/plan_executor.ts`
+
+First, consult `.copilot/cross-reference.md` for the workflow:
+
+1. Task type: "Fix TypeScript errors"
+
+1.
+
+Read the errors, understand the patterns from `source/exoframe.md`, then fix following:

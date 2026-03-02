@@ -1,28 +1,34 @@
-// In processing pipeline
-const result = PlanSchema.parse(jsonContent);
-```
+- ✅ Keep `<thought>` section unchanged
+- ✅ Replace markdown `<content>` with JSON `PlanSchema` structure
+- ✅ Reference [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation
+- ✅ Update examples and documentation
 
-## Implementation Plan
+### Phase 31.3: Example & Template Migration (Week 2-3) - ✅ **COMPLETED**
 
-### Phase 31.1: Schema Enhancement (Week 1) - ✅ **COMPLETED**
+**Goal**: Complete migration of all blueprint files
 
-**Goal**: Ensure PlanSchema supports all agent use cases
+**Tasks**:
+
+1. ✅ Update 5 example agents
+
+1.
+1.
+
+### Phase 31.4: Integration Testing (Week 3) - ⚠️ **PENDING**
+
+**Goal**: Verify end-to-end functionality
 
 **Tasks**:
 
-1. ✅ Review current PlanSchema limitations
-2. ✅ Add optional fields for specialized agents (analysis results, QA metrics, etc.)
-3. ✅ Update schema documentation
-4. ✅ Add comprehensive test coverage
+1. ❌ Test agent execution with JSON output
 
-**Success Criteria**:
+1.
+1.
 
-- ✅ PlanSchema validates all agent output types
-- ✅ Schema is extensible for future agent types
-- ✅ Full test coverage for new schema features
+## Risk Assessment
 
-### Phase 31.2: Core Agent Migration (Week 2) - ✅ **COMPLETED**
+### Technical Risks
 
-**Goal**: Migrate main agent blueprints to JSON format
+**Schema Compatibility**: Some agents may need schema extensions
 
-**Tasks**:
+- **Mitigation**: Start with flexible schema, extend as needed

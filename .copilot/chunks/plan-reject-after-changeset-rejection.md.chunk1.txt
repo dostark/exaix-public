@@ -17,3 +17,9 @@
 - Relevant Config: Default exo.config.toml
 
 ## Investigation Needed
+
+1. **Plan Status Logic**: Check if plan status changes to "rejected" or "invalid" when changeset is rejected
+
+1.
+
+## Root Cause

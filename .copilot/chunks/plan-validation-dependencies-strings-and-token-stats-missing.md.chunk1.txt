@@ -22,3 +22,5 @@ Example `exoctl plan show` output (excerpt):
 
 ## Error
 Plan JSON does not match required schema
+
+## Validation Details

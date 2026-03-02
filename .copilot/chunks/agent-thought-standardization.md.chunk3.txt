@@ -11,3 +11,20 @@
 - **Example**: "Risk: Token leakage. Mitigation: Use HTTPS only, implement token blacklisting."
 
 ### Benefits
+
+1. **Consistency**: All agents follow the same reasoning structure
+
+1.
+1.
+1.
+
+### Migration Plan
+
+#### Phase 31.5: Thought Section Standardization
+
+1. **Update all agent blueprints** to use the standardized `<thought>` structure
+
+1.
+1.
+
+#### Implementation Steps

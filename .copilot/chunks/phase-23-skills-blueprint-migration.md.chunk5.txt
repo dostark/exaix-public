@@ -1,4 +1,4 @@
-```
+```text
 Memory/Skills/core/
 ├── code-review.skill.md          # Code review methodology blueprint
 ├── commit-message.skill.md       # Commit message best practices
@@ -8,8 +8,8 @@ Memory/Skills/core/
 ├── security-first.skill.md       # Security-first development
 ├── tdd-methodology.skill.md      # Test-driven development approach
 └── typescript-patterns.skill.md  # TypeScript best practices
-```
+```text
 
 ### Skill Reference Analysis
 
-**Agents referencing core skills:**
+# Agents referencing core skills:

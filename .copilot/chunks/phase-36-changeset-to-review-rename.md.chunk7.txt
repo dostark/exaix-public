@@ -10,3 +10,15 @@ class ChangesetService {
 ```
 
 **Current Artifact Workflow (Phase 35):**
+
+1. Read-only agent creates artifact in `Memory/Execution/artifact-<id>.md`
+
+1.
+1.
+1.
+
+---
+
+## Terminology Comparison
+
+### Before (Current - Confusing)

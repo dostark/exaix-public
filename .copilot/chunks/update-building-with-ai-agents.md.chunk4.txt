@@ -1,19 +1,26 @@
-# Get commits since then
-git log b849adf..HEAD --oneline
+\```
+   Me: [implements Step 10.5 enhancements to agents/ folder]
+   Me: [finishes implementation]
+   Me: [about to commit]
+   You: "You did not follow instructions in agents/ folder. Why?"
+   Me: ... 😳
+   \```
 
-# Read detailed commit messages
-git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash; done
-```
+I had just enhanced the agents/ system to make it MORE useful... without using
+   the agents/ system to guide that enhancement. Peak irony.
 
-1. **Content analysis**:
-   - Review chat history for user's prompts and agent's responses
-   - Identify patterns (e.g., "not following agents/ folder instructions")
-   - Extract "wake-up call" moments (e.g., being called out for inconsistency)
-   - Note technical implementations (prompt templates, RAG guide, git hooks)
+[... continues with technical details, examples, before/after, patterns ...]
+   ````
 
-2. **Write new Part(s)**:
+1.
+   - Add rows to Essential Patterns table
+   - Add new question templates
+   - Maintain formatting consistency
 
-````markdown
-   ## Part XVII: The Self-Documenting Agent System (January 2026)
+1.
 
-### The Bootstrap Problem Revisited
+```bash
+   deno run --allow-read --allow-write scripts/build_agents_index.ts
+   deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock
+   deno run --allow-read scripts/validate_agents_docs.ts
+   ```

@@ -1,5 +1,3 @@
-### CLI Test Context — Recommended Pattern
-
 Use `createCliTestContext()` to centralize DB + tempdir setup for CLI tests. Always call returned `cleanup()` in `afterEach` to avoid leaking resources.
 
 ### Integration TestEnvironment — Recommended Pattern

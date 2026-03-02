@@ -19,6 +19,12 @@ This directory contains short, machine-discoverable instruction documents intend
 - `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
 - `.copilot/issues/` — structured bug reports and technical issues (see [issues/README.md](issues/README.md))
 
+## Quick Links for Agents
+
+- **Task mapping:** [cross-reference.md](cross-reference.md)
+- **Commit message guidance:** [prompts/commit-message.md](prompts/commit-message.md)
+- **Commit message skill reference:** [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md)
+
 ## Relationship with `docs/`
 
 - **`docs/`**: Source of truth for **human** users (Architecture, User Guide).

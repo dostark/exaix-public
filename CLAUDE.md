@@ -25,14 +25,15 @@
 
 ## Quick Reference
 
-| Need                 | Location                                                         |
-| -------------------- | ---------------------------------------------------------------- |
-| Task → Doc mapping   | [.copilot/cross-reference.md](.copilot/cross-reference.md)       |
-| Source patterns      | [.copilot/source/exoframe.md](.copilot/source/exoframe.md)       |
-| Testing patterns     | [.copilot/tests/testing.md](.copilot/tests/testing.md)           |
-| Documentation guide  | [.copilot/docs/documentation.md](.copilot/docs/documentation.md) |
-| Planning documents   | [.copilot/planning/](.copilot/planning/)                         |
-| All agent docs index | [.copilot/manifest.json](.copilot/manifest.json)                 |
+| Need                 | Location                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| Task → Doc mapping   | [.copilot/cross-reference.md](.copilot/cross-reference.md)               |
+| Source patterns      | [.copilot/source/exoframe.md](.copilot/source/exoframe.md)               |
+| Testing patterns     | [.copilot/tests/testing.md](.copilot/tests/testing.md)                   |
+| Documentation guide  | [.copilot/docs/documentation.md](.copilot/docs/documentation.md)         |
+| Commit message guide | [.copilot/prompts/commit-message.md](.copilot/prompts/commit-message.md) |
+| Planning documents   | [.copilot/planning/](.copilot/planning/)                                 |
+| All agent docs index | [.copilot/manifest.json](.copilot/manifest.json)                         |
 
 ## Project Overview
 
@@ -328,4 +329,3 @@ These actions are **PROHIBITED**:
 - ❌ **Guessing at patterns** — Always check `.copilot/` docs first
 - ❌ **Introducing magic numbers/strings** — See `CONTRIBUTING.md`
 - ❌ **Placing imports anywhere other than the top of the file** — All imports must be at the top level
-

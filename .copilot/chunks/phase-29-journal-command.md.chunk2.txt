@@ -2,11 +2,10 @@
 - **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
 - **Actions:**
   1. Create `JournalCommands` class following the pattern of `PlanCommands`.
-  2. Implement the `journal` command definition with options:
+  1.
      - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
      - `--tail <number>` (Alias `-n`, default 50)
      - `--format <json|table>` (Default table)
      - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.
-  3. Register command in `exoctl.ts`.
 
 **Success Criteria:**

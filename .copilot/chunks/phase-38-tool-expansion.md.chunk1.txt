@@ -6,3 +6,18 @@
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
+
+1. **Validation:** Check if `config.tools.fetch_url.enabled` is true.
+
+1.
+1.
+1.
+
+**Security:**
+
+- 🛡️ **SSRF Protection:** Agents cannot access local IPs (127.0.0.1, 192.168.x.x) or metadata services (169.254.169.254).
+- 🛡️ **Whitelist:** Strict opt-in domain list.
+
+---
+
+### 2.2 Content Discovery: `grep_search`

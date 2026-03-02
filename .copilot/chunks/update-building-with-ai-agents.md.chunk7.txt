@@ -1,28 +1,28 @@
-- Agent docs existed but were hard to discover
-- No clear workflow for using RAG
-- Inconsistent prompting patterns
-
-**After Step 10.5**:
-
-- 19 agent docs (up from 11)
-- 8 copy-paste prompt templates
-- Cross-reference map for navigation
-```
-
-## Technical Details with Code**
-
-**The Rebuild Workflow**:
-
-```bash
-# After any agents/ changes:
-deno run --allow-read --allow-write scripts/build_agents_index.ts
-deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock
-deno run --allow-read scripts/validate_agents_docs.ts
-```
-
-**Meta-Insights**:
+**Missing Context or "Why"**:
 
 ```markdown
-### The Meta-Learning: Documentation Is a Product
+We added prompt templates to agents/prompts/. These include TDD workflow,
+refactoring, and debugging templates.
+```
 
-Treating documentation like code revolutionized quality:
+(Missing: Why were these needed? What problem did they solve? What was the wake-up call?)
+
+**No Before/After Comparison**:
+
+```markdown
+The agents/ system now has cross-reference navigation.
+```
+
+(Missing: What was the pain before? How much better is it after? Concrete metrics?)
+
+**Generic Advice**:
+
+```markdown
+Good documentation is important for project success.
+```
+
+(Missing: ExoFrame-specific examples, personal stories, actual impact)
+
+## Key Patterns to Capture
+
+When updating Building_with_AI_Agents.md, look for these patterns in recent work:

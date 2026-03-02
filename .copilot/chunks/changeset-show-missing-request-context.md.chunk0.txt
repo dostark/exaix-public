@@ -21,3 +21,5 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 - Basic metadata
 
 ## Missing Information
+
+1. **Request Context**: Request title, priority, creator, agent/flow that initiated it

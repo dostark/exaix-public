@@ -9,6 +9,6 @@
 │                           ↓
 │  Prompt: [Context] + [Skills] + [Step Instructions]
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ### Data Flow

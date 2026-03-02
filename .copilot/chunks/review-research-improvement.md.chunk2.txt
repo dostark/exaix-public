@@ -1,3 +1,8 @@
+- Primary docs in `docs/`
+- Blueprints in `Blueprints/`
+- README files in relevant directories
+- Implementation plan sections
+
 **Checklist:**
 
 - [ ] Understand the stated purpose/goals
@@ -23,7 +28,3 @@ Examine the actual code:
 ### 1.3 Template/Example Audit
 
 For pattern-based subsystems (Agents, Flows):
-
-- Count existing templates
-- Assess template quality and coverage
-- Identify missing patterns

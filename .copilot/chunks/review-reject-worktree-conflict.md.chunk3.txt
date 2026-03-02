@@ -1,7 +1,3 @@
-- `src/cli/changeset_commands.ts` - `reject()` method that calls `git branch -D`
-- Portal worktree management code
-- Git worktree handling utilities
-
 ## Workaround
 
 None currently available - review cannot be rejected if branch is in use by worktree.

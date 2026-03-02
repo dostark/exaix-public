@@ -42,14 +42,14 @@ The subject is stored in each entity's frontmatter/metadata, displayed in CLI `l
 
 ### 1. Subject Field Specification
 
-  | Property | Value |
+| Property | Value |
 |---|---|
-  | Field name | `subject` |
-  | Type | `string` (optional) |
-  | Max length | 80 characters (truncated with `…` if longer) |
-  | Default | Agent-generated from request body; text-extraction fallback |
-  | Allowed chars | Any printable UTF-8; no newlines |
-  | Persistence | Stored in YAML frontmatter of each entity's markdown file |
+| Field name | `subject` |
+| Type | `string` (optional) |
+| Max length | 80 characters (truncated with `…` if longer) |
+| Default | Agent-generated from request body; text-extraction fallback |
+| Allowed chars | Any printable UTF-8; no newlines |
+| Persistence | Stored in YAML frontmatter of each entity's markdown file |
 
 ### 2. Subject Generation Strategy
 

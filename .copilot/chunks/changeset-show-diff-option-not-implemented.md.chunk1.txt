@@ -1,9 +1,3 @@
-- `--diff` (and `-d`) should be a valid option for `exoctl changeset show`.
-- When provided, the command should print only the unified diff for the changeset, not the full details.
-- The help output should document the `--diff` option.
-
-## Observed Behavior
-
 - The CLI rejects `--diff` and `-d` as unknown options.
 - The only way to see the diff is to run `exoctl changeset show <id>` and manually extract the diff from the output.
 
@@ -17,3 +11,11 @@
 ✅ **FIXED**: Added `--diff`/`-d` option to `exoctl changeset show` command.
 
 **Changes Made:**
+
+- Modified `src/cli/exoctl.ts` to add the `--diff` option to the changeset show command
+- When `--diff` is provided, outputs only the unified diff (raw git diff format)
+- When `--diff` is not provided, shows the full changeset details as before
+- Both `--diff` and `-d` (short form) are supported
+- Help text now documents the new option
+
+**Testing:**

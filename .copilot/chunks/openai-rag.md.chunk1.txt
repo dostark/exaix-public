@@ -1,10 +1,3 @@
-1. **Inspect**: preview top-matching chunks for the task query.
-2. **Inject**: inject top chunks into the prompt as a context block.
-3. **Act**: propose a minimal diff (apply_patch-ready) that follows the retrieved instructions.
-4. **Verify**: state which tests/linters to run.
-
-## Tools
-
 ### Inspect embeddings
 
 ```bash
@@ -20,3 +13,11 @@ Use this to confirm you’re pulling the right areas (tests helpers, service pat
 # Inject the top 4 chunks for a query into a JSON payload
 deno run --allow-read scripts/inject_agent_context.ts openai "write tests for ConfigLoader" 4
 ```
+
+Recommended chunk counts:
+
+- Simple (single-file edit): 2–3 chunks
+- Standard (multi-file feature/refactor): 4–6 chunks
+- Complex (architecture or cross-cutting): 8–10 chunks
+
+## Canonical prompt (short)

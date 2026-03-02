@@ -1,18 +1,10 @@
-3. DIAGNOSE:
-   <thinking>
-   - Expected: temperature property should exist on config type
-   - Actual: Type definition doesn't include temperature
-   - Gap: Schema mismatch or wrong type imported
-   - Files: src/ai/model_adapter.ts, src/schemas/
-     </thinking>
-
-4. FIX:
+1.
    - Check Zod schema definition for model config
    - Add temperature to schema if missing
    - Or fix import if using wrong type
    - Verify TypeScript errors clear
 
-5. DOCUMENT:
+1.
    - Update schema version if changed
    - Note in Implementation Plan if significant
 
@@ -23,3 +15,11 @@ Component: src/ai/model_adapter.ts
 ## Expected Response Pattern
 
 Agent should:
+
+1. Inject context about the error domain
+
+1.
+1.
+1.
+1.
+1.

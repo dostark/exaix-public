@@ -1,10 +1,10 @@
-```
+```text
 ✅ plan.show: request-f493fe2a_plan
    status: review
    trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
 ✅ plan.content: request-f493fe2a_plan
    content: [plan content...]
-```
+```text
 
 ## Expected Behavior
 

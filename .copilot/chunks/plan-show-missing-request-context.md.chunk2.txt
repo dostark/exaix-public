@@ -1,4 +1,4 @@
-```
+```text
 ✅ plan.list: plans
    count: 1
 ✅ 🔍 request-f493fe2a_plan: "Comprehensive Review of ExoFrame Test Suite"
@@ -8,9 +8,9 @@
    request: request-f493fe2a
    created: 2026-01-25T16:46:24Z
    priority: normal
-```
+```text
 
-```
+```text
 ✅ plan.show: request-f493fe2a_plan
    status: review
    trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
@@ -22,7 +22,7 @@
    created_by: dkasymov@gmail.com
 ✅ plan.content: request-f493fe2a_plan
    content: [plan content...]
-```
+```text
 
 ## Technical Details
 

@@ -8,12 +8,12 @@ Use systematic debugging approach:
 1. CONTEXT INJECTION:
    deno run --allow-read scripts/inject_agent_context.ts claude "debugging [component] [error-type]" 6
 
-2. REPRODUCE:
+1.
    - Write failing test that reproduces the bug
    - Run test to confirm failure
    - Show exact error message
 
-3. DIAGNOSE:
+1.
    <thinking>
    - What's the expected behavior?
    - What's the actual behavior?
@@ -21,12 +21,12 @@ Use systematic debugging approach:
    - What files are involved?
      </thinking>
 
-4. FIX:
+1.
    - Implement minimal fix
    - Verify test passes
    - Check no regressions
 
-5. DOCUMENT:
+1.
    - Add regression test
    - Update Implementation Plan if needed
    - Note in CHANGELOG if significant

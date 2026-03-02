@@ -1,11 +1,24 @@
-1. **Discovery**: Create issue document with reproduction steps
-2. **Investigation**: Update with findings and hypotheses
-3. **Implementation**: Reference issue in commit messages
-4. **Testing**: Document verification steps
-5. **Resolution**: Update status and add resolution section
-6. **Knowledge Update**: Extract learnings into `.copilot/embeddings/`
-7. **Archive**: Move to `.copilot/issues/resolved/` (optional)
+1. **Identify Learnings**: What was the root cause? specific architectural nuance? "Gotcha"?
+1.
+   - Ensure the relevant issue or documentation file is located within the `.copilot/` directory (e.g., move resolved issues to `.copilot/issues/resolved/`).
+   - Run the embeddings generation script:
+     ```bash
+     deno run --allow-read --allow-write --allow-env scripts/build_agents_embeddings.ts --mode mock
+     ```text
+     *(Use `--mode openai` if configured with `OPENAI_API_KEY`)*
+   - This script scans all `.md` files in `.copilot/` and regenerates the vector index in `.copilot/embeddings/`.
+1.
 
-## Updating Knowledge Base
+## Linking to GitHub Issues
 
-When an issue is **resolved**, valuable learnings should be propagated to the project's embeddings (`.copilot/embeddings/`) to improve future context retrieval and prevent recurrence.
+If the issue also exists on GitHub:
+
+```markdown
+---
+github_issue: #123
+---
+
+See also: https://github.com/org/repo/issues/123
+````text
+
+## Searching Issues

@@ -1,13 +1,3 @@
-5. DOCUMENT:
-   - Add regression test for this case
-   - Update security test suite if needed
-
-Error type: Runtime error (permission validation)
-Component: src/services/PathResolver.ts
-```
-
-## Example Usage (TypeScript Error)
-
 **User:**
 
 ```markdown
@@ -18,7 +8,15 @@ Use systematic debugging approach:
 1. CONTEXT INJECTION:
    deno run --allow-read scripts/inject_agent_context.ts claude "TypeScript types model adapter LLM" 4
 
-2. REPRODUCE:
+1.
    - Show the exact TypeScript error
    - Show the line causing the issue
    - Show the type definition
+
+1.
+   <thinking>
+   - Expected: temperature property should exist on config type
+   - Actual: Type definition doesn't include temperature
+   - Gap: Schema mismatch or wrong type imported
+   - Files: src/ai/model_adapter.ts, src/schemas/
+     </thinking>

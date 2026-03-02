@@ -1,21 +1,29 @@
-- [x] Non-existent flow returns "Flow 'invalid-flow' not found"
-- [x] Malformed flow files return appropriate error
-- [x] Valid flows pass validation
-
-**Test Description:** Unit tests cover flow validation scenarios: valid flow, missing flow, malformed flow.
+**Test Description:** Integration test verifies activity journal contains correct flow information after request creation.
 
 ---
 
-## Step 30.5: Update Activity Logging ✅ COMPLETED
+## Step 30.6: Update CLI Help and Documentation ✅ COMPLETED
 
-**Action:** Modify activity logging in request creation to include flow information:
+**Action:** Improve user experience:
 
-1. Add `flow` field to logged payload
-2. Update log message to indicate flow routing
-3. Ensure trace_id linking works for flow requests
+1. Update command description to mention flow support
+
+1.
 
 **Success Criteria:**
 
-- [x] Activity journal shows `flow` field in request.created events
-- [x] Log messages distinguish between agent and flow requests
-- [x] Trace ID properly set for flow requests
+- [x] `exoctl request --help` shows flow examples
+- [x] Command description mentions multi-agent flows
+- [x] Usage examples include `--flow` option
+
+**Test Description:** Manual verification that help text is clear and examples work.
+
+**Files Modified:**
+
+- `src/cli/exoctl.ts`: Updated command description, enhanced --flow option help text, added usage examples
+
+---
+
+## Step 30.7: End-to-End Flow Testing ✅ COMPLETED
+
+**Action:** Create comprehensive test that verifies the complete flow:

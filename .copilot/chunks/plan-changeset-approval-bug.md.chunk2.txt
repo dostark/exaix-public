@@ -1,22 +1,24 @@
-- `exoctl plan list` returns no plans after approval.
-- `exoctl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
+Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
 
-## Additional Context
+### Reproduction from Latest Test
 
-- Plan file is moved to `Workspace/Archive/` after approval.
-- Feature branch is created and changes applied in the portal repo.
-- No errors reported in CLI output during the process.
+```bash
+exoctl changeset list
+✅ changeset.list: changesets
+   count: 0
+   message: No changesets found
 
-## Impact
+# But in portal repo:
+git branch
 
-- Users cannot track approved plans or resulting changesets via CLI, breaking expected workflow and auditability.
+* feat/request-a300d5a5-a300d5a5
+  master
+```
 
-## Attachments
+The changeset listing logic needs to be investigated further.
 
-- See detailed CLI session and scenario in `docs/dev/ExoFrame_Manual_Test_Scenarios.md` (lines 830+)
+## Resolution
 
-## Suggested Investigation
+### Fixed on 2026-01-22
 
-- Check if plan/changeset list commands are filtering out approved/archived items incorrectly.
-
-## Latest Update (2026-01-22)
+Root causes identified and resolved:

@@ -1,3 +1,5 @@
-The system has been hardened with multiple layers of security to prevent repository scope mismatch and destructive operations.
+- **Required Pathing**: `PlanExecutor` now requires an explicit `repoPath` in its constructor, eliminating reliance on system-wide defaults.
+- **Tool Context Isolation**: The `execute` method now defaults the `baseDir` for `ToolRegistry` to `this.repoPath`. This ensures that all agent file operations (write, read, etc.) are correctly scoped to the repository being worked on.
+- **Safe Step Commits**: `executeStep` specifically catches `GitNothingToCommitError` while allowing `GitSecurityError` and other critical failures to bubble up.
 
-### 1. Hardened Git Service (`src/services/git_service.ts`)
+### 3. Isolated Execution Lifecycle (`src/services/execution_loop.ts`)

@@ -1,16 +1,3 @@
-```typescript
-// Before: Only searched Workspace/Plans
-const planPath = this.findPlanInDirectory(planId, this.workspacePath("Plans"));
-
-// After: Searches all directories
-const planPath = this.findPlanInDirectory(planId, [
-  this.workspacePath("Plans"),
-  this.workspacePath("Active"),
-  this.workspacePath("Archive"),
-  this.workspacePath("Rejected"),
-]);
-```
-
 ## Testing
 
 - All PlanCommands tests pass (28 steps)
@@ -20,3 +7,14 @@ const planPath = this.findPlanInDirectory(planId, [
 - Fix allows rejecting plans from any directory location
 
 ## Related Files
+
+- `src/cli/plan.ts` - Plan CLI commands including reject
+- `src/cli/changeset.ts` - Changeset CLI commands including reject
+- `src/services/plan_service.ts` - Plan business logic
+- `src/services/changeset_service.ts` - Changeset business logic
+
+## Workaround
+
+None currently known. Plan remains in limbo state.
+
+## Priority Justification

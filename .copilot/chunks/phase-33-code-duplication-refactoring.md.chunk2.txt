@@ -9,3 +9,15 @@
 | Tech Debt Ratio           | 8%      | <5%    | -3%       |
 
 ### Problem Areas
+
+1. **TUI Views** - 200-300 lines duplicated, high complexity (15-25)
+
+1.
+1.
+1.
+
+---
+
+## Architecture Design
+
+### Refactoring Priorities

@@ -1,5 +1,3 @@
-## Reproduction Steps
-
 ```bash
 exoctl request --agent code-analyst --portal portal-exoframe "Review current implementation of 'exoctl plan revise' if it has correct and full functionality."
 exoctl plan show request-2c470736_plan

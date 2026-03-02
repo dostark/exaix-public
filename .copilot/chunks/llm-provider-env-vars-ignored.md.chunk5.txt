@@ -1,8 +1,10 @@
-- [x] EXO_TEST_MODE not set (confirmed via `env | grep EXO`)
-- [x] Test mode settings commented out in exo.config.toml
-- [x] isTestMode() function exists but not used in provider selection
-- [x] Test mode does not affect this bug
+1. **Modified ProviderSelector.selectProviderForTask()** in `src/ai/provider_selector.ts`:
+   - Added import for `getValidatedEnvOverrides()`, `isCIMode()`, `isTestMode()` from `src/config/env_schema.ts`
+   - Added environment override check at the beginning of the method with safety controls
+   - If `EXO_LLM_PROVIDER` is set and the provider is registered and healthy, return it immediately
+   - **Safety Check:** Blocks paid providers in test/CI environments unless `EXO_TEST_ENABLE_PAID_LLM=1` is set
+   - Falls back to intelligent selection if override fails or is blocked
 
-## Fix Implementation
+1.
 
-**Changes Made:**
+**Testing:**

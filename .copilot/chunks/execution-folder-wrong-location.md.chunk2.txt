@@ -1,4 +1,4 @@
-2. **Execution Creation**: Find where Execution folder is created
+1.
    - Check `MemoryBankService.createExecutionRecord()`
    - Verify path construction logic
 
@@ -17,3 +17,7 @@ Manual cleanup: Move Execution folders from workspace root to Memory/Execution/
 Medium priority - doesn't break functionality but violates architecture and creates filesystem clutter. Affects organization and maintenance of execution data.
 
 ## Examples
+
+- Execution folder appears in `/home/user/ExoFrame/Execution/` instead of `Memory/Execution/`
+- Memory bank creates execution records but stores them in wrong location
+- Filesystem clutter in workspace root

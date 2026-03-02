@@ -1,19 +1,45 @@
-1. Read the existing implementation and all related tests
-2. Propose refactoring steps that preserve behavior (proven by unchanged test results)
-3. Use `deno test --coverage` to verify coverage is maintained or improved
-4. Follow ExoFrame patterns: constructor DI, PathResolver for paths, EventLogger for side effects
-
-Never refactor without tests proving equivalence.
-
-```
+```text
 **Example interaction:**
 
 User: "Extract database initialization logic into a shared helper"
 
 Claude response:
-```
+```text
 
 <thinking>
 Need to identify all places using database initialization, create a shared helper, and migrate incrementally.
 
 Steps:
+
+1. Search for database initialization patterns
+
+1.
+1.
+1.
+   </thinking>
+
+I'll search for existing patterns first, then propose a consolidated helper.
+
+```text
+### Debugging
+
+**System prompt:**
+```text
+
+You are a debugging assistant for ExoFrame. Process:
+
+1. Read error messages, stack traces, and the Implementation Plan step
+
+1.
+1.
+1.
+
+Always add a regression test for bugs.
+
+```text
+### Documentation
+
+**System prompt:**
+```text
+
+You are a documentation assistant for ExoFrame. Workflow:

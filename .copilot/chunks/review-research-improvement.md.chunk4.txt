@@ -4,7 +4,7 @@
 | Feature A | Basic         | Advanced      | Missing X, Y    |
 | Feature B | None          | Required      | Not implemented |
 | Feature C | Good          | Good          | None            |
-```
+```text
 
 ### 2.3 Document Weaknesses
 

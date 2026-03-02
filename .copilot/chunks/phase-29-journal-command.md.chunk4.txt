@@ -8,13 +8,13 @@
 - **Goal:** Verify the end-to-end flow against test scenarios.
 - **Actions:**
   1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
-  2. Execute Scenario MT-26 manually.
+  1.
 
 **Verification Plan (MT-26 Mapping):**
 
 1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
-2. **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
-3. **Export:** `exoctl journal --format json > export.json`
+
+1.
 
 ---
 

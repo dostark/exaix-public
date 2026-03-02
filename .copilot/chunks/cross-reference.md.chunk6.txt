@@ -1,17 +1,31 @@
-### "I want to set up RAG for semantic search"
+- **Main guide**: [providers/google.md](providers/google.md)
+- **Long-context**: [providers/google-long-context.md](providers/google-long-context.md)
+- **Context window**: 1M-2M tokens (use "Saturation" pattern)
 
-1. Read [providers/claude-rag.md](providers/claude-rag.md) for workflow
-2. Build embeddings: `deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock`
-3. Test retrieval: `deno run --allow-read scripts/inject_agent_context.ts --query "your query" --agent claude`
-4. Inspect similarity: `deno run --allow-read scripts/inspect_embeddings.ts --query "your query" --top 5`
+## Common Task Patterns
 
-## Provider-Specific Quick Links
+### Test-Driven Development (TDD)
 
-### Claude
+1. **Docs**: [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
 
-- **Main guide**: [providers/claude.md](providers/claude.md)
-- **RAG setup**: [providers/claude-rag.md](providers/claude-rag.md)
-- **System prompts**: TDD, Refactoring, Debugging, Documentation (in claude.md)
-- **Context window**: 200k tokens (4-6 chunks recommended)
+1.
 
-### VS Code Copilot
+### Code Refactoring
+
+1. **Docs**: [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
+
+1.
+
+### Documentation Updates
+
+1. **Docs**: [docs/documentation.md](docs/documentation.md)
+
+1.
+
+### Debugging
+
+1. **Docs**: [providers/claude.md](providers/claude.md) (Debugging section)
+
+1.
+
+## Canonical Prompt (Short)

@@ -1,4 +1,4 @@
-4. **Rebuild + validate `.copilot/` artifacts**
+1.
    - Rebuild manifest/chunks:
      - `deno run --allow-read --allow-write scripts/build_agents_index.ts`
    - Verify freshness:
@@ -8,10 +8,10 @@
    - Validate agent docs:
      - `deno run --allow-read scripts/validate_agents_docs.ts`
 
-5. **Add enforcement (when it prevents recurrence)**
+1.
    - If a gap caused real friction, add/extend a focused test under `tests/agents/`.
 
-6. **Resume the primary task**
+1.
    - Re-run context injection if needed (docs changed).
 
 ## Gap taxonomy (what to look for)

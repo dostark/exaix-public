@@ -1,18 +1,23 @@
-**Context:** The existing `search_files` tool only matches filenames. To find code usage or patterns, agents must `read_file` indiscriminately, wasting tokens and context window space. `grep` allows precise, content-based discovery.
+- 🛡️ **Command Injection:** Pattern must be escaped or passed as a distinct argument to `Deno.Command`.
+- 🛡️ **Path Traversal:** Verified via `PathResolver`.
 
-**Purpose:** Find code patterns efficiently without reading every file.
+---
+
+### 2.3 Refactoring Suite: `move*file`, `copy*file`, `delete_file`
+
+**Context:** Agents frequently attempt to "move" files by reading content, creating a new file, and deleting the old one. This is error-prone and loses git history. Explicit `move/copy/delete` tools are safer and atomic.
+
+**Purpose:** Atomic file operations.
 
 **Parameters (Zod):**
-(See `src/services/tool_registry.ts`)
+
+- **move/copy**: `{ source: string, destination: string, overwrite: boolean }`
+- **delete**: `{ path: string }`
 
 **Implementation Logic:**
 
-1. **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
-2. **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
-   - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
-3. **Output:** Parse stdout into structured JSON:
-   ```json
-   [
-     { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
-   ]
-   ```
+- **move**: `await Deno.rename(src, dest)`
+- **copy**: `await Deno.copyFile(src, dest)`
+- **delete**: `await Deno.remove(path)`
+
+**Security:**

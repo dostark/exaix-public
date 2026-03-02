@@ -3,7 +3,7 @@
    - ❌ **ISSUE**: Rejected plans are moved to `Workspace/Rejected` with `_rejected.md` suffix
    - ✅ **SOLUTION**: Update `show()` method to search multiple directories like `list()` does
 
-2. **Plan Storage**: Verify how rejected plans are stored
+1.
    - ✅ **CONFIRMED**: Rejected plans moved to `Workspace/Rejected` with `_rejected.md` suffix
    - ✅ **CONFIRMED**: `list()` method correctly handles this, but `show()` does not
 

@@ -1,17 +1,18 @@
-1. **Enhanced Metadata Loading**: Similar to plan commands, load request and plan metadata from database
-2. **Flow Step Tracking**: Add flow_step field to changeset schema and registration
-3. **Portal Detection**: Extract portal information from branch/repo context
-4. **Status Display**: Show approval/rejection status prominently
-5. **Link Formatting**: Use markdown-style links for request/plan references
+- `src/cli/changeset_commands.ts` - Add metadata loading methods
+- `src/cli/exoctl.ts` - Update display formatting
+- `src/schemas/changeset.ts` - Add new fields
+- `migrations/005_changeset_enhancement.sql` - Schema updates
+- `src/services/changeset_registry.ts` - Update registration logic
 
-## Database Schema Changes
+## Testing
 
-Add to `changesets` table:
+- Add regression tests for enhanced changeset display
+- Test flow step tracking
+- Verify portal context display
+- Test status information display
 
-- `request_title` TEXT (derived from request metadata)
-- `plan_id` TEXT (link to plan)
-- `flow_id` TEXT (if created by flow)
-- `flow_step` TEXT (step description)
-- `portal_name` TEXT (explicit portal tracking)
+## Priority
 
-## Files to Modify
+Medium - This is a significant UX improvement that would help users understand the complete request → plan → changeset workflow, but doesn't break existing functionality.
+
+## Acceptance Criteria

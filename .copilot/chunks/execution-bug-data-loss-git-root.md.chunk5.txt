@@ -1,7 +1,8 @@
-- **New Error Types**: Introduced `GitSecurityError` and `GitNothingToCommitError`.
-- **Destructive Command Guards**: `runGitCommand` blocks `git reset --hard` and `git clean -xfd` **everywhere** to prevent data loss.
-- **Branch Protection**: `checkoutBranch` explicitly blocks agents from switching to `main`, `master`, `develop`, etc. (daemon is exempted for legitimate workflows).
-- **Precise Error Reporting**: `commit()` now throws a specific `GitNothingToCommitError` for better lifecycle management.
-- **Simplified Security Model**: Removed overly restrictive system root read-only protection in favor of targeted blocking of truly destructive operations.
+- **Strategy Respect**: Respects portal-configured execution strategies (BRANCH or WORKTREE) while maintaining security through Git command guards.
+- **Removed Dangerous Rollbacks**: Eliminated the global `git reset --hard` and `git checkout main` logic from `handleFailure`.
+- **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks when using WORKTREE strategy.
+- **System Root Guard**: Added a guard in `setupGitForExecution` to skip Git initialization in the system root for non-portal tasks.
 
-### 2. Explicit Repository Scoping (`src/services/plan_executor.ts`)
+### 4. Tool Registry Guards (`src/services/tool_registry.ts`)
+
+- **Argument Validation**: Enhanced `validateGitArguments` to block destructive Git options and protected branch operations when triggered via the `run_command` tool.

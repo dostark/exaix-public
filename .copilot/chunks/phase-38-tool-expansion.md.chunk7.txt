@@ -1,20 +1,27 @@
-- **check/lint**: Run `deno lint --json [path]`. Return structured errors.
-- **fmt**: Run `deno fmt --check [path]`. Return unformatted files list.
-- **test**: Run `deno test --reporter=json [path]`. Return structured results (passed/failed tests).
-
-**Security:**
-
-- 🛡️ **Resource Limits:** Enforce timeouts.
+- If 0: properties error "Content not found".
+   - If > 1: properties error "Ambiguous match (found 2 times)".
+1.
 
 ---
 
-### 2.6 Patching Tool: `patch_file`
+## 3. Integration Plan
 
-**Context:** Updating a single line in a large file currently requires rewriting the entire file. `patch_file` enables surgical edits, significantly reducing token usage and the risk of syntax errors in unrelated code blocks.
+### 3.1 `ToolRegistry` Update
 
-**Purpose:** Token-efficient partial edits.
+- Import new schemas and implementations.
+- Register new tools in `registerCoreTools()`.
+- Inject `ToolsConfig` into `ToolRegistry`.
 
-**Parameters (Zod):**
-(See `src/services/tool_registry.ts`)
+### 3.2 Agent Blueprints
 
-**Implementation Logic:**
+- Update `capabilities` array in **all** agent blueprints (`Blueprints/Agents/*.md`) to include relevant tools.
+  - `code-analyst` -> `grep*search`, `fetch*url`, `git_info`
+  - `senior-coder` -> All above + `move*file`, `patch*file`, `deno_task`
+
+---
+
+## 4. Verification & Testing
+
+### 4.1 Integration Tests (`tests/tools/`)
+
+Create a new test file for each category:

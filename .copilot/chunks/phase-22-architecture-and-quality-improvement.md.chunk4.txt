@@ -1,20 +1,25 @@
-**Priority**: P0 🔴 **CRITICAL**
-**Status**: ✅ **RESOLVED** (Implemented SafeSubprocess utility with timeout protection)
-**File**: `src/services/agent_executor.ts`
-**Lines**: 250-400 (auditGitChanges, revertUnauthorizedChanges methods)
-**Estimated Effort**: 8 hours
-**Impact Score**: 10/10 (Availability, Performance, Reliability)
-
-#### Problem Statement
-
-Git subprocess operations execute without timeout protection, potentially blocking indefinitely. A single corrupted repository can halt the entire ExoFrame instance, requiring manual intervention and creating a critical availability risk.
-
-#### Current Vulnerable Code
-
-**File**: `src/services/agent_executor.ts` (Lines 273-297)
-
 See `src/services/agent_executor.ts` for implementation details.
 
 #### Impact Analysis
 
 **Quantitative Impact**:
+
+- **Availability Risk**: Single corrupted repo can block entire system
+- **Recovery Time**: Requires manual process restart (no auto-recovery)
+- **Performance**: Sequential file processing O(n) instead of batched O(1)
+- **Debugging**: No logging or error context for git failures
+
+**Qualitative Impact**:
+
+- **System Reliability**: 🔴 Critical single point of failure
+- **User Experience**: Complete system hangs with no feedback
+- **Operational Burden**: Manual intervention required for recovery
+- **Scalability**: Cannot handle multiple concurrent git operations safely
+
+#### Root Cause Analysis
+
+1. **Missing Timeout Configuration**: No `AbortSignal` or timeout parameters
+
+1.
+1.
+1.

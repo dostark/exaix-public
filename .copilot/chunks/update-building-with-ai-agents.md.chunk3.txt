@@ -1,29 +1,22 @@
-Update context:
-- Last updated: b849adf (feat(ci): implement unified CI pipeline...)
-- Commits since: 8cea321..HEAD (9 commits covering agents/ enhancements and CI/CD)
-- Focus areas: agents/ prompts, RAG workflow, git hooks, multi-platform builds
-
-After writing:
-1. Rebuild agents infrastructure
-2. Add new patterns to Essential Patterns table:
-   - RAG Context Injection
-   - Inspect Embeddings
-   - Agent Prompts Library
-   - Git Hooks Setup
-   - Local CI Gate
-3. Update Question Templates:
-   - For Agent Documentation Updates
-   - For RAG Context Injection
-   - For CI/CD and Quality Gates
-   - For Commit Messages
+# Read detailed commit messages
+git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash; done
 ```
 
-**Expected Response:**
+1. **Content analysis**:
+   - Review chat history for user's prompts and agent's responses
+   - Identify patterns (e.g., "not following agents/ folder instructions")
+   - Extract "wake-up call" moments (e.g., being called out for inconsistency)
+   - Note technical implementations (prompt templates, RAG guide, git hooks)
 
-Claude should:
+1.
 
-1. **Research phase**:
+````markdown
+   ## Part XVII: The Self-Documenting Agent System (January 2026)
 
-```bash
-# Find last update
-git log --oneline --all -- docs/Building_with_AI_Agents.md | head -1
+### The Bootstrap Problem Revisited
+
+Remember Part IX where we created the `agents/` directory? We had documentation
+   _for_ agents, but we were still treating it like regular docs—write it, forget it,
+   hope the AI reads it someday.
+
+**The Wake-Up Call**:

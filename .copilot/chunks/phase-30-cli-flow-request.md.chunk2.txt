@@ -1,8 +1,3 @@
-1. Accept flow parameter in options
-2. Validate flow exists in `Blueprints/Flows/` directory
-3. Add flow field to YAML frontmatter when specified
-4. Ensure mutual exclusion: cannot specify both `flow` and `agent`
-
 **Success Criteria:**
 
 - [x] Flow validation checks file exists in `Blueprints/Flows/`
@@ -16,3 +11,18 @@
 ## Step 30.3: Add CLI Option ✅ COMPLETED
 
 **Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
+
+1. Add `--flow <flow:string>` option
+
+1.
+
+**Success Criteria:**
+
+- [x] `exoctl request --help` shows `--flow` option
+- [x] Option accepts flow ID string
+- [x] Flow parameter passed to request creation
+- [x] CLI integration test verifies `--flow` option works correctly
+
+---
+
+## Step 30.4: Update Request Validation ✅ COMPLETED

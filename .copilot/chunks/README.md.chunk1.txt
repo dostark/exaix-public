@@ -22,8 +22,8 @@ Clear description of the issue. What is broken or missing?
 # Step-by-step commands to reproduce
 command1
 command2
-```
-````
+```text
+````text
 
 ## Observed Behavior
 

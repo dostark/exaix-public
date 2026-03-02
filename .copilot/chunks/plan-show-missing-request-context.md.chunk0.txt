@@ -13,18 +13,18 @@ exoctl plan list
 
 # Check plan show - missing request and agent info
 exoctl plan show <plan-id>
-```
+```text
 
 ## Observed Behavior
 
 **Current `exoctl plan list` output:**
 
-```
+```text
 ✅ plan.list: plans
    count: 1
 ✅ 🔍 request-f493fe2a_plan: request-f493fe2a_plan
    status: review
    trace: f493fe2a...
-```
+```text
 
 **Current `exoctl plan show` output:**

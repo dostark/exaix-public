@@ -1,10 +1,10 @@
-1. **Modified ProviderSelector.selectProviderForTask()** in `src/ai/provider_selector.ts`:
-   - Added import for `getValidatedEnvOverrides()`, `isCIMode()`, `isTestMode()` from `src/config/env_schema.ts`
-   - Added environment override check at the beginning of the method with safety controls
-   - If `EXO_LLM_PROVIDER` is set and the provider is registered and healthy, return it immediately
-   - **Safety Check:** Blocks paid providers in test/CI environments unless `EXO_TEST_ENABLE_PAID_LLM=1` is set
-   - Falls back to intelligent selection if override fails or is blocked
+- Provider selector tests pass with expected warnings for unregistered providers
+- Environment override logic works correctly
+- Fallback to intelligent selection when override provider is not available
+- **Safety Check:** Paid providers are blocked in test/CI without `EXO_TEST_ENABLE_PAID_LLM=1`
+- **Integration Test Confirmed:** Daemon now respects `EXO_LLM_PROVIDER=google` and `EXO_LLM_MODEL=gemini-2.0-flash-exp`
+- Google provider successfully processes requests and returns responses
 
-2. **Code Location:** `src/ai/provider_selector.ts:113-135`
+## Resolution
 
-**Testing:**
+**Status: RESOLVED** ✅
