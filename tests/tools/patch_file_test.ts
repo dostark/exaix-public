@@ -6,25 +6,13 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
 import type { JSONObject } from "../../src/shared/types/json.ts";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: patch_file", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
-    tools: {},
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
-  });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
+  const registry = createToolRegistryForTests(tempDir);
 
   const file = join(tempDir, "test.ts");
   const initialContent = `
@@ -85,5 +73,5 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

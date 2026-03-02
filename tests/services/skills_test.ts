@@ -16,35 +16,39 @@ import { SkillsService } from "../../src/services/skills.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { getMemorySkillsDir } from "../helpers/paths_helper.ts";
 
-// ===== Directory Structure Tests =====
+type TestDbContext = Awaited<ReturnType<typeof initTestDbService>>;
 
-Deno.test("SkillsService: initialize creates directory structure", async () => {
+async function withInitializedSkillsService(
+  testFn: (context: { service: SkillsService; config: TestDbContext["config"] }) => Promise<void>,
+): Promise<void> {
   const { db, config, cleanup } = await initTestDbService();
 
   try {
     const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
     await service.initialize();
+    await testFn({ service, config });
+  } finally {
+    await cleanup();
+  }
+}
 
+// ===== Directory Structure Tests =====
+
+Deno.test("SkillsService: initialize creates directory structure", async () => {
+  await withInitializedSkillsService(async ({ config }) => {
     const skillsDir = getMemorySkillsDir(config.system.root);
     assertEquals(await exists(skillsDir), true);
     assertEquals(await exists(join(skillsDir, MemorySource.CORE)), true);
     assertEquals(await exists(join(skillsDir, MemorySource.LEARNED)), true);
     assertEquals(await exists(join(skillsDir, MemoryScope.PROJECT)), true);
     assertEquals(await exists(join(skillsDir, "index.json")), true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ===== CRUD Operations Tests =====
 
 Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service, config }) => {
     const skill = await service.createSkill({
       skill_id: "test-skill",
       name: "Test Skill",
@@ -68,18 +72,11 @@ Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
     // Verify file was created
     const skillPath = join(getMemorySkillsDir(config.system.root), "global", "test-skill.json");
     assertEquals(await exists(skillPath), true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: getSkill retrieves created skill", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     // Create a skill first
     await service.createSkill({
       skill_id: "get-test-skill",
@@ -99,32 +96,18 @@ Deno.test("SkillsService: getSkill retrieves created skill", async () => {
     assertExists(skill);
     assertEquals(skill?.name, "Get Test Skill");
     assertEquals(skill?.instructions, "Get test instructions");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: getSkill returns null for missing skill", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     const skill = await service.getSkill("nonexistent-skill");
     assertEquals(skill, null);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: listSkills returns all active skills", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     // Create multiple skills
     await service.createSkill({
       skill_id: "list-skill-1",
@@ -163,18 +146,11 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
 
     const draftList = draftSkills.filter((s) => s.skill_id.startsWith("list-skill"));
     assertEquals(draftList.length >= 1, true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: updateSkill modifies skill", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "update-test",
       name: "Update Test",
@@ -198,18 +174,11 @@ Deno.test("SkillsService: updateSkill modifies skill", async () => {
     assertEquals(updated?.version, "1.1.0");
     assertEquals(updated?.instructions, "Updated instructions");
     assertEquals(updated?.skill_id, "update-test"); // ID unchanged
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: activateSkill changes draft to active", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "activate-test",
       name: "Activate Test",
@@ -227,18 +196,11 @@ Deno.test("SkillsService: activateSkill changes draft to active", async () => {
 
     const skill = await service.getSkill("activate-test");
     assertEquals(skill?.status, SkillStatus.ACTIVE);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "deprecate-test",
       name: "Deprecate Test",
@@ -256,20 +218,13 @@ Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () =>
 
     const skill = await service.getSkill("deprecate-test");
     assertEquals(skill?.status, SkillStatus.DEPRECATED);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ===== Trigger Matching Tests =====
 
 Deno.test("SkillsService: matchSkills returns skills matching keywords", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "keyword-match",
       name: "Keyword Match",
@@ -292,18 +247,11 @@ Deno.test("SkillsService: matchSkills returns skills matching keywords", async (
     assertExists(matched);
     assertEquals(matched.confidence > 0, true);
     assertExists(matched.matchedTriggers.keywords);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: matchSkills returns skills matching task types", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "tasktype-match",
       name: "Task Type Match",
@@ -325,18 +273,11 @@ Deno.test("SkillsService: matchSkills returns skills matching task types", async
     const matched = matches.find((m) => m.skillId === "tasktype-match");
     assertExists(matched);
     assertEquals(matched.matchedTriggers.task_types, ["bugfix"]);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: matchSkills returns skills matching file patterns", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "filepattern-match",
       name: "File IPattern Match",
@@ -358,18 +299,11 @@ Deno.test("SkillsService: matchSkills returns skills matching file patterns", as
     const matched = matches.find((m) => m.skillId === "filepattern-match");
     assertExists(matched);
     assertExists(matched.matchedTriggers.file_patterns);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: matchSkills excludes non-active skills", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "draft-skill",
       name: "Draft Skill",
@@ -390,18 +324,11 @@ Deno.test("SkillsService: matchSkills excludes non-active skills", async () => {
 
     const matched = matches.find((m) => m.skillId === "draft-skill");
     assertEquals(matched, undefined);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: matchSkills extracts keywords from request text", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "text-extract",
       name: "Text Extract",
@@ -422,18 +349,11 @@ Deno.test("SkillsService: matchSkills extracts keywords from request text", asyn
 
     const matched = matches.find((m) => m.skillId === "text-extract");
     assertExists(matched);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: matchSkills respects maxSkillsPerRequest limit", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     // Create many skills with the same trigger
     for (let i = 0; i < 10; i++) {
       await service.createSkill({
@@ -457,20 +377,13 @@ Deno.test("SkillsService: matchSkills respects maxSkillsPerRequest limit", async
 
     // Default maxSkillsPerRequest is 5
     assertEquals(matches.length <= 5, true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ===== Skill Context Building Tests =====
 
 Deno.test("SkillsService: buildSkillContext generates markdown context", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "context-test",
       name: "Context Test Skill",
@@ -493,32 +406,18 @@ Deno.test("SkillsService: buildSkillContext generates markdown context", async (
     assertStringIncludes(context, "APPLICABLE SKILLS");
     assertStringIncludes(context, "Context Test Skill");
     assertStringIncludes(context, "Do the context thing");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: buildSkillContext handles missing skills", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     const context = await service.buildSkillContext(["nonexistent-1", "nonexistent-2"]);
     assertEquals(context, "");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("SkillsService: buildSkillContext combines multiple skills", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     await service.createSkill({
       skill_id: "multi-1",
       name: "Multi Skill 1",
@@ -549,20 +448,13 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
     assertEquals(context.includes("Multi Skill 2"), true);
     assertEquals(context.includes("Instructions for skill 1"), true);
     assertEquals(context.includes("Instructions for skill 2"), true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ===== Skill Derivation Tests =====
 
 Deno.test("SkillsService: deriveSkillFromLearnings creates skill with derived_from", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     const learningIds = ["learning-1", "learning-2", "learning-3"];
 
     const skill = await service.deriveSkillFromLearnings(learningIds, {
@@ -580,20 +472,13 @@ Deno.test("SkillsService: deriveSkillFromLearnings creates skill with derived_fr
     assertEquals(skill.source, MemorySource.LEARNED);
     assertEquals(skill.derived_from, learningIds);
     assertEquals(skill.status, SkillStatus.DRAFT); // Always starts as draft
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ===== Skill Index Management Tests =====
 
 Deno.test("SkillsService: rebuildIndex scans all skill directories", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const service = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
-    await service.initialize();
-
+  await withInitializedSkillsService(async ({ service }) => {
     // Create skills in different locations
     await service.createSkill({
       skill_id: "index-learned",
@@ -613,7 +498,5 @@ Deno.test("SkillsService: rebuildIndex scans all skill directories", async () =>
     const skills = await service.listSkills();
     const found = skills.find((s) => s.skill_id === "index-learned");
     assertExists(found);
-  } finally {
-    await cleanup();
-  }
+  });
 });

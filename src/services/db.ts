@@ -297,19 +297,44 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Close the database connection and flush pending logs
    */
-  async close(): Promise<void> {
-    this.isClosing = true;
-
-    // Flush any remaining logs before closing
+  private clearFlushTimer(): void {
     if (this.flushTimer !== null) {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
     }
+  }
+
+  private async flushPendingLogs(context: string): Promise<void> {
+    this.clearFlushTimer();
 
     if (this.logQueue.length > 0) {
       const batch = this.logQueue.splice(0);
-      await this.executeBatchInsert(batch, "close");
+      await this.executeBatchInsert(batch, context);
     }
+  }
+
+  private parseActivityRows(rows: Array<z.input<typeof ActivityRecordSchema>>): ActivityRecord[] {
+    return z.array(ActivityRecordSchema).parse(rows);
+  }
+
+  private async queryByFieldSafe(field: "trace_id" | "action_type", value: string): Promise<ActivityRecord[]> {
+    const stmt = this.db.prepare(
+      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+       FROM activity
+       WHERE ${field} = ?
+       ORDER BY timestamp`,
+    );
+
+    return await this.dbBreaker.execute(() => {
+      const rows = stmt.all(value) as Array<z.input<typeof ActivityRecordSchema>>;
+      return Promise.resolve(this.parseActivityRows(rows));
+    });
+  }
+
+  async close(): Promise<void> {
+    this.isClosing = true;
+
+    await this.flushPendingLogs("close");
 
     this.db.close();
   }
@@ -333,17 +358,7 @@ export class DatabaseService implements IDatabaseService {
    * Async, breaker-safe version of `getActivitiesByTrace`.
    */
   async getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]> {
-    const stmt = this.db.prepare(
-      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
-       FROM activity
-       WHERE trace_id = ?
-       ORDER BY timestamp`,
-    );
-
-    return await this.dbBreaker.execute(() => {
-      const rows = stmt.all(traceId);
-      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
-    });
+    return await this.queryByFieldSafe("trace_id", traceId);
   }
 
   /**
@@ -365,33 +380,14 @@ export class DatabaseService implements IDatabaseService {
    * Async, breaker-safe version of `getActivitiesByActionType`.
    */
   async getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]> {
-    const stmt = this.db.prepare(
-      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
-       FROM activity
-       WHERE action_type = ?
-       ORDER BY timestamp`,
-    );
-
-    return await this.dbBreaker.execute(() => {
-      const rows = stmt.all(actionType);
-      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
-    });
+    return await this.queryByFieldSafe("action_type", actionType);
   }
 
   /**
    * Query recent activities (for testing/debugging)
    */
   async getRecentActivity(limit: number = 100): Promise<ActivityRecord[]> {
-    // Flush pending logs before querying
-    if (this.flushTimer !== null) {
-      clearTimeout(this.flushTimer);
-      this.flushTimer = null;
-    }
-
-    if (this.logQueue.length > 0) {
-      const batch = this.logQueue.splice(0);
-      await this.executeBatchInsert(batch, "getRecentActivity");
-    }
+    await this.flushPendingLogs("getRecentActivity");
 
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
@@ -411,16 +407,7 @@ export class DatabaseService implements IDatabaseService {
    * Query activity journal with flexible filters
    */
   async queryActivity(filter: IJournalFilterOptions): Promise<ActivityRecord[]> {
-    // Flush pending logs before querying
-    if (this.flushTimer !== null) {
-      clearTimeout(this.flushTimer);
-      this.flushTimer = null;
-    }
-
-    if (this.logQueue.length > 0) {
-      const batch = this.logQueue.splice(0);
-      await this.executeBatchInsert(batch, "queryActivity");
-    }
+    await this.flushPendingLogs("queryActivity");
 
     // Build SELECT clause
     let selectClause = `SELECT `;

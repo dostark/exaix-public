@@ -6,23 +6,11 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: core file operations", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
-    tools: {},
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
-  });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
+  const registry = createToolRegistryForTests(tempDir);
 
   await t.step("write_file and read_file", async () => {
     const filePath = "test.txt";
@@ -49,7 +37,7 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
     const listResult = await registry.execute("list_directory", { path: "nested" });
     assertEquals(listResult.success, true);
     const data = listResult.data as { entries: { name: string; isDirectory: boolean }[] };
-    assertEquals(data?.entries.some((e: any) => e.name === "dir" && e.isDirectory), true);
+    assertEquals(data?.entries.some((e) => e.name === "dir" && e.isDirectory), true);
   });
 
   await t.step("search_files", async () => {
@@ -73,5 +61,5 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

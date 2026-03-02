@@ -53,6 +53,21 @@ export interface ActionParams {
   content?: string;
   [field: string]: string | number | boolean | undefined;
 }
+
+interface IRequestCreationOptions {
+  traceId?: string;
+  agentId?: string;
+  priority?: number;
+  tags?: string[];
+  portal?: string;
+  targetBranch?: string;
+}
+
+interface IRequestBaseOptions extends IRequestCreationOptions {
+  flowId?: string;
+  contentPrefix: string;
+}
+
 export class TestEnvironment {
   readonly tempDir: string;
   readonly config: Config;
@@ -284,22 +299,27 @@ retry_backoff_base_ms = 1000
   /**
    * Create a request file in /Workspace/Requests
    */
-  createRequest(
+  private createRequestWithPrefix(
     description: string,
-    options: {
-      traceId?: string;
-      agentId?: string;
-      priority?: number;
-      tags?: string[];
-      portal?: string;
-      targetBranch?: string;
-    } = {},
+    options: IRequestCreationOptions,
+    contentPrefix: string,
+    flowId?: string,
   ): Promise<{ filePath: string; traceId: string }> {
     return this.createRequestBase(description, {
       ...options,
-      targetBranch: options.targetBranch,
-      contentPrefix: "# Request",
+      flowId,
+      contentPrefix,
     });
+  }
+
+  /**
+   * Create a request file in /Workspace/Requests
+   */
+  createRequest(
+    description: string,
+    options: IRequestCreationOptions = {},
+  ): Promise<{ filePath: string; traceId: string }> {
+    return this.createRequestWithPrefix(description, options, "# Request");
   }
 
   /**
@@ -308,21 +328,9 @@ retry_backoff_base_ms = 1000
   createFlowRequest(
     description: string,
     flowId: string,
-    options: {
-      traceId?: string;
-      agentId?: string;
-      priority?: number;
-      tags?: string[];
-      portal?: string;
-      targetBranch?: string;
-    } = {},
+    options: IRequestCreationOptions = {},
   ): Promise<{ filePath: string; traceId: string }> {
-    return this.createRequestBase(description, {
-      ...options,
-      targetBranch: options.targetBranch,
-      flowId,
-      contentPrefix: "# Flow Request",
-    });
+    return this.createRequestWithPrefix(description, options, "# Flow Request", flowId);
   }
 
   /**
@@ -330,16 +338,7 @@ retry_backoff_base_ms = 1000
    */
   private async createRequestBase(
     description: string,
-    options: {
-      traceId?: string;
-      agentId?: string;
-      priority?: number;
-      tags?: string[];
-      portal?: string;
-      targetBranch?: string;
-      flowId?: string;
-      contentPrefix: string;
-    },
+    options: IRequestBaseOptions,
   ): Promise<{ filePath: string; traceId: string }> {
     const traceId = options.traceId ?? crypto.randomUUID();
     const shortId = traceId.substring(0, 8);

@@ -6,23 +6,11 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: run_command", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
-    tools: {},
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
-  });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
+  const registry = createToolRegistryForTests(tempDir);
 
   await t.step("executes whitelisted command (echo)", async () => {
     const result = await registry.execute("run_command", {
@@ -53,5 +41,5 @@ Deno.test("ToolRegistry: run_command", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

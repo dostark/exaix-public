@@ -6,9 +6,8 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: grep_search", async (t) => {
   // Setup temp directory with fixtures
@@ -26,25 +25,14 @@ Deno.test("ToolRegistry: grep_search", async (t) => {
   await Deno.writeTextFile(nestedFile, "export const foo = 123;");
   await Deno.writeTextFile(excludedFile, "const foo = 'hidden';");
 
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
+  const registry = createToolRegistryForTests(tempDir, {
     tools: {
       grep_search: {
         max_results: 10,
         exclude_dirs: ["node_modules"],
       },
     },
-    // Minimal required config
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
   });
-
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
 
   await t.step("finds pattern in files", async () => {
     const result = await registry.execute("grep_search", { pattern: "foo", path: "." });
@@ -96,5 +84,5 @@ Deno.test("ToolRegistry: grep_search", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

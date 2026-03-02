@@ -389,8 +389,7 @@ async function checkFile(path: string) {
 
   // TUI Boundary Isolation Checks - implemented during main loop for efficiency
   const isTuiFile = path.includes("/src/tui/");
-  const isCliBoundaryFile =
-    path.includes("/src/cli/commands/") ||
+  const isCliBoundaryFile = path.includes("/src/cli/commands/") ||
     path.includes("/src/cli/handlers/") ||
     path.includes("/src/cli/formatters/") ||
     path.includes("/src/cli/command_builders/");

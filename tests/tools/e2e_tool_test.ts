@@ -6,29 +6,18 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
 import { stub } from "@std/testing/mock";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: E2E Workflow", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
+  const registry = createToolRegistryForTests(tempDir, {
     tools: {
       fetch_url: { enabled: true, allowed_domains: ["example.com"] },
       grep_search: { max_results: 100 },
     },
-    // Minimal required config
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
   });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
 
   // 1. Setup Git
   const runGit = async (args: string[]) => {
@@ -127,5 +116,5 @@ Deno.test("ToolRegistry: E2E Workflow", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

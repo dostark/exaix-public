@@ -18,6 +18,20 @@ import type {
 } from "../shared/schemas/artifact.ts";
 import { coerceReviewStatus, type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
+interface IArtifactRow {
+  id: string;
+  status: string;
+  type: string;
+  agent: string;
+  portal: string | null;
+  target_branch: string | null;
+  created: string;
+  updated: string | null;
+  request_id: string;
+  file_path: string;
+  rejection_reason: string | null;
+}
+
 /**
  * Generate short ID for artifacts
  */
@@ -29,6 +43,22 @@ function shortId(): string {
  * Service for managing read-only agent artifacts
  */
 export class ArtifactRegistry {
+  private mapArtifactRow(row: IArtifactRow): IArtifact {
+    return {
+      id: row.id,
+      status: coerceReviewStatus(row.status),
+      type: row.type as "analysis" | "report" | "diagram",
+      agent: row.agent,
+      portal: row.portal,
+      target_branch: row.target_branch,
+      created: row.created,
+      updated: row.updated,
+      request_id: row.request_id,
+      file_path: row.file_path,
+      rejection_reason: row.rejection_reason,
+    };
+  }
+
   private rootDir: string;
 
   constructor(
@@ -152,19 +182,7 @@ export class ArtifactRegistry {
    * Get artifact database record
    */
   private async getArtifactRecord(artifactId: string): Promise<IArtifact> {
-    const rows = await this.db.preparedAll<{
-      id: string;
-      status: string;
-      type: string;
-      agent: string;
-      portal: string | null;
-      target_branch: string | null;
-      created: string;
-      updated: string | null;
-      request_id: string;
-      file_path: string;
-      rejection_reason: string | null;
-    }>(
+    const rows = await this.db.preparedAll<IArtifactRow>(
       `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
        FROM artifacts WHERE id = ?`,
       [artifactId],
@@ -174,21 +192,7 @@ export class ArtifactRegistry {
       throw new Error(`Artifact not found: ${artifactId}`);
     }
 
-    const row = rows[0];
-
-    return {
-      id: row.id,
-      status: coerceReviewStatus(row.status),
-      type: row.type as "analysis" | "report" | "diagram",
-      agent: row.agent,
-      portal: row.portal,
-      target_branch: row.target_branch,
-      created: row.created,
-      updated: row.updated,
-      request_id: row.request_id,
-      file_path: row.file_path,
-      rejection_reason: row.rejection_reason,
-    };
+    return this.mapArtifactRow(rows[0]);
   }
 
   /**
@@ -222,32 +226,8 @@ export class ArtifactRegistry {
 
     query += ` ORDER BY created DESC`;
 
-    const rows = await this.db.preparedAll<{
-      id: string;
-      status: string;
-      type: string;
-      agent: string;
-      portal: string | null;
-      target_branch: string | null;
-      created: string;
-      updated: string | null;
-      request_id: string;
-      file_path: string;
-      rejection_reason: string | null;
-    }>(query, params);
+    const rows = await this.db.preparedAll<IArtifactRow>(query, params);
 
-    return rows.map((row) => ({
-      id: row.id,
-      status: coerceReviewStatus(row.status),
-      type: row.type as "analysis" | "report" | "diagram",
-      agent: row.agent,
-      portal: row.portal,
-      target_branch: row.target_branch,
-      created: row.created,
-      updated: row.updated,
-      request_id: row.request_id,
-      file_path: row.file_path,
-      rejection_reason: row.rejection_reason,
-    }));
+    return rows.map((row) => this.mapArtifactRow(row));
   }
 }

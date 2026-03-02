@@ -17,6 +17,13 @@
 import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "./db.ts";
 import { JSONValue } from "../shared/types/json.ts";
+import type {
+  IBranchOptions,
+  ICommitOptions,
+  IGitCommandOptions,
+  IGitService,
+  IWorktreeInfo,
+} from "../shared/interfaces/i_git_service.ts";
 import {
   DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
   DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
@@ -29,58 +36,20 @@ import {
 import { SecureRandom } from "../helpers/secure_random.ts";
 import { ActivityActor } from "../shared/enums.ts";
 
+export type {
+  IBranchOptions,
+  ICommitOptions,
+  IGitCommandOptions,
+  IGitService,
+  IWorktreeInfo,
+} from "../shared/interfaces/i_git_service.ts";
+
 export interface IGitServiceConfig {
   config: Config;
   db?: IDatabaseService;
   traceId?: string;
   agentId?: string;
   repoPath?: string;
-}
-
-export interface IBranchOptions {
-  requestId: string;
-  traceId: string;
-}
-
-export interface ICommitOptions {
-  message: string;
-  description?: string;
-  traceId: string;
-}
-
-export interface IGitCommandOptions {
-  throwOnError?: boolean;
-  timeoutMs?: number;
-  retryOnLock?: boolean;
-}
-
-export interface IWorktreeInfo {
-  path: string;
-  head?: string;
-  branch?: string;
-  detached?: boolean;
-  locked?: boolean;
-  prunable?: boolean;
-}
-
-export interface IGitService {
-  setRepository(repoPath: string): void;
-  getRepository(): string;
-  ensureRepository(): Promise<void>;
-  ensureIdentity(): Promise<void>;
-  createBranch(options: IBranchOptions): Promise<string>;
-  commit(options: ICommitOptions): Promise<string>;
-  checkoutBranch(branchName: string, options?: { allowProtected?: boolean }): Promise<void>;
-  getCurrentBranch(): Promise<string>;
-  getDefaultBranch(repoPath?: string): Promise<string>;
-  addWorktree(worktreePath: string, baseBranch: string): Promise<void>;
-  removeWorktree(worktreePath: string, options?: { force?: boolean }): Promise<void>;
-  pruneWorktrees(options?: { dryRun?: boolean; verbose?: boolean; expire?: string }): Promise<string>;
-  listWorktrees(): Promise<IWorktreeInfo[]>;
-  runGitCommand(
-    args: string[],
-    options?: IGitCommandOptions,
-  ): Promise<{ output: string; exitCode: number }>;
 }
 
 // ============================================================================

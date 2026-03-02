@@ -108,12 +108,16 @@ debounce_ms = 200
 stability_check = true
 `;
     Deno.writeTextFileSync(this.configPath, defaultConfig.trim());
-    logInfo("Created default configuration file", {
-      audit_event: true,
-      event_type: "config_created",
-      config_path: this.configPath,
-      service: "config-service",
-    });
+    try {
+      logInfo("Created default configuration file", {
+        audit_event: true,
+        event_type: "config_created",
+        config_path: this.configPath,
+        service: "config-service",
+      });
+    } catch {
+      // Logger may not be initialized yet in early CLI startup and tests.
+    }
   }
 
   private computeChecksum(content: string): string {

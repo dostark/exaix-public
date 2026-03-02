@@ -172,13 +172,7 @@ export class EventLogger implements IEventLogger {
     payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
-    await this.log({
-      action,
-      target,
-      payload: payload ? (toSafeJson(payload) as LogMetadata) : undefined,
-      level: LogLevel.INFO,
-      traceId,
-    });
+    await this.logWithLevel(LogLevel.INFO, action, target, payload, traceId);
   }
 
   /**
@@ -190,13 +184,7 @@ export class EventLogger implements IEventLogger {
     payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
-    await this.log({
-      action,
-      target,
-      payload: payload ? (toSafeJson(payload) as LogMetadata) : undefined,
-      level: LogLevel.WARN,
-      traceId,
-    });
+    await this.logWithLevel(LogLevel.WARN, action, target, payload, traceId);
   }
 
   /**
@@ -208,13 +196,7 @@ export class EventLogger implements IEventLogger {
     payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
-    await this.log({
-      action,
-      target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
-      level: LogLevel.ERROR,
-      traceId,
-    });
+    await this.logWithLevel(LogLevel.ERROR, action, target, payload, traceId);
   }
 
   /**
@@ -226,13 +208,7 @@ export class EventLogger implements IEventLogger {
     payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
-    await this.log({
-      action,
-      target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
-      level: LogLevel.DEBUG,
-      traceId,
-    });
+    await this.logWithLevel(LogLevel.DEBUG, action, target, payload, traceId);
   }
 
   /**
@@ -244,11 +220,21 @@ export class EventLogger implements IEventLogger {
     payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
+    await this.logWithLevel(LogLevel.FATAL, action, target, payload, traceId);
+  }
+
+  private async logWithLevel(
+    level: LogLevel,
+    action: string,
+    target: string,
+    payload?: LogMetadata,
+    traceId?: string,
+  ): Promise<void> {
     await this.log({
       action,
       target,
       payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
-      level: LogLevel.FATAL,
+      level,
       traceId,
     });
   }

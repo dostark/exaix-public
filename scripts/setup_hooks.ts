@@ -120,7 +120,9 @@ async function installHooks() {
   }
 
   console.log("✅ Hooks installed successfully in .git/hooks/");
-  console.log("   - pre-commit: fmt, lint, style/boundary, docs drift, markdown lint (staged .md only), complexity, architecture");
+  console.log(
+    "   - pre-commit: fmt, lint, style/boundary, docs drift, markdown lint (staged .md only), complexity, architecture",
+  );
   console.log("   - pre-push: type-check, security tests");
 }
 

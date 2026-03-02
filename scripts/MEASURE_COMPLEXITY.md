@@ -50,4 +50,3 @@ Example GitHub Actions snippet
     deno run --allow-read --allow-net scripts/measure_complexity.ts --threshold 15 --json > complexity.json
     deno eval --unstable --allow-read "const txt=await Deno.readTextFile('complexity.json'); const obj=JSON.parse(txt); const files=(obj.exceeding?.files||[]).length; const fns=(obj.exceeding?.functions||[]).length; console.log(`Complexity breaches: files=${files}, functions=${fns}`); if(files>0||fns>0) Deno.exit(1);"
 ```
-

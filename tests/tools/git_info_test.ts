@@ -6,25 +6,12 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: git_info", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
-    tools: {},
-    // Minimal required config
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
-  });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
+  const registry = createToolRegistryForTests(tempDir);
 
   // Init git repo
   const runGit = async (args: string[]) => {
@@ -93,5 +80,5 @@ Deno.test("ToolRegistry: git_info", async (t) => {
   });
 
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });

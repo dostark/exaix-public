@@ -41,7 +41,7 @@ jobs:
         run: deno task check:style
 
       - name: Code Duplication Check
-        run: deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.1
+        run: deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.0
 
       - name: Complexity Check
         run: |

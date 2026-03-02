@@ -321,7 +321,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   let changed = false;
 
   // Fix MD032: blanks around lists
-  const md032Fixes = findings.filter(f => f.rule === "MD032/blanks-around-lists");
+  const md032Fixes = findings.filter((f) => f.rule === "MD032/blanks-around-lists");
   if (md032Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
@@ -333,8 +333,10 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
       // Check if this line has a top-level list marker
       if (listMarker && listMarker.indent === 0) {
         // Add blank line before if previous line is not blank and not part of list
-        if (i > 0 && lines[i - 1].trim() !== "" && !parseListMarker(lines[i - 1]) &&
-            !looksLikeListContinuation(lines[i - 1]) && !lines[i - 1].trimStart().startsWith(">")) {
+        if (
+          i > 0 && lines[i - 1].trim() !== "" && !parseListMarker(lines[i - 1]) &&
+          !looksLikeListContinuation(lines[i - 1]) && !lines[i - 1].trimStart().startsWith(">")
+        ) {
           newLines.push("");
           changed = true;
         }
@@ -344,8 +346,10 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
 
       // Add blank line after if next line is not blank and not part of list
       if (listMarker && listMarker.indent === 0) {
-        if (i + 1 < lines.length && lines[i + 1].trim() !== "" && !parseListMarker(lines[i + 1]) &&
-            !looksLikeListContinuation(lines[i + 1]) && !lines[i + 1].trimStart().startsWith(">")) {
+        if (
+          i + 1 < lines.length && lines[i + 1].trim() !== "" && !parseListMarker(lines[i + 1]) &&
+          !looksLikeListContinuation(lines[i + 1]) && !lines[i + 1].trimStart().startsWith(">")
+        ) {
           newLines.push("");
           changed = true;
           i++; // Skip the next line since we just added it
@@ -357,7 +361,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD029: ordered list prefixes
-  const md029Fixes = findings.filter(f => f.rule === "MD029/ol-prefix");
+  const md029Fixes = findings.filter((f) => f.rule === "MD029/ol-prefix");
   if (md029Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
@@ -398,7 +402,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD060: table column style
-  const md060Fixes = findings.filter(f => f.rule === "MD060/table-column-style");
+  const md060Fixes = findings.filter((f) => f.rule === "MD060/table-column-style");
   if (md060Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines = [...lines];
@@ -432,7 +436,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD040: fenced code blocks without language
-  const md040Fixes = findings.filter(f => f.rule === "MD040/fenced-code-language");
+  const md040Fixes = findings.filter((f) => f.rule === "MD040/fenced-code-language");
   if (md040Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
@@ -459,7 +463,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD004: unclosed fenced code blocks
-  const md004Fixes = findings.filter(f => f.rule === "MD004");
+  const md004Fixes = findings.filter((f) => f.rule === "MD004");
   if (md004Fixes.length > 0) {
     // This is more complex - we need to find where the fence should be closed
     // For now, add a closing fence at the end of the file if it's unclosed
@@ -490,7 +494,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD036: emphasis used instead of heading
-  const md036Fixes = findings.filter(f => f.rule === "MD036/no-emphasis-as-heading");
+  const md036Fixes = findings.filter((f) => f.rule === "MD036/no-emphasis-as-heading");
   if (md036Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
@@ -511,15 +515,15 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   }
 
   // Fix MD049: emphasis style (convert underscores to asterisks)
-  const md049Fixes = findings.filter(f => f.rule === "MD049/emphasis-style");
+  const md049Fixes = findings.filter((f) => f.rule === "MD049/emphasis-style");
   if (md049Fixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
 
     for (const line of lines) {
       // Convert __text__ to **text** and _text_ to *text*
-      let fixedLine = line.replace(/__([^_]+)__/g, '**$1**');
-      fixedLine = fixedLine.replace(/_([^_]+)_/g, '*$1*');
+      let fixedLine = line.replace(/__([^_]+)__/g, "**$1**");
+      fixedLine = fixedLine.replace(/_([^_]+)_/g, "*$1*");
       newLines.push(fixedLine);
       if (fixedLine !== line) {
         changed = true;
@@ -631,8 +635,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
   for (let idx = 0; idx < lines.length; idx++) {
     const lineNo = idx + 1;
     const line = lines[idx];
-    const isSyntheticTerminalBlank =
-      idx === lines.length - 1 &&
+    const isSyntheticTerminalBlank = idx === lines.length - 1 &&
       line === "" &&
       normalized.endsWith("\n");
 
@@ -1210,7 +1213,7 @@ async function main() {
       const maxIterations = 5;
       for (let iteration = 0; iteration < maxIterations; iteration++) {
         const findings = lintMarkdown(content, filePath, options);
-        const fixableFindings = findings.filter(f =>
+        const fixableFindings = findings.filter((f) =>
           f.rule === "MD032/blanks-around-lists" ||
           f.rule === "MD029/ol-prefix" ||
           f.rule === "MD022/blanks-around-headings" ||

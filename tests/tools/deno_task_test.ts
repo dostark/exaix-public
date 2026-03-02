@@ -5,25 +5,12 @@
  * of project tasks defined in deno.json.
  */
 
-import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { ConfigSchema } from "../../src/shared/schemas/config.ts";
 import { join } from "@std/path";
+import { cleanupTempDir, createToolRegistryForTests } from "./helpers.ts";
 
 Deno.test("ToolRegistry: deno_task", async (t) => {
   const tempDir = await Deno.makeTempDir();
-  const config = ConfigSchema.parse({
-    system: { root: tempDir },
-    tools: {},
-    // Minimal required config
-    paths: {},
-    database: {},
-    watcher: {},
-    agents: {},
-    models: {},
-    portals: [],
-    mcp: {},
-  });
-  const registry = new ToolRegistry({ config, baseDir: tempDir });
+  const registry = createToolRegistryForTests(tempDir);
 
   const goodFile = join(tempDir, "good.ts");
   await Deno.writeTextFile(goodFile, "export const foo = 1;");
@@ -40,5 +27,5 @@ Deno.test("ToolRegistry: deno_task", async (t) => {
     await registry.execute("deno_task", { task: "fmt", path: "good.ts" });
   });
   // Cleanup
-  await Deno.remove(tempDir, { recursive: true });
+  await cleanupTempDir(tempDir);
 });
