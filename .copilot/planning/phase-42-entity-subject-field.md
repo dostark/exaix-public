@@ -311,4 +311,3 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 - Review a plan and verify subject propagation to review.
 
 ```
-

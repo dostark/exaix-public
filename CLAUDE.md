@@ -329,4 +329,3 @@ These actions are **PROHIBITED**:
 - ❌ **Guessing at patterns** — Always check `.copilot/` docs first
 - ❌ **Introducing magic numbers/strings** — See `CONTRIBUTING.md`
 - ❌ **Placing imports anywhere other than the top of the file** — All imports must be at the top level
-

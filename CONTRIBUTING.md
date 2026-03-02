@@ -137,4 +137,3 @@ Authoritative guidance:
 ## 6. Architecture
 
 For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how ExoFrame works.
-

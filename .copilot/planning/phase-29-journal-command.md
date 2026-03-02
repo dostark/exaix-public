@@ -7,7 +7,7 @@ version: "0.2"
 topics: ["exoctl", "journal", "cli", "audit", "database"]
 ---
 
-# Phase 29: `exoctl journal` Command
+## Phase 29: `exoctl journal` Command
 
 **Goal:** Implement the `exoctl journal` command to allow users to query, filter, and inspect the `journal.db` (Activity Journal) directly from the CLI. This is a critical observability feature for the "Governance-First" promise of ExoFrame.
 

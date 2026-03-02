@@ -160,4 +160,3 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 - Example prompt: "I need to add a security feature. Which docs should I read?" → Answer: Start with [.copilot/tests/testing.md](tests/testing.md) security section and [.copilot/source/exoframe.md](source/exoframe.md) system constraints.
 - Example prompt: "How do I set up Claude with RAG?" → Answer: Read [providers/claude-rag.md](providers/claude-rag.md) for the complete workflow.
 - Example prompt: "What's the TDD workflow?" → Answer: See [source/exoframe.md](source/exoframe.md) and [tests/testing.md](tests/testing.md) for patterns and helpers.
-
