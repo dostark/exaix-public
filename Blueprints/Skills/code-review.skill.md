@@ -83,7 +83,7 @@ Before reviewing code:
 // - Null/undefined values
 // - Maximum/minimum values
 // - Concurrent access
-```
+```text
 
 ## 3. Code Quality
 
@@ -132,23 +132,23 @@ Before reviewing code:
 
 **Be Specific:**
 
-```
+```text
 // ❌ Vague
 "This could be better"
 
 // ✅ Specific
 "Consider using a Map instead of Array.find() here for O(1) lookup"
-```
+```text
 
 **Be Constructive:**
 
-```
+```text
 // ❌ Critical without solution
 "This is wrong"
 
 // ✅ Constructive
 "This might throw if users is empty. Consider adding a guard clause"
-```
+```text
 
 **Prioritize Issues:**
 
@@ -156,3 +156,7 @@ Before reviewing code:
 - 🟠 **Major** - Should fix (bugs, significant issues)
 - 🟡 **Minor** - Nice to fix (style, minor improvements)
 - 💭 **Suggestion** - Optional (alternative approaches)
+
+
+```
+

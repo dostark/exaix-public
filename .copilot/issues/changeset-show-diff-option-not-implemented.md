@@ -12,15 +12,15 @@ labels: [bug, cli, changeset, ux]
 
 The CLI command `exoctl changeset show <id> --diff` (and variants like `-d`) is not recognized. The help output does not list `--diff` as a valid option, and passing it results in an error:
 
-```
+```text
 error: Unknown option "--diff". Did you mean option "--help"?
-```
+```text
 
 ## Reproduction Steps
 
 1. Run `exoctl changeset list` to get a changeset ID or branch.
-2. Run `exoctl changeset show <id> --diff` or `exoctl changeset show <branch> --diff`.
-3. Observe the error: `Unknown option "--diff"`.
+
+1.
 
 ## Expected Behavior
 
@@ -59,3 +59,7 @@ error: Unknown option "--diff". Did you mean option "--help"?
 - ✅ Error handling preserved
 
 ---
+
+
+```
+

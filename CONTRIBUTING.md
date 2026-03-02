@@ -44,13 +44,13 @@ If you are updating legacy code, refer to `docs/dev/Migration_Guide_Phase27.md` 
 **If you are an AI agent (Claude, Copilot, etc.), you MUST:**
 
 1. **Read [`CLAUDE.md`](CLAUDE.md)** for project orientation and quick reference
-2. **Consult [`.copilot/cross-reference.md`](.copilot/cross-reference.md)** for task-specific guidance
-3. **Read relevant `.copilot/` documentation** before implementation:
+
+1.
    - `.copilot/source/exoframe.md` — Source code patterns
    - `.copilot/tests/testing.md` — Test patterns and helpers
    - `.copilot/docs/documentation.md` — Documentation guidelines
    - `.copilot/planning/*.md` — Phase planning documents
-4. **Cite consulted documents** in your implementation plan
+1.
 
 **Example citation:**
 
@@ -80,3 +80,4 @@ All available agent documentation is indexed in `.copilot/manifest.json`. Use th
 ## 6. Architecture
 
 For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how ExoFrame works.
+

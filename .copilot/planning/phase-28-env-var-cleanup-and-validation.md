@@ -19,10 +19,10 @@
 Following Phase 27's configuration consolidation, ExoFrame still has scattered environment variable usage across production and testing contexts. This phase aims to:
 
 1. **Retain essential runtime overrides** (`EXO_LLM_*`) for CLI/TUI flexibility
-2. **Retire redundant production env vars** that duplicate `exo.config.toml` functionality
-3. **Standardize testing env vars** to use `EXO_TEST_*` prefix for clarity
-4. **Implement Zod validation** for all environment variable inputs
-5. **Document all supported env vars** in `exo.config.sample.toml`
+
+1.
+1.
+1.
 
 **Scope:** No deprecation period. This is a breaking change for Phase 28.
 
@@ -174,14 +174,14 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
        return undefined;
      }
    }
-   ```
+   ```text
 
-2. **Update `src/ai/provider_factory.ts`:**
+1.
    - Import `getValidatedEnvOverrides()`
    - Replace raw `safeEnvGet()` calls with validated schema
    - Remove deprecated env var checks (`EXO_OLLAMA_*`, `EXO_OPENAI_*`)
 
-3. **Create validation helper:**
+1.
    ```typescript
    // In provider_factory.ts
    private static resolveOptions(config: Config): ProviderOptions {
@@ -194,7 +194,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
        timeout: envOverrides.EXO_LLM_TIMEOUT_MS ?? config.ai?.timeout_ms ?? DEFAULTS.DEFAULT_AI_TIMEOUT_MS,
      };
    }
-   ```
+   ```text
 
 **Success Criteria:**
 
@@ -224,16 +224,16 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    const maxAttempts = Number(safeGetEnv("EXO_OPENAI_RETRY_MAX") ?? ...);
    const backoffMs = Number(safeGetEnv("EXO_OPENAI_RETRY_BACKOFF_MS") ?? ...);
    const timeoutMs = Number(safeGetEnv("EXO_OPENAI_TIMEOUT_MS") ?? ...);
-   ```
+   ```text
 
-2. **Remove from `src/ai/providers/llama_provider.ts`:**
+1.
    ```typescript
    // DELETE these lines (lines 51, 56):
    Number(Deno.env.get("EXO_OLLAMA_RETRY_MAX")) || ...
    Number(Deno.env.get("EXO_OLLAMA_RETRY_BACKOFF_MS")) || ...
-   ```
+   ```text
 
-3. **Update all providers to use config only:**
+1.
    - Ollama: Use `config.ai_retry.providers?.ollama` or defaults
    - OpenAI: Use `config.ai_retry.providers?.openai` or defaults
    - Anthropic: Use `config.ai_retry.providers?.anthropic` or defaults
@@ -284,9 +284,9 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
      const legacyVar = safeEnvGet("CI") === "true";
      return newVar || legacyVar;
    }
-   ```
+   ```text
 
-2. **Update test files to use new names:**
+1.
    ```typescript
    // OLD:
    const enabled = Deno.env.get("EXO_ENABLE_PAID_LLM") === "1";
@@ -295,18 +295,18 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    // NEW:
    const enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") === "1";
    const apiKey = Deno.env.get("EXO_TEST_OPENAI_API_KEY");
-   ```
+   ```text
 
-3. **Update `src/cli/exoctl.ts`:**
+1.
    ```typescript
    // OLD (line 37):
    IN_TEST_MODE = Deno.env.get("EXOCTL_TEST_MODE") === "1";
 
    // NEW:
    IN_TEST_MODE = Deno.env.get("EXO_TEST_CLI_MODE") === "1";
-   ```
+   ```text
 
-4. **Update TUI files:**
+1.
    ```typescript
    // OLD:
    if (Deno.env.get("DENO_TEST") !== "1") setTimeout(...);
@@ -314,9 +314,9 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    // NEW:
    import { isTestMode } from "../config/env_schema.ts";
    if (!isTestMode()) setTimeout(...);
-   ```
+   ```text
 
-5. **Update test runner scripts if needed:**
+1.
    - `deno.json` tasks
    - CI workflows (`.github/workflows/*.yml`)
 
@@ -399,9 +399,9 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    # - Testing env vars (EXO_TEST_*) should only be used in test environments
    #
    # ===========================================================================
-   ```
+   ```text
 
-2. **Add inline comments in relevant sections:**
+1.
    ```toml
    [ai]
    # Can be overridden at runtime with: export EXO_LLM_PROVIDER=ollama
@@ -415,7 +415,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 
    # Can be overridden at runtime with: export EXO_LLM_TIMEOUT_MS=60000
    timeout_ms = 30000
-   ```
+   ```text
 
 **Success Criteria:**
 
@@ -460,8 +460,8 @@ The following environment variables have been **REMOVED** in Phase 28:
 **Migration:**
 
 1. Remove these env vars from your deployment scripts
-2. Add equivalent values to your `exo.config.toml` file
-3. Restart ExoFrame daemon
+
+1.
 
 ### Renamed Testing Environment Variables
 
@@ -478,8 +478,8 @@ The following environment variables have been **REMOVED** in Phase 28:
 **Migration:**
 
 1. Update your test scripts to use new names
-2. Update CI/CD pipeline configurations
-3. Both old and new names supported temporarily (legacy fallback)
+
+1.
 
 ## Retained Environment Variables
 
@@ -501,8 +501,8 @@ exoctl request create --prompt "Test" --agent my-agent
 # Override with validation (invalid values will warn)
 export EXO_LLM_TIMEOUT_MS=999  # ❌ Will warn (below minimum 1000)
 export EXO_LLM_TIMEOUT_MS=60000  # ✅ Valid
-```
-````
+```text
+````text
 
 ## New Features
 
@@ -524,10 +524,11 @@ Run tests with new env var names:
 ```bash
 EXO_TEST_MODE=1 deno task test
 EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
-```
+```text
 
-````
+````text
 **Success Criteria:**
+
 - [x] Migration guide (N/A - not needed, no production deployment)
 - [x] Examples provided for TOML equivalents (in exo.config.sample.toml)
 - [x] Clear upgrade path (N/A - no existing deployments to migrate)
@@ -539,6 +540,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 **Goal:** Ensure all tests pass with new env var structure
 
 **Files to Modify:**
+
 - `tests/config/config_test.ts`
 - `tests/ai/provider_factory_test.ts`
 - All test files using old env var names
@@ -560,9 +562,9 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
        assertEquals(overrides.EXO_LLM_TIMEOUT_MS, undefined); // Below min
      });
    });
-````
+````text
 
-2. **Update existing provider factory tests:**
+1.
    ```typescript
    Deno.test("ProviderFactory: EXO_LLM_PROVIDER override", async () => {
      await withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "test" }, async () => {
@@ -571,9 +573,9 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
        assertEquals(provider.id.includes("ollama"), true);
      });
    });
-   ```
+   ```text
 
-3. **Update test files to use new names:**
+1.
    - Search/replace `EXO_ENABLE_PAID_LLM` → `EXO_TEST_ENABLE_PAID_LLM`
    - Search/replace `EXOCTL_TEST_MODE` → `EXO_TEST_CLI_MODE`
    - Search/replace `Deno.env.get("DENO_TEST")` → `isTestMode()`
@@ -614,9 +616,9 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    | `EXO_LLM_TIMEOUT_MS` | Override timeout (1000-300000) | `export EXO_LLM_TIMEOUT_MS=60000`                |
 
    **Best Practice:** Use `exo.config.toml` for persistent configuration. Use env vars for temporary runtime overrides.
-   ```
+   ```text
 
-2. **Update `.copilot/README.md`:**
+1.
    - Add section on supported env vars
    - Clarify which env vars are for testing only
    - Link to migration guide
@@ -655,25 +657,25 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
      All values are validated via Zod schema in `src/config/env_schema.ts`.
      See `templates/exo.config.sample.toml` for detailed examples.
-     ```
+     ```text
 
-2. **`docs/ExoFrame_User_Guide.md`**
+1.
    - Add "Environment Variable Reference" section (already planned in Phase 7)
    - Update "Configuration" section to cross-reference env vars
    - Add troubleshooting section for invalid env var values
 
-3. **`docs/ExoFrame_Architecture.md`**
+1.
    - Update "Configuration System" section
    - Document `env_schema.ts` module
    - Add diagram showing config precedence: env vars → TOML → defaults
 
-4. **`docs/dev/Testing_Strategy.md` (if exists)**
+1.
    - Document new `EXO_TEST_*` environment variable naming convention
    - Update CI testing documentation with new env var names
 
 #### .copilot/ (Agent-facing Documentation)
 
-5. **`.copilot/README.md`**
+1.
    - Update "Configuration & Coding Standards" section (lines 293-303)
    - Add env var validation requirement:
      ```markdown
@@ -682,19 +684,19 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      To ensure maintainability and configurability, follow these strict rules:
 
      1. **No Magic Values:** Never hardcode numbers or strings in code.
-     2. **Configuration:**
+     1.
         - **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
         - **Internal:** Use `src/constants.ts`.
         - **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
-     3. **Enums:** ALWAYS use TypeScript enums from `src/enums.ts`.
-     4. **Environment Variables:**
+     1.
+     1.
         - **Production:** Only use `EXO_LLM_*` vars for runtime overrides
         - **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
         - **Validation:** All env vars MUST be validated via Zod schema
-     5. **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase28.md`.
-     ```
+     1.
+     ```text
 
-6. **`.copilot/source/exoframe.md`**
+1.
    - Add section on environment variable handling
    - Document `getValidatedEnvOverrides()` pattern
    - Example:
@@ -712,12 +714,12 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
      // ❌ Bad: Direct env var access without validation
      const provider = Deno.env.get("EXO_LLM_PROVIDER");
-     ```
-     ````
-     ```
-     ```
+     ```text
+     ````text
+     ```text
+     ```text
 
-7. **`.copilot/tests/testing.md`**
+1.
    - Update test environment variable section
    - Document all `EXO_TEST_*` variables
    - Add examples of `isTestMode()` and `isCIMode()` helpers:
@@ -746,18 +748,18 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
        // Skip paid API tests
      }
-     ```
-     ````
-     ```
-     ```
+     ```text
+     ````text
+     ```text
+     ```text
 
-8. **`.copilot/planning/phase-28-env-var-cleanup-and-validation.md`** (this file)
+1.
    - Update status to "In Progress" when implementation starts
    - Check off completed phases as work progresses
 
 #### Cross-References to Update
 
-9. **`CONTRIBUTING.md`** (already planned in Phase 7, expand)
+1.
    - Add "Environment Variables" subsection to Section 4
    - Reference Migration Guide Phase 28
    - Add to PR checklist:
@@ -765,9 +767,9 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      - [ ] No direct `Deno.env.get()` calls for `EXO_LLM_*` (use `getValidatedEnvOverrides()`)
      - [ ] Testing env vars use `EXO_TEST_*` prefix
      - [ ] Environment variable documentation updated if env vars added/changed
-     ```
+     ```text
 
-10. **`README.md`**
+1.
     - Add brief mention of env var support in "Configuration" section
     - Link to User Guide for details
 
@@ -786,21 +788,21 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    - Update architecture diagrams if needed
    - Document new `env_schema.ts` module
 
-2. **Update User Documentation:**
+1.
    - Add env var reference to `ExoFrame_User_Guide.md`
    - Add troubleshooting section for validation errors
 
-3. **Update Agent Documentation:**
+1.
    - Update `.copilot/README.md` with env var rules
    - Update `.copilot/source/exoframe.md` with validation patterns
    - Update `.copilot/tests/testing.md` with `EXO_TEST_*` conventions
 
-4. **Update Cross-References:**
+1.
    - Ensure all docs link to Migration Guide Phase 28
    - Update `CONTRIBUTING.md` PR checklist
    - Update `README.md` with brief env var mention
 
-5. **Verify Documentation Quality:**
+1.
    ```bash
    # Check for broken links
    deno run --allow-read scripts/check_doc_links.ts
@@ -810,7 +812,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
    # Validate agent doc schemas
    deno run --allow-read scripts/validate_agents_docs.ts
-   ```
+   ```text
 
 **Success Criteria:**
 
@@ -891,3 +893,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 - API key tests skip gracefully when keys unavailable (CI-safe)
 - Core implementation (Phases 1-4) complete and verified
 - Remaining work: Phase 8 comprehensive documentation updates
+
+
+```
+

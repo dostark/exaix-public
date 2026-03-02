@@ -13,9 +13,9 @@ ExoFrame's codebase currently utilizes loose typing (`any`) in critical areas su
 Implement a comprehensive refactoring strategy based on an "Onion Architecture" approach:
 
 1. **Configuration**: Enforce strict TypeScript compiler options.
-2. **Core Domain**: Define strict Zod schemas and types for all core entities.
-3. **Services**: Refactor service interfaces to use dependency injection with strictly typed checks.
-4. **Boundaries**: Ensure all IO (Database, API, CLI) is validated at the edge.
+
+1.
+1.
 
 ---
 
@@ -135,11 +135,11 @@ Refer to `CONTRIBUTING.md` (Section 1.5 Strict Type Safety) and `README.md` for 
 ### 3. Execution Batches
 
 1. **Batch 1 (Read-Only Data)**: Typed raw DB rows and Config mapping.
-2. **Batch 2 (Core Services)**: Refactor `ExecutionLoop`, `PlanExecutor`, `GitService` signatures.
-3. **Batch 3 (Edges)**: CLI Commands and TUI View Models.
-4. [x] **Batch 4 (Tests)**: Update mocks and test helpers.
-5. [x] **Batch 5 (Tests Type Safety)**: Eliminate `any` and improper `unknown` in `tests/`.
-6. **Batch 6 (CI Guard)**: Implement `check_type_safety.ts`, register task, integrate into `ci.ts` and pre-commit hook.
+
+1.
+1.
+1.
+1.
 
 ---
 
@@ -155,3 +155,4 @@ Refer to `CONTRIBUTING.md` (Section 1.5 Strict Type Safety) and `README.md` for 
 
 - Verify successful compilation with `strict: true`.
 - Spot check critical flows (Plan Execution, TUI rendering) to ensure runtime behavior matches types.
+

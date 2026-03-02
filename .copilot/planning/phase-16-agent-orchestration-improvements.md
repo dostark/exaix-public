@@ -21,7 +21,7 @@ self-correction, and output quality.
 
 ### Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Request Processing                          │
 ├─────────────────────────────────────────────────────────────────┤
@@ -32,7 +32,7 @@ self-correction, and output quality.
 │                               XML Response Parser               │
 │                            (<thought> / <content>)              │
 └─────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ### Key Components
 
@@ -47,7 +47,7 @@ self-correction, and output quality.
 ### Current Agent Templates (2 total)
 
 1. **pipeline-agent.md.template** - Systematic 5-step processing
-2. **collaborative-agent.md.template** - Flow integration placeholder
+
 
 ---
 
@@ -60,13 +60,13 @@ Modern agents use "Reflexion" patterns to critique and improve their own outputs
 
 **Impact:** Quality varies; no automatic improvement loops.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // agent_runner.ts - Single-pass execution
 const rawResponse = await this.modelProvider.generate(combinedPrompt);
 const result = this.parseResponse(rawResponse); // Direct return, no review
-```
+```text
 
 ### 2. Weak Structured Output Validation
 
@@ -75,14 +75,14 @@ No JSON schema validation, no fallback to repair malformed outputs.
 
 **Impact:** Failures when LLM doesn't follow expected format.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // agent_runner.ts - Regex-only parsing
 const thoughtRegex = /<thought>([\s\S]*?)<\/thought>/i;
 const contentRegex = /<content>([\s\S]*?)<\/content>/i;
 // Fallback: treat entire response as content (loses structure)
-```
+```text
 
 ### 3. No Retry/Recovery Logic
 
@@ -91,13 +91,13 @@ adjusted prompts or temperature.
 
 **Impact:** Transient failures cause complete request failure.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // agent_runner.ts - Single attempt
 const rawResponse = await this.modelProvider.generate(combinedPrompt);
 // No retry logic
-```
+```text
 
 ### 4. Limited Tool Use Patterns
 
@@ -109,7 +109,7 @@ const rawResponse = await this.modelProvider.generate(combinedPrompt);
 
 **Impact:** Inefficient tool use, no validation of tool results.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // plan_executor.ts - Execute and move on
@@ -118,7 +118,7 @@ for (const action of actions) {
   if (!result.success) throw new Error(result.error);
   // No reflection: "Did this achieve what I needed?"
 }
-```
+```text
 
 ### 5. No Memory Between Requests
 
@@ -130,7 +130,7 @@ for (const action of actions) {
 
 **Impact:** Agents repeat mistakes; no learning curve.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // agent_runner.ts - Fresh context each time
@@ -140,7 +140,7 @@ const parsedRequest: ParsedRequest = {
   traceId,
   requestId,
 };
-```
+```text
 
 ### 6. Minimal Blueprint Templates
 
@@ -172,7 +172,7 @@ agent is 95% confident or making a wild guess.
 
 **Impact:** Blueprints behave differently depending on execution path.
 
-**Evidence:**
+# Evidence:
 
 ```typescript
 // agent_executor.ts - Parses frontmatter
@@ -181,7 +181,7 @@ const systemPrompt = content.slice(frontmatterMatch[0].length).trim();
 
 // request_common.ts - No parsing
 return { systemPrompt: content, agentId }; // Entire file becomes prompt!
-```
+```text
 
 ---
 
@@ -191,14 +191,14 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Consistent blueprint parsing across all execution paths.
 
-**Tasks:**
+# Tasks:
 
 1. Create `BlueprintLoader` service with TOML/YAML frontmatter parsing
-2. Extract capabilities, model, provider from frontmatter
-3. Update AgentRunner, AgentExecutor, RequestRouter to use shared loader
-4. Add validation with Zod schema
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] Single `BlueprintLoader.load(agentId)` method
 - [x] Returns typed `Blueprint` with all fields
@@ -209,14 +209,14 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Reliable structured output with schema validation and repair.
 
-**Tasks:**
+# Tasks:
 
 1. Define output schemas (Zod) for different response types
-2. Implement schema-aware parser with fallback repair
-3. Add output format instructions to blueprint template
-4. Use LLM for repair when validation fails
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] JSON schema validation for structured outputs
 - [x] Automatic repair attempt on validation failure
@@ -227,14 +227,14 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Graceful handling of transient LLM failures.
 
-**Tasks:**
+# Tasks:
 
 1. Add configurable retry policy (count, backoff, conditions)
-2. Implement exponential backoff with jitter
-3. Adjust temperature/prompt on retry
-4. Log retry attempts for debugging
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] Configurable `retry_policy` in config
 - [x] 3 retry attempts by default with exponential backoff
@@ -245,9 +245,9 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Agents self-critique and improve outputs before finalizing.
 
-**Architecture:**
+# Architecture:
 
-```
+```text
 ┌────────────┐     ┌────────────┐     ┌────────────┐
 │   Draft    │────▶│  Critique  │────▶│  Refine    │
 │  Response  │     │   (Self)   │     │  Response  │
@@ -258,18 +258,18 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
                   │   Decide   │
                   │ Good/Retry │
                   └────────────┘
-```
+```text
 
-**Tasks:**
+# Tasks:
 
 1. Create `ReflexiveAgent` wrapper around AgentRunner
-2. Implement critique prompt template
-3. Add refinement loop with iteration limit
-4. Extract confidence signals from critique
 
-**New Template: reflexive-agent.md.template**
+1.
+1.
 
-**Success Criteria:**
+# New Template: reflexive-agent.md.template
+
+# Success Criteria:
 
 - [x] `ReflexiveAgent.run()` with configurable iterations
 - [x] Critique extracts: issues found, severity, suggestions
@@ -281,14 +281,14 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Agents evaluate tool results before proceeding.
 
-**Tasks:**
+# Tasks:
 
 1. Add reflection step after each tool call in PlanExecutor
-2. Ask LLM: "Did this tool call achieve its purpose?"
-3. Allow re-try with different parameters if reflection fails
-4. Implement parallel tool execution for independent calls
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] Tool reflection prompt template
 - [x] Automatic retry on unsatisfactory tool result
@@ -299,9 +299,9 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Agents can reference relevant past context.
 
-**Architecture:**
+# Architecture:
 
-```
+```text
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │  Request    │────▶│   Memory    │────▶│  Enhanced   │
 │   Input     │     │   Lookup    │     │   Request   │
@@ -312,16 +312,16 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
                     │  Memory   │
                     │   Bank    │
                     └───────────┘
-```
+```text
 
-**Tasks:**
+# Tasks:
 
 1. Integrate with existing Memory Bank service
-2. Add semantic search for relevant past interactions
-3. Include relevant memories in agent context
-4. Allow agents to write to memory post-execution
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] Automatic memory lookup before agent execution
 - [x] Top-K relevant memories injected into context
@@ -332,14 +332,14 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Agents express confidence in their outputs.
 
-**Tasks:**
+# Tasks:
 
 1. Add confidence score to agent output schema
-2. Create confidence extraction prompt
-3. Propagate confidence to plan outputs
-4. Flag low-confidence outputs for human review
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - [x] Confidence score (0-100) in agent results
 - [x] Confidence reasoning extracted from response
@@ -350,15 +350,15 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Rich template library for common agent patterns.
 
-**Templates to Create:**
+# Templates to Create:
 
 1. **reflexive-agent.md.template** - Self-critique pattern
-2. **research-agent.md.template** - Information gathering with citations
-3. **judge-agent.md.template** - Quality evaluation (LLM-as-a-Judge)
-4. **specialist-agent.md.template** - Domain-focused (code review, security, etc.)
-5. **conversational-agent.md.template** - Multi-turn dialogue
 
-**Success Criteria:**
+1.
+1.
+1.
+
+# Success Criteria:
 
 - [x] 5 new templates created
 - [x] Each template has inline documentation
@@ -382,7 +382,7 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Recommended Order:** 16.1 → 16.3 → 16.2 → 16.4 → 16.7 → 16.8 → 16.5 → 16.6 → 16.9
 
-**All phases completed on 2026-01-05.**
+# All phases completed on 2026-01-05.
 
 ---
 
@@ -390,7 +390,7 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 **Goal:** Update user-facing documentation to reflect new Agent capabilities.
 
-**Files to Update:**
+# Files to Update:
 
 | File                                   | Updates Required                                     |
 | -------------------------------------- | ---------------------------------------------------- |
@@ -399,16 +399,16 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 | `docs/ExoFrame_Implementation_Plan.md` | Phase 16 completion status                           |
 | `Blueprints/Agents/README.md`          | New templates, configuration options                 |
 
-**Tasks:**
+# Tasks:
 
 1. Document Reflexion pattern configuration
-2. Add confidence scoring interpretation guide
-3. Document session memory usage
-4. Update template catalog with new templates
-5. Add troubleshooting for retry/recovery
-6. Include best practices for template selection
 
-**Success Criteria:**
+1.
+1.
+1.
+1.
+
+# Success Criteria:
 
 - [x] User guide has complete Agent feature documentation
 - [x] Each new template has usage example
@@ -433,13 +433,13 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 1. **Output Quality:** Reflexive agents produce higher quality outputs
    - Measure: A/B test reflexive vs single-pass on code review task
 
-2. **Reliability:** Retry system reduces failed requests
+1.
    - Target: < 5% permanent failures (vs current ~10%)
 
-3. **User Confidence:** Confidence scores correlate with actual quality
+1.
    - Measure: Human ratings vs confidence scores
 
-4. **Template Adoption:** New templates are used by developers
+1.
    - Target: > 50% of new agents use templates
 
 ---
@@ -486,7 +486,7 @@ with different parameters?" Currently missing in ExoFrame.
 
 ### Current Behavior Comparison
 
-**Via AgentExecutor (MCP path):**
+# Via AgentExecutor (MCP path):
 
 ```typescript
 // Parses frontmatter, extracts fields
@@ -497,9 +497,9 @@ return {
   capabilities: frontmatter.capabilities, // ✓ Extracted
   systemPrompt: bodyAfterFrontmatter, // ✓ Clean prompt
 };
-```
+```text
 
-**Via request_common.ts (direct path):**
+# Via request_common.ts (direct path):
 
 ```typescript
 // No parsing, entire file becomes prompt
@@ -507,7 +507,7 @@ return {
   systemPrompt: entireFileContent, // ✗ Includes frontmatter!
   agentId: agentId,
 };
-```
+```text
 
 This means the same blueprint produces different behavior depending on
 which execution path processes it!
@@ -537,7 +537,7 @@ const BlueprintSchema = z.object({
   confidence_required: z.number().min(0).max(100).optional(),
   memory_enabled: z.boolean().default(false),
 });
-```
+```text
 
 ---
 
@@ -568,9 +568,9 @@ confidence_required: 80
 After generating your initial response, you MUST critique it:
 
 1. **Accuracy Check:** Are all facts correct? Any hallucinations?
-2. **Completeness Check:** Did I address all requirements?
-3. **Quality Check:** Is the output well-structured and clear?
-4. **Safety Check:** Any security, privacy, or ethical issues?
+
+1.
+1.
 
 Rate your confidence (0-100) and list any issues found.
 
@@ -588,13 +588,19 @@ If confidence < {{confidence_required}} OR issues found:
 <critique>
 Confidence: [0-100]
 Issues:
+
 - [Issue 1]
 - [Issue 2]
-Suggestions:
+
+
 - [Suggestion 1]
-</critique>
+
 
 <content>
 [Your response to the user]
 </content>
+```text
+
+
 ```
+

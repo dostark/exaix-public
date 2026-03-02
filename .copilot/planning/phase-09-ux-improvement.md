@@ -7,9 +7,9 @@
 ExoFrame's value proposition is **not** real-time coding assistance (IDE agents do that better). ExoFrame excels at:
 
 1. **Audit trail & traceability** — trace_id linking everything
-2. **Asynchronous workflows** — drop request, come back later
-3. **Explicit approval gates** — no accidental destructive changes
-4. **Multi-project context** — portals span multiple codebases
+
+1.
+1.
 
 However, the current "drop a markdown file" workflow has friction. This phase addresses that.
 
@@ -121,7 +121,7 @@ SORT file.name ASC
 \`\`\`
 ```
 
-2. **Activity Export Script** (for Dataview consumption)
+1.
 
 ```typescript
 // scripts/export_activity.ts
@@ -167,13 +167,13 @@ ${markdown}
 - Evaluate and select a Deno-compatible TUI library (e.g., `cliffy` or `deno-tui`).
 - Scaffold a new TUI module under `src/ui/tui/`.
 
-2. **TUI Command Integration**
+1.
 
 - Implement and document the `exoctl dashboard` command as the entry point for the TUI cockpit.
 - Ensure the TUI can run in parallel with the ExoFrame daemon.
 - Update User Guide, Technical Spec, and Manual Test Scenarios to include full usage, options, and troubleshooting for `exoctl dashboard`.
 
-3. **TUI Cockpit Features**
+1.
 
 **Core Views (all support split view):**
 
@@ -228,19 +228,19 @@ ${markdown}
 - Manual and automated tests for TUI flows (mock Activity Journal, plan approval, etc.)
 - Update User Guide and README with TUI usage instructions and screenshots
 
-4. **Architecture & Data Flow**
+1.
 
 - Use ExoFrame's existing file/database APIs for data (no new backend required).
 - Implement event polling or file watching for real-time updates.
 - Ensure all actions (approve, reject, control) are reflected in the Activity Journal for auditability.
 
-5. **User Experience**
+1.
 
 - Keyboard-driven navigation (tab, arrows, shortcuts for actions).
 - Clear status indicators (colors/icons for running, pending, error states).
 - Graceful fallback if TUI cannot be launched (error message, exit code).
 
-6. **Testing & Documentation**
+1.
 
 - Manual and automated tests for TUI flows (mock Activity Journal, plan approval, etc.).
 - Update User Guide and README with TUI usage instructions and screenshots.
@@ -354,25 +354,25 @@ Enable interactive terminal-based controls (TUI) in the Portal Manager View, all
 - Evaluate Deno-compatible TUI libraries (e.g., cliffy, deno_tui, or custom minimal rendering)
 - Integrate chosen library into the project
 
-2. **Portal List Navigation**
+1.
 
 - Render portal list as selectable items
 - Implement keyboard navigation (up/down, page up/down, home/end)
 - Highlight the currently selected portal
 
-3. **Portal Details & Actions**
+1.
 
 - On selection, display portal details in a side panel or modal
 - Render action buttons (e.g., [Open], [Refresh], [Remove])
 - Map keyboard shortcuts to actions (e.g., Enter=open, r=refresh, d=delete)
 
-4. **Action Handling & State Updates**
+1.
 
 - Invoke backend logic for portal actions
 - Update UI state and re-render on success/error
 - Display error messages inline or in a status bar
 
-5. **Testing & Accessibility**
+1.
 
 - Write tests for navigation, selection, and action triggers
 - Ensure all controls are accessible via keyboard
@@ -380,12 +380,12 @@ Enable interactive terminal-based controls (TUI) in the Portal Manager View, all
 **Implementation Steps:**
 
 1. Add TUI library dependency and basic setup
-2. Refactor PortalManagerView to support interactive rendering
-3. Implement navigation and selection logic
-4. Add portal details panel and action controls
-5. Wire up action handlers and error display
-6. Write tests for all interactive features
-7. Document usage and keyboard shortcuts in README
+
+1.
+1.
+1.
+1.
+1.
 
 **Test Description:**
 
@@ -565,3 +565,4 @@ Implement the Request Manager view to list all requests, view request details, c
 - [x] Manual and automated tests for all dashboard features pass
 
 ---
+

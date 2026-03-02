@@ -31,10 +31,10 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ## Missing Information
 
 1. **Request Context**: Request title, priority, creator, agent/flow that initiated it
-2. **Plan Context**: Link to the plan that generated this changeset, plan status
-3. **Flow Context**: If created by a multi-agent flow, which step of the flow created it
-4. **Portal Context**: Which portal/repository this changeset affects
-5. **Status Context**: Clear indication of approval/rejection status with timestamps
+
+1.
+1.
+1.
 
 ## Proposed Enhancement
 
@@ -89,10 +89,10 @@ flow_step: 2/5 (Database Setup)
 ## Implementation Requirements
 
 1. **Enhanced Metadata Loading**: Similar to plan commands, load request and plan metadata from database
-2. **Flow Step Tracking**: Add flow_step field to changeset schema and registration
-3. **Portal Detection**: Extract portal information from branch/repo context
-4. **Status Display**: Show approval/rejection status prominently
-5. **Link Formatting**: Use markdown-style links for request/plan references
+
+1.
+1.
+1.
 
 ## Database Schema Changes
 
@@ -131,3 +131,4 @@ Medium - This is a significant UX improvement that would help users understand t
 - Status information is clearly displayed
 - All existing functionality preserved
 - Comprehensive test coverage added
+

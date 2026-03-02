@@ -84,26 +84,26 @@ All agent `<thought>` sections MUST follow this structured format:
 ### Benefits
 
 1. **Consistency**: All agents follow the same reasoning structure
-2. **Clarity**: Easier to understand agent decision-making process
-3. **Debugging**: Structured format helps identify reasoning flaws
-4. **Automation**: Consistent structure enables better parsing and analysis
-5. **Quality**: Forces comprehensive consideration of all aspects
+
+1.
+1.
+1.
 
 ### Migration Plan
 
 #### Phase 31.5: Thought Section Standardization
 
 1. **Update all agent blueprints** to use the standardized `<thought>` structure
-2. **Update agent-content-schema.md** to reference this standardization
-3. **Create examples** showing before/after for each agent type
-4. **Validate** that all agents produce consistent reasoning patterns
+
+1.
+1.
 
 #### Implementation Steps
 
 1. Review current `<thought>` sections across all 18+ agent files
-2. Update each agent blueprint to use the new structure
-3. Test agent outputs to ensure reasoning quality is maintained
-4. Update documentation and examples
+
+1.
+1.
 
 ### Examples
 
@@ -129,15 +129,17 @@ Project uses Deno with std/log. Existing logging patterns in src/utils/logger.ts
 Add structured logging with different levels (info, warn, error) throughout the application.
 
 ## Key Considerations
+
 - Don't log sensitive data (passwords, tokens)
 - Use appropriate log levels
 - Include contextual information (user ID, request ID)
 
 ## Implementation Strategy
+
 1. Review existing logger utility
-2. Add logging to error handlers
-3. Add request logging middleware
-4. Update configuration for log levels
+
+1.
+1.
 
 ## Risk Assessment
 Risk: Performance impact from excessive logging. Mitigation: Use async logging and configurable levels.
@@ -158,3 +160,4 @@ Risk: Performance impact from excessive logging. Mitigation: Use async logging a
 - ❌ **Don't** skip sections unless truly not applicable
 - ❌ **Don't** use generic placeholders
 - ❌ **Don't** make sections too verbose (>500 words total)
+

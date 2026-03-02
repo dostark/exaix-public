@@ -33,10 +33,10 @@ jscpd analysis reveals **300 code clones** across 243 files with **3,340 duplica
 
 **Detected Clones** (11-20 line blocks repeated across all 3 files):
 
-```
+```text
 Pattern: Mock setup + provider instantiation + generateText call + assertion
 Lines affected: ~50 lines per file × 3 = 150 duplicated lines
-```
+```text
 
 **Refactoring Plan**:
 
@@ -52,9 +52,9 @@ Lines affected: ~50 lines per file × 3 = 150 duplicated lines
      name: string,
      factory: () => AIProvider,
    ): ProviderTestContext;
-   ```
+   ```text
 
-2. Extract common test patterns:
+1.
    - `testBasicGeneration()`
    - `testStreamingResponse()`
    - `testErrorHandling()`
@@ -82,7 +82,7 @@ constructor(config: Config) {
   this.maxTokens = config.maxTokens || 4096;
   // ... same structure across all 3
 }
-```
+```text
 
 **Refactoring Plan**:
 
@@ -102,9 +102,9 @@ constructor(config: Config) {
      abstract generateText(prompt: string): Promise<string>;
      abstract streamText(prompt: string): AsyncIterable<string>;
    }
-   ```
+   ```text
 
-2. Refactor each provider to extend `BaseAIProvider`
+1.
 
 **Estimated Impact**: Reduce 60 lines → 20 lines (66% reduction)
 
@@ -126,7 +126,7 @@ const view = new RequestManagerView(mockContext);
 await view.render();
 assertEquals(view.getSelectedIndex(), 0);
 // Navigation tests repeat this pattern extensively
-```
+```text
 
 **Refactoring Plan**:
 
@@ -140,14 +140,14 @@ assertEquals(view.getSelectedIndex(), 0);
      assertSelectedIndex(expected: number): void;
      assertRenderedContent(pattern: RegExp): void;
    }
-   ```
+   ```text
 
-2. Create shared navigation test suite:
+1.
    ```typescript
    export function testNavigationBehavior(harness: TuiViewTestHarness<any>) {
      // j/k navigation, search, selection
    }
-   ```
+   ```text
 
 **Estimated Impact**: Reduce 714 lines → 250 lines (65% reduction)
 
@@ -167,7 +167,7 @@ const mockDb = createMockDb();
 const router = new RequestRouter(mockDb);
 const request = createTestRequest({ status: "pending" });
 await router.route(request);
-```
+```text
 
 **Refactoring Plan**:
 
@@ -181,7 +181,7 @@ await router.route(request);
        assertRouted: async (request: Request, expected: string) => {...}
      };
    }
-   ```
+   ```text
 
 **Estimated Impact**: Reduce 75 lines → 25 lines (66% reduction)
 
@@ -202,7 +202,7 @@ const field = this.createTextField({
   value: this.state.field,
   onChange: (v) => this.setState({ field: v }),
 });
-```
+```text
 
 **Refactoring Plan**:
 
@@ -213,7 +213,7 @@ const field = this.createTextField({
      label: string,
      options?: TextFieldOptions
    ): TextField
-   ```
+   ```text
 
 **Estimated Impact**: Reduce 70 lines → 30 lines (57% reduction)
 
@@ -238,12 +238,12 @@ try {
 } catch (err) {
   await this.handleStepException(err);
 }
-```
+```text
 
 **Refactoring Plan**:
 
 1. Extract `executeStepWithLogging()` method
-2. Use strategy pattern for step handlers
+
 
 **Estimated Impact**: Reduce 80 lines → 40 lines (50% reduction)
 
@@ -265,7 +265,7 @@ try {
 
 ## Implementation Order
 
-```
+```text
 Phase 14.1 (AI Provider Tests)     ████████████  ~4 hours
 Phase 14.2 (AI Providers Source)   ██████████    ~3 hours
 Phase 14.3 (TUI View Tests)        ████████████  ~4 hours
@@ -274,7 +274,7 @@ Phase 14.5 (Memory Dialogs)        ██████        ~2 hours
 Phase 14.6 (Execution Loop)        ██████        ~2 hours
                                    ─────────────────────────
                                    Total: ~16 hours
-```
+```text
 
 ---
 
@@ -300,3 +300,7 @@ Each phase is independently reversible via git revert. Test coverage must be mai
 - jscpd report: [jscpd-report/jscpd-report.json](../../jscpd-report/jscpd-report.json)
 - Previous TUI work: [phase-13-tui-enhancement.md](phase-13-tui-enhancement.md)
 - Testing guidelines: [agents/tests/testing.md](../tests/testing.md)
+
+
+```
+

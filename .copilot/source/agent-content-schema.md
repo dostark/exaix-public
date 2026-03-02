@@ -457,3 +457,4 @@ When migrating from markdown to JSON format:
 - **Zod Validation**: `PlanSchema.parse(jsonContent)`
 - **Tool Definitions**: `src/enums.ts` (McpToolName)
 - **Migration Guide**: `.copilot/planning/phase-31-agent-blueprint-json-migration.md`
+

@@ -27,12 +27,12 @@ export interface IModelProvider {
 }
 ```
 
-**Implementation Checklist:**
+# Implementation Checklist:
 
 1. Create `src/ai/providers.ts` defining `IModelProvider`.
-2. Implement `MockProvider` class.
-3. Implement `OllamaProvider` class using `fetch` to talk to localhost:11434.
-4. Create `ModelFactory` to instantiate providers based on config.
+
+1.
+1.
 
 - **Success Criteria:**
   - Test 1: `MockProvider` returns configured response.
@@ -52,9 +52,9 @@ execute the prompt against the LLM.
 **The Solution:** Create an `AgentRunner` class that:
 
 1. Takes a `Blueprint` (System Prompt) and `ParsedRequest` (User Prompt).
-2. Constructs the final prompt.
-3. Delegates execution to the injected `IModelProvider`.
-4. **Parses the response** to extract reasoning and content.
+
+1.
+1.
 
 **Response Specification:** Agents must be instructed (via System Prompt) to structure their response as follows:
 
@@ -75,13 +75,13 @@ console.log(result.thought); // "Analyzing request..."
 console.log(result.content); // "Here is the plan..."
 ```
 
-**Implementation Checklist:**
+# Implementation Checklist:
 
 1. Define `Blueprint` interface (initially just `systemPrompt`).
-2. Define `AgentExecutionResult` interface (`{ thought: string; content: string; raw: string }`).
-3. Create `src/services/agent_runner.ts`.
-4. Implement `run(blueprint: Blueprint, request: ParsedRequest): Promise<AgentExecutionResult>`.
-5. Implement regex parsing to extract `<thought>` and `<content>`.
+
+1.
+1.
+1.
 
 - **Success Criteria:**
   - Test 1: `AgentRunner` combines System Prompt and User Request correctly.
@@ -102,9 +102,9 @@ console.log(result.content); // "Here is the plan..."
 have token limits. If we blindly inject all context:
 
 1. We exceed the model's context window and the request fails
-2. We waste tokens on irrelevant files
-3. We can't prioritize important context over less important context
-4. Users don't know what was truncated or why
+
+1.
+1.
 
 **The Solution:** Create a `ContextLoader` that intelligently loads context files within token budgets, using
 configurable strategies to prioritize and truncate context.
@@ -202,25 +202,25 @@ class ContextLoader {
 
 #### Truncation Strategies
 
-**1. `smallest-first` (Default)**
+# 1. `smallest-first` (Default)
 
 - Load smallest files first to maximize coverage
 - Best for: Getting breadth across many files
 - Example: Loading 10 small config files + 2 medium source files vs. 1 huge legacy file
 
-**2. `drop-largest`**
+# 2. `drop-largest`
 
 - Skip files that don't fit, starting with largest
 - Best for: Ensuring all critical small files are included
 - Example: Skip 100KB README but include all 5KB source files
 
-**3. `drop-oldest`**
+# 3. `drop-oldest`
 
 - Skip files by modification time (oldest first)
 - Best for: Prioritizing recent changes
 - Example: Skip year-old docs in favor of this week's code changes
 
-**4. `truncate-each`**
+# 4. `truncate-each`
 
 - Truncate individual files to fit within remaining budget
 - Best for: Ensuring every file gets at least some representation
@@ -229,38 +229,38 @@ class ContextLoader {
 #### Implementation Checklist
 
 1. **Create `src/services/context_loader.ts`**
-2. **Implement `ContextLoader` class** with:
+
    - `loadWithLimit(filePaths: string[]): Promise<ContextLoadResult>`
    - `estimateTokens(text: string): number`
    - `applyStrategy(files: ContextFile[]): ContextFile[]`
    - `formatContext(files: ContextFile[]): string`
-3. **Handle per-file caps:** If a single file exceeds `perFileTokenCap`, truncate it before applying global strategy
-4. **Generate warnings:** Track which files were skipped/truncated and why
-5. **Detect agent type:** Check config to determine if enforcing limits (local vs. API agents)
-6. **Log to Activity Journal:** Record context loading events with token counts and warnings
+1.
+1.
+1.
+1.
 
 #### Error Handling
 
-**Missing Files:**
+# Missing Files:
 
 - Log warning but continue loading other files
 - Include placeholder in warnings
 - Don't fail entire context load
 
-**Permission Errors:**
+# Permission Errors:
 
 - Catch `PermissionDenied` errors
 - Log to Activity Journal
 - Skip file and continue
 
-**Malformed Paths:**
+# Malformed Paths:
 
 - Validate paths before attempting to read
 - Use `PathResolver` from Step 2.3 for security
 
 #### Success Criteria
 
-**Test 1: Token Limit Enforcement**
+# Test 1: Token Limit Enforcement
 
 ```typescript
 // Test: Link 10 massive files (total 500k tokens), budget 100k tokens
@@ -285,7 +285,7 @@ assertEquals(result.warnings.length > 0, true); // Generated warnings
 assertEquals(result.skippedFiles.length > 0, true); // Some files skipped
 ```
 
-**Test 2: Warning Block Generation**
+# Test 2: Warning Block Generation
 
 ```typescript
 // Verify warning appears in agent's prompt
@@ -294,7 +294,7 @@ assertStringIncludes(result.content, "Token Budget: 80000");
 assertStringIncludes(result.content, "Skipped");
 ```
 
-**Test 3: Agent Receives Warning**
+# Test 3: Agent Receives Warning
 
 ```typescript
 // Verify agent can reference the warning
@@ -314,7 +314,7 @@ assertStringIncludes(
 );
 ```
 
-**Test 4: Local Agent (No Limits)**
+# Test 4: Local Agent (No Limits)
 
 ```typescript
 const localLoader = new ContextLoader({
@@ -331,7 +331,7 @@ assertEquals(result.skippedFiles.length, 0);
 assertEquals(result.warnings.length, 0);
 ```
 
-**Test 5: Truncation Strategies**
+# Test 5: Truncation Strategies
 
 ```typescript
 // Test each strategy produces different ordering
@@ -355,7 +355,7 @@ for (const strategy of strategies) {
 
 #### Integration Notes
 
-**With AgentRunner (Step 3.2):**
+# With AgentRunner (Step 3.2):
 
 The `ContextLoader` enriches the `ParsedRequest.context` field before passing to `AgentRunner`:
 
@@ -379,11 +379,11 @@ const runner = new AgentRunner(modelProvider);
 const result = await runner.run(blueprint, request);
 ```
 
-**Activity Journal Logging:**
+# Activity Journal Logging:
 
 **Requirement:** All context loading operations must be logged to the Activity Journal for audit trail and debugging.
 
-**Events to Log:**
+# Events to Log:
 
 1. **context.loaded** - Successful context loading operation
    ```sql
@@ -405,7 +405,7 @@ const result = await runner.run(blueprint, request);
    );
    ```
 
-2. **context.file_load_error** - Failed to load a context file
+1.
    ```sql
    INSERT INTO activity (action_type, entity_type, entity_id, actor, trace_id, metadata)
    VALUES (
@@ -421,7 +421,7 @@ const result = await runner.run(blueprint, request);
    );
    ```
 
-**Implementation Requirements:**
+# Implementation Requirements:
 
 - Add `traceId` and `requestId` optional fields to `ContextConfig`
 - Call `logContextLoad()` after successful context assembly
@@ -429,7 +429,7 @@ const result = await runner.run(blueprint, request);
 - Log events should be async and non-blocking (don't fail if logging fails)
 - Include relevant metadata for debugging (token counts, file counts, strategy used)
 
-**Test Coverage:**
+# Test Coverage:
 
 ```typescript
 // tests/reporter/mission_reporter_test.ts
@@ -454,20 +454,20 @@ Deno.test("MissionReporter: formats report with valid TOML frontmatter", async (
 });
 ```
 
-**Success Criteria:**
+# Success Criteria:
 
 1. ✅ After successful execution, report created in `/Knowledge/Reports/`
-2. ✅ Report filename follows convention: `{date}_{traceId}_{requestId}.md`
-3. ✅ Report includes git diff summary with file change counts
-4. ✅ Report contains Obsidian wiki links to all context files used
-5. ✅ Report frontmatter has all required fields (trace_id, status, agent_id, completed_at)
-6. ✅ Report logged to Activity Journal with `action_type='report.generated'`
-7. ✅ Report is searchable via Obsidian and context loading
-8. ✅ Report generation errors logged but don't crash execution loop
-9. ✅ Reports indexed in Activity Journal for retrieval by trace_id
-10. ✅ Report includes reasoning section explaining key decisions
 
-**Acceptance Criteria (Manual Testing):**
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+
+# Acceptance Criteria (Manual Testing):
 
 ```bash
 # 1. Create request and approve
@@ -499,3 +499,4 @@ plan.executed
 ```
 
 ---
+

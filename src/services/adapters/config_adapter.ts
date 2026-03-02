@@ -27,6 +27,13 @@ export class ConfigServiceAdapter implements IConfigService {
   }
 
   /**
+   * Alias for get() to satisfy some consumers.
+   */
+  getAll(): Config {
+    return this.configService.get();
+  }
+
+  /**
    * Reload configuration from disk.
    */
   reload(): Config {

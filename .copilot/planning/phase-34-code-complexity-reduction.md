@@ -49,10 +49,10 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 ### Problem Areas
 
 1. **TUI Dashboard** - `launchTuiDashboard()`: 29 complexity, massive initialization function
-2. **TUI Key Handlers** - `prodHandleKey()`: 53 complexity, extensive conditional logic
-3. **Flow Execution** - `execute()`: 27 complexity, complex state management
-4. **Plan Processing** - `toMarkdown()`: 61 complexity, nested formatting logic
-5. **Monitor View** - `handleKeySync()`: 26 complexity, complex key handling
+
+1.
+1.
+1.
 
 ---
 
@@ -124,8 +124,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Refactoring approach:**
 
 1. **Function Extraction:** Break large functions into smaller, focused functions
-2. **Strategy Pattern:** Replace conditional logic with strategy objects
-3. **Builder Pattern:** Use builders for complex object construction
+
+1.
 
 **Success criteria:**
 
@@ -149,8 +149,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Architecture improvements:**
 
 1. Create `src/tui/utils/key_strategies.ts` - Strategy pattern for key handling
-2. Create `src/tui/utils/key_middleware.ts` - Middleware for key processing
-3. Extract common key validation logic
+
+1.
 
 **Success criteria:**
 
@@ -172,8 +172,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Refactoring approach:**
 
 1. Extract validation logic into separate functions
-2. Use State pattern for execution states
-3. Simplify error handling and recovery
+
+1.
 
 **Success criteria:**
 
@@ -196,8 +196,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Architecture improvements:**
 
 1. Extract component-specific logic into separate files
-2. Create shared utility modules
-3. Implement proper separation of concerns
+
+1.
 
 **Success criteria:**
 
@@ -218,8 +218,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Refactoring approach:**
 
 1. Extract command validation logic
-2. Use Command pattern for CLI operations
-3. Simplify argument parsing
+
+1.
 
 **Success criteria:**
 
@@ -236,8 +236,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Activities:**
 
 1. Run full test suite after each major change
-2. Performance testing to ensure no regressions
-3. Code review and documentation updates
+
+1.
 
 **Success criteria:**
 
@@ -254,8 +254,8 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Activities:**
 
 1. Update CI workflow threshold from 20 to 15
-2. Ensure all code passes new threshold
-3. Monitor for any threshold violations
+
+1.
 
 **Success criteria:**
 
@@ -321,13 +321,13 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
    - **Methods:** `matchAndApplySkills`, `logExecutionStart`, `executeWithRetry`, `handleExecutionFailure`, `logExecutionCompletion`
    - **Tests:** 52/52 passing
 
-2. **`handle()` in `src/tui/request_manager/key_handlers.ts`**
+1.
    - **Complexity:** 27 → <25 ✅
    - **Refactoring:** Function extraction (5 helper methods)
    - **Methods:** `handleNavigationKeys`, `handleTreeKeys`, `handleActionKeys`, `handleFilterKeys`, `handleGlobalKeys`
    - **Tests:** 29/29 passing
 
-3. **`handleKey()` in `src/tui/memory_view/key_handlers.ts`**
+1.
    - **Complexity:** 26 → <25 ✅
    - **Refactoring:** Function extraction (5 helper methods)
    - **Methods:** `handleScopeNavigation`, `handleSearchAndHelp`, `handleProposalActions`, `handleLearningActions`, `handleGlobalActions`
@@ -356,3 +356,4 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 **Start Date:** TBD
 **Target Completion:** TBD (7-8 weeks)
 **Dependencies:** Complexity analysis complete, CI threshold updated to 20
+

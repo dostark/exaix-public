@@ -20,7 +20,7 @@ This document proposes enhancements to ExoFrame's Flow orchestration system base
 | GateEvaluator                    | ✅ Complete | `src/flows/gate_evaluator.ts`                                       | ✅ 8 tests                      |
 | JudgeEvaluator                   | ✅ Complete | `src/flows/judge_evaluator.ts`                                      | ✅ 14 tests                     |
 | FeedbackLoop                     | ✅ Complete | `src/flows/feedback_loop.ts`                                        | ✅ 15 tests                     |
-| FlowRunner Condition Integration | ✅ Complete | `src/flows/flow_runner.ts`                                          | ✅ Included in flow_runner_test |
+| FlowRunner Condition Integration | ✅ Complete | `src/flows/flow*runner.ts`                                          | ✅ Included in flow*runner_test |
 | Schema Extensions                | ✅ Complete | `src/schemas/flow.ts`                                               | ✅ Included in existing tests   |
 | Quality Judge Blueprint          | ✅ Complete | `Blueprints/Agents/quality-judge.md`                                | N/A                             |
 | LLM Judge Template               | ✅ Complete | `Blueprints/Flows/templates/llm-judge-code-review.flow.template.ts` | N/A                             |
@@ -36,19 +36,19 @@ This document proposes enhancements to ExoFrame's Flow orchestration system base
 
 | Test File                     | Tests | Coverage                                            |
 | ----------------------------- | ----- | --------------------------------------------------- |
-| `condition_evaluator_test.ts` | 21    | Condition expressions, context building, validation |
-| `gate_evaluator_test.ts`      | 8     | Gate pass/fail, retry actions, score thresholds     |
-| `judge_evaluator_test.ts`     | 14    | JSON parsing, heuristics, score normalization       |
-| `feedback_loop_test.ts`       | 15    | Iterations, stop conditions, improvement agents     |
-| `evaluation_criteria_test.ts` | 37    | CRITERIA, weighted scores, prompt building          |
-| `flow_runner_test.ts`         | ~40   | Execution, dependencies, transforms, conditions     |
-| `dependency_resolver_test.ts` | ~15   | DAG resolution, cycle detection                     |
+| `condition*evaluator*test.ts` | 21    | Condition expressions, context building, validation |
+| `gate*evaluator*test.ts`      | 8     | Gate pass/fail, retry actions, score thresholds     |
+| `judge*evaluator*test.ts`     | 14    | JSON parsing, heuristics, score normalization       |
+| `feedback*loop*test.ts`       | 15    | Iterations, stop conditions, improvement agents     |
+| `evaluation*criteria*test.ts` | 37    | CRITERIA, weighted scores, prompt building          |
+| `flow*runner*test.ts`         | ~40   | Execution, dependencies, transforms, conditions     |
+| `dependency*resolver*test.ts` | ~15   | DAG resolution, cycle detection                     |
 | `transforms_test.ts`          | ~15   | Transform functions                                 |
-| `define_flow_test.ts`         | ~10   | Flow definition, validation                         |
+| `define*flow*test.ts`         | ~10   | Flow definition, validation                         |
 
 ### Test Implementation (All Complete ✅)
 
-#### 1. JudgeEvaluator Tests (`tests/flows/judge_evaluator_test.ts`) - ✅ **COMPLETE**
+#### 1. JudgeEvaluator Tests (`tests/flows/judge*evaluator*test.ts`) - ✅ **COMPLETE**
 
 ```typescript
 // Implemented tests (14 total):
@@ -66,9 +66,9 @@ Deno.test("JudgeEvaluator: handles agent runner error gracefully");
 Deno.test("JudgeEvaluator: returns default evaluation for unparseable response");
 Deno.test("JudgeEvaluator: implements JudgeInvoker interface");
 Deno.test("createJudgeEvaluator: creates evaluator from agent runner");
-```
+```text
 
-#### 2. FeedbackLoop Tests (`tests/flows/feedback_loop_test.ts`) - ✅ **COMPLETE**
+#### 2. FeedbackLoop Tests (`tests/flows/feedback*loop*test.ts`) - ✅ **COMPLETE**
 
 ```typescript
 // Implemented tests (15 total):
@@ -87,21 +87,21 @@ Deno.test("runSelfCorrectingAgent: runs complete self-correcting flow");
 Deno.test("runSelfCorrectingAgent: improves through iterations");
 Deno.test("FeedbackLoop: tracks total duration");
 Deno.test("FeedbackLoop: handles multiple criteria");
-```
+```text
 
-#### 3. EvaluationCriteria Tests (`tests/flows/evaluation_criteria_test.ts`) - ✅ **COMPLETE**
+#### 3. EvaluationCriteria Tests (`tests/flows/evaluation*criteria*test.ts`) - ✅ **COMPLETE**
 
 ```typescript
 // Implemented tests (37 total):
 Deno.test("CRITERIA: contains CODE_CORRECTNESS");
 Deno.test("CRITERIA: contains HAS_TESTS");
 Deno.test("CRITERIA: contains CODE_COMPLETENESS");
-Deno.test("CRITERIA: contains NO_SECURITY_ISSUES");
+Deno.test("CRITERIA: contains NO*SECURITY*ISSUES");
 Deno.test("CRITERIA: all criteria have valid schema");
-Deno.test("CRITERION_SETS: contains CODE_REVIEW set");
-Deno.test("CRITERION_SETS: contains MINIMAL_GATE set");
-Deno.test("CRITERION_SETS: contains SECURITY_REVIEW set");
-Deno.test("CRITERION_SETS: CODE_REVIEW includes key criteria");
+Deno.test("CRITERION*SETS: contains CODE*REVIEW set");
+Deno.test("CRITERION*SETS: contains MINIMAL*GATE set");
+Deno.test("CRITERION*SETS: contains SECURITY*REVIEW set");
+Deno.test("CRITERION*SETS: CODE*REVIEW includes key criteria");
 Deno.test("getCriteriaByNames: retrieves single criterion");
 Deno.test("getCriteriaByNames: retrieves multiple criteria");
 Deno.test("getCriteriaByNames: handles hyphenated names");
@@ -130,19 +130,19 @@ Deno.test("EvaluationCriterionSchema: validates correct criterion");
 Deno.test("EvaluationCriterionSchema: requires name");
 Deno.test("EvaluationCriterionSchema: requires description");
 Deno.test("EvaluationCriterionSchema: applies default weight");
-```
+```text
 
 #### 4. Integration Tests - **P2**
 
 ```typescript
-// In flow_runner_test.ts or new integration file:
+// In flow*runner*test.ts or new integration file:
 Deno.test("FlowRunner: executes gate step with judge evaluation");
 Deno.test("FlowRunner: handles gate retry action");
 Deno.test("FlowRunner: handles gate halt action");
 Deno.test("FlowRunner: executes feedback loop step");
 Deno.test("FlowRunner: branch step routes correctly");
 Deno.test("FlowRunner: consensus step aggregates results");
-```
+```text
 
 ---
 
@@ -152,19 +152,19 @@ Deno.test("FlowRunner: consensus step aggregates results");
 
 | Task                               | Status     | Priority | Effort |
 | ---------------------------------- | ---------- | -------- | ------ |
-| `judge_evaluator_test.ts`          | ❌ Missing | P1       | 2h     |
-| `feedback_loop_test.ts`            | ❌ Missing | P1       | 2h     |
-| `evaluation_criteria_test.ts`      | ❌ Missing | P2       | 1h     |
+| `judge*evaluator*test.ts`          | ❌ Missing | P1       | 2h     |
+| `feedback*loop*test.ts`            | ❌ Missing | P1       | 2h     |
+| `evaluation*criteria*test.ts`      | ❌ Missing | P2       | 1h     |
 | `self-correcting.flow.template.ts` | ❌ Missing | P3       | 1h     |
 | Documentation Update (Phase 15.7)  | ⚠️ Partial | P2       | 2h     |
 
 ### Recommended Completion Order:
 
-1. **Create `judge_evaluator_test.ts`** - Tests for LLM-as-a-Judge
-2. **Create `feedback_loop_test.ts`** - Tests for Reflexion pattern
-3. **Create `evaluation_criteria_test.ts`** - Tests for criteria library
-4. **Create `self-correcting.flow.template.ts`** - Template from spec
-5. **Update documentation** - Complete Phase 15.7
+1. **Create `judge*evaluator*test.ts`** - Tests for LLM-as-a-Judge
+
+1.
+1.
+1.
 
 ---
 
@@ -173,11 +173,11 @@ Deno.test("FlowRunner: consensus step aggregates results");
 ### Strengths ✅
 
 1. **Solid Foundation**: Well-implemented DAG-based dependency resolution with topological sort
-2. **Parallel Execution**: Wave-based execution with configurable `maxParallelism`
-3. **Extensible Transforms**: Built-in transforms + custom function support
-4. **Comprehensive Logging**: Full activity journal integration
-5. **Error Handling**: Retry mechanism with backoff, `failFast` option
-6. **Template Library**: Pipeline, Fan-Out/Fan-In, and Staged templates
+
+1.
+1.
+1.
+1.
 
 ### Identified Weaknesses 🔴 → **Now Addressed** ✅
 
@@ -254,7 +254,7 @@ if (step.condition) {
     return { stepId, success: true, skipped: true, duration: 0, ... };
   }
 }
-```
+```text
 
 **Condition Context**:
 
@@ -264,13 +264,13 @@ interface ConditionContext {
   request: FlowRequest; // Original request
   flow: Flow; // Flow definition
 }
-```
+```text
 
 **Files to Modify**:
 
 - `src/flows/flow_runner.ts` - Add `evaluateCondition()` method
 - `src/schemas/flow.ts` - Document condition syntax
-- `tests/flows/flow_runner_test.ts` - Add condition tests
+- `tests/flows/flow*runner*test.ts` - Add condition tests
 
 ---
 
@@ -292,7 +292,7 @@ interface GateStep extends FlowStep {
     maxRetries?: number;
   };
 }
-```
+```text
 
 **Example Flow**:
 
@@ -315,7 +315,7 @@ defineFlow({
           "code_correctness",
           "follows_conventions",
           "has_tests",
-          "no_security_issues",
+          "no*security*issues",
         ],
         threshold: 0.8,
         onFail: "retry",
@@ -329,7 +329,7 @@ defineFlow({
     },
   ],
 });
-```
+```text
 
 **Files to Create/Modify**:
 
@@ -356,8 +356,8 @@ system_prompt: |
 
   For each criterion, provide:
   1. Score (0.0-1.0)
-  2. Reasoning (1-2 sentences)
-  3. Specific issues found (if any)
+  1.
+  1.
 
   Output JSON format:
   {
@@ -368,7 +368,7 @@ system_prompt: |
     "pass": true,
     "feedback": "Overall assessment..."
   }
-```
+```text
 
 **Evaluation Request Format**:
 
@@ -385,7 +385,7 @@ interface EvaluationCriterion {
   weight?: number; // Default 1.0
   required?: boolean; // Must pass for overall pass
 }
-```
+```text
 
 **Built-in Criteria Library**:
 
@@ -404,8 +404,8 @@ export const CRITERIA = {
     name: "follows_conventions",
     description: "Code follows project style and naming conventions",
   },
-  NO_SECURITY_ISSUES: {
-    name: "no_security_issues",
+  NO*SECURITY*ISSUES: {
+    name: "no*security*issues",
     description: "No obvious security vulnerabilities (injection, exposure)",
   },
   COMPLETENESS: {
@@ -417,7 +417,7 @@ export const CRITERIA = {
     description: "Output is clear, well-organized, and understandable",
   },
 };
-```
+```text
 
 **Files to Create**:
 
@@ -457,11 +457,11 @@ interface FeedbackLoopConfig {
     criteria: ["correctness", "completeness"]
   }
 }
-```
+```text
 
 **Execution Flow**:
 
-```
+```text
 generate-code → evaluate-code → [score < 0.9?]
                                     ↓ yes
                         improve-code (with feedback)
@@ -472,7 +472,7 @@ generate-code → evaluate-code → [score < 0.9?]
                                     ...
                                     ↓ no
                               continue flow
-```
+```text
 
 **Files to Create/Modify**:
 
@@ -501,7 +501,7 @@ interface BranchCondition {
   condition: string; // Expression evaluated against context
   goto: string; // Step ID to execute
 }
-```
+```text
 
 **Example**:
 
@@ -522,7 +522,7 @@ interface BranchCondition {
   ],
   default: "detailed-design"
 }
-```
+```text
 
 **Execution Changes**:
 
@@ -548,14 +548,14 @@ interface ConsensusStep {
   judge?: string; // Agent to resolve disagreements
   weights?: Record<string, number>; // For weighted method
 }
-```
+```text
 
 **Consensus Methods**:
 
 1. **majority**: Most common answer wins (requires structured outputs)
-2. **weighted**: Weighted average of scores/decisions
-3. **unanimous**: All must agree, else escalate
-4. **judge**: LLM-as-a-Judge resolves disagreements
+
+1.
+1.
 
 **Example - Multi-Reviewer Code Review**:
 
@@ -575,7 +575,7 @@ defineFlow({
     },
   ],
 });
-```
+```text
 
 ---
 
@@ -611,7 +611,7 @@ export default defineFlow({
       input: {
         source: "step",
         stepId: "initial-work",
-        transform: "wrap_for_evaluation",
+        transform: "wrap*for*evaluation",
       },
       // Judge outputs structured evaluation
     },
@@ -635,7 +635,7 @@ export default defineFlow({
       input: {
         source: "aggregate",
         from: ["initial-work", "judge-evaluation"],
-        transform: "format_improvement_request",
+        transform: "format*improvement*request",
       },
       loop: {
         maxIterations: 2,
@@ -665,7 +665,7 @@ export default defineFlow({
     timeout: 600000,
   },
 });
-```
+```text
 
 ### Template: Self-Correcting Code Generation
 
@@ -692,7 +692,7 @@ export default defineFlow({
       input: {
         source: "aggregate",
         from: ["generate"],
-        transform: "prepare_for_review",
+        transform: "prepare*for*review",
       },
     },
     {
@@ -704,7 +704,7 @@ export default defineFlow({
       input: {
         source: "aggregate",
         from: ["generate", "self-review"],
-        transform: "combine_code_and_feedback",
+        transform: "combine*code*and_feedback",
       },
     },
     {
@@ -724,7 +724,7 @@ export default defineFlow({
     format: "markdown",
   },
 });
-```
+```text
 
 ---
 
@@ -746,10 +746,10 @@ export default defineFlow({
 All enhancements are **additive** - existing flows continue to work unchanged:
 
 1. `condition` field already in schema, just needs evaluation
-2. New step types (`gate`, `branch`, `consensus`) are optional
-3. Loop configuration is optional
-4. Judge agent is just another blueprint
-5. New templates don't affect existing templates
+
+1.
+1.
+1.
 
 ---
 
@@ -780,11 +780,11 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 | `Blueprints/Agents/quality-judge.md`                          | ✅ Created (as .md)                   |
 | `Blueprints/Flows/templates/llm-judge.flow.template.ts`       | ✅ Created (as llm-judge-code-review) |
 | `Blueprints/Flows/templates/self-correcting.flow.template.ts` | ❌ Not created                        |
-| `tests/flows/gate_evaluator_test.ts`                          | ✅ Created (8 tests)                  |
-| `tests/flows/judge_evaluator_test.ts`                         | ✅ Created (14 tests)                 |
-| `tests/flows/feedback_loop_test.ts`                           | ✅ Created (15 tests)                 |
-| `tests/flows/condition_evaluator_test.ts`                     | ✅ Created (21 tests)                 |
-| `tests/flows/evaluation_criteria_test.ts`                     | ✅ Created (37 tests)                 |
+| `tests/flows/gate*evaluator*test.ts`                          | ✅ Created (8 tests)                  |
+| `tests/flows/judge*evaluator*test.ts`                         | ✅ Created (14 tests)                 |
+| `tests/flows/feedback*loop*test.ts`                           | ✅ Created (15 tests)                 |
+| `tests/flows/condition*evaluator*test.ts`                     | ✅ Created (21 tests)                 |
+| `tests/flows/evaluation*criteria*test.ts`                     | ✅ Created (37 tests)                 |
 
 **Modified Files**:
 
@@ -805,19 +805,19 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 | File                                   | Updates Required                                       |
 | -------------------------------------- | ------------------------------------------------------ |
-| `docs/ExoFrame_User_Guide.md`          | Flow section: conditions, gates, loops, judge patterns |
-| `docs/Building_with_AI_Agents.md`      | New orchestration patterns, examples                   |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase 15 completion status                             |
+| `docs/ExoFrame*User*Guide.md`          | Flow section: conditions, gates, loops, judge patterns |
+| `docs/Building*with*AI_Agents.md`      | New orchestration patterns, examples                   |
+| `docs/ExoFrame*Implementation*Plan.md` | Phase 15 completion status                             |
 | `Blueprints/Flows/README.md`           | New templates, step types                              |
 
 **Tasks:**
 
 1. Document condition evaluation syntax and examples
-2. Add quality gate configuration guide
-3. Document feedback loop patterns
-4. Add LLM-as-a-Judge setup guide
-5. Update CLI reference for new flow commands
-6. Add troubleshooting section for new features
+
+1.
+1.
+1.
+1.
 
 **Success Criteria:**
 
@@ -833,13 +833,13 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 ### Phase 15 Complete ✅
 
 1. ~~Review and approve this plan~~ ✅
-2. ~~Create implementation tickets for each phase~~ ✅
-3. ~~Start with Phase 15.1 (lowest risk, enables others)~~ ✅
-4. ~~Follow TDD approach for each component~~ ✅ Complete - 175 tests passing
-5. **All tasks completed:**
-   - [x] Create `tests/flows/judge_evaluator_test.ts` (14 tests)
-   - [x] Create `tests/flows/feedback_loop_test.ts` (15 tests)
-   - [x] Create `tests/flows/evaluation_criteria_test.ts` (37 tests)
+
+1.
+1.
+1.
+   - [x] Create `tests/flows/judge*evaluator*test.ts` (14 tests)
+   - [x] Create `tests/flows/feedback*loop*test.ts` (15 tests)
+   - [x] Create `tests/flows/evaluation*criteria*test.ts` (37 tests)
    - [x] Complete Phase 15.7 documentation update ✅
    - [x] Create `Blueprints/Flows/templates/self-correcting.flow.template.ts` ✅
 
@@ -848,8 +848,8 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 | Document                                      | Updates Made                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
 | `ExoFrame_Architecture.md`                    | Added Flow Orchestration Architecture section, Mermaid diagram, Component table |
-| `ExoFrame_Technical_Spec.md`                  | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
-| `ExoFrame_User_Guide.md`                      | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops     |
+| `ExoFrame*Technical*Spec.md`                  | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
+| `ExoFrame*User*Guide.md`                      | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops     |
 | `phase-15-flow-orchestration-improvements.md` | Updated success metrics, file status, completion status                         |
 | `Blueprints/Flows/templates/README.md`        | Added Self-Correcting template documentation                                    |
 
@@ -865,3 +865,7 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 **Optional/Future:**
 
 - [ ] Migration guide for existing flows (if needed)
+
+
+```
+

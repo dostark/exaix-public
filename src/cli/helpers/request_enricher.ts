@@ -1,14 +1,14 @@
 /**
  * @module RequestEnricher
- * @path src/helpers/request_enricher.ts
+ * @path src/cli/helpers/request_enricher.ts
  * @description Utility to enrich metadata with full request information from the database or workspace.
- * @architectural-layer Helpers
+ * @architectural-layer CLI
  * @dependencies [RequestCommands, EnvConfig]
  * @related-files [src/cli/request_commands.ts]
  */
-import { RequestCommands } from "../cli/commands/request_commands.ts";
-import { isTestMode } from "../config/env_schema.ts";
-import type { IRequestMetadata } from "../shared/types/request.ts";
+import { RequestCommands } from "../commands/request_commands.ts";
+import { isTestMode } from "../../config/env_schema.ts";
+import type { IRequestMetadata } from "../../shared/types/request.ts";
 
 export interface IRequestEnrichable {
   request_id?: string;

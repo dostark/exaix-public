@@ -49,7 +49,7 @@ with the Memory Bank system provides:
 
 ### Memory Type Hierarchy
 
-```
+```text
 Memory/
 ├── Projects/{portal}/     # Declarative: project facts, decisions
 ├── Execution/{trace-id}/  # Episodic: what happened
@@ -58,7 +58,7 @@ Memory/
     ├── core/              # Built-in skills (tdd, security, etc.)
     ├── project/           # Project-specific skills
     └── learned/           # Skills derived from executions
-```
+```text
 
 Skills bridge the gap between:
 
@@ -76,10 +76,10 @@ Skills bridge the gap between:
 A **Skill** is a specialized Memory entry containing procedural knowledge:
 
 1. **Trigger Conditions** - When this skill should be activated
-2. **Instructions** - Procedural knowledge for the task type
-3. **Constraints** - Boundaries and requirements
-4. **Output Format** - Expected deliverable structure
-5. **Quality Criteria** - How to evaluate success
+
+1.
+1.
+1.
 
 ### Memory Type Comparison
 
@@ -106,7 +106,7 @@ A **Skill** is a specialized Memory entry containing procedural knowledge:
 
 ### Skill Composition Model
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         Agent Execution                              │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -122,7 +122,7 @@ A **Skill** is a specialized Memory entry containing procedural knowledge:
 │  + Task (What) ──────────────────────────────────────────────────── │
 │    └── User Request: "Review this authentication PR"                │
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -140,10 +140,10 @@ A **Skill** is a specialized Memory entry containing procedural knowledge:
 ### Gap Analysis
 
 1. **No procedural memory type** - Learnings are observations, not instructions
-2. **No trigger-based retrieval** - Memory search is semantic, not task-aware
-3. **No skill composition** - Can't combine multiple procedures
-4. **No learning-to-skill pipeline** - Can't evolve learnings into skills
-5. **Scattered procedural knowledge** - In docs, prompts, templates (not Memory)
+
+1.
+1.
+1.
 
 ### Integration Opportunity
 
@@ -223,11 +223,11 @@ export const SkillSchema = z.object({
   effectiveness_score: z.number().min(0).max(100).optional(),
   usage_count: z.number().default(0),
 });
-```
+```text
 
 ### Storage Structure
 
-```
+```text
 Memory/
 ├── Projects/{portal}/
 ├── Execution/{trace-id}/
@@ -244,7 +244,7 @@ Memory/
     │   └── {skill-id}.skill.md
     └── learned/               # Auto-derived from learnings
         └── {skill-id}.skill.md
-```
+```text
 
 ### Skill File Format (Markdown with Frontmatter)
 
@@ -307,7 +307,7 @@ You MUST follow Test-Driven Development:
 - Never write production code without a failing test
 - One logical assertion per test
 - Test behavior, not implementation details
-```
+
 
 ### MemoryBankService Extension
 
@@ -402,7 +402,7 @@ export class MemoryBankService {
       .join("\n\n---\n\n");
   }
 }
-```
+```text
 
     for (const skill of this.skills) {
       const confidence = this.calculateMatch(skill, request);
@@ -428,7 +428,7 @@ export class MemoryBankService {
   }
   }
 
-````
+````text
 ### Integration with AgentRunner
 
 ```typescript
@@ -464,7 +464,7 @@ class AgentRunner {
     return this.parseResponse(result);
   }
 }
-````
+````text
 
 ### Flow Integration
 
@@ -490,7 +490,7 @@ const codeReviewFlow = defineFlow({
     },
   ],
 });
-```
+```text
 
 ---
 
@@ -527,10 +527,10 @@ const codeReviewFlow = defineFlow({
 **Deliverables:**
 
 1. `SkillSchema` in `src/schemas/memory_bank.ts`
-2. `SkillTriggers` schema for trigger conditions
-3. `SkillIndex` and `SkillIndexEntry` schemas
-4. Directory structure: `Memory/Skills/{core,project,learned}/`
-5. Index file: `Memory/Skills/index.json`
+
+1.
+1.
+1.
 
 **File:** `src/schemas/memory_bank.ts`
 
@@ -543,13 +543,13 @@ const codeReviewFlow = defineFlow({
 
 **Projected Tests:** `tests/schemas/memory_bank_test.ts`
 
-```
+```text
 ✅ SkillSchema: validates complete skill object
 ✅ SkillSchema: requires skill_id, name, version
 ✅ SkillSchema: validates trigger structure
 ✅ SkillTriggers: accepts all trigger types
 ✅ SkillIndexSchema: validates index with entries
-```
+```text
 
 ---
 
@@ -560,13 +560,13 @@ const codeReviewFlow = defineFlow({
 **Deliverables:**
 
 1. `SkillsService` class in `src/services/skills.ts`
-2. `initialize()` - Create directory structure
-3. `getSkill(skillId)` - Retrieve skill by ID
-4. `listSkills(filters?)` - List with optional filtering
-5. `createSkill(skill, location)` - Create new skill
-6. `updateSkill(skillId, updates)` - Modify existing skill
-7. `activateSkill(skillId)` / `deprecateSkill(skillId)`
-8. Activity logging for all operations
+
+1.
+1.
+1.
+1.
+1.
+1.
 
 **File:** `src/services/skills.ts`
 
@@ -582,7 +582,7 @@ const codeReviewFlow = defineFlow({
 
 **Projected Tests:** `tests/services/skills_test.ts`
 
-```
+```text
 ✅ SkillsService: initialize creates directory structure
 ✅ SkillsService: createSkill creates and indexes skill
 ✅ SkillsService: getSkill retrieves created skill
@@ -591,7 +591,7 @@ const codeReviewFlow = defineFlow({
 ✅ SkillsService: updateSkill modifies skill
 ✅ SkillsService: activateSkill changes draft to active
 ✅ SkillsService: deprecateSkill marks skill as deprecated
-```
+```text
 
 ---
 
@@ -602,21 +602,21 @@ const codeReviewFlow = defineFlow({
 **Deliverables:**
 
 1. `matchSkills(request)` - Returns ranked skill matches
-2. Keyword matching (partial, case-insensitive)
-3. Task type matching (exact match)
-4. File pattern matching (glob patterns)
-5. Tag matching (intersection)
-6. Confidence scoring algorithm (weighted)
-7. `SkillMatchRequest` interface
+
+1.
+1.
+1.
+1.
+1.
 
 **File:** `src/services/skills.ts`
 
 **Matching Algorithm:**
 
-```
+```text
 Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
            + (FilePatternScore * 0.2) + (TagScore * 0.1)
-```
+```text
 
 **Success Criteria:**
 
@@ -629,14 +629,14 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 
 **Projected Tests:** `tests/services/skills_test.ts`
 
-```
+```text
 ✅ SkillsService: matchSkills returns skills matching keywords
 ✅ SkillsService: matchSkills returns skills matching task types
 ✅ SkillsService: matchSkills returns skills matching file patterns
 ✅ SkillsService: matchSkills excludes non-active skills
 ✅ SkillsService: matchSkills extracts keywords from request text
 ✅ SkillsService: matchSkills respects maxSkillsPerRequest limit
-```
+```text
 
 ---
 
@@ -647,9 +647,9 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 **Deliverables:**
 
 1. `buildSkillContext(skillIds)` - Generate markdown context
-2. Skill formatting with headers and separators
-3. Include constraints and quality criteria
-4. `recordSkillUsage(skillId)` - Track usage counts
+
+1.
+1.
 
 **File:** `src/services/skills.ts`
 
@@ -662,11 +662,11 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 
 **Projected Tests:** `tests/services/skills_test.ts`
 
-```
+```text
 ✅ SkillsService: buildSkillContext generates markdown context
 ✅ SkillsService: buildSkillContext handles missing skills
 ✅ SkillsService: buildSkillContext combines multiple skills
-```
+```text
 
 ---
 
@@ -706,9 +706,9 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 **Deliverables:**
 
 1. `deriveSkillFromLearnings(learningIds, skillDraft)` method
-2. Links derived skill to source learnings via `derived_from`
-3. Creates skill with `status: "draft"` (requires approval)
-4. Creates in `Memory/Skills/learned/` directory
+
+1.
+1.
 
 **File:** `src/services/skills.ts`
 
@@ -721,9 +721,9 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 
 **Projected Tests:** `tests/services/skills_test.ts`
 
-```
+```text
 ✅ SkillsService: deriveSkillFromLearnings creates skill with derived_from
-```
+```text
 
 ---
 
@@ -734,12 +734,12 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 **Deliverables:**
 
 1. ✅ Add `skillsService` to `AgentRunner` constructor
-2. ✅ Call `matchSkills()` in `run()` method
-3. ✅ Call `buildSkillContext()` for matched skills
-4. ✅ Inject skill context into prompt (before user request)
-5. ✅ Add `matchedSkills` to execution logs
-6. ✅ Implement skill priority chain (request → trigger → blueprint defaults)
-7. ✅ Add `skills` config options to `AgentRunnerConfig`
+
+1.
+1.
+1.
+1.
+1.
 
 **Files Modified:**
 
@@ -757,7 +757,7 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 
 **Tests Implemented:** `tests/agent_runner_test.ts`
 
-```
+```text
 ✅ AgentRunner: matches skills based on triggers
 ✅ AgentRunner: injects skill context into prompt
 ✅ AgentRunner: logs matched skills in activity
@@ -768,7 +768,7 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 ✅ AgentRunner: filters out skipSkills from matched
 ✅ AgentRunner: skipSkills filters from all sources
 ✅ AgentRunner: empty explicit skills disables all
-```
+```text
 
 ---
 
@@ -779,10 +779,10 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 **Deliverables:**
 
 1. ✅ Add `skills?: string[]` to `FlowStepSchema`
-2. ✅ Add `defaultSkills?: string[]` to `FlowSchema`
-3. ✅ Update `FlowRunner` to inject step-level skills
-4. ✅ Merge flow defaults with step-specific skills
-5. ✅ Pass skills through `FlowStepRequest` interface
+
+1.
+1.
+1.
 
 **Files Modified:**
 
@@ -799,7 +799,7 @@ skills: z.array(z.string()).optional(),
 
 // FlowSchema addition
 defaultSkills: z.array(z.string()).optional(),
-```
+```text
 
 **Success Criteria:**
 
@@ -811,14 +811,14 @@ defaultSkills: z.array(z.string()).optional(),
 
 **Tests Implemented:** `tests/flows/flow_runner_test.ts`
 
-```
+```text
 ✅ FlowRunner: step passes skills to agent execution
 ✅ FlowRunner: flow-level default skills passed to steps
 ✅ FlowRunner: step-level skills override flow defaults
 ✅ FlowRunner: multi-step flow with mixed skills
 ✅ FlowRunner: works without skills (backward compatible)
 ✅ FlowRunner: logs hasSkills in step events
-```
+```text
 
 ---
 
@@ -835,7 +835,7 @@ exoctl memory skill show <skill-id>          # Show skill details
 exoctl memory skill create <skill-id>        # Create new skill
 exoctl memory skill match "<request>"        # Test trigger matching
 exoctl memory skill derive <learning-ids>    # Derive from learnings
-```
+```text
 
 **Files Modified:**
 
@@ -871,9 +871,9 @@ exoctl memory skill derive <learning-ids>    # Derive from learnings
 **Deliverables:**
 
 1. ✅ Add `default_skills` to Blueprint frontmatter schema
-2. ✅ Parse `default_skills` in BlueprintService
-3. ✅ AgentRunner uses blueprint defaults when no triggers match
-4. ✅ Extend Blueprint interface with `defaultSkills`
+
+1.
+1.
 
 **Files Modified:**
 
@@ -891,7 +891,7 @@ name: "Security-Focused Developer"
 default_skills: ["security-first", "error-handling"]
 capabilities: ["read_file", "write_file"]
 ---
-```
+```text
 
 **Success Criteria:**
 
@@ -902,10 +902,10 @@ capabilities: ["read_file", "write_file"]
 
 **Tests Implemented:** `tests/agent_runner_test.ts`
 
-```
+```text
 ✅ AgentRunner: applies blueprint default skills when no trigger matches
 ✅ AgentRunner: trigger matches override blueprint defaults
-```
+```text
 
 ---
 
@@ -916,10 +916,10 @@ capabilities: ["read_file", "write_file"]
 **Deliverables:**
 
 1. ✅ Add `skills` to RequestSchema
-2. ✅ Add `skip_skills` to RequestSchema
-3. ✅ Extend ParsedRequest with `skills` and `skipSkills`
-4. ✅ Request skills override trigger matching (highest priority)
-5. ✅ `skip_skills` filters out skills from any source
+
+1.
+1.
+1.
 
 **Files Modified:**
 
@@ -937,14 +937,14 @@ skip_skills: ["tdd-methodology"]
 ---
 
 Review this authentication module for production readiness.
-```
+```text
 
 **Skill Resolution Order (Implemented):**
 
 1. `request.skills` (explicit) → Use these, skip trigger matching
-2. `skillsService.matchSkills()` → Use trigger matches
-3. `blueprint.defaultSkills` → Fall back when no matches
-4. Filter: Remove any skills in `request.skipSkills` (from any source)
+
+1.
+1.
 
 **Success Criteria:**
 
@@ -955,11 +955,11 @@ Review this authentication module for production readiness.
 
 **Tests Implemented:** `tests/agent_runner_test.ts`
 
-```
+```text
 ✅ AgentRunner: uses request-level explicit skills
 ✅ AgentRunner: filters out skipSkills from matched
 ✅ AgentRunner: skipSkills filters from all sources
-```
+```text
 
 ---
 
@@ -980,7 +980,7 @@ Review this authentication module for production readiness.
    - All milestones marked ✅ Complete
    - Phase status updated to Complete
 
-2. **Implementation Steps:**
+1.
    - Each step has success criteria checked
    - Test lists show actual test names
    - Files modified listed per step
@@ -1021,9 +1021,9 @@ The TUI currently shows agent `capabilities` but has no visibility into skills (
 Users need to:
 
 1. See which skills an agent has by default
-2. Understand which skills will be applied to a request
-3. Preview skill matching before execution
-4. Manage skills directly from the TUI
+
+1.
+1.
 
 ---
 
@@ -1089,11 +1089,11 @@ export interface AgentStatus {
   capabilities: string[];
   defaultSkills: string[]; // NEW: From blueprint default_skills
 }
-```
+```text
 
 **Changes to Detail Panel (formatAgentDetail):**
 
-```
+```text
 ┌─ Agent: senior-coder ──────────────────────────────────────────────┐
 │                                                                     │
 │ Model: anthropic/claude-sonnet-4-20250514                          │
@@ -1113,7 +1113,7 @@ export interface AgentStatus {
 │   • security-first                                                  │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -1121,7 +1121,7 @@ export interface AgentStatus {
 
 **New Field in Create Request Dialog:**
 
-```
+```text
 ┌─ Create New Request ───────────────────────────────────────────────┐
 │                                                                     │
 │ Description:                                                        │
@@ -1147,7 +1147,7 @@ export interface AgentStatus {
 │                                                                     │
 │                               [Cancel]  [Create Request]            │
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Implementation Notes:**
 
@@ -1161,7 +1161,7 @@ export interface AgentStatus {
 
 **Changes to Request Detail View:**
 
-```
+```text
 ┌─ Request Details ──────────────────────────────────────────────────┐
 │                                                                     │
 │ Title: Review authentication module                                 │
@@ -1185,7 +1185,7 @@ export interface AgentStatus {
 │ │ Review authentication module for security vulnerabilities...    ││
 │ └─────────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -1193,7 +1193,7 @@ export interface AgentStatus {
 
 **New View:** `src/tui/skills_manager_view.ts`
 
-```
+```text
 ┌─ Skills Manager ───────────────────────────────────────────────────┐
 │ 🎯 core/    📁 project/    📚 learned/    [?] Help                  │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -1219,7 +1219,7 @@ export interface AgentStatus {
 ├─────────────────────────────────────────────────────────────────────┤
 │ [n]ew  [e]dit  [d]elete  [/]search  [r]efresh  [?]help  [q]uit     │
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Key Bindings:**
 
@@ -1263,7 +1263,7 @@ export interface SkillsViewService {
   updateSkill(skillId: string, updates: Partial<Skill>): Promise<Skill>;
   deleteSkill(skillId: string): Promise<boolean>;
 }
-```
+```text
 
 ---
 
@@ -1280,7 +1280,7 @@ export interface SkillsViewService {
 
 **Projected Tests:** `tests/tui/skills_manager_view_test.ts`
 
-```
+```text
 ⬜ SkillsManagerView: renders skill tree
 ⬜ SkillsManagerView: navigates with keyboard
 ⬜ SkillsManagerView: shows skill detail on select
@@ -1289,7 +1289,7 @@ export interface SkillsViewService {
 ⬜ AgentStatusView: displays defaultSkills in detail
 ⬜ RequestManagerView: shows skills preview
 ⬜ RequestManagerView: updates preview on input change
-```
+```text
 
 ---
 
@@ -1305,11 +1305,11 @@ export interface SkillsViewService {
    # ✅ Specific and actionable
    instructions: |
      1. Check null/undefined handling
-     2. Validate input boundaries
-     3. Use TypeScript strict mode
-   ```
+     1.
+     1.
+   ```text
 
-2. **Include Examples**
+1.
    ````yaml
    instructions: |
      ## Example
@@ -1324,19 +1324,19 @@ export interface SkillsViewService {
        logger.error("Operation failed", { error, context });
        throw new AppError("OPERATION_FAILED", error);
      }
-   ````
-   ```
-   ```
+   ````text
+   ```text
+   ```text
 
-3. **Define Clear Triggers**
+1.
    ```yaml
    triggers:
      - keywords: ["security", "auth", "password", "token", "encryption"]
      - task_types: ["security-review", "audit"]
      - file_patterns: ["**/auth/**", "**/security/**"]
-   ```
+   ```text
 
-4. **Set Quality Criteria**
+1.
    ```yaml
    quality_criteria:
      - name: "Vulnerability Check"
@@ -1345,7 +1345,7 @@ export interface SkillsViewService {
      - name: "Remediation Quality"
        description: "Fixes are complete and correct"
        weight: 50
-   ```
+   ```text
 
 ---
 
@@ -1360,8 +1360,8 @@ export interface SkillsViewService {
 ### Migration Path
 
 1. **Phase A:** Skills available but optional
-2. **Phase B:** Auto-matching enabled by default
-3. **Phase C:** Core skills pre-loaded for all ExoFrame tasks
+
+1.
 
 ### Configuration
 
@@ -1372,7 +1372,7 @@ enabled = true
 auto_match = true
 max_skills_per_request = 5
 skill_context_budget = 2000  # tokens
-```
+```text
 
 ---
 
@@ -1381,13 +1381,13 @@ skill_context_budget = 2000  # tokens
 1. **Adoption Rate:** % of requests using skills
    - Target: >50% after 30 days
 
-2. **Task Quality Improvement:** A/B test skill vs no-skill
+1.
    - Target: >20% improvement in quality scores
 
-3. **Skill Reuse:** Average uses per skill
+1.
    - Target: >10 uses per skill per week
 
-4. **Developer Satisfaction:** Skill usefulness rating
+1.
    - Target: >4.0/5.0 average rating
 
 ---
@@ -1417,7 +1417,7 @@ skill_context_budget = 2000  # tokens
 
 ### How Learnings Become Skills
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    Learning → Skill Pipeline                             │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -1437,7 +1437,7 @@ skill_context_budget = 2000  # tokens
 │                                     Active Skill                         │
 │                                   Memory/Skills/learned/                 │
 └─────────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ### Example: Deriving a Skill
 
@@ -1463,7 +1463,7 @@ $ exoctl memory skill show tdd-methodology
 $ exoctl memory skill activate tdd-methodology
 
 Skill activated: tdd-methodology
-```
+```text
 
 ---
 
@@ -1517,7 +1517,7 @@ quality_criteria:
     weight: 30
   - name: "Test Quality"
     weight: 30
-```
+```text
 
 ### exoframe-conventions.skill.yaml
 
@@ -1569,7 +1569,7 @@ constraints:
 
 compatible_with:
   agents: ["*"]
-```
+```text
 
 ---
 
@@ -1614,4 +1614,8 @@ export const SkillSchema = z.object({
 });
 
 export type Skill = z.infer<typeof SkillSchema>;
+```text
+
+
 ```
+

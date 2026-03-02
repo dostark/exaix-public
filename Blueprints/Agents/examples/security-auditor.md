@@ -28,10 +28,10 @@ Your role is to identify security vulnerabilities and recommend fixes.
 When performing security audits:
 
 1. Check for common vulnerabilities (OWASP Top 10)
-2. Analyze authentication and authorization
-3. Review input validation and sanitization
-4. Assess data protection and privacy
-5. Evaluate secure coding practices
+
+1.
+1.
+1.
 
 Always prioritize critical security issues and provide actionable remediation steps.
 
@@ -56,11 +56,12 @@ Example structure:
 ```text
 <thought>
 The user wants a comprehensive security audit of the application. I need to:
+
 1. Review authentication and authorization mechanisms
-2. Check for common vulnerabilities (OWASP Top 10)
-3. Analyze input validation and data sanitization
-4. Assess encryption and data protection
-5. Review dependency security
+
+1.
+1.
+1.
 </thought>
 
 <content>
@@ -117,3 +118,4 @@ The user wants a comprehensive security audit of the application. I need to:
 
 {{include:blueprint-best-practices}}
 ```
+

@@ -8,7 +8,7 @@
 
 Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.
 
-**Use Cases:**
+# Use Cases:
 
 | Flow Pattern       | Example                                       | Execution Model          |
 | ------------------ | --------------------------------------------- | ------------------------ |
@@ -19,7 +19,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 
 ### Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      FlowRunner                             │
 ├─────────────────────────────────────────────────────────────┤
@@ -32,9 +32,9 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 ├─────────────────────────────────────────────────────────────┤
 │                    Activity Journal                         │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
-**Key Components:**
+# Key Components:
 
 - **FlowRunner** — Orchestrates multi-step execution, manages state
 - **DependencyResolver** — Topological sort, cycle detection, wave grouping
@@ -50,7 +50,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 - **Action:** Define Zod schemas for `FlowStep` and `Flow` types
 - **Location:** `src/schemas/flow.ts`
 
-**FlowStep Fields:**
+# FlowStep Fields:
 
 | Field               | Type     | Required | Description                                    |
 | ------------------- | -------- | -------- | ---------------------------------------------- |
@@ -66,7 +66,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 | `retry.maxAttempts` | number   |          | Retry count (default: 1)                       |
 | `retry.backoffMs`   | number   |          | Backoff delay (default: 1000)                  |
 
-**Flow Fields:**
+# Flow Fields:
 
 | Field                     | Type            | Required | Description                           |
 | ------------------------- | --------------- | -------- | ------------------------------------- |
@@ -81,7 +81,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 | `settings.failFast`       | boolean         |          | Stop on first failure (default: true) |
 | `settings.timeout`        | number          |          | Global flow timeout in ms             |
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] Zod schemas correctly validate valid flow definitions with all required fields
 - [x] Schema rejects invalid flow definitions with descriptive error messages for missing required fields, wrong data types, and invalid enum values
@@ -90,7 +90,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 - [x] Schema types are properly exported and importable by FlowRunner and other services
 - [x] Default values are correctly applied for optional fields
 
-**Implemented Tests:**
+# Implemented Tests:
 
 - [x] `tests/schemas/flow_schema_test.ts`: Unit tests for FlowStep schema validation covering valid and invalid inputs
 - [x] `tests/schemas/flow_schema_test.ts`: Unit tests for Flow schema validation with complete flow definitions
@@ -109,7 +109,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 - **Action:** Define TypeScript-based flow definitions in `/Blueprints/Flows/`
 - **Convention:** Files named `<flow-id>.flow.ts`
 
-**Why TypeScript (not TOML/YAML)?**
+# Why TypeScript (not TOML/YAML)?
 
 | Benefit     | Explanation                                |
 | ----------- | ------------------------------------------ |
@@ -118,17 +118,17 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 | Transforms  | Functions not string DSL                   |
 | Consistency | Same language as codebase                  |
 
-**File Structure:**
+# File Structure:
 
-```
+```text
 /Blueprints/Flows/
 ├── code_review.flow.ts
 ├── feature_development.flow.ts
 ├── documentation.flow.ts
 └── research.flow.ts
-```
+```text
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] `defineFlow()` helper function provides full TypeScript type safety with autocomplete and compile-time validation
 - [x] Flow files can be dynamically imported and parsed without runtime errors
@@ -136,7 +136,7 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 - [x] Example flow files are created demonstrating pipeline, fan-out/fan-in, staged, and hybrid patterns
 - [x] Flow files follow consistent naming convention and structure
 
-**Implemented Tests:**
+# Implemented Tests:
 
 - [x] `tests/flows/flow_loader_test.ts`: Unit tests for dynamic import functionality of flow files
 - [x] `tests/flows/define_flow_test.ts`: Tests for defineFlow helper function type safety and validation
@@ -154,23 +154,23 @@ Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase
 - **Action:** Implement topological sort and cycle detection
 - **Location:** `src/flows/dependency_resolver.ts`
 
-**Responsibilities:**
+# Responsibilities:
 
 1. **Cycle Detection** — DFS with visited/inStack tracking; throw `FlowValidationError` with cycle path
-2. **Topological Sort** — Kahn's algorithm for valid execution order
-3. **Wave Grouping** — Group steps by dependency depth for parallel execution
 
-**Wave Resolution Example:**
+1.
 
-```
+# Wave Resolution Example:
+
+```text
 Input:                          Output Waves:
   A (no deps)                     Wave 1: [A, B]  ← parallel
   B (no deps)                     Wave 2: [C]     ← waits for wave 1
   C (depends: A, B)               Wave 3: [D]     ← waits for wave 2
   D (depends: C)
-```
+```text
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] Cycle detection algorithm correctly identifies circular dependencies and throws FlowValidationError with cycle path details
 - [x] Topological sort using Kahn's algorithm produces a valid execution order for acyclic graphs
@@ -179,7 +179,7 @@ Input:                          Output Waves:
 - [x] Self-referencing dependencies are detected and rejected
 - [x] Empty dependency arrays are handled correctly
 
-**Planned Tests:**
+# Planned Tests:
 
 - [x] `tests/flows/dependency_resolver_test.ts`: Comprehensive unit tests for DependencyResolver class
 - [x] Cycle detection tests: A→B→C→A, A→A, complex cycles with multiple nodes
@@ -198,20 +198,20 @@ Input:                          Output Waves:
 - **Action:** Implement core flow execution engine
 - **Location:** `src/flows/flow_runner.ts`
 
-**Execution Algorithm:**
+# Execution Algorithm:
 
 1. Generate `flowRunId` (UUID)
-2. Log `flow.started` to Activity Journal
-3. Resolve step waves via DependencyResolver
-4. For each wave:
+
+1.
+1.
    - Execute steps in parallel (semaphore-limited)
    - Collect results into `Map<stepId, StepResult>`
    - If `failFast` and any step failed → throw `FlowExecutionError`
-5. Aggregate output from designated step(s)
-6. Log `flow.completed` to Activity Journal
-7. Return `FlowResult` with all step results
+1.
+1.
+1.
 
-**Activity Journal Events:**
+# Activity Journal Events:
 
 | Event                         | Payload Fields                                                                                     | Description                      |
 | ----------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------- |
@@ -233,7 +233,7 @@ Input:                          Output Waves:
 | `flow.completed`              | `flowRunId, flowId, success, duration, stepsCompleted, successfulSteps, failedSteps, outputLength` | Flow completed successfully      |
 | `flow.failed`                 | `flowRunId, flowId, error, errorType, duration, stepsAttempted, successfulSteps, failedSteps`      | Flow execution failed            |
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] FlowRunner successfully executes simple sequential flows with proper step ordering
 - [x] Parallel steps execute concurrently within the same wave
@@ -245,7 +245,7 @@ Input:                          Output Waves:
 - [x] Flow results aggregate outputs from designated steps in specified format
 - [x] Empty flows are properly rejected with appropriate error messages
 
-**Planned Tests:**
+# Planned Tests:
 
 - [x] `tests/flows/flow_runner_test.ts`: Integration tests for FlowRunner execution engine
 - [x] `FlowRunner: executes simple sequential flow` - Verifies sequential step execution with dependency ordering and proper result aggregation
@@ -266,16 +266,16 @@ Input:                          Output Waves:
 - **Action:** Add `exoctl flow` subcommands for flow management and execution
 - **Location:** `src/cli/flow_commands.ts`
 
-**File Structure:**
+# File Structure:
 
-```
+```text
 src/cli/
 ├── flow_commands.ts          # Main flow command definitions
 ├── base.ts                   # Shared CLI utilities
 └── exoctl.ts                 # Main CLI entry point
-```
+```text
 
-**Integration Points:**
+# Integration Points:
 
 - **FlowRunner:** Executes flows via `FlowRunner.execute()`
 - **DependencyResolver:** Analyzes flow dependencies for `show` and `plan` commands
@@ -283,7 +283,7 @@ src/cli/
 - **Request Processor:** Links flow executions to user requests
 - **File System:** Reads flow definitions from `/Blueprints/Flows/`
 
-**Commands:**
+# Commands:
 
 | Command                                    | Description                             | Output Format                           |
 | ------------------------------------------ | --------------------------------------- | --------------------------------------- |
@@ -294,9 +294,9 @@ src/cli/
 | `exoctl flow history <id>`                 | Show past executions                    | Table of executions with status/timing  |
 | `exoctl flow validate <file>`              | Validate flow definition                | Validation report with errors/warnings  |
 
-**Command Details:**
+# Command Details:
 
-**`exoctl flow list`**
+# `exoctl flow list`
 
 - Scans `/Blueprints/Flows/` directory for `.toml` files
 - Parses flow metadata (id, name, description, version)
@@ -304,7 +304,7 @@ src/cli/
 - Displays in tabular format with sorting options
 - Shows flow status (valid/invalid) based on schema validation
 
-**`exoctl flow show <id>`**
+# `exoctl flow show <id>`
 
 - Loads flow definition from `/Blueprints/Flows/<id>.toml`
 - Validates flow schema and dependencies
@@ -313,7 +313,7 @@ src/cli/
 - Shows execution waves and parallel groups
 - Includes flow settings (maxParallelism, failFast, output format)
 
-**`exoctl flow run <id> --request <req-id>`**
+# `exoctl flow run <id> --request <req-id>`
 
 - Validates flow and request existence
 - Creates FlowRunner instance with dependencies
@@ -322,7 +322,7 @@ src/cli/
 - Updates request status and links execution trace
 - Handles execution errors with detailed error reporting
 
-**`exoctl flow plan <id> --request <req-id>`**
+# `exoctl flow plan <id> --request <req-id>`
 
 - Performs dry-run analysis without executing agents
 - Shows execution waves and step ordering
@@ -331,7 +331,7 @@ src/cli/
 - Reports potential parallelism and bottlenecks
 - Validates request data availability for each step
 
-**`exoctl flow history <id>`**
+# `exoctl flow history <id>`
 
 - Queries Activity Journal for flow executions
 - Groups executions by flowRunId
@@ -339,7 +339,7 @@ src/cli/
 - Displays recent executions with timestamps
 - Provides filtering options (date range, status, request ID)
 
-**`exoctl flow validate <file>`**
+# `exoctl flow validate <file>`
 
 - Validates flow TOML against Flow schema
 - Checks step dependencies for cycles and invalid references
@@ -347,7 +347,7 @@ src/cli/
 - Reports schema errors with line numbers and suggestions
 - Performs semantic validation (input/output compatibility)
 
-**Error Handling:**
+# Error Handling:
 
 - **Invalid Flow ID:** "Flow 'invalid-id' not found in /Blueprints/Flows/"
 - **Malformed Flow:** "Flow validation failed: missing required field 'steps'"
@@ -356,11 +356,11 @@ src/cli/
 - **Invalid Request:** "Request 'invalid-id' not found in /Inbox/Requests/"
 - **Execution Failure:** "Flow execution failed at step 'test-step': agent timeout"
 
-**Output Formats:**
+# Output Formats:
 
-**Flow List Output:**
+# Flow List Output:
 
-```
+```text
 Available Flows:
 ┌─────────────┬─────────────────┬───────┬─────────────────────────────────────┐
 │ ID          │ Name            │ Steps │ Description                         │
@@ -369,11 +369,11 @@ Available Flows:
 │ deploy      │ Deployment      │ 5     │ Multi-stage deployment pipeline     │
 │ research    │ Research        │ 4     │ Research and analysis workflow      │
 └─────────────┴─────────────────┴───────┴─────────────────────────────────────┘
-```
+```text
 
-**Flow Show Output:**
+# Flow Show Output:
 
-```
+```text
 Flow: code-review (v1.0.0)
 Description: Automated code review workflow
 
@@ -398,9 +398,9 @@ Steps:
 └─────────┴──────────────┴─────────────────┴─────────────────────┘
 
 Settings: maxParallelism=3, failFast=true, output=markdown
-```
+```text
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] `exoctl flow list` displays all available flows with their IDs, names, descriptions, and step counts
 - [x] `exoctl flow show <id>` renders a clear dependency graph showing steps and their relationships
@@ -414,7 +414,7 @@ Settings: maxParallelism=3, failFast=true, output=markdown
 - [x] Commands support both interactive and scripted usage patterns
 - [x] Flow execution reports include timing data and step-by-step results
 
-**Planned Tests:**
+# Planned Tests:
 
 - [x] `tests/cli/flow_commands_test.ts`: CLI integration tests for all flow commands
 - [x] `exoctl flow list` tests: Lists flows correctly, handles empty directory, shows step counts
@@ -437,16 +437,16 @@ Settings: maxParallelism=3, failFast=true, output=markdown
 - **Action:** Enable requests to specify `flow:` field for multi-agent execution
 - **Location:** `src/services/request_router.ts`
 
-**File Structure:**
+# File Structure:
 
-```
+```text
 src/services/
 ├── request_router.ts          # Main routing logic with flow support
 ├── request_processor.ts       # Request lifecycle management
 └── request_parser.ts          # Frontmatter parsing utilities
-```
+```text
 
-**Integration Points:**
+# Integration Points:
 
 - **FlowRunner:** Executes flows when `flow:` field is detected
 - **AgentRunner:** Executes single agents for `agent:` field (existing)
@@ -454,30 +454,30 @@ src/services/
 - **EventLogger:** Records routing decisions in Activity Journal
 - **RequestParser:** Extracts flow/agent fields from frontmatter
 
-**Routing Logic:**
+# Routing Logic:
 
-**Priority Order:**
+# Priority Order:
 
 1. **Flow Field Present**: `flow: <id>` → Route to FlowRunner
-2. **Agent Field Present**: `agent: <id>` → Route to AgentRunner (legacy)
-3. **Neither Field**: Use default agent from configuration
 
-**Validation Steps:**
+1.
+
+# Validation Steps:
 
 1. Parse request frontmatter for `flow` and `agent` fields
-2. If `flow` field exists:
+
    - Validate flow ID exists in `/Blueprints/Flows/`
    - Load and validate flow schema
    - Check flow dependencies (agents, transforms)
-3. If `agent` field exists:
+1.
    - Validate agent exists in blueprints
    - Use existing AgentRunner path
-4. If neither field:
+1.
    - Use default agent from `exo.config.toml`
 
-**Request Frontmatter Examples:**
+# Request Frontmatter Examples:
 
-**Flow Request:**
+# Flow Request:
 
 ```yaml
 ---
@@ -488,9 +488,9 @@ tags: [review, pr-42]
 priority: high
 ---
 Please review this pull request for security issues and code quality.
-```
+```text
 
-**Agent Request (Legacy):**
+# Agent Request (Legacy):
 
 ```yaml
 ---
@@ -500,9 +500,9 @@ agent: senior-coder
 tags: [implementation]
 ---
 Implement a new feature following the requirements in the attached spec.
-```
+```text
 
-**Default Agent Request:**
+# Default Agent Request:
 
 ```yaml
 ---
@@ -511,9 +511,9 @@ status: pending
 tags: [general]
 ---
 Please help me understand this codebase structure.
-```
+```text
 
-**Error Handling:**
+# Error Handling:
 
 - **Invalid Flow ID:** "Flow 'nonexistent-flow' not found in /Blueprints/Flows/"
 - **Malformed Flow:** "Flow 'broken-flow' has invalid schema: missing required field 'steps'"
@@ -523,7 +523,7 @@ Please help me understand this codebase structure.
 - **Conflicting Fields:** "Request cannot specify both 'flow' and 'agent' fields"
 - **Empty Flow:** "Flow 'empty-flow' must contain at least one step"
 
-**Activity Journal Events:**
+# Activity Journal Events:
 
 | Event                            | Payload Fields                            |
 | -------------------------------- | ----------------------------------------- |
@@ -534,7 +534,7 @@ Please help me understand this codebase structure.
 | `request.flow.validated`         | `requestId, flowId, stepCount, traceId`   |
 | `request.flow.validation.failed` | `requestId, flowId, error, traceId`       |
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] Requests with `flow:` field in frontmatter are correctly routed to FlowRunner for multi-agent execution
 - [x] Requests with `agent:` field continue to use the existing AgentRunner for single-agent execution
@@ -549,7 +549,7 @@ Please help me understand this codebase structure.
 - [x] Routing performance doesn't degrade with large numbers of flows or requests
 - [x] Request router integrates seamlessly with existing request processing pipeline
 
-**Planned Tests:**
+# Planned Tests:
 
 - [x] `tests/services/request_router_test.ts`: Unit and integration tests for request routing logic
 - [x] Flow routing tests: Requests with valid flow IDs are routed to FlowRunner
@@ -572,19 +572,19 @@ Please help me understand this codebase structure.
 - **Action:** Implement input/output passing between flow steps with transform functions
 - **Location:** `src/flows/transforms.ts`, `src/flows/flow_runner.ts`
 
-**Problem Statement:**
+# Problem Statement:
 
 Flow steps need to communicate with each other - the output of one step becomes the input for dependent steps. Without inter-step communication, flows are limited to independent parallel execution only.
 
-**The Solution: Transform-Based Data Flow**
+# The Solution: Transform-Based Data Flow
 
 Implement a flexible transform system that allows steps to:
 
 1. **Receive inputs** from multiple sources (original request, previous step outputs, aggregated results)
-2. **Apply transformations** to combine, filter, or restructure data
-3. **Pass outputs** to dependent steps in the required format
 
-**Input Source Types:**
+1.
+
+# Input Source Types:
 
 | Source Type   | Description                          | Example                                                    |
 | ------------- | ------------------------------------ | ---------------------------------------------------------- |
@@ -592,7 +592,7 @@ Implement a flexible transform system that allows steps to:
 | `"step"`      | Output from specific step            | `{input: {source: "step", stepId: "analyze"}}`             |
 | `"aggregate"` | Combined outputs from multiple steps | `{input: {source: "aggregate", from: ["step1", "step2"]}}` |
 
-**Built-in Transform Functions:**
+# Built-in Transform Functions:
 
 | Transform         | Purpose                                       | Input                     | Output                                           |
 | ----------------- | --------------------------------------------- | ------------------------- | ------------------------------------------------ |
@@ -603,7 +603,7 @@ Implement a flexible transform system that allows steps to:
 | `jsonExtract`     | Extract JSON field from output                | JSON string, field path   | Field value                                      |
 | `templateFill`    | Fill template with step outputs               | Template string + context | Rendered template                                |
 
-**Custom Transform Functions:**
+# Custom Transform Functions:
 
 Flows can define inline transform functions in TypeScript:
 
@@ -640,24 +640,24 @@ const researchFlow = defineFlow({
     },
   ],
 });
-```
+```text
 
-**Transform Execution Flow:**
+# Transform Execution Flow:
 
 1. **Input Collection**: Gather data from specified sources
-2. **Transform Application**: Apply built-in or custom transform function
-3. **Validation**: Ensure output meets expected format
-4. **Step Execution**: Pass transformed input to agent
-5. **Output Storage**: Store step output for dependent steps
 
-**Error Handling:**
+1.
+1.
+1.
+
+# Error Handling:
 
 - **Invalid Transform**: `"Unknown transform: 'invalidTransform'"` with available options
 - **Transform Failure**: `"Transform 'extractSection' failed: Section 'Missing' not found"`
 - **Input Mismatch**: `"Step 'synthesis' expected array input but received string"`
 - **Circular Reference**: Detected during flow validation (Step 7.3)
 
-**Activity Journal Events:**
+# Activity Journal Events:
 
 | Event                         | Payload                                                     |
 | ----------------------------- | ----------------------------------------------------------- |
@@ -665,7 +665,7 @@ const researchFlow = defineFlow({
 | `flow.step.transform.applied` | `{flowRunId, stepId, transformName, inputSize, outputSize}` |
 | `flow.step.transform.failed`  | `{flowRunId, stepId, transformName, error, inputPreview}`   |
 
-**Implementation Files:**
+# Implementation Files:
 
 | File                             | Purpose                                   |
 | -------------------------------- | ----------------------------------------- |
@@ -674,7 +674,7 @@ const researchFlow = defineFlow({
 | `tests/flows/transforms_test.ts` | Transform function tests                  |
 | `tests/flows/inter_step_test.ts` | End-to-end data flow tests                |
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] All input source types (request, step, aggregate) work correctly
 - [x] All built-in transforms (passthrough, mergeAsContext, extractSection, appendToRequest, jsonExtract, templateFill) execute successfully
@@ -687,7 +687,7 @@ const researchFlow = defineFlow({
 - [x] Transform functions are isolated and don't interfere with each other
       [ ] Memory usage remains bounded even with large data transformations
 
-**Planned Tests:**
+# Planned Tests:
 
 - [x] `tests/flows/transforms_test.ts`: Unit tests for all built-in transform functions (150+ tests)
 - [x] `tests/flows/inter_step_test.ts`: Integration tests for data passing between steps (80+ tests)
@@ -710,7 +710,7 @@ const researchFlow = defineFlow({
 - **Action:** Create FlowReporter service to generate comprehensive reports for flow executions
 - **Location:** `src/services/flow_reporter.ts`, `tests/services/flow_reporter_test.ts`
 
-**Report Frontmatter Fields:**
+# Report Frontmatter Fields:
 
 | Field             | Description                           | Type    | Required |
 | ----------------- | ------------------------------------- | ------- | -------- |
@@ -724,21 +724,21 @@ const researchFlow = defineFlow({
 | `completed_at`    | ISO timestamp of completion           | string  | Yes      |
 | `request_id`      | Associated request ID (if available)  | string  | No       |
 
-**Report Body Sections:**
+# Report Body Sections:
 
 1. **Execution Summary** — Markdown table showing:
    - Step ID, Status (✅/❌), Duration, Start Time, Completion Time
    - Total duration and overall status summary
 
-2. **Step Outputs** — Detailed subsection for each step:
+1.
    - Success: Status, duration, agent output content, raw response
    - Failure: Status, duration, error message and details
 
-3. **Dependency Graph** — Visual flow structure:
+1.
    - Mermaid diagram showing step dependencies and agent assignments
    - Text description of flow structure with dependency relationships
 
-**Integration Points:**
+# Integration Points:
 
 - **FlowRunner**: Automatically generates reports after successful/failed flow execution
 - **Mission Reporter**: Shares configuration patterns, activity logging, and file output conventions
@@ -747,9 +747,9 @@ const researchFlow = defineFlow({
 - **CLI Commands**: Future flow commands (run, list, show) will display report links and summaries
 - **Dataview Integration**: Reports include metadata fields for Obsidian Dataview querying
 
-**Implementation Details:**
+# Implementation Details:
 
-**FlowRunner Integration:**
+# FlowRunner Integration:
 
 - FlowRunner constructor accepts optional FlowReporter instance
 - After flow execution completes (success or failure), automatically calls FlowReporter.generate()
@@ -758,22 +758,22 @@ const researchFlow = defineFlow({
 - Report generation is non-blocking (doesn't affect flow execution time)
 - Event logging includes flow completion events that can trigger reporting
 
-**Configuration:**
+# Configuration:
 
 - FlowReportConfig extends existing report configuration patterns
 - Uses same reportsDirectory as MissionReporter (`/Knowledge/Reports/`)
 - Integrates with existing database activity logging
 - Supports testing mode (no database required)
 
-**Error Handling:**
+# Error Handling:
 
 - Report generation failures don't affect flow execution results
 - Failed report generation is logged but doesn't throw exceptions
 - Graceful degradation: flows work without reporting enabled
 
-**Success Criteria:**
+# Success Criteria:
 
-**Core Functionality:**
+# Core Functionality:
 
 - [x] FlowReporter class initializes with Config and FlowReportConfig
 - [x] `generate()` method accepts Flow, FlowResult, and optional requestId
@@ -786,7 +786,7 @@ const researchFlow = defineFlow({
 - [x] Execution duration is accurately tracked for steps and total flow
 - [x] Reports integrate with existing Mission Reporter infrastructure
 
-**Quality Assurance:**
+# Quality Assurance:
 
 - [x] Reports are queryable via Dataview using flow-specific metadata
 - [x] Activity journal logs successful report generation events
@@ -796,9 +796,9 @@ const researchFlow = defineFlow({
 - [x] Frontmatter uses proper YAML formatting with quoted strings
 - [x] Mermaid graphs correctly represent step dependencies and agents
 
-**Planned Tests:**
+# Planned Tests:
 
-**Unit Tests (`tests/services/flow_reporter_test.ts`):**
+# Unit Tests (`tests/services/flow_reporter_test.ts`):
 
 - [x] Constructor initialization with valid/invalid configs
 - [x] Report generation with successful flow execution
@@ -812,7 +812,7 @@ const researchFlow = defineFlow({
 - [x] Error handling for file system and database issues
 - [x] Integration with FlowRunner execution results
 
-**Integration Tests:**
+# Integration Tests:
 
 - End-to-end flow execution with automatic report generation
 - Report content validation against actual FlowResult data
@@ -821,7 +821,7 @@ const researchFlow = defineFlow({
 - Database activity logging verification
 - Error scenarios (permission denied, disk full, etc.)
 
-**Performance Tests:**
+# Performance Tests:
 
 - Report generation time stays under 500ms for typical flows
 - Memory usage remains bounded for large flow results
@@ -836,7 +836,7 @@ const researchFlow = defineFlow({
 - **Action:** Create comprehensive example flows demonstrating real-world patterns and best practices
 - **Location:** `flows/examples/`, `tests/flows/example_flows_test.ts`
 
-**Example Flow Categories:**
+# Example Flow Categories:
 
 | Category        | Purpose                              | Examples                                                 |
 | --------------- | ------------------------------------ | -------------------------------------------------------- |
@@ -845,7 +845,7 @@ const researchFlow = defineFlow({
 | **Analysis**    | Data analysis & insights             | Code Analysis, Security Audit, Performance Review        |
 | **Operations**  | System administration & maintenance  | Deployment, Monitoring, Incident Response                |
 
-**Detailed Example Flows:**
+# Detailed Example Flows:
 
 #### 1. **Code Review Flow** (`flows/examples/code_review.flow.ts`)
 
@@ -895,7 +895,7 @@ const codeReviewFlow = defineFlow({
   output: { from: "summary", format: "markdown" },
   settings: { maxParallelism: 2, failFast: false },
 });
-```
+```text
 
 #### 2. **Feature Development Flow** (`flows/examples/feature_development.flow.ts`)
 
@@ -917,9 +917,9 @@ const codeReviewFlow = defineFlow({
 **Pattern:** Parallel analysis with aggregation
 **Use Case:** Comprehensive security assessment
 
-**Flow Template Structure:**
+# Flow Template Structure:
 
-```
+```text
 flows/examples/
 ├── README.md                           # Overview and usage guide
 ├── templates/
@@ -942,9 +942,9 @@ flows/examples/
     ├── deployment.flow.ts
     ├── monitoring.flow.ts
     └── incident_response.flow.ts
-```
+```text
 
-**Success Criteria:**
+# Success Criteria:
 
 - [x] **5 comprehensive example flows** covering all orchestration patterns (pipeline, staged, fan-out/fan-in)
 - [x] **Flow validation** - All examples pass FlowSchema validation without errors
@@ -956,7 +956,7 @@ flows/examples/
 - [x] **Error handling** - Examples show proper error handling patterns and recovery strategies
 - [x] **Performance characteristics** - Examples demonstrate efficient parallel execution where appropriate
 
-**Quality Assurance:**
+# Quality Assurance:
 
 - [x] **Pattern correctness** - Each flow correctly implements its intended orchestration pattern
 - [x] **Dependency management** - Step dependencies are logical and prevent race conditions
@@ -965,16 +965,16 @@ flows/examples/
 - [x] **Scalability** - Examples work with different numbers of steps and complexity levels
 - [x] **Maintainability** - Clear structure and comments make examples easy to understand and modify
 
-**Planned Tests (`tests/flows/example_flows_test.ts`):**
+# Planned Tests (`tests/flows/example_flows_test.ts`):
 
-**Unit Tests:**
+# Unit Tests:
 
 - [x] FlowSchema validation for all example flows
 - [x] Template instantiation with custom parameters
 - [x] Dependency resolution correctness
 - [x] Input/output transform validation
 
-**Integration Tests:**
+# Integration Tests:
 
 - [x] End-to-end execution with mock agents for each example flow
 - [x] Flow report generation and content validation
@@ -982,7 +982,7 @@ flows/examples/
 - [x] File system operations (report generation, temporary files)
 - [x] Database activity logging verification
 
-**Pattern Validation Tests:**
+# Pattern Validation Tests:
 
 - [x] Pipeline flows execute steps in correct sequential order
 - [x] Fan-out/fan-in flows properly parallelize and aggregate results
@@ -990,14 +990,14 @@ flows/examples/
 - [x] Error handling flows gracefully handle step failures
 - [x] Performance flows demonstrate efficient resource utilization
 
-**Template Tests:**
+# Template Tests:
 
 - [x] Template copying and customization preserves validation
 - [x] Parameter substitution works correctly
 - [x] Template documentation is accurate and helpful
 - [x] Template examples are runnable out-of-the-box
 
-**Documentation Tests:**
+# Documentation Tests:
 
 - [x] README provides clear overview and getting started guide
 - [x] Each flow includes usage examples and expected behavior
@@ -1020,3 +1020,7 @@ flows/examples/
 - [x] Documentation updated with Flow usage guide
 
 ---
+
+
+```
+

@@ -85,3 +85,4 @@ Token guidance
 Maintenance
 - After updating this doc: rebuild manifest, regenerate chunks/embeddings (mock or openai), then run `validate_agents_docs.ts`.
 ```
+

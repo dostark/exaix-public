@@ -134,10 +134,10 @@ class ChangesetService {
 **Current Artifact Workflow (Phase 35):**
 
 1. Read-only agent creates artifact in `Memory/Execution/artifact-<id>.md`
-2. `ChangesetService.createArtifactChangeset()` records it in `changesets` table
-3. User runs `exoctl changeset list` to see pending artifacts
-4. User runs `exoctl changeset approve <id>` to update frontmatter status
-5. Artifact frontmatter updated: `status: pending` → `status: approved`
+
+1.
+1.
+1.
 
 ---
 
@@ -471,13 +471,13 @@ exoctl review reject <review-id> --reason "Needs revision"
    - ✅ Show git diff: `exoctl review show <id>`
    - ✅ Approve and merge: `exoctl review approve <id>`
 
-2. **✅ Artifact Review Workflow:**
+1.
    - ✅ Service tests cover artifact registration (20 tests)
    - ✅ Portal tests cover portal repository reviews (10 tests)
    - ✅ List reviews: `exoctl review list` (shows both git and artifacts)
    - ✅ Show review details working
 
-3. **✅ Database Migration:**
+1.
    - ✅ Migration script created (007_rename_changesets_to_reviews.sql)
    - ✅ All data preserved (66 tests passing)
    - ✅ Queries work with new table name
@@ -528,25 +528,25 @@ exoctl review reject <review-id> --reason "Needs revision"
    cp ~/.exo/journal.db ~/.exo/journal.db.backup
    ```
 
-2. **Stop daemon:**
+1.
 
    ```bash
    exoctl daemon stop
    ```
 
-3. **Run migration:**
+1.
 
    ```bash
    sqlite3 ~/.exo/journal.db < migrations/007_rename_changesets_to_reviews.sql
    ```
 
-4. **Restart daemon:**
+1.
 
    ```bash
    exoctl daemon start
    ```
 
-5. **Verify migration:**
+1.
 
    ```bash
    exoctl review list
@@ -576,11 +576,13 @@ exoctl review list --status pending | grep artifact
 
 ```yaml
 # Before
+
 - run: exoctl changeset approve $REVIEW_ID
 
 # After
+
 - run: exoctl review approve $REVIEW_ID
-```
+
 
 ---
 
@@ -696,10 +698,10 @@ exoctl review list --status pending | grep artifact
 1. **Error Messages:** What error message for old `changeset` commands?
    - Recommendation: "Unknown command 'changeset'. Did you mean 'review'?"
 
-2. **API Endpoints:** If future REST API exists, what endpoint names?
+1.
    - Recommendation: `/api/reviews` (use correct terminology from start)
 
-3. **Search and Replace:** Use automated tool or manual review?
+1.
    - Recommendation: Both - automated rename + manual review for edge cases
 
 ---
@@ -710,3 +712,7 @@ exoctl review list --status pending | grep artifact
 - [Phase 30: CLI Flow Request](./.copilot/planning/phase-30-cli-flow-request.md)
 - [ExoFrame User Guide](../../docs/ExoFrame_User_Guide.md)
 - [ExoFrame Technical Spec](../../docs/dev/ExoFrame_Technical_Spec.md)
+
+
+```
+

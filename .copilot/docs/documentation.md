@@ -29,14 +29,14 @@ topics: ["docs", "process", "publishing"]
 ## Quickstart — Using `.copilot/` with VS Code & Copilot ✅
 
 1. Install Copilot (or open Copilot Labs) in your VS Code.
-2. Run the helper to get the most relevant agent context for your task:
+
 
 ```bash
 # returns JSON with short_summary and snippet for the best doc matching the query
 deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agent copilot
 ```
 
-3. Copy the `short_summary` and paste into your Copilot prompt (or use the VS Code snippet below to automate insertion).
+1.
 
 ### Copilot Labs / Prompt Template (short)
 
@@ -120,3 +120,4 @@ Maintain a standard Terminology Reference and link to it from major documents. U
 Use relative paths for internal links and include file paths when referencing code. Keep documentation changes minimal and tied to Implementation Plan steps.
 
 ---
+

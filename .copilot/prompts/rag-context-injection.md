@@ -92,7 +92,8 @@ Task: Add new LLM provider with comprehensive tests and docs.
 Claude should:
 
 1. Run inspect_embeddings.ts to see available docs
-2. Run inject_agent_context.ts with appropriate limit
-3. Reference specific sections from injected docs in response
-4. Follow patterns from retrieved context
-5. Cite which agent docs were used (e.g., "Per agents/tests/testing.md...")
+
+1.
+1.
+1.
+

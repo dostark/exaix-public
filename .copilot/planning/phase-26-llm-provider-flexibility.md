@@ -93,8 +93,8 @@ stability_check = true
 ### **Priority Order:**
 
 1. Environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`)
-2. `exo.config.toml` configuration
-3. Code defaults in `src/config/ai_config.ts`
+
+1.
 
 ### **Named Model Profiles:**
 
@@ -687,14 +687,14 @@ rate_limit_rpm = 60
    - Add `ProviderRegistry.getProvidersByCostTier()` and `getProvidersForTask()` ✅ **IMPLEMENTED**
    - Files: `src/ai/provider_registry.ts`, `src/ai/providers.ts` ✅ **IMPLEMENTED**
 
-2. **Implement Cost Tracking Service** ✅ **IMPLEMENTED**
+1.
    - Create `src/services/cost_tracker.ts` ✅ **IMPLEMENTED**
    - Add database schema for cost tracking: `provider_costs` table ✅ **IMPLEMENTED**
    - Implement `trackRequest()`, `getDailyCost()`, `isWithinBudget()` ✅ **IMPLEMENTED**
    - Add cost estimation logic per provider ✅ **IMPLEMENTED**
    - Files: `src/services/cost_tracker.ts`, `src/db/schema.ts` ✅ **IMPLEMENTED**
 
-3. **Add Fallback Chain Support**
+1.
    - Extend `ProviderFactory.createWithFallback(config, fallbackConfig)`
      ✅ **IMPLEMENTED**
    - Add `validateProviderConnection()` health check ✅ **IMPLEMENTED**
@@ -721,14 +721,14 @@ rate_limit_rpm = 60
    - Integrate with health checker and cost tracker ✅ **IMPLEMENTED**
    - Files: `src/ai/provider_selector.ts` ✅ **IMPLEMENTED**
 
-2. **Extend Configuration Schema** ✅ **IMPLEMENTED**
+1.
    - Add `[provider_strategy]` section to config schema ✅ **IMPLEMENTED**
    - Add `fallback_chains`, `budgets`, `task_routing` ✅ **IMPLEMENTED**
    - Update `src/config/schema.ts` with new types ✅ **IMPLEMENTED**
    - Files: `src/config/schema.ts`, `src/config/ai_config.ts`,
      `exo.config.toml` ✅ **IMPLEMENTED**
 
-3. **Integrate with RequestProcessor** ✅ **IMPLEMENTED**
+1.
    - Replace static provider creation with ProviderSelector ✅ **IMPLEMENTED**
    - Add task complexity classification based on agentId ✅ **IMPLEMENTED**
    - Implement graceful degradation on selection failure ✅ **IMPLEMENTED**
@@ -759,7 +759,7 @@ rate_limit_rpm = 60
    - Files: `tests/ai/provider_selector.test.ts`, `tests/services/
      cost_tracker.test.ts` ✅ **COMPLETED**
 
-2. **Integration Tests** ✅ **COMPLETED**
+1.
    - Test full agent execution with provider switching ✅ **IMPLEMENTED**
      (provider selection logic tests)
    - Test free-to-paid fallback scenarios ✅ **IMPLEMENTED** (health check
@@ -770,14 +770,14 @@ rate_limit_rpm = 60
      selection tests)
    - Files: `tests_infra/test_provider_strategy.ts` ✅ **CREATED**
 
-3. **Performance Optimization** ✅ **COMPLETED**
+1.
    - Cache provider health status (TTL 60s) ✅ **IMPLEMENTED** (HealthCheckService.checkProvider with caching)
    - Batch cost tracking writes ✅ **IMPLEMENTED** (CostTracker with 5s batch delay, max 50 records)
    - Optimize provider selection algorithm ✅ **IMPLEMENTED** (reordered filters for performance)
    - Add metrics for provider selection time ✅ **IMPLEMENTED** (ProviderSelector with timing metrics)
    - Files: `src/services/health_check_service.ts`, `src/services/cost_tracker.ts`, `src/ai/provider_selector.ts`
 
-4. **Documentation**
+1.
    - Update `docs/dev/ExoFrame_Technical_Spec.md`
    - Create `docs/Provider_Strategy_Guide.md`
    - Add configuration examples for common scenarios
@@ -1660,10 +1660,10 @@ The proposed enhancements deliver **immediate and measurable business value**:
 The proposed implementation is **low-risk and high-confidence** for several reasons:
 
 1. **Builds on Proven Foundation**: Phase 24 already delivered the hard parts (security, rate limiting, circuit breaker)
-2. **Incremental Delivery**: 3-phase rollout allows validation at each step
-3. **Backward Compatible**: Existing configurations work unchanged; new features are opt-in
-4. **Well-Defined Scope**: Clear requirements, success criteria, and acceptance tests
-5. **Appropriate Effort**: 40-50 hours is reasonable for the value delivered
+
+1.
+1.
+1.
 
 ### Alignment with ExoFrame Philosophy
 
@@ -1702,13 +1702,13 @@ This phase aligns perfectly with ExoFrame's core principles:
 Phase 26 will be considered **successful** when:
 
 1. [x] User can configure provider fallback chains in `exo.config.toml`
-2. [x] System automatically fails over to secondary provider on primary failure
-3. [x] Cost tracking persists across sessions and enforces budget limits
-4. [x] Free providers are preferred when available and within quota
-5. [x] Simple tasks route to cheap/fast models; complex tasks to premium models
-6. [x] Provider selection adds <50ms latency; cost tracking adds <10ms
-7. [x] Comprehensive tests achieve >90% code coverage
-8. [x] Documentation explains configuration for common scenarios
+
+1.
+1.
+1.
+1.
+1.
+1.
 
 ### Call to Action
 
@@ -1905,3 +1905,4 @@ metadata (capabilities, cost tier, pricing, strengths, limitations)
 **Total Length**: ~1830 lines | ~72 KB
 **Format**: Markdown with tables, code blocks, TOML examples
 **Implementation Status**: ✅ ALL SUCCESS CRITERIA ACHIEVED
+

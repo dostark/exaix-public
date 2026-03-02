@@ -42,10 +42,10 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 **Implementation Logic:**
 
 1. **Validation:** Check if `config.tools.fetch_url.enabled` is true.
-2. **Whitelist Check:** Parse hostname from `url` and verify it matches `allowed_domains`.
-3. **Fetch:** Use `fetch(url, { signal: AbortSignal.timeout(timeout_ms) })`.
-4. **Size Check:** Check `Content-Length` header or stream counting. Abort if > `max_response_size_kb`.
-5. **Conversion:** If `format="markdown"`, use a basic HTML-to-Markdown converter (or just return `innerText` for MVP).
+
+1.
+1.
+1.
 
 **Security:**
 
@@ -56,7 +56,7 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 
 ### 2.2 Content Discovery: `grep_search`
 
-**Context:** The existing `search_files` tool only matches filenames. To find code usage or patterns, agents must `read_file` indiscriminately, wasting tokens and context window space. `grep` allows precise, content-based discovery.
+**Context:** The existing `search*files` tool only matches filenames. To find code usage or patterns, agents must `read*file` indiscriminately, wasting tokens and context window space. `grep` allows precise, content-based discovery.
 
 **Purpose:** Find code patterns efficiently without reading every file.
 
@@ -66,9 +66,9 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 **Implementation Logic:**
 
 1. **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
-2. **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
+
    - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
-3. **Output:** Parse stdout into structured JSON:
+1.
    ```json
    [
      { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
@@ -82,7 +82,7 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 
 ---
 
-### 2.3 Refactoring Suite: `move_file`, `copy_file`, `delete_file`
+### 2.3 Refactoring Suite: `move*file`, `copy*file`, `delete_file`
 
 **Context:** Agents frequently attempt to "move" files by reading content, creating a new file, and deleting the old one. This is error-prone and loses git history. Explicit `move/copy/delete` tools are safer and atomic.
 
@@ -159,10 +159,10 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 **Implementation Logic:**
 
 1. Read file content.
-2. Count occurrences of `search_content`.
+
    - If 0: properties error "Content not found".
    - If > 1: properties error "Ambiguous match (found 2 times)".
-3. Replace and write back.
+1.
 
 ---
 
@@ -177,8 +177,8 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 ### 3.2 Agent Blueprints
 
 - Update `capabilities` array in **all** agent blueprints (`Blueprints/Agents/*.md`) to include relevant tools.
-  - `code-analyst` -> `grep_search`, `fetch_url`, `git_info`
-  - `senior-coder` -> All above + `move_file`, `patch_file`, `deno_task`
+  - `code-analyst` -> `grep*search`, `fetch*url`, `git_info`
+  - `senior-coder` -> All above + `move*file`, `patch*file`, `deno_task`
 
 ---
 
@@ -188,18 +188,18 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 
 Create a new test file for each category:
 
-- `tests/tools/network_tool_test.ts`: Mock `fetch` and verify whitelist.
-- `tests/tools/search_tool_test.ts`: Create dummy file structure and grep it.
-- `tests/tools/refactor_tool_test.ts`: Verify file operations and path security.
+- `tests/tools/network*tool*test.ts`: Mock `fetch` and verify whitelist.
+- `tests/tools/search*tool*test.ts`: Create dummy file structure and grep it.
+- `tests/tools/refactor*tool*test.ts`: Verify file operations and path security.
 
 ### 4.2 End-to-End Scenario
 
-Create `tests/scenarios/refactoring_scenario_test.ts`:
+Create `tests/scenarios/refactoring*scenario*test.ts`:
 
 1. Agent identifies a "messy" file structure.
-2. Uses `grep_search` to find imports.
-3. Uses `move_file` to reorganize.
-4. Uses `deno_task("test")` to verify nothing broke.
+
+1.
+1.
 
 ---
 
@@ -210,7 +210,7 @@ Create `tests/scenarios/refactoring_scenario_test.ts`:
 - [x] **Configuration Schema Updated**: `src/config/schema.ts` includes `ToolsConfigSchema` with security settings.
 - [x] **Network Tool (`fetch_url`)**: Implemented with whitelist and size limits.
 - [x] **Search Tool (`grep_search`)**: Implemented with regex support and efficient parsing.
-- [x] **Refactoring Suite**: Implemented `move_file`, `copy_file`, `delete_file` with path security.
+- [x] **Refactoring Suite**: Implemented `move*file`, `copy*file`, `delete_file` with path security.
 - [x] **Git Info (`git_info`)**: Implemented structured status, branch, and diff output.
 - [x] **Ecosystem Tool (`deno_task`)**: Implemented standard task execution (`test`, `lint`, `fmt`).
 - [x] **Patching Tool (`patch_file`)**: Implemented token-efficient file editing.
@@ -218,10 +218,11 @@ Create `tests/scenarios/refactoring_scenario_test.ts`:
 
 ### Implemented Tests
 
-- [x] `tests/tools/fetch_url_test.ts`: Verifies whitelist enforcement and fetching.
-- [x] `tests/tools/grep_search_test.ts`: Verifies pattern matching and directory exclusion.
-- [x] `tests/tools/refactor_tool_test.ts`: Verifies atomic operations and path security.
-- [x] `tests/tools/git_info_test.ts`: Verifies git status parsing.
-- [x] `tests/tools/deno_task_test.ts`: Verifies task execution.
-- [x] `tests/tools/patch_file_test.ts`: Verifies patching logic and error handling.
-- [x] `tests/tools/e2e_tool_test.ts`: Verifies full multi-tool workflow (git -> fix -> refactor).
+- [x] `tests/tools/fetch*url*test.ts`: Verifies whitelist enforcement and fetching.
+- [x] `tests/tools/grep*search*test.ts`: Verifies pattern matching and directory exclusion.
+- [x] `tests/tools/refactor*tool*test.ts`: Verifies atomic operations and path security.
+- [x] `tests/tools/git*info*test.ts`: Verifies git status parsing.
+- [x] `tests/tools/deno*task*test.ts`: Verifies task execution.
+- [x] `tests/tools/patch*file*test.ts`: Verifies patching logic and error handling.
+- [x] `tests/tools/e2e*tool*test.ts`: Verifies full multi-tool workflow (git -> fix -> refactor).
+

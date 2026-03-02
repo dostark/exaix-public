@@ -50,10 +50,10 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 ### Problem Areas
 
 1. **TUI Views** - 200-300 lines duplicated, high complexity (15-25)
-2. **Test Helpers** - 150-200 lines duplicated, slow setup (200-500ms)
-3. **CLI Commands** - 100-150 lines duplicated, inconsistent validation
-4. **Provider Factories** - 80-120 lines duplicated, slow init (50-150ms)
-5. **Services** - 60-100 lines duplicated, low error recovery (50%)
+
+1.
+1.
+1.
 
 ---
 
@@ -129,9 +129,9 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 **Architecture improvements:**
 
 1. Create `src/tui/base/base_view.ts` - Abstract base class with MVC pattern
-2. Create `src/tui/utils/event_handlers.ts` - Event delegation utilities
-3. Create `src/tui/utils/render_utils.ts` - Common rendering helpers
-4. Create `src/tui/utils/view_state.ts` - State management
+
+1.
+1.
 
 **SOLID principles:**
 
@@ -166,9 +166,9 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 **Architecture improvements:**
 
 1. Create `tests/helpers/memory_test_helper.ts` - Common setup functions
-2. Create `tests/fixtures/memory_builder.ts` - Builder pattern for test data
-3. Create `tests/fixtures/test_environment_factory.ts` - Factory pattern
-4. Create `tests/helpers/custom_assertions.ts` - Domain-specific assertions
+
+1.
+1.
 
 **Design patterns:**
 
@@ -200,9 +200,9 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 **Architecture improvements:**
 
 1. Create `src/cli/base/command.ts` - Command pattern interface
-2. Create `src/cli/validation/validation_chain.ts` - Chain of responsibility
-3. Create `src/cli/errors/error_strategy.ts` - Strategy pattern for errors
-4. Create `src/cli/utils/command_utils.ts` - Shared utilities
+
+1.
+1.
 
 **Design patterns:**
 
@@ -233,9 +233,9 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 **Architecture improvements:**
 
 1. Create `src/ai/factories/abstract_provider_factory.ts` - Abstract factory
-2. Create `src/ai/registry/provider_registry.ts` - Registry pattern
-3. Create `src/ai/providers/lazy_provider.ts` - Lazy initialization
-4. Create `tests/helpers/provider_test_helper.ts` - Test utilities
+
+1.
+1.
 
 **Design patterns:**
 
@@ -267,9 +267,9 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 **Architecture improvements:**
 
 1. Create `src/services/middleware/middleware.ts` - Middleware pattern
-2. Create `src/services/decorators/logging_decorator.ts` - Decorator pattern
-3. Create `src/services/resilience/circuit_breaker.ts` - Circuit breaker
-4. Create `src/services/utils/error_utils.ts` - Error handling utilities
+
+1.
+1.
 
 **Design patterns:**
 
@@ -295,6 +295,7 @@ topics: ["refactoring", "architecture", "code-quality", "design-patterns", "test
 
 ```yaml
 # .github/workflows/code-quality.yml
+
 - name: Check duplication
   run: npx jscpd src/ tests/ --threshold 2
 
@@ -457,3 +458,4 @@ deno coverage coverage/ --lcov > coverage.lcov
 **Start Date:** TBD
 **Target Completion:** TBD (5-6 weeks)
 **Dependencies:** Code duplication analysis complete
+

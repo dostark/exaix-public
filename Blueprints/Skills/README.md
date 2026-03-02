@@ -21,3 +21,4 @@ Core skills have been migrated from `Memory/Skills/core/` to this location to pr
 ## Usage
 
 Skills in this directory are loaded by the SkillsService and can be referenced by agents and flows for automatic capability injection.
+

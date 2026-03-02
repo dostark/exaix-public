@@ -13,7 +13,8 @@ import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
 import { BaseCommand, ICommandContext } from "../base.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
-import { CommandUtils } from "../../helpers/command_utils.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
+import { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import {
   BlueprintFrontmatterSchema,
   type IBlueprintCreateResult,
@@ -322,6 +323,11 @@ export class BlueprintCommands extends BaseCommand {
   constructor(context: ICommandContext) {
     super(context);
   }
+
+  private get display(): IDisplayService {
+    return this.context.display;
+  }
+
   /**
    * Get absolute path to Blueprints/Agents directory
    */
@@ -674,8 +680,7 @@ ${systemPrompt}
     await ensureDir(this.getBlueprintsDir());
     await Deno.writeTextFile(blueprintPath, content);
 
-    const logger = await this.getActionLogger();
-    await logger.info("blueprint.created", agentId, {
+    await this.display.info("blueprint.created", agentId, {
       model,
       template: options.template ?? null,
       via: "cli",
@@ -876,8 +881,7 @@ ${systemPrompt}
       }
 
       // Log activity
-      const logger = await this.getActionLogger();
-      await logger.info("blueprint.edited", agentId, {
+      await this.display.info("blueprint.edited", agentId, {
         via: "cli",
         editor,
         valid: validation.valid,
@@ -902,8 +906,7 @@ ${systemPrompt}
       await Deno.remove(blueprintPath);
 
       // Log activity
-      const logger = await this.getActionLogger();
-      await logger.info("blueprint.removed", agentId, {
+      await this.display.info("blueprint.removed", agentId, {
         via: "cli",
         forced: options.force || false,
       });

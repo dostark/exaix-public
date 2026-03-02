@@ -19,8 +19,8 @@ These examples are **reference implementations**. They often use specialized age
 **Before running an example:**
 
 1. **Check the code:** Open the `.flow.ts` file and look for the `agent:` fields.
-2. **Verify agents:** Run `exoctl blueprint list` to see if you have matching agents.
-3. **Create missing agents:** Use `exoctl blueprint create` or copy from `Blueprints/Agents/examples/` if available.
+
+1.
 
 ## Example Categories
 
@@ -107,16 +107,19 @@ const stagedFlow = defineFlow({
 ### Running an Example Flow
 
 1. **List available flows:**
+
    ```bash
    exoctl flow list
    ```
 
-2. **Run a specific flow:**
+1.
+
    ```bash
    exoctl flow run --id code-review --request "Please review this TypeScript code for best practices..."
    ```
 
-3. **Validate a flow:**
+1.
+
    ```bash
    exoctl flow validate Blueprints/Flows/examples/development/code_review.flow.ts
    ```
@@ -124,16 +127,18 @@ const stagedFlow = defineFlow({
 ### Using as Templates
 
 1. **Copy an example:**
+
    ```bash
    cp Blueprints/Flows/examples/development/code_review.flow.ts my_custom_flow.flow.ts
    ```
 
-2. **Modify for your needs:**
+1.
    - Update agent names to match your configured agents
    - Adjust step dependencies and data transformations
    - Customize retry logic and timeouts
 
-3. **Test your flow:**
+1.
+
    ```bash
    exoctl flow validate my_custom_flow.flow.ts
    exoctl flow run --file my_custom_flow.flow.ts --request "Your request here..."
@@ -165,22 +170,22 @@ const stagedFlow = defineFlow({
 ### Flow Design
 
 1. **Keep flows focused** - Each flow should solve one specific problem
-2. **Use meaningful step IDs** - Choose descriptive, action-oriented names
-3. **Handle errors gracefully** - Configure appropriate retry logic
-4. **Document complex logic** - Add comments for non-obvious transformations
+1. **Use meaningful step IDs** - Choose descriptive, action-oriented names
+1. **Handle errors gracefully** - Configure appropriate retry logic
+1. **Document complex logic** - Add comments for non-obvious transformations
 
 ### Agent Selection
 
 1. **Match agent capabilities** - Choose agents suited to each step's requirements
-2. **Consider execution time** - Some agents may be slower but more thorough
-3. **Balance cost and quality** - Different agents may have different cost profiles
+1. **Consider execution time** - Some agents may be slower but more thorough
+1. **Balance cost and quality** - Different agents may have different cost profiles
 
 ### Testing & Validation
 
 1. **Validate before running** - Always check flows with `exoctl flow validate`
-2. **Test with sample data** - Use realistic test inputs
-3. **Monitor execution** - Check activity logs for debugging
-4. **Review generated reports** - Use FlowReporter output for analysis
+1. **Test with sample data** - Use realistic test inputs
+1. **Monitor execution** - Check activity logs for debugging
+1. **Review generated reports** - Use FlowReporter output for analysis
 
 ## Integration with FlowReporter
 
@@ -200,11 +205,11 @@ Reports are saved to `Memory/Reports/` with filenames like:
 When adding new examples:
 
 1. Follow the established directory structure
-2. Include comprehensive documentation
-3. Add appropriate test cases
-4. Ensure flows validate against FlowSchema
-5. Test end-to-end execution with mock agents
-6. Update this README with the new example
+
+1.
+1.
+1.
+1.
 
 ## Troubleshooting
 
@@ -233,3 +238,4 @@ When adding new examples:
 - Check the [ExoFrame Documentation](../../docs/) for detailed guides
 - Review [FlowRunner Implementation](../../src/flows/) for technical details
 - Examine [Test Cases](../../tests/flows/) for usage examples
+

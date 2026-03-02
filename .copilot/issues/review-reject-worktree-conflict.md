@@ -54,12 +54,12 @@ exoctl review reject <request-id> --reason "Implementation issues"
    - Use `git worktree list` to find worktrees using the branch
    - Determine if worktree can be safely removed
 
-2. **Worktree Removal**: Implement safe worktree removal
+1.
    - For portal worktrees: check if portal is still needed
    - For temporary worktrees: safe to remove
    - Consider `git worktree remove --force` vs `git worktree prune`
 
-3. **Error Handling**: Provide better error messages
+1.
    - Detect worktree conflict and explain the issue
    - Suggest manual resolution steps if automatic removal isn't safe
 
@@ -90,3 +90,4 @@ Medium priority - affects review rejection workflow when portals are involved, b
   - `should handle branch checked out in main working tree when rejecting` - verifies checkout handling
 - **Commit**: [5fdb639] fix: correct execution folder location to use Memory/Execution/
 - **Verified**: All tests pass, including new regression tests for worktree conflict handling
+

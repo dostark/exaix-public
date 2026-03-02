@@ -15,8 +15,8 @@ import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
-import { CommandUtils } from "../../helpers/command_utils.ts";
-import { enrichWithRequest } from "../../helpers/request_enricher.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
+import { enrichWithRequest } from "../helpers/request_enricher.ts";
 import { ArtifactRegistry } from "../../services/artifact_registry.ts";
 import { isReviewStatus, ReviewStatus } from "../../reviews/review_status.ts";
 import type { IReviewStatus } from "../../reviews/review_status.ts";
@@ -167,15 +167,15 @@ export class ReviewCommands extends BaseCommand {
   private async bestEffortLinkRequestRejection(
     requestId: string | undefined,
     rejectedRelative: string,
-    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
   ): Promise<void> {
     if (!requestId) return;
 
     try {
+      const config = this.config;
       const requestPath = join(
-        this.config.system.root,
-        this.config.paths.workspace,
-        this.config.paths.requests,
+        config.system.root,
+        config.paths.workspace,
+        config.paths.requests,
         `${requestId}.md`,
       );
       if (!await exists(requestPath)) return;
@@ -193,13 +193,13 @@ export class ReviewCommands extends BaseCommand {
 
       const updated = `---\n${fm}\n---\n` + content.slice(fmMatch[0].length);
       await Deno.writeTextFile(requestPath, updated);
-      actionLogger.info("request.rejected_linked", requestPath, {
+      await this.display.info("request.rejected_linked", requestPath, {
         request_id: requestId,
         rejected_path: rejectedRelative,
         via: "cli",
       });
     } catch (err) {
-      actionLogger.warn("request.rejection_update_failed", requestId, {
+      await this.display.warn("request.rejection_update_failed", requestId, {
         error: err instanceof Error ? err.message : String(err),
       });
     }
@@ -934,8 +934,7 @@ export class ReviewCommands extends BaseCommand {
       // Artifact approval path
       if (this.isArtifactId(branchName)) {
         await this.artifactRegistry.updateStatus(branchName, ReviewStatus.APPROVED);
-        const actionLogger = await this.getActionLogger();
-        actionLogger.info(
+        await this.display.info(
           "review.approved",
           branchName,
           {
@@ -954,8 +953,7 @@ export class ReviewCommands extends BaseCommand {
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
         await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.APPROVED);
-        const actionLogger = await this.getActionLogger();
-        actionLogger.info(
+        await this.display.info(
           "review.approved",
           review.request_id,
           {
@@ -1027,8 +1025,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Log approval with user identity
       const _userIdentity = await this.getUserIdentity();
-      const actionLogger = await this.getActionLogger();
-      actionLogger.info("review.approved", review.request_id, {
+      await this.display.info("review.approved", review.request_id, {
         commit_sha: commitSha,
         branch: review.branch,
         files_changed: review.files_changed,
@@ -1074,8 +1071,7 @@ export class ReviewCommands extends BaseCommand {
       // Artifact rejection path
       if (this.isArtifactId(branchName)) {
         await this.artifactRegistry.updateStatus(branchName, ReviewStatus.REJECTED, reason);
-        const actionLogger = await this.getActionLogger();
-        actionLogger.info(
+        await this.display.info(
           "review.rejected",
           branchName,
           {
@@ -1091,19 +1087,20 @@ export class ReviewCommands extends BaseCommand {
         // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
         try {
           const artifact = await this.artifactRegistry.getArtifact(branchName);
-          const rejectedDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.rejected);
+          const config = this.config;
+          const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
           await ensureDir(rejectedDir);
           const target = join(rejectedDir, `${branchName}_rejected.md`);
           await Deno.writeTextFile(target, artifact.content);
 
           const rejectedRelative = join(
-            this.config.paths.workspace,
-            this.config.paths.rejected,
+            config.paths.workspace,
+            config.paths.rejected,
             `${branchName}_rejected.md`,
           );
-          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative, actionLogger);
+          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative);
         } catch (err) {
-          actionLogger.warn("review.rejected_artifact_persist_failed", branchName, {
+          await this.display.warn("review.rejected_artifact_persist_failed", branchName, {
             error: err instanceof Error ? err.message : String(err),
           });
         }
@@ -1116,8 +1113,7 @@ export class ReviewCommands extends BaseCommand {
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
         await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.REJECTED, reason);
-        const actionLogger = await this.getActionLogger();
-        actionLogger.info(
+        await this.display.info(
           "review.rejected",
           review.request_id,
           {
@@ -1133,19 +1129,20 @@ export class ReviewCommands extends BaseCommand {
         // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
         try {
           const artifact = await this.artifactRegistry.getArtifact(review.branch);
-          const rejectedDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.rejected);
+          const config = this.config;
+          const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
           await ensureDir(rejectedDir);
           const target = join(rejectedDir, `${review.branch}_rejected.md`);
           await Deno.writeTextFile(target, artifact.content);
 
           const rejectedRelative = join(
-            this.config.paths.workspace,
-            this.config.paths.rejected,
+            config.paths.workspace,
+            config.paths.rejected,
             `${review.branch}_rejected.md`,
           );
-          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative, actionLogger);
+          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative);
         } catch (err) {
-          actionLogger.warn("review.rejected_artifact_persist_failed", review.branch, {
+          await this.display.warn("review.rejected_artifact_persist_failed", review.branch, {
             error: err instanceof Error ? err.message : String(err),
           });
         }
@@ -1171,8 +1168,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Log rejection with user identity
       const _userIdentity = await this.getUserIdentity();
-      const actionLogger = await this.getActionLogger();
-      actionLogger.info("review.rejected", review.request_id, {
+      await this.display.info("review.rejected", review.request_id, {
         branch: review.branch,
         rejection_reason: reason,
         files_changed: review.files_changed,

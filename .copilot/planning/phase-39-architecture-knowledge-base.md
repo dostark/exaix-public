@@ -12,8 +12,8 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 **Solution:**
 
 1. **Elevate**: Move architecture docs to `/ARCHITECTURE.md` (Root) for immediate discovery.
-2. **Ground**: Update the document to explicitly list source file paths for every component.
-3. **Standardize**: Implement a "Module Header" standard that embeds architectural metadata directly into source files, creating a bidirectional link between documentation and code.
+
+1.
 
 ---
 
@@ -32,9 +32,10 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 ### 1. File Structure
 
 ```diff
+
 - docs/dev/ExoFrame_Architecture.md
 + ARCHITECTURE.md
-```
+
 
 ### 2. Architecture Document Grounding
 
@@ -95,10 +96,10 @@ We will enforce a standardized JSDoc header for all core modules. This allows ag
 - [x] Define the header format in `ARCHITECTURE.md`.
 - [x] Apply the header to 5 critical files as a pilot:
   1. `src/main.ts`
-  2. `src/services/request_processor.ts`
-  3. `src/services/tool_registry.ts`
-  4. `src/services/plan_executor.ts`
-  5. `src/ai/provider_factory.ts`
+  1.
+  1.
+  1.
+  1.
 
 ### Step 4: Verification
 
@@ -125,4 +126,4 @@ We will enforce a standardized JSDoc header for all core modules. This allows ag
 ## Next Steps
 
 1. All Phase 39 objectives completed.
-2. Monitor for drift in documentation links.
+

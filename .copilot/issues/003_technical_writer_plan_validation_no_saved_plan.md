@@ -63,3 +63,4 @@ ok | 4 passed | 0 failed (119ms)
 - `src/schemas/plan_schema.ts` - Plan validation schema
 - `Blueprints/Agents/technical-writer.md` - Agent blueprint
 - `src/services/plan_validator.ts` - Plan validation implementation
+

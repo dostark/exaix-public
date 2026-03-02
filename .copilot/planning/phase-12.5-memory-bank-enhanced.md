@@ -12,15 +12,15 @@
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
-2. [Gap Analysis: Current vs. Desired State](#2-gap-analysis)
-3. [Reference Architecture Survey](#3-reference-architecture-survey)
-4. [Enhanced Architecture Design](#4-enhanced-architecture-design)
-5. [Data Format Decisions](#5-data-format-decisions)
-6. [Embedding Reuse Strategy](#6-embedding-reuse-strategy)
-7. [Implementation Phases](#7-implementation-phases)
-8. [Rollback Plan](#8-rollback-plan)
-9. [Success Metrics](#9-success-metrics)
-10. [References](#10-references)
+
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 ---
 
@@ -83,7 +83,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 2.3 Feature Gap Summary
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Memory Banks Feature Gap                     │
 ├─────────────────────────────────────────────────────────────────┤
@@ -96,7 +96,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 │  Silent operations     │  → Notification   │  User approval     │
 │  JSON-heavy            │  → Markdown-first │  Human-readable    │
 └─────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -117,16 +117,16 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
    - Global → Project → Execution → Session
    - Promote/demote between levels
 
-2. **Memory Curation (MemGPT)**
+1.
    - Agent proposes memory updates
    - User approves before finalization
    - Automatic archival of stale entries
 
-3. **Pattern Extraction (Zep)**
+1.
    - Extract learnings from execution results
    - Link related patterns across projects
 
-4. **Simple Retrieval (LangMem)**
+1.
    - Tag-based categorization
    - Keyword search without vector DB
    - Optional embedding for fuzzy match
@@ -146,7 +146,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 4.1 Enhanced Directory Structure
 
-```
+```text
 Memory/
 ├── Global/                    # NEW: Cross-project learnings
 │   ├── learnings.md           # Promoted learnings (human-readable)
@@ -185,7 +185,7 @@ Memory/
     └── embeddings/            # NEW: Optional mock embeddings
         ├── manifest.json
         └── {hash}.json
-```
+```text
 
 ### 4.2 Enhanced Schemas
 
@@ -229,7 +229,7 @@ export const LearningSchema = z.object({
 });
 
 export type Learning = z.infer<typeof LearningSchema>;
-```
+```text
 
 #### 4.2.2 Memory Update Proposal Schema (NEW)
 
@@ -254,7 +254,7 @@ export const MemoryUpdateProposalSchema = z.object({
 });
 
 export type MemoryUpdateProposal = z.infer<typeof MemoryUpdateProposalSchema>;
-```
+```text
 
 #### 4.2.3 Global Memory Schema (NEW)
 
@@ -290,11 +290,11 @@ export const GlobalMemorySchema = z.object({
 });
 
 export type GlobalMemory = z.infer<typeof GlobalMemorySchema>;
-```
+```text
 
 ### 4.3 CLI Command Tree
 
-```
+```text
 exoctl memory
 ├── list                       # List all memory banks
 │   └── --format json|table|md
@@ -339,7 +339,7 @@ exoctl memory
 │   └── --to <portal>
 │
 └── rebuild-index              # Rebuild search indices
-```
+```text
 
 ### 4.4 Agent Memory Update Workflow
 
@@ -376,15 +376,15 @@ sequenceDiagram
     else No Learnings
         ME-->>Agent: No memory updates
     end
-```
+```text
 
 ### 4.5 Notification System
 
 Memory updates notify users through:
 
 1. **TUI Dashboard** - Badge on Memory tab
-2. **CLI Output** - Message after command execution
-3. **Activity Journal** - Logged for audit trail
+
+1.
 
 ```typescript
 // src/services/notification.ts
@@ -409,7 +409,7 @@ export class NotificationService {
     // ... append notification
   }
 }
-```
+```text
 
 ---
 
@@ -432,11 +432,11 @@ export class NotificationService {
 
 Each memory bank component uses **paired files**:
 
-```
+```text
 Memory/Projects/my-app/
 ├── patterns.md          # Human-readable content
 └── patterns.json        # Structured data for search
-```
+```text
 
 **Markdown Content:**
 
@@ -459,12 +459,12 @@ try {
   }
   throw error;
 }
-```
-````
+```text
+````text
 
 **Files:** `src/services/*.ts`
 
-````
+````text
 **JSON Index:**
 ```json
 {
@@ -479,7 +479,7 @@ try {
     }
   ]
 }
-````
+````text
 
 ### 5.3 Index Synchronization
 
@@ -499,7 +499,7 @@ async addPattern(portal: string, pattern: Pattern): Promise<void> {
   // 4. Log to Activity Journal
   await this.db.logEvent({ event_type: "memory.pattern.added", ... });
 }
-```
+```text
 
 ---
 
@@ -525,7 +525,7 @@ async function mockVector(text: string, dim = 64): Promise<number[]> {
   }
   return vec;
 }
-```
+```text
 
 ### 6.2 Memory Bank Embedding Strategy
 
@@ -600,15 +600,15 @@ export class MemoryEmbeddingService {
     return dot / (Math.sqrt(magA) * Math.sqrt(magB));
   }
 }
-```
+```text
 
 ### 6.3 Search Priority
 
 The search implementation uses a **tiered approach**:
 
 1. **Exact tag match** - Fastest, highest relevance
-2. **Keyword search** - Text contains query terms
-3. **Embedding similarity** - Fuzzy match (optional, when enabled)
+
+1.
 
 ```typescript
 async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[]> {
@@ -634,7 +634,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
   return this.deduplicateAndRank(results, options.limit);
 }
-```
+```text
 
 ---
 
@@ -966,7 +966,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 **TUI Layout Design:**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │  ExoFrame Dashboard                          [Memory] [1 Pending]   │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -984,7 +984,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 ├─────────────────────────────────────────────────────────────────────┤
 │ [g]lobal [p]rojects [e]xecutions [s]earch [n]pending │ [q]uit [?]help│
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Keyboard Navigation:**
 
@@ -1081,7 +1081,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 **Pending Panel Layout:**
 
-```
+```text
 ┌─ Pending Proposals (3) ──────────────────────────────────────────────┐
 │ ┌────────────────────────────────────────────────────────────────┐   │
 │ │ ● Error Handling Pattern                    [project: my-app]  │   │
@@ -1096,11 +1096,11 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 │                                                                      │
 │ [a]pprove  [r]eject  [A]pprove All  [Enter] View Details  [Esc] Back │
 └──────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Statistics Panel Layout:**
 
-```
+```text
 ┌─ Memory Statistics ──────────────────────────────────────────────────┐
 │                                                                      │
 │  Total Learnings: 47        │  By Category:                         │
@@ -1116,11 +1116,11 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 │                             │    web-client: 8                      │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Dialog Interactions:**
 
-```
+```text
 ┌─ Approve Proposal ───────────────────────────────────────────────────┐
 │                                                                      │
 │  Title: Error Handling Pattern                                       │
@@ -1140,7 +1140,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 │  └────────────────────────────────────────────────────────────────┘  │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 **Success Criteria:**
 
@@ -1445,4 +1445,8 @@ exoctl memory demote learning-002 --to my-app
 
 # Maintenance
 exoctl memory rebuild-index
+```text
+
+
 ```
+

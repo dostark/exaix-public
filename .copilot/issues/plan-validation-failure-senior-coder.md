@@ -66,8 +66,8 @@ The plan should be validated successfully and appear in `exoctl plan list` as `s
 ## Investigation Needed
 
 1. **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.
-2. **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.
-3. **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.
+
+1.
 
 ## Related Files
 
@@ -86,8 +86,9 @@ The `create_directory` tool has been officially added to the system as a first-c
 Changes made:
 
 1. **Added `CREATE_DIRECTORY` to `McpToolName` enum** in `src/enums.ts`.
-2. **Implemented `createDirectory`** in `src/services/tool_registry.ts` using `Deno.mkdir` with recursive support.
-3. **Updated `senior-coder` blueprint** to explicitly list `create_directory` as a supported tool, ensuring the agent knows it is available and valid.
-4. **Added Regression Tests**:
+
+1.
+1.
    - `tests/plan_validation_repro_test.ts`: Verifies that plans containing `create_directory` now pass validation.
    - `tests/services/tool_registry_test.ts`: Verifies the runtime functionality of the `create_directory` tool.
+

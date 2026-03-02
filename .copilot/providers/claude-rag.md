@@ -35,12 +35,13 @@ deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup
 
 ```text
 Top 5 matches for "test database setup":
+
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)
 1. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
 1. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
 1. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
 1. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
-```
+
 
 ### Automatic Context Injection
 
@@ -191,6 +192,7 @@ Key patterns:
 ${context.snippet}
 
 Task: Propose 3 security tests for PathResolver that check:
+
 - Path traversal attacks (../ sequences)
 - Symlink escape attempts
 - Absolute path handling outside Portal boundaries
@@ -332,8 +334,8 @@ bin/agent-context "write security tests"
 **Solutions:**
 
 1. Check query matches document topics: `.copilot/manifest.json`
-2. Verify agent type exists: `"claude"`, `"copilot"`, `"openai"`, `"google"`
-3. Rebuild embeddings: `deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock`
+
+1.
 
 ### Low Similarity Scores
 
@@ -342,9 +344,9 @@ bin/agent-context "write security tests"
 **Solutions:**
 
 1. Use more specific queries with domain keywords
-2. Switch from mock to OpenAI embeddings for better semantic matching
-3. Add more relevant topics to document frontmatter
-4. Expand query with synonyms: "test" → "test unit integration"
+
+1.
+1.
 
 ### High Token Usage
 
@@ -353,9 +355,9 @@ bin/agent-context "write security tests"
 **Solutions:**
 
 1. Reduce chunk count (4-6 is recommended)
-2. Use `short_summary` only for simple tasks
-3. Filter chunks by relevance threshold (cosine similarity > 0.6)
-4. Summarize chunks before injection (trade quality for tokens)
+
+1.
+1.
 
 ## Canonical Prompt (Short)
 
@@ -374,3 +376,4 @@ bin/agent-context "write security tests"
 - `scripts/inspect_embeddings.ts` — Embedding inspection tool
 - `scripts/inject_agent_context.ts` — Context injection script
 - `scripts/build_agents_embeddings.ts` — Embedding generation
+

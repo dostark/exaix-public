@@ -63,7 +63,7 @@ Your `<thought>` process should explicitly mention which files from the `File Li
 If the `File List` is truncated or you need to see deeper into a directory:
 
 1. Use `list_directory` to explore the actual structure.
-2. Use `read_file` to verify the content and exports of a module before assuming its purpose.
+
 
 ### Stating Limitations
 
@@ -76,3 +76,4 @@ When generating a `<content>` block:
 - **Paths**: Ensure all `path` parameters in `actions` correspond to the reality of the portal.
 - **Context**: If your plan relies on existing logic, cite the specific file from the `File List` where that logic resides.
 - **Creation**: When proposing new files, ensure they follow the established naming conventions and directory structure seen in the `File List`.
+

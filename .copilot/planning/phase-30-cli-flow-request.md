@@ -40,9 +40,9 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Modify `RequestCommands.create()` method to:
 
 1. Accept flow parameter in options
-2. Validate flow exists in `Blueprints/Flows/` directory
-3. Add flow field to YAML frontmatter when specified
-4. Ensure mutual exclusion: cannot specify both `flow` and `agent`
+
+1.
+1.
 
 **Success Criteria:**
 
@@ -59,8 +59,8 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
 
 1. Add `--flow <flow:string>` option
-2. Update help text to mention flow support
-3. Pass flow option to `RequestCommands.create()`
+
+1.
 
 **Success Criteria:**
 
@@ -76,8 +76,8 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Enhance validation in `RequestCommands.create()`:
 
 1. Check flow file exists and is readable
-2. Validate flow has proper structure (optional - basic YAML parsing)
-3. Provide clear error messages for invalid flows
+
+1.
 
 **Success Criteria:**
 
@@ -94,8 +94,8 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Modify activity logging in request creation to include flow information:
 
 1. Add `flow` field to logged payload
-2. Update log message to indicate flow routing
-3. Ensure trace_id linking works for flow requests
+
+1.
 
 **Success Criteria:**
 
@@ -112,8 +112,8 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Improve user experience:
 
 1. Update command description to mention flow support
-2. Add examples showing flow usage
-3. Update any related documentation
+
+1.
 
 **Success Criteria:**
 
@@ -134,10 +134,10 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 **Action:** Create comprehensive test that verifies the complete flow:
 
 1. Create request with `--flow` option
-2. Verify file created with correct frontmatter
-3. Verify request appears in `exoctl request list`
-4. Verify request can be shown with `exoctl request show`
-5. Verify activity journal contains flow information
+
+1.
+1.
+1.
 
 **Success Criteria:**
 
@@ -267,3 +267,4 @@ exoctl request show abc123
 - `tests/cli/exoctl_coverage_test.ts` - Integration tests (new CLI flow option test added, timeout protection added)
 - `tests/cli/exoctl_all_test.ts` - Additional CLI tests (timeout protection added)
 - `.copilot/planning/phase-30-cli-flow-request.md` - Planning document updates</content>
+

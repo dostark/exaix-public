@@ -29,9 +29,9 @@ topics: ["agents", "blueprints", "json", "validation", "migration"]
 Current agent blueprints use inconsistent response formats:
 
 1. **XML Structure**: Agents wrap responses in `<thought>` and `<content>` tags
-2. **Markdown Content**: The `<content>` section contains human-readable markdown
-3. **No Validation**: No automated validation of response structure
-4. **Inconsistent Schema**: Each agent defines its own output format
+
+1.
+1.
 
 ### Successful Examples
 
@@ -55,7 +55,7 @@ Blueprints/Agents/
 └── templates/*.md - ✅ COMPLETED
 ```
 
-**Total Files**: ✅ **24 agent blueprints successfully migrated**
+# Total Files**: ✅ **24 agent blueprints successfully migrated
 
 ### Files to Update
 
@@ -123,7 +123,7 @@ All agents will use the standardized `PlanSchema` defined in the [Agent Content 
 }
 ```
 
-**See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.**
+# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.
 
 ### Response Format Migration
 
@@ -138,9 +138,10 @@ Analysis and reasoning...
 ## Analysis Report
 
 ### Section 1
+
 - Item 1
 - Item 2
-</content>
+
 ```
 
 **After** (XML + JSON):
@@ -161,7 +162,7 @@ Analysis and reasoning...
 </content>
 ```
 
-**See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.**
+# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.
 
 ### Zod Validation Integration
 
@@ -183,9 +184,9 @@ const result = PlanSchema.parse(jsonContent);
 **Tasks**:
 
 1. ✅ Review current PlanSchema limitations
-2. ✅ Add optional fields for specialized agents (analysis results, QA metrics, etc.)
-3. ✅ Update schema documentation
-4. ✅ Add comprehensive test coverage
+
+1.
+1.
 
 **Success Criteria**:
 
@@ -200,9 +201,9 @@ const result = PlanSchema.parse(jsonContent);
 **Tasks**:
 
 1. ✅ Update 12 main agents in `Blueprints/Agents/`
-2. ✅ Convert markdown output formats to JSON structures
-3. ✅ Test each agent with new format
-4. ✅ Update agent documentation
+
+1.
+1.
 
 **Migration Pattern**:
 
@@ -218,9 +219,9 @@ const result = PlanSchema.parse(jsonContent);
 **Tasks**:
 
 1. ✅ Update 5 example agents
-2. ✅ Update 7 template agents
-3. ✅ Ensure template consistency
-4. ✅ Validate all blueprints
+
+1.
+1.
 
 ### Phase 31.4: Integration Testing (Week 3) - ⚠️ **PENDING**
 
@@ -229,9 +230,9 @@ const result = PlanSchema.parse(jsonContent);
 **Tasks**:
 
 1. ❌ Test agent execution with JSON output
-2. ❌ Validate Zod schema enforcement
-3. ❌ Test error handling for invalid JSON
-4. ❌ Performance testing with structured output
+
+1.
+1.
 
 ## Risk Assessment
 
@@ -264,23 +265,23 @@ const result = PlanSchema.parse(jsonContent);
 ### Functional Requirements - ⚠️ **MOSTLY MET**
 
 1. ✅ **All Agents Use JSON**: Every blueprint file uses JSON format in `<content>`
-2. ✅ **Zod Validation**: All JSON responses validate against PlanSchema (static validation)
-3. ❌ **Backward Compatibility**: System handling of both old and new formats not tested
-4. ❌ **Performance**: No performance degradation measured
+
+1.
+1.
 
 ### Quality Assurance - ⚠️ **PARTIALLY MET**
 
 1. ✅ **Test Coverage**: Schema validation tests pass for JSON structure
-2. ✅ **Schema Validation**: 100% of JSON structures pass Zod validation (static validation)
-3. ❌ **Error Handling**: Invalid JSON response handling not tested in runtime
-4. ✅ **Documentation**: All blueprints updated with JSON examples
+
+1.
+1.
 
 ### Validation Steps - ⚠️ **PARTIALLY COMPLETED**
 
 1. ✅ **Unit Tests**: Schema validation tests pass (40/40 PlanSchema tests, 57/57 input validation tests)
-2. ❌ **Integration Tests**: Agent execution with JSON output not tested
-3. ❌ **End-to-End Tests**: Complete flows with JSON output not validated
-4. ❌ **Performance Tests**: Response processing latency not measured
+
+1.
+1.
 
 **Testing Status Note**: Only static schema validation was performed. Runtime testing of agent execution, error handling, backward compatibility, and performance impact requires additional testing before Phase 31 can be considered fully validated.
 
@@ -297,17 +298,17 @@ const result = PlanSchema.parse(jsonContent);
    - Verify JSON output format matches PlanSchema
    - Test agent orchestration with JSON responses
 
-2. **End-to-End Tests**:
+1.
    - Run complete agent workflows using JSON output
    - Validate flow processing handles JSON format correctly
    - Test error scenarios and recovery
 
-3. **Performance Tests**:
+1.
    - Measure JSON parsing/serialization overhead
    - Compare response times with old format
    - Validate memory usage and CPU impact
 
-4. **Error Handling Tests**:
+1.
    - Test invalid JSON responses
    - Verify graceful degradation
    - Validate error reporting and logging
@@ -330,16 +331,16 @@ const result = PlanSchema.parse(jsonContent);
 If JSON migration causes critical issues:
 
 1. **Immediate**: Disable Zod validation temporarily
-2. **Short-term**: Revert agent blueprints to markdown format
-3. **Long-term**: Fix schema issues and re-attempt migration
+
+1.
 
 ### Gradual Rollback
 
 For non-critical issues:
 
 1. Allow agents to use either format during transition
-2. Gradually migrate remaining agents
-3. Monitor error rates and performance
+
+1.
 
 ## Timeline and Milestones
 
@@ -384,16 +385,16 @@ For non-critical issues:
 ### Key Metrics
 
 1. **Migration Progress**: Percentage of agents migrated
-2. **Validation Success Rate**: JSON responses passing Zod validation
-3. **Performance Impact**: Response processing latency
-4. **Error Rate**: Invalid JSON response frequency
+
+1.
+1.
 
 ### Monitoring Setup
 
 1. **Schema Validation Logs**: Track validation failures
-2. **Performance Metrics**: Response processing times
-3. **Agent Health Checks**: Ensure all agents produce valid output
-4. **Integration Tests**: Automated testing of agent flows
+
+1.
+1.
 
 ## Future Phases
 
@@ -448,9 +449,9 @@ Following JSON migration and thought standardization, enhance the `exoctl plan s
 **Technical Details**:
 
 1. **Parser Updates**: Extend plan parsing to handle beautified output
-2. **Terminal Detection**: Auto-detect color support and terminal capabilities
-3. **Schema Integration**: Show validation results inline with formatted output
-4. **Performance**: Lazy loading for large JSON structures
+
+1.
+1.
 
 **Timeline**: 1 week after Phase 31.5 completion
 **Dependencies**: Phase 31.5 completion, terminal UI libraries
@@ -460,10 +461,11 @@ Following JSON migration and thought standardization, enhance the `exoctl plan s
 Phase 31 represents a critical infrastructure improvement that will:
 
 1. ✅ **Standardize** agent outputs for reliable processing
-2. ✅ **Enable** automated validation and error detection
-3. ✅ **Improve** system reliability and maintainability
-4. ✅ **Facilitate** future agent development and integration
 
-**The migration follows proven patterns from successful senior-coder and default agent implementations, ensuring a smooth transition to structured JSON output across all agent blueprints.**
+1.
+1.
 
-**Status: ✅ MIGRATION COMPLETED - All 24 agent blueprints successfully migrated to JSON format with PlanSchema validation. ⚠️ VALIDATION PENDING - Runtime testing required before full completion.**
+# The migration follows proven patterns from successful senior-coder and default agent implementations, ensuring a smooth transition to structured JSON output across all agent blueprints.
+
+# Status: ✅ MIGRATION COMPLETED - All 24 agent blueprints successfully migrated to JSON format with PlanSchema validation. ⚠️ VALIDATION PENDING - Runtime testing required before full completion.
+

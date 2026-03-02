@@ -11,25 +11,28 @@ import { join } from "@std/path";
 import type { ICommandContext } from "../base.ts";
 
 export function getWorkspaceRequestsDir(context: ICommandContext): string {
+  const config = context.config.getAll();
   return join(
-    context.config.system.root,
-    context.config.paths.workspace,
-    context.config.paths.requests,
+    config.system.root,
+    config.paths.workspace,
+    config.paths.requests,
   );
 }
 
 export function getWorkspaceArchiveDir(context: ICommandContext): string {
+  const config = context.config.getAll();
   return join(
-    context.config.system.root,
-    context.config.paths.workspace,
-    context.config.paths.archive,
+    config.system.root,
+    config.paths.workspace,
+    config.paths.archive,
   );
 }
 
 export function getWorkspaceRejectedDir(context: ICommandContext): string {
+  const config = context.config.getAll();
   return join(
-    context.config.system.root,
-    context.config.paths.workspace,
-    context.config.paths.rejected,
+    config.system.root,
+    config.paths.workspace,
+    config.paths.rejected,
   );
 }

@@ -51,10 +51,11 @@ Example `exoctl plan show` output (excerpt):
 Plan JSON does not match required schema
 
 ## Validation Details
+
 - steps.0.dependencies.0: Expected number, received string
 - steps.1.dependencies.0: Expected number, received string
 - steps.2.dependencies.0: Expected number, received string
-```
+
 
 ## Expected Behavior
 
@@ -72,11 +73,11 @@ Plan JSON does not match required schema
 ## Proposed Plan
 
 1. Update plan schema so `steps[].dependencies` accepts strings (and update any related types).
-2. Update agent content guidance and schema docs so read-only agents, write agents, and flows emit string dependencies.
-3. Embed token usage fields in plan frontmatter when the plan is saved for all agent and flow executions.
-4. Update `exoctl plan show` output to display token usage stats from plan frontmatter for any plan source.
-5. Update `exoctl request show` output to display the same token stats when a plan exists, regardless of plan source.
-6. Add or update tests for schema validation and CLI output rendering.
+
+1.
+1.
+1.
+1.
 
 ## Investigation Needed
 
@@ -84,14 +85,14 @@ Plan JSON does not match required schema
    - Check `PlanStepSchema` and `PlanSchema` to confirm `dependencies` type.
    - Confirm validation gate in `PlanAdapter.parse()`.
 
-2. **Agent and flow guidance**
+1.
    - Update agent schema references so read-only agents, write agents, and flows emit string dependencies.
 
-3. **Token usage capture**
+1.
    - Identify where plan frontmatter is written and extend it to include token stats for all agent and flow executions.
    - Confirm providers emit token usage data for plan generation across all flows.
 
-4. **CLI rendering**
+1.
    - Add token stats to `plan show` metadata output.
    - Add token stats to `request show` metadata output when a plan exists.
 
@@ -127,8 +128,8 @@ Plan JSON does not match required schema
 Add a regression test that:
 
 1. Generates a plan with string dependencies (e.g., "Step 1") and verifies schema validation passes.
-2. Persists plan frontmatter with token stats and verifies `plan show` output includes them.
-3. Verifies `request show` output includes the same token stats when a plan is present.
+
+1.
 
 ## Workaround
 
@@ -137,3 +138,7 @@ None currently known.
 ## Priority Justification
 
 High priority because plan generation is rejected for read-only agents (blocking workflow), and token usage visibility is required for auditability and cost tracking.
+
+
+```
+

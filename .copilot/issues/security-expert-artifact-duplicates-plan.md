@@ -66,3 +66,4 @@ Manually treat the plan content as the final report when reviewing read-only sec
 ## Priority Justification
 
 Medium: This does not block execution but reduces the value of the review artifact for read-only agents.
+

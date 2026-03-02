@@ -1,0 +1,37 @@
+/**
+ * @module IArchiveService
+ * @path src/shared/interfaces/i_archive_service.ts
+ * @description Interface for execution archive services.
+ * @architectural-layer Shared
+ */
+
+import type { MemoryStatusType } from "../status/memory_status.ts";
+
+export interface IArchiveEntry {
+  trace_id: string;
+  agent_id: string;
+  status: MemoryStatusType | string;
+  archived_at: string;
+}
+
+export interface IArchiveService {
+  /**
+   * Search for archived entries in a date range.
+   */
+  searchByDateRange(start: string, end: string): Promise<IArchiveEntry[]>;
+
+  /**
+   * Search for archived entries by agent ID.
+   */
+  searchByAgent(agentId: string): Promise<IArchiveEntry[]>;
+
+  /**
+   * Get an archived entry by its trace ID.
+   */
+  getByTraceId(traceId: string): Promise<IArchiveEntry | null>;
+
+  /**
+   * Get an archived trace file content (e.g. plan or request).
+   */
+  getTrace(traceId: string): Promise<unknown>;
+}

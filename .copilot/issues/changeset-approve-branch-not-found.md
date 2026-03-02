@@ -27,25 +27,25 @@ exoctl changeset list
 
 # Try to approve - fails
 exoctl changeset approve request-a300d5a5
-```
+```text
 
 ## Observed Behavior
 
-```
+```text
 ❌ cli.error: changeset approve
    message: Branch not found: feat/request-a300d5a5-a300d5a5
-```
+```text
 
 But `exoctl changeset list` shows:
 
-```
+```text
 ✅ changeset.list: changesets
    count: 1
 ✅ 📌 request-a300d5a5: feat/request-a300d5a5-a300d5a5
    files: 0
    created: 1/22/2026, 8:14:56 PM
    trace: a300d5a5...
-```
+```text
 
 ## Expected Behavior
 
@@ -64,7 +64,7 @@ The approve command should find the branch in the correct repository (portal or 
    - Check `findRepoForBranch` method implementation
    - Confirm portal symlink resolution works
 
-2. **Branch Location**: Determine which repository contains the feat/ branches
+1.
    - Portal repos vs workspace root
    - Symlink target validation
 
@@ -93,3 +93,7 @@ High priority because changeset approval is core functionality for the agent wor
 - **Commit**: Changes applied to `src/cli/changeset_commands.ts`
 
 - **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.
+
+
+```
+

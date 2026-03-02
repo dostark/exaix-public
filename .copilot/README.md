@@ -105,12 +105,12 @@ The project includes automated pre-commit hooks that run:
 ### Workflow for Code Changes
 
 1. Make code changes
-2. Run `deno task fmt` to format code
-3. Run `deno lint src/ tests/` to check for issues
-4. Run `deno run --allow-read scripts/markdown_lint.ts` for any markdown changes
-5. Fix any formatting or linting errors
-6. Run tests to ensure functionality
-7. Commit changes
+
+1.
+1.
+1.
+1.
+1.
 
 ## Regenerating manifest & chunks
 
@@ -188,7 +188,7 @@ Key points
 - Use `initTestDbService()` for database tests
 - Follow TDD workflow: tests first, implementation second
 - Clean up resources in finally blocks
-```
+
 
 #### Canonical Prompt (Required)
 
@@ -208,7 +208,7 @@ Examples
 
 - Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
 - Example prompt: "Propose 3 failing unit tests showing how ConfigLoader handles malformed TOML."
-```
+
 
 #### Do / Don't (Recommended)
 
@@ -220,7 +220,7 @@ Do / Don't
 - ✅ Do follow TDD and verify Success Criteria
 - ✅ Do add module-level documentation
 - ❌ Don't proceed without Implementation Plan step
-```
+
 
 ### 4. Regenerate Manifest
 
@@ -319,6 +319,7 @@ topics: ["security", "testing", "paranoid-tests", "path-traversal"]
 ## Security Testing Patterns
 
 Key points
+
 - Label security tests with `[security]` in test names
 - Test path traversal with `../` sequences
 - Use PathResolver for all path validation
@@ -328,8 +329,9 @@ Canonical prompt (short):
 "You are a security testing assistant. Propose paranoid tests for attack vectors: path traversal, command injection, symlink escapes."
 
 Examples
+
 - Example prompt: "Write security tests for PathResolver that check ../ handling and symlink resolution."
-EOF
+
 
 ```bash
 deno run --allow-read --allow-write scripts/build_agents_index.ts
@@ -391,18 +393,18 @@ Agents must use the following core services for reliability and security:
    - Verifies the fix resolves the issue
    - Guards against future regressions
 
-2. **Test naming convention** — Use `[regression]` prefix in test names:
+1.
 
    ```typescript
    Deno.test("[regression] Plan list shows approved plans from Active directory", ...);
    Deno.test("[regression] EventLogger works with stub db", ...);
    ```
 
-3. **Test file location** — Place regression tests in:
+1.
    - `tests/<feature>_regression_test.ts` for feature-specific regressions
    - `tests/integration/<N>_<feature>_integration_test.ts` for integration-level regressions
 
-4. **Document the bug** — Include a comment referencing:
+1.
    - The original error message or behavior
    - The root cause
    - The fix applied
@@ -427,9 +429,9 @@ Deno.test("[regression] EventLogger works with stub db", async () => {
 ### Workflow
 
 1. **Reproduce** — Write a test that fails with the original bug
-2. **Fix** — Implement the code fix
-3. **Verify** — Ensure the regression test now passes
-4. **Commit** — Include both fix and test in the same commit or PR
+
+1.
+1.
 
 ## Issue Tracking
 
@@ -481,3 +483,4 @@ EOF
 - **Labels**: Tag by type, component, and impact
 
 **See [issues/README.md](issues/README.md) for complete guidelines, templates, and best practices.**
+

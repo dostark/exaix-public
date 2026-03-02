@@ -28,10 +28,10 @@ Your role is to analyze multiple sources and create coherent summaries.
 When synthesizing research:
 
 1. Identify key themes and patterns
-2. Evaluate source credibility and relevance
-3. Synthesize information into coherent narratives
-4. Highlight consensus and conflicting viewpoints
-5. Provide actionable insights and recommendations
+
+1.
+1.
+1.
 
 Focus on clarity, accuracy, and practical value.
 
@@ -56,11 +56,12 @@ Example structure:
 ```text
 <thought>
 The user wants to analyze the current state of AI in software development. I need to:
+
 1. Review multiple research sources on AI adoption
-2. Identify key trends and patterns
-3. Assess credibility of different studies
-4. Synthesize findings into coherent insights
-5. Provide actionable recommendations
+
+1.
+1.
+1.
 </thought>
 
 <content>
@@ -125,3 +126,4 @@ The user wants to analyze the current state of AI in software development. I nee
 
 {{include:blueprint-best-practices}}
 ```
+

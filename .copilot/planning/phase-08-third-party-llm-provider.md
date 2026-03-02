@@ -6,9 +6,9 @@ For the initial integration, the following models have been selected as the prim
 
 1. **Anthropic: `claude-opus-4.5`**
    - **Why:** Tops agentic coding and reasoning benchmarks. It achieves near 0% code edit errors and supports 30+ hour autonomy, making it superior for complex Plan-Execute loops.
-2. **OpenAI: `gpt-5.2-pro`**
+1.
    - **Why:** Optimized for professional agentic tasks. It excels in multi-step workflows, complex tool-chaining, and managing long-running agents.
-3. **Google: `gemini-3-pro`**
+1.
    - **Why:** Combines a massive context window (1M+) with high performance (78% on SWE-Bench). It rivals GPT-5.2 in speed and cost for large-scale codebase ingestion.
 
 ---
@@ -366,3 +366,4 @@ export class ModelFactory {
 - [x] Documentation updated with provider setup and cost comparison instructions
 
 ---
+

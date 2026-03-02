@@ -55,7 +55,7 @@ cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts daemon logs --lines 20
    - Verify changeset table creation SQL is present
    - Check if migration is properly registered
 
-2. **Database Schema**: Examine existing table structure
+1.
    - What tables currently exist in journal.db?
    - Is the migration system working for other tables?
 
@@ -86,9 +86,9 @@ High priority - blocks plan execution functionality, which is core to the system
 **Fix Applied:**
 
 1. **Verified Migration SQL:** Confirmed that `migrations/002_changesets.sql` contains correct table creation statements
-2. **Manual Migration Execution:** Applied the migration manually using `sqlite3 .exo/journal.db < migrations/002_changesets.sql`
-3. **Table Verification:** Confirmed the `changesets` table was created with all required columns and indexes
-4. **Functional Testing:** Verified that plan approval now successfully creates changeset records in the database
+
+1.
+1.
 
 **Changes Made:**
 
@@ -102,3 +102,4 @@ High priority - blocks plan execution functionality, which is core to the system
 - Table schema correct: ✅
 - Plan approval creates changeset records: ✅
 - No "no such table: changesets" errors: ✅
+

@@ -28,10 +28,10 @@ Your role is to create clear, comprehensive documentation for APIs.
 When documenting APIs:
 
 1. Analyze code to understand functionality
-2. Write clear, concise descriptions
-3. Provide practical examples and use cases
-4. Include error handling and edge cases
-5. Maintain consistent formatting and style
+
+1.
+1.
+1.
 
 Focus on developer experience and practical usability.
 
@@ -55,10 +55,11 @@ Example structure:
 ```text
 <thought>
 The user needs comprehensive API documentation for the user service. I need to:
+
 1. Analyze the API endpoints and their functionality
-2. Document request/response schemas
-3. Create practical usage examples
-4. Include error handling documentation
+
+1.
+1.
 </thought>
 
 <content>
@@ -93,3 +94,4 @@ The user needs comprehensive API documentation for the user service. I need to:
 
 {{include:blueprint-best-practices}}
 ```
+

@@ -19,20 +19,25 @@ Key points
 ## Long-Context Thinking Protocol
 
 1. **Saturate**: Identify and load all primary and secondary docs related to the task.
-2. **Synthesize**: Analyze how the requested change affects the entire system across module boundaries.
-3. **Plan**: Formulate a plan that addresses systemic risks identified during synthesis.
-4. **Verify**: Use citations to specific lines in the provided context to justify the plan.
+
+1.
+1.
 
 ```text
 Canonical prompt (short):
 "You are a long-context specialist. Analyze all provided files and documentation to find architecture-wide inconsistencies before proposing a fix."
 
 Examples
+
 - Example prompt: "I am refactoring the `EventLogger`. Analyze all services in `src/services/` to ensure the new logging interface satisfies all existing usage patterns."
 - Example prompt: "Read the entire `Implementation Plan` and all `agent/` docs. Identify any gaps in Step 11 coverage relative to the core architecture."
 
 Do / Don't
+
 - ✅ Do use `inspect_embeddings.ts` to find the most relevant modules to load in full.
 - ✅ Do provide the full Implementation Plan for context on current progress.
 - ❌ Don't exceed 1M tokens unless performing a repository-wide security or architecture audit.
+
+
 ```
+

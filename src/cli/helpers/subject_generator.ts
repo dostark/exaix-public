@@ -1,8 +1,8 @@
 /**
  * @module SubjectGenerator
- * @path src/helpers/subject_generator.ts
+ * @path src/cli/helpers/subject_generator.ts
  * @description Utilities for generating and validating entity subjects (mnemonic names).
- * @architectural-layer Helpers
+ * @architectural-layer CLI
  * @dependencies []
  * @related-files [tests/helpers/subject_generator_test.ts]
  */

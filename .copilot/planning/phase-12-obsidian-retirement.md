@@ -84,10 +84,10 @@ With the completion of **Phase 9 (TUI Dashboard)**, ExoFrame now has a native, t
 Replace Obsidian-centric Knowledge/ structure with a purpose-built **Memory Banks** system:
 
 1. **Preserve core concepts:** Knowledge storage, execution history, context cards
-2. **Remove Obsidian specifics:** Dataview queries, wikilinks, vault configuration
-3. **Simplify format:** Plain markdown + structured data (JSON), no Obsidian constraints
-4. **Enable programmatic access:** Memory banks as first-class API for agents and scripts
-5. **Clean migration:** Migration script with dry-run mode and automatic backup
+
+1.
+1.
+1.
 
 **Note:** TUI dashboard integration for browsing memory banks will be implemented in a future phase (post-v1.1). Phase 12 focuses on establishing the memory banks infrastructure and removing Obsidian dependency.
 
@@ -97,7 +97,7 @@ Replace Obsidian-centric Knowledge/ structure with a purpose-built **Memory Bank
 
 ### 2.1 Directory Structure
 
-```
+```text
 Memory/
 ├── Projects/              # Project-specific knowledge banks
 │   ├── {portal-name}/
@@ -121,7 +121,7 @@ Memory/
     ├── files.json         # File-to-project mapping
     ├── patterns.json      # Pattern-to-usage mapping
     └── tags.json          # Tag-based categorization
-```
+```text
 
 **Key Design Principles:**
 
@@ -130,17 +130,17 @@ Memory/
    - `Execution/` = Historical record of what was done
    - `Tasks/` = Active and completed work items
 
-2. **Structured + Unstructured:**
+1.
    - `.md` files for human readability (overview, patterns, decisions)
    - `.json` files for programmatic access (context, indices)
    - `.diff` files for change tracking
 
-3. **TUI-First Design:**
+1.
    - Directory structure optimized for TUI navigation
    - Indices enable fast search/filter without full filesystem scan
    - Lightweight format (no wikilink generation overhead)
 
-4. **Migration Path:**
+1.
    - `Knowledge/Reports/` → `Memory/Execution/`
    - `Knowledge/Portals/` → `Memory/Projects/`
    - `Knowledge/Context/` → Deprecated (folded into Projects/)
@@ -179,7 +179,7 @@ export const ProjectMemorySchema = z.object({
 });
 
 export type ProjectMemory = z.infer<typeof ProjectMemorySchema>;
-```
+```text
 
 #### Execution Memory Schema
 
@@ -209,7 +209,7 @@ export const ExecutionMemorySchema = z.object({
 });
 
 export type ExecutionMemory = z.infer<typeof ExecutionMemorySchema>;
-```
+```text
 
 ### 2.3 Service Layer
 
@@ -293,7 +293,7 @@ export class MemoryBankService {
     // Regenerate Index/*.json files
   }
 }
-```
+```text
 
 **Usage Example:**
 
@@ -326,7 +326,7 @@ console.log(projectMem.patterns); // Code patterns learned
 // Search all memory
 const results = await memoryBank.searchMemory("authentication");
 // Returns matches from Projects/, Execution/, Tasks/
-```
+```text
 
 ---
 
@@ -651,7 +651,7 @@ function extractSummary(body: string): string {
   }
   return "No summary available";
 }
-```
+```text
 
 **Migration Testing:**
 
@@ -674,7 +674,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   // Run migration with --dry-run
   // Assert no files created
 });
-```
+```text
 
 ---
 
@@ -1073,20 +1073,20 @@ TUI dashboard integration for Memory Banks will be implemented in a separate pha
 ### Immediate Actions:
 
 1. **Insert Phase 12** into Implementation Plan
-2. **Renumber Phase 12 → Phase 13**
-3. **Update phase timeline table** in Implementation Plan
-4. **Begin implementation** (Phase 12.1: Architecture definition)
+
+1.
+1.
 
 ### Implementation Sequence:
 
 1. Define Memory Banks Architecture (2 days)
-2. Implement Memory Bank Services (3 days)
-3. Migrate Mission Reporter (2 days)
-4. Remove Obsidian Code (1 day)
-5. Create Migration Script (2 days)
-6. Update CLI Commands (1 day)
-7. Comprehensive Documentation Update (3 days)
-8. Final Validation & Testing (2 days)
+
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Total Timeline:** 1 week (with parallel work on documentation)
 
@@ -1121,7 +1121,7 @@ TUI dashboard integration for Memory Banks will be implemented in a separate pha
 
 Assuming 100 executions and 10 projects:
 
-```
+```text
 Memory/
 ├── Projects/       (~10 dirs × ~20 KB/dir = 200 KB)
 ├── Execution/      (~100 dirs × ~5 KB/dir = 500 KB)
@@ -1129,7 +1129,7 @@ Memory/
 └── Index/          (~20 KB)
 
 Total: ~770 KB
-```
+```text
 
 **Growth Rate:** ~5 KB per execution, ~20 KB per new project
 
@@ -1153,3 +1153,7 @@ Total: ~770 KB
 
 **Next Review:** After Phase 12.1 completion
 **Implementation Start:** Ready to proceed
+
+
+```
+

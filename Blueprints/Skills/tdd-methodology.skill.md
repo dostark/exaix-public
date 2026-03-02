@@ -71,9 +71,9 @@ You MUST follow the Red-Green-Refactor cycle for all code changes:
 ## Phase 1: Red (Write Failing Test)
 
 1. **Understand the requirement** - What behavior needs to be implemented?
-2. **Write a test** that describes the expected behavior
-3. **Run the test** to confirm it fails (for the right reason)
-4. **Name tests descriptively** - Test names should read like specifications
+
+1.
+1.
 
 ```typescript
 // ✅ Good test name
@@ -81,14 +81,14 @@ Deno.test("calculateTotal returns sum of items when cart has products");
 
 // ❌ Bad test name
 Deno.test("test1");
-```
+```text
 
 ## Phase 2: Green (Make It Pass)
 
 1. **Write ONLY enough code** to make the test pass
-2. **No additional features** or optimizations
-3. **Focus on correctness**, not elegance
-4. **Run tests frequently** - After every small change
+
+1.
+1.
 
 ```typescript
 // ✅ Minimal implementation to pass
@@ -100,14 +100,14 @@ function calculateTotal(items: Item[]): number {
 function calculateTotal(items: Item[]): number {
   // Don't add caching, discounts, etc. until needed
 }
-```
+```text
 
 ## Phase 3: Refactor (Clean Up)
 
 1. **Improve code structure** while tests stay green
-2. **Extract helpers**, reduce duplication
-3. **Improve naming** and organization
-4. **Run tests after EVERY change**
+
+1.
+1.
 
 ## Key Rules
 
@@ -119,12 +119,17 @@ function calculateTotal(items: Item[]): number {
 
 ## Example Workflow
 
-```
+```text
+
 1. Write test: "should return empty array when no items match"
-2. Run test → RED (function doesn't exist)
-3. Create function with basic implementation
-4. Run test → GREEN
-5. Refactor: extract helper, improve naming
-6. Run tests → Still GREEN
-7. Move to next requirement
+
+1.
+1.
+1.
+1.
+1.
+```text
+
+
 ```
+

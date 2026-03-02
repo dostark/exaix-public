@@ -23,9 +23,9 @@ ExoFrame precomputes embeddings for all documentation in `.copilot/` and splits 
 ## RAG Workflow (pit of success)
 
 1. **Inspect**: preview top-matching chunks for the task query.
-2. **Inject**: inject top chunks into the prompt as a context block.
-3. **Act**: propose a minimal diff (apply_patch-ready) that follows the retrieved instructions.
-4. **Verify**: state which tests/linters to run.
+
+1.
+1.
 
 ## Tools
 
@@ -94,3 +94,4 @@ deno run --allow-read scripts/validate_agents_docs.ts
 - ✅ Do cite the agent docs you used (paths) to reinforce the habit.
 - ✅ Do keep injected context small and relevant.
 - ❌ Don’t proceed if the manifest/chunks look stale; rebuild first.
+

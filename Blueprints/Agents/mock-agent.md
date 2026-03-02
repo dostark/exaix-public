@@ -75,3 +75,4 @@ Always respond with `<thought>` and `<content>` tags containing valid JSON:
 ```
 
 This blueprint is intentionally simple for testing basic plan generation and validation flows.
+

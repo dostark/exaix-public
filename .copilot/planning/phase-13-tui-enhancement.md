@@ -12,14 +12,14 @@
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)
-2. [Gap Analysis: Current TUI State](#2-gap-analysis)
-3. [Design Principles from Memory View](#3-design-principles-from-memory-view)
-4. [Split View Enhancements](#4-split-view-enhancements)
-5. [Enhancement Roadmap](#5-enhancement-roadmap)
-6. [Implementation Phases](#6-implementation-phases)
-7. [User Documentation Updates](#7-user-documentation-updates)
-8. [Success Metrics](#8-success-metrics)
-9. [Rollback Plan](#9-rollback-plan)
+
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 ---
 
@@ -87,7 +87,7 @@ These patterns should be propagated to all TUI views for a consistent, polished 
 
 ### 2.3 Feature Gap Summary
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │                      TUI Enhancement Gap Analysis                     │
 ├──────────────────────────────────────────────────────────────────────┤
@@ -103,7 +103,7 @@ These patterns should be propagated to all TUI views for a consistent, polished 
 │  ✅ Refresh (R + stale)   │  ⚠️ Manual refresh only                  │
 │  ✅ 50+ unit tests        │  ⚠️ 5-15 tests per view                  │
 └──────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -133,11 +133,11 @@ interface ViewState {
   // Refresh state
   lastRefresh: number;
 }
-```
+```text
 
 ### 3.2 Rendering Pipeline
 
-```
+```text
 ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
 │ Raw Data     │ -> │ State Update │ -> │ Render       │
 │ (Service)    │    │ (handleKey)  │    │ (renderX)    │
@@ -147,7 +147,7 @@ interface ViewState {
                     │   Dialogs   │
                     │   (modal)   │
                     └─────────────┘
-```
+```text
 
 ### 3.3 Keyboard Hierarchy
 
@@ -190,7 +190,7 @@ The current split view in `tui_dashboard.ts` provides:
 
 #### 4.2.1 Layout Presets
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      LAYOUT PRESETS                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -209,13 +209,13 @@ The current split view in `tui_dashboard.ts` provides:
 │  │       │   │  │  │  C  │  D  │     │  │       │ C │      │
 │  └───────┴───┘  │  └─────┴─────┘     │  └───────┴───┘      │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 #### 4.2.2 View Picker Dialog
 
 When creating a new pane, show a picker:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │        Select View for New Pane         │
 ├─────────────────────────────────────────┤
@@ -229,7 +229,7 @@ When creating a new pane, show a picker:
 ├─────────────────────────────────────────┤
 │  [Enter] Select   [Esc] Cancel          │
 └─────────────────────────────────────────┘
-```
+```text
 
 #### 4.2.3 Pane Management Features
 
@@ -293,11 +293,11 @@ interface SavedLayout {
     bounds: { x: number; y: number; width: number; height: number };
   }[];
 }
-```
+```text
 
 #### 4.2.5 Visual Indicators
 
-```
+```text
 ┌─ Memory View ──────────────────────┬─ Monitor ─────────────────┐
 │ ► Global Memory                    │ 2026-01-04 10:23:45       │
 │   Projects                         │ [agent] Plan approved     │
@@ -309,7 +309,7 @@ interface SavedLayout {
 
 ^ Title bar shows view name          ^ Status bar shows pane info
 ^ Active pane has highlighted border
-```
+```text
 
 ---
 
@@ -319,7 +319,7 @@ interface SavedLayout {
 
 Create reusable utilities in `src/tui/utils/`:
 
-```
+```text
 src/tui/utils/
 ├── markdown_renderer.ts    # ✅ Exists (Phase 12.14)
 ├── spinner.ts              # NEW: Spinner utilities
@@ -329,7 +329,7 @@ src/tui/utils/
 ├── status_bar.ts           # NEW: Consistent status bar
 ├── help_renderer.ts        # NEW: Help screen generator
 └── keyboard.ts             # NEW: Keyboard handler utilities
-```
+```text
 
 ### 5.2 Enhanced TuiSessionBase (Phase 13.2)
 
@@ -361,7 +361,7 @@ export abstract class TuiSessionBase {
   abstract refresh(): Promise<void>;
   abstract renderHelp(): string;
 }
-```
+```text
 
 ### 5.3 View-Specific Enhancements
 
@@ -810,20 +810,20 @@ The ExoFrame TUI Dashboard is a powerful terminal interface for managing your de
 
 ```bash
 exoctl dashboard
-```
-````
+```text
+````text
 
 ### Views
 
 The dashboard includes 7 integrated views:
 
 1. **Memory View** - Browse and manage Memory Banks
-2. **Portal Manager** - Manage project portals
-3. **Plan Reviewer** - Review and approve agent plans
-4. **Monitor** - Real-time activity log streaming
-5. **Request Manager** - Track and manage requests
-6. **Agent Status** - Monitor agent health
-7. **Daemon Control** - Manage the ExoFrame daemon
+
+1.
+1.
+1.
+1.
+1.
 
 ### Global Navigation
 
@@ -849,7 +849,7 @@ Each view supports:
 - **Confirmations** - Safe dialogs for destructive actions
 - **Loading States** - Visual feedback during operations
 
-````
+````text
 ### 6.2 New Keyboard Reference Document
 
 Create `docs/TUI_Keyboard_Reference.md`:
@@ -971,7 +971,7 @@ Create `docs/TUI_Keyboard_Reference.md`:
 | `Ctrl+S` | Save layout |
 | `Ctrl+L` | Named layouts |
 | `1-6` | Quick presets |
-````
+````text
 
 ---
 
@@ -1080,10 +1080,10 @@ Create `docs/TUI_Keyboard_Reference.md`:
 ### Key Accomplishments
 
 1. **Unified TUI Infrastructure** - Shared utilities across all views
-2. **Consistent UX** - All 7 views follow same patterns
-3. **Full Documentation** - Keyboard reference, user guide, architecture docs
-4. **Extensive Testing** - 656 tests with 85%+ coverage
-5. **Split View System** - 6 layout presets, named layouts, pane management
+
+1.
+1.
+1.
 
 ---
 
@@ -1096,3 +1096,7 @@ Create `docs/TUI_Keyboard_Reference.md`:
 - [Memory View Implementation](../src/tui/memory_view.ts)
 - [Markdown Renderer](../src/tui/utils/markdown_renderer.ts)
 - [Layout Manager](../src/tui/utils/layout_manager.ts)
+
+
+```
+

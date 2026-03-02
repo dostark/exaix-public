@@ -16,11 +16,9 @@ import { getWorkspaceArchiveDir, getWorkspaceRejectedDir, getWorkspaceRequestsDi
 
 export class RequestListHandler extends BaseCommand {
   private workspaceRequestsDir: string;
-  private context: ICommandContext;
 
   constructor(context: ICommandContext) {
     super(context);
-    this.context = context;
     this.workspaceRequestsDir = getWorkspaceRequestsDir(context);
   }
 

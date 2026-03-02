@@ -92,3 +92,4 @@ High: breaks the validation pipeline for the `test-engineer` agent and prevents 
    - Relax plan validation to accept agent-specific fields without failing.
    - Keep strict checks for non-JSON outputs and missing `title`/`description` only.
    - This reduces false rejections for agents like `test-engineer` while preserving core validation.
+

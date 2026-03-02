@@ -23,7 +23,7 @@ npx jscpd src/tui/
 
 # With HTML report
 npx jscpd src/ tests/ --reporters html,json --output ./jscpd-report
-```
+```text
 
 ## Command Options
 
@@ -40,11 +40,11 @@ npx jscpd src/ tests/ --reporters html,json --output ./jscpd-report
 
 ### Console Output
 
-```
+```text
 Clone found (typescript):
  - tests/ai/openai_provider_test.ts [64:2 - 78:13] (14 lines, 136 tokens)
    tests/ai/anthropic_provider_test.ts [44:2 - 56:12]
-```
+```text
 
 Interpretation:
 
@@ -66,7 +66,7 @@ Interpretation:
   },
   "duplicates": [...]
 }
-```
+```text
 
 ## Duplication Thresholds
 
@@ -97,7 +97,7 @@ const context = createTestContext(db);
 
 // GOOD: Extract to helper
 const ctx = await createTestFixture();
-```
+```text
 
 ### 2. Provider Pattern Duplication
 
@@ -115,7 +115,7 @@ export abstract class BaseProvider {
     this.model = config.model || defaults.defaultModel;
   }
 }
-```
+```text
 
 ### 3. Test Assertion Patterns
 
@@ -127,40 +127,40 @@ assertExists(result.timestamp);
 
 // GOOD: Custom assertion helper
 assertSuccessResult(result, { dataLength: 3 });
-```
+```text
 
 ## Refactoring Workflow
 
 1. **Run jscpd** to identify duplicates
    ```bash
    npx jscpd src/ tests/ --reporters json --output ./jscpd-report
-   ```
+   ```text
 
-2. **Prioritize** by tokens (larger = more impact)
+1.
    ```bash
    grep -o '"duplicatedTokens": [0-9]*' jscpd-report/jscpd-report.json | sort -t: -k2 -nr | head -20
-   ```
+   ```text
 
-3. **Analyze** specific clones
+1.
    ```bash
    grep -B15 'filename.ts' jscpd-report/jscpd-report.json
-   ```
+   ```text
 
-4. **Plan extraction** based on pattern type:
+1.
    - Same file duplication → Extract method
    - Cross-file duplication → Extract helper/utility
    - Test duplication → Create test helper or fixture
 
-5. **Implement** with tests first:
+1.
    - Create helper with tests
    - Refactor one usage
    - Verify tests pass
    - Refactor remaining usages
 
-6. **Verify** duplication reduced:
+1.
    ```bash
    npx jscpd src/ tests/ --reporters json --output ./jscpd-report-after
-   ```
+   ```text
 
 ## Integration with CI
 
@@ -172,7 +172,7 @@ npx jscpd src/ tests/ --threshold 5
 
 # Or specific directories
 npx jscpd src/ai/ --threshold 3
-```
+```text
 
 ## ExoFrame-Specific Patterns
 
@@ -187,9 +187,9 @@ npx jscpd src/ai/ --threshold 3
 ### When NOT to Deduplicate
 
 1. **Intentional isolation** - Security tests should be standalone
-2. **Test clarity** - Some repetition improves test readability
-3. **Evolution** - Tests that may diverge should stay separate
-4. **Small clones** - < 50 tokens rarely worth extracting
+
+1.
+1.
 
 ## Current Status (2026-01-04)
 
@@ -207,3 +207,7 @@ See [phase-14-code-deduplication.md](../planning/phase-14-code-deduplication.md)
 - [jscpd GitHub](https://github.com/kucherenko/jscpd)
 - [Testing Guidelines](testing.md)
 - [Phase 14 Refactoring Plan](../planning/phase-14-code-deduplication.md)
+
+
+```
+

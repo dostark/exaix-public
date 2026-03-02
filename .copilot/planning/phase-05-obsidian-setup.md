@@ -37,11 +37,11 @@
    - Browse → Search "Dataview"
    - Install and Enable
 
-2. **File Tree Alternative** (optional)
+1.
    - Enables sidebar navigation of ExoFrame folders
    - Provides better folder structure visibility
 
-3. **Templater** (optional)
+1.
    - Enables template-based file creation
    - Useful for creating new requests with consistent frontmatter
 
@@ -72,7 +72,7 @@ Deno.test("Dashboard file uses valid Dataview syntax", async () => {
     );
   }
 });
-````
+````text
 
 **Success Criteria:**
 
@@ -98,19 +98,19 @@ Deno.test("Dashboard file uses valid Dataview syntax", async () => {
 **Implementation Steps:**
 
 1. Open Obsidian
-2. Select "Open folder as vault"
-3. Navigate to `/path/to/ExoFrame/Knowledge`
-4. Confirm vault creation
+
+1.
+1.
 
 **Vault Structure:**
 
-```
+```text
 Knowledge/
 ├── Dashboard.md           # Main dashboard with Dataview queries
 ├── Portals/               # Symlinks to external projects (via portal commands)
 ├── Reports/               # Generated mission reports
 └── README.md              # Knowledge base documentation
-```
+```text
 
 **TDD Approach:**
 
@@ -137,7 +137,7 @@ Deno.test("Vault .obsidian config is gitignored", async () => {
   const gitignore = await Deno.readTextFile(".gitignore");
   assertStringIncludes(gitignore, ".obsidian");
 });
-```
+```text
 
 **CLI Support:**
 
@@ -147,7 +147,7 @@ exoctl scaffold --knowledge
 
 # Verify vault structure
 exoctl verify --vault
-```
+```text
 
 **Success Criteria:**
 
@@ -175,8 +175,8 @@ exoctl verify --vault
 **Implementation Steps:**
 
 1. Open `Dashboard.md` in Obsidian
-2. Right-click the tab → "Pin"
-3. Configure as startup file:
+
+1.
    - Settings → Core Plugins → Enable "Daily Notes" (for startup file support)
    - Or use Workspaces plugin to save layout
 
@@ -197,7 +197,7 @@ exoctl verify --vault
     }
   }
 }
-```
+```text
 
 **TDD Approach:**
 
@@ -227,7 +227,7 @@ Deno.test("Dashboard frontmatter is valid", async () => {
     assert(frontmatter.length > 0, "Frontmatter should not be empty if present");
   }
 });
-```
+```text
 
 **Success Criteria:**
 
@@ -290,10 +290,10 @@ Settings → Editor:
 **Manual Obsidian Configuration Required:**
 
 1. Open Obsidian Settings (gear icon)
-2. Go to **Files & Links**:
+
    - Enable "Automatically update internal links"
    - Enable "Show all file types"
-3. Changes are saved automatically
+1.
 
 ---
 
@@ -336,8 +336,8 @@ TABLE status, created, agent
 FROM "System/Active"
 SORT created DESC
 LIMIT 10
-```
-````
+```text
+````text
 
 ### Recent Changesets
 
@@ -346,7 +346,7 @@ TABLE status, created_by, portal
 FROM "System/Changesets"
 SORT created DESC
 LIMIT 10
-```
+```text
 
 ### Activity Journal (Last 24h)
 
@@ -355,7 +355,7 @@ TABLE action_type, actor, timestamp
 FROM "System/Journal"
 WHERE timestamp >= date(today) - dur(1 day)
 SORT timestamp DESC
-```
+```text
 
 ## 🔍 Quick Actions
 
@@ -364,15 +364,19 @@ SORT timestamp DESC
 - [[System Status|⚙️ System Status]]
 - [[Agent Blueprints|🤖 Agents]]
 
-```
+```text
 **Success Criteria:**
 
 1. [x] Dashboard file created at `/Knowledge/Dashboard.md`
-2. [x] Dataview queries render correctly in Obsidian
-3. [x] System status metrics display current values
-4. [x] Recent activity sections show live data
-5. [x] Quick action links work correctly
-6. [x] Dashboard loads without errors in Obsidian
+
+1.
+1.
+1.
+1.
 
 ---
-```
+```text
+
+
+````
+

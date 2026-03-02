@@ -107,10 +107,10 @@ Update planning and user documentation to reflect the actionable changes.
 ## Implementation Plan
 
 1. Refactor `scaffold.sh` and `deploy_workspace.sh` as described.
-2. Update and run all relevant tests, especially `scaffold_test.ts`.
-3. Remove any code or documentation referencing deprecated folders.
-4. Update planning and user documentation.
-5. Review and validate with a full test suite run.
+
+1.
+1.
+1.
 
 ---
 
@@ -171,3 +171,4 @@ Update planning and user documentation to reflect the actionable changes.
 | README.md                    |      ✔️      | Copy to root                                           |
 | Blueprints/ (all content)    |      ✔️      | Copy all files and subfolders                          |
 | docs/ (top-level files only) |      ✔️      | Copy only files directly in docs/, not from subfolders |
+

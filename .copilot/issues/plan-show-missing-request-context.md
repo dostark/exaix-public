@@ -24,29 +24,29 @@ exoctl plan list
 
 # Check plan show - missing request and agent info
 exoctl plan show <plan-id>
-```
+```text
 
 ## Observed Behavior
 
 **Current `exoctl plan list` output:**
 
-```
+```text
 ✅ plan.list: plans
    count: 1
 ✅ 🔍 request-f493fe2a_plan: request-f493fe2a_plan
    status: review
    trace: f493fe2a...
-```
+```text
 
 **Current `exoctl plan show` output:**
 
-```
+```text
 ✅ plan.show: request-f493fe2a_plan
    status: review
    trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
 ✅ plan.content: request-f493fe2a_plan
    content: [plan content...]
-```
+```text
 
 ## Expected Behavior
 
@@ -68,7 +68,7 @@ exoctl plan show <plan-id>
 
 ## Example Enhanced Output
 
-```
+```text
 ✅ plan.list: plans
    count: 1
 ✅ 🔍 request-f493fe2a_plan: "Comprehensive Review of ExoFrame Test Suite"
@@ -78,9 +78,9 @@ exoctl plan show <plan-id>
    request: request-f493fe2a
    created: 2026-01-25T16:46:24Z
    priority: normal
-```
+```text
 
-```
+```text
 ✅ plan.show: request-f493fe2a_plan
    status: review
    trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
@@ -92,7 +92,7 @@ exoctl plan show <plan-id>
    created_by: dkasymov@gmail.com
 ✅ plan.content: request-f493fe2a_plan
    content: [plan content...]
-```
+```text
 
 ## Technical Details
 
@@ -127,10 +127,10 @@ Medium priority - this is a UX improvement that would significantly help users n
 **Fix Applied:**
 
 1. **Enhanced PlanMetadata Interface:** Added request context fields (`request_id`, `request_title`, `request_agent`, `request_portal`, `request_priority`, `request_created_by`)
-2. **Request Data Loading:** Modified `PlanCommands.extractPlanMetadataWithRequest()` to load request information when `request_id` is present in plan frontmatter
-3. **CLI Display Updates:** Updated `exoctl plan list` and `exoctl plan show` commands to display request context information
-4. **Config Path Fix:** Corrected workspace path configuration in `exo.config.toml` (removed redundant `./Workspace/` prefixes)
-5. **Title Extraction:** Implemented smart title extraction from request content (prefers headers, falls back to first content line)
+
+1.
+1.
+1.
 
 **Files Modified:**
 
@@ -140,3 +140,7 @@ Medium priority - this is a UX improvement that would significantly help users n
 - `tests/plan_commands_regression_test.ts`: Added regression test
 
 **Testing:** Added comprehensive regression test that verifies plan list and show commands include complete request context information.
+
+
+```
+

@@ -1,14 +1,14 @@
 /**
  * @module CommandUtils
- * @path src/helpers/command_utils.ts
+ * @path src/cli/helpers/command_utils.ts
  * @description Shared helper functions for CLI commands, including validation error formatting and UI prompts.
- * @architectural-layer Helpers
+ * @architectural-layer CLI
  * @dependencies [ValidationResult]
  * @related-files [src/cli/base/command.ts]
  */
 
-import { ValidationResult } from "../cli/base/command.ts";
-import type { JSONObject } from "../shared/types/json.ts";
+import { ValidationResult } from "../base/command.ts";
+import type { JSONObject } from "../../shared/types/json.ts";
 
 export const CommandUtils = {
   /**

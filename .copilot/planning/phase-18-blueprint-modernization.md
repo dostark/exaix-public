@@ -31,10 +31,10 @@ This phase ensures all blueprints in `Blueprints/` are consistent with the curre
 ExoFrame architecture, particularly the Phase 17 Skills system. It addresses:
 
 1. **Format Inconsistency** - Mixed TOML (`+++`) and YAML (`---`) frontmatter
-2. **Missing Skills Integration** - No blueprints use `default_skills` yet
-3. **Flow-Agent Mismatches** - Flows reference agents that don't exist
-4. **Stale Model References** - Some blueprints use outdated model names
-5. **Template Gaps** - Templates don't demonstrate skill configuration
+
+1.
+1.
+1.
 
 ### Key Goals
 
@@ -147,7 +147,7 @@ export const BlueprintFrontmatterSchema = z.object({
   description: z.string().optional(),
   default_skills: z.array(z.string()).optional(), // NEW in Phase 17
 });
-```
+```text
 
 ### Model Format Requirements
 
@@ -174,10 +174,10 @@ Invalid:
 **Deliverables:**
 
 1. Generate list of all blueprint files with frontmatter analysis
-2. Extract all agent IDs referenced in flows
-3. Cross-reference to identify missing agents
-4. Document format inconsistencies (TOML vs YAML)
-5. Document invalid model references
+
+1.
+1.
+1.
 
 **Files:**
 
@@ -203,10 +203,10 @@ Invalid:
 **Deliverables:**
 
 1. Convert `default.md` from TOML to YAML
-2. Convert `senior-coder.md` from TOML to YAML
-3. Convert `quality-judge.md` from TOML to YAML
-4. Fix invalid model references to `provider:model` format
-5. Add `default_skills` based on agent role
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -239,11 +239,11 @@ Invalid:
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`
 
-```
+```text
 ❌ Blueprint validation: default.md passes schema
 ❌ Blueprint validation: senior-coder.md passes schema
 ❌ Blueprint validation: quality-judge.md passes schema
-```
+```text
 
 ---
 
@@ -254,10 +254,10 @@ Invalid:
 **Deliverables:**
 
 1. Add `default_skills` to `code-reviewer.md`
-2. Add `default_skills` to `feature-developer.md`
-3. Add `default_skills` to `security-auditor.md`
-4. Add `default_skills` to `api-documenter.md`
-5. Add `default_skills` to `research-synthesizer.md`
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -285,13 +285,13 @@ Invalid:
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`
 
-```
+```text
 ❌ Blueprint validation: examples/code-reviewer.md passes schema
 ❌ Blueprint validation: examples/feature-developer.md passes schema
 ❌ Blueprint validation: examples/security-auditor.md passes schema
 ❌ Blueprint validation: examples/api-documenter.md passes schema
 ❌ Blueprint validation: examples/research-synthesizer.md passes schema
-```
+```text
 
 ---
 
@@ -303,12 +303,12 @@ Invalid:
 Create 7 new agent blueprints:
 
 1. `security-expert.md` - Security specialist for code_review flow
-2. `performance-engineer.md` - Performance analysis specialist
-3. `technical-writer.md` - Documentation specialist (3 flows use this)
-4. `product-manager.md` - Requirements analysis
-5. `software-architect.md` - Architecture design (2 flows use this)
-6. `test-engineer.md` - Test writing specialist
-7. `code-analyst.md` - Code structure analysis
+
+1.
+1.
+1.
+1.
+1.
 
 **Files to Create:**
 
@@ -348,7 +348,7 @@ default_skills: [...]
 ## Response Format
 
 {Expected output format}
-```
+```text
 
 **Success Criteria:**
 
@@ -360,7 +360,7 @@ default_skills: [...]
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`
 
-```
+```text
 ❌ Blueprint validation: security-expert.md passes schema
 ❌ Blueprint validation: performance-engineer.md passes schema
 ❌ Blueprint validation: technical-writer.md passes schema
@@ -368,7 +368,7 @@ default_skills: [...]
 ❌ Blueprint validation: software-architect.md passes schema
 ❌ Blueprint validation: test-engineer.md passes schema
 ❌ Blueprint validation: code-analyst.md passes schema
-```
+```text
 
 ---
 
@@ -379,10 +379,10 @@ default_skills: [...]
 **Deliverables:**
 
 1. Create flow validation utility
-2. Validate `code_review.flow.ts` resolves all agents
-3. Validate `feature_development.flow.ts` resolves all agents
-4. Validate `documentation.flow.ts` resolves all agents
-5. Add flow-level `defaultSkills` where appropriate
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -407,11 +407,11 @@ default_skills: [...]
 
 **Projected Tests:** `tests/flows/flow_validation_test.ts`
 
-```
+```text
 ❌ Flow validation: code_review.flow.ts resolves all agents
 ❌ Flow validation: feature_development.flow.ts resolves all agents
 ❌ Flow validation: documentation.flow.ts resolves all agents
-```
+```text
 
 ---
 
@@ -422,8 +422,8 @@ default_skills: [...]
 **Deliverables:**
 
 1. Add `default_skills` placeholder to all templates
-2. Add skill-related documentation to template README
-3. Update template examples with skill usage
+
+1.
 
 **Files to Modify:**
 
@@ -448,7 +448,7 @@ default_skills: ["{{skill_1}}", "{{skill_2}}"]  # NEW
 created: "{{timestamp}}"
 # ...
 ---
-```
+```text
 
 **README Updates:**
 
@@ -473,9 +473,9 @@ created: "{{timestamp}}"
 **Deliverables:**
 
 1. Update `Blueprints/Agents/README.md` with skill integration guide
-2. Update `Blueprints/Flows/README.md` with flow-level skills
-3. Create migration guide for existing users
-4. Update examples README with skill explanations
+
+1.
+1.
 
 **Files to Modify:**
 
@@ -490,11 +490,11 @@ created: "{{timestamp}}"
    - How skills are matched at runtime
    - Precedence: request → triggers → blueprint defaults
 
-2. **Available Skills Reference:**
+1.
    - List of core skills with descriptions
    - Recommended skills per agent type
 
-3. **Migration Guide:**
+1.
    - Converting TOML to YAML frontmatter
    - Adding skills to existing blueprints
    - Updating model format
@@ -516,8 +516,8 @@ created: "{{timestamp}}"
 **Deliverables:**
 
 1. Blueprint schema validation test suite
-2. Flow agent resolution test suite
-3. Integration test for skill injection
+
+1.
 
 **Files to Create:**
 
@@ -537,7 +537,7 @@ Deno.test("Blueprint: all agents have default_skills field", ...);
 Deno.test("Flow: code_review resolves all agent references", ...);
 Deno.test("Flow: feature_development resolves all agent references", ...);
 Deno.test("Flow: documentation resolves all agent references", ...);
-```
+```text
 
 **Success Criteria:**
 
@@ -595,3 +595,7 @@ Deno.test("Flow: documentation resolves all agent references", ...);
 | Blueprints with default_skills | 100%                |
 | Test coverage                  | 28+ tests passing   |
 | Documentation completeness     | All READMEs updated |
+
+
+```
+

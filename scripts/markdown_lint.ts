@@ -77,7 +77,7 @@ function parseArgs(args: string[]): { options: LintOptions; paths: string[] } {
 
 function printHelp(): void {
   console.log(
-    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply safe auto-fixes (requires --allow-write)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
+    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD010, MD011, MD029, MD032, MD036, MD040, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
       DEFAULT_ROOTS.join(", ")
     }`,
   );
@@ -170,6 +170,26 @@ function githubSlugify(raw: string, used: Map<string, number>): string {
   used.set(base, count + 1);
   if (count === 0) return base;
   return `${base}-${count}`;
+}
+
+function getIndentWidth(line: string): number {
+  return (line.match(/^\s*/)?.[0] ?? "").replace(/\t/g, "  ").length;
+}
+
+function parseListMarker(line: string): { kind: "ul" | "ol"; indent: number } | null {
+  const ul = /^(?<indent>\s*)[-+*]\s+/.exec(line);
+  if (ul?.groups) return { kind: "ul", indent: getIndentWidth(line) };
+
+  const ol = /^(?<indent>\s*)(?<num>\d+)[.)]\s+/.exec(line);
+  if (ol?.groups) return { kind: "ol", indent: getIndentWidth(line) };
+
+  return null;
+}
+
+function looksLikeListContinuation(line: string): boolean {
+  // Heuristic: indented content is typically part of the preceding list item.
+  // This is intentionally conservative to avoid false-positive MD032.
+  return /^\s{2,}\S/.test(line) && !parseListMarker(line);
 }
 
 function parseEmphasisOnlyLine(trimmed: string): { inner: string } | null {
@@ -267,6 +287,243 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
   return { fixed: text, changed: text !== original };
 }
 
+function applySpecificFixes(content: string, findings: IFinding[]): { fixed: string; changed: boolean } {
+  let text = content;
+  let changed = false;
+
+  // Fix MD032: blanks around lists
+  const md032Fixes = findings.filter(f => f.rule === "MD032/blanks-around-lists");
+  if (md032Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const listMarker = parseListMarker(line);
+
+      // Check if this line has a top-level list marker
+      if (listMarker && listMarker.indent === 0) {
+        // Add blank line before if previous line is not blank and not part of list
+        if (i > 0 && lines[i - 1].trim() !== "" && !parseListMarker(lines[i - 1]) &&
+            !looksLikeListContinuation(lines[i - 1]) && !lines[i - 1].trimStart().startsWith(">")) {
+          newLines.push("");
+          changed = true;
+        }
+      }
+
+      newLines.push(line);
+
+      // Add blank line after if next line is not blank and not part of list
+      if (listMarker && listMarker.indent === 0) {
+        if (i + 1 < lines.length && lines[i + 1].trim() !== "" && !parseListMarker(lines[i + 1]) &&
+            !looksLikeListContinuation(lines[i + 1]) && !lines[i + 1].trimStart().startsWith(">")) {
+          newLines.push("");
+          changed = true;
+          i++; // Skip the next line since we just added it
+        }
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD029: ordered list prefixes
+  const md029Fixes = findings.filter(f => f.rule === "MD029/ol-prefix");
+  if (md029Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (const line of lines) {
+      const match = /^\s*(?<num>\d+)[.)]\s+/.exec(line);
+      if (match && match.groups && match.groups.num !== "1") {
+        const num = match.groups.num;
+        const indent = match[0].slice(0, match[0].indexOf(num));
+        const rest = match[0].slice(match[0].indexOf(num) + num.length);
+        newLines.push((indent + "1" + rest).trimEnd());
+        changed = true;
+      } else {
+        newLines.push(line);
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD060: table column style
+  const md060Fixes = findings.filter(f => f.rule === "MD060/table-column-style");
+  if (md060Fixes.length > 0) {
+    // This is more complex - we need to realign table pipes
+    // For now, implement a basic fix that ensures consistent spacing
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.includes("|")) {
+        // Check if this is part of a table
+        const isTableRow = line.includes("|");
+        const isSeparatorRow = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+
+        if (isTableRow && !isSeparatorRow) {
+          // Apply compact style: single space padding around content
+          const parts = line.split("|");
+          const cleanedParts = parts.map((part, idx) => {
+            const trimmed = part.trim();
+            if (idx === 0 && !line.trim().startsWith("|")) {
+              return trimmed + " ";
+            } else if (idx === parts.length - 1 && !line.trim().endsWith("|")) {
+              return " " + trimmed;
+            } else {
+              return " " + trimmed + " ";
+            }
+          });
+          newLines.push(cleanedParts.join("|"));
+          changed = true;
+        } else {
+          newLines.push(line);
+        }
+      } else {
+        newLines.push(line);
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD040: fenced code blocks without language
+  const md040Fixes = findings.filter(f => f.rule === "MD040/fenced-code-language");
+  if (md040Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (const line of lines) {
+      const fenceStart = parseFenceStart(line);
+      if (fenceStart) {
+        const trimmed = line.trimStart();
+        const fenceToken = `${fenceStart.char}`.repeat(fenceStart.length);
+        const info = trimmed.slice(fenceToken.length).trim();
+        if (info.length === 0) {
+          // Add "text" as default language
+          newLines.push(line.replace(fenceToken, fenceToken + "text"));
+          changed = true;
+        } else {
+          newLines.push(line);
+        }
+      } else {
+        newLines.push(line);
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD004: unclosed fenced code blocks
+  const md004Fixes = findings.filter(f => f.rule === "MD004");
+  if (md004Fixes.length > 0) {
+    // This is more complex - we need to find where the fence should be closed
+    // For now, add a closing fence at the end of the file if it's unclosed
+    const lines = splitLines(text);
+    let inFence = false;
+    let fence: Fence | null = null;
+    const newLines: string[] = [];
+
+    for (const line of lines) {
+      const fenceStart = parseFenceStart(line);
+      if (fenceStart && !inFence) {
+        inFence = true;
+        fence = fenceStart;
+      } else if (fence && isFenceClose(line, fence)) {
+        inFence = false;
+        fence = null;
+      }
+      newLines.push(line);
+    }
+
+    // If still in a fence at the end, add a closing fence
+    if (inFence && fence) {
+      newLines.push(`${fence.char}`.repeat(fence.length));
+      changed = true;
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD036: emphasis used instead of heading
+  const md036Fixes = findings.filter(f => f.rule === "MD036/no-emphasis-as-heading");
+  if (md036Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      const emphasis = parseEmphasisOnlyLine(trimmed);
+      if (emphasis) {
+        // Convert to heading
+        newLines.push(`# ${emphasis.inner}`);
+        changed = true;
+      } else {
+        newLines.push(line);
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD049: emphasis style (convert underscores to asterisks)
+  const md049Fixes = findings.filter(f => f.rule === "MD049/emphasis-style");
+  if (md049Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (const line of lines) {
+      // Convert __text__ to **text** and _text_ to *text*
+      let fixedLine = line.replace(/__([^_]+)__/g, '**$1**');
+      fixedLine = fixedLine.replace(/_([^_]+)_/g, '*$1*');
+      newLines.push(fixedLine);
+      if (fixedLine !== line) {
+        changed = true;
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  // Fix MD010/MD011: heading blank lines
+  const headingFixes = findings.filter(f => f.rule === "MD010" || f.rule === "MD011");
+  if (headingFixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isHeading = /^#{1,6} /.test(line);
+
+      if (isHeading) {
+        // MD010: Add blank line before heading if missing
+        if (i > 0 && lines[i - 1].trim() !== "") {
+          newLines.push("");
+          changed = true;
+        }
+      }
+
+      newLines.push(line);
+
+      if (isHeading) {
+        // MD011: Add blank line after heading if missing
+        if (i + 1 < lines.length && lines[i + 1].trim() !== "") {
+          newLines.push("");
+          changed = true;
+          i++; // Skip the next line since we just added it
+        }
+      }
+    }
+
+    text = newLines.join("\n");
+  }
+
+  return { fixed: text, changed };
+}
+
 export function lintMarkdown(content: string, filePath: string, options: LintOptions): IFinding[] {
   const findings: IFinding[] = [];
 
@@ -288,26 +545,6 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
 
   // MD029: warn once per ordered-list block (per indent) to reduce noise.
   const olPrefixWarnedAtIndent = new Set<number>();
-
-  function getIndentWidth(line: string): number {
-    return (line.match(/^\s*/)?.[0] ?? "").replace(/\t/g, "  ").length;
-  }
-
-  function parseListMarker(line: string): { kind: "ul" | "ol"; indent: number } | null {
-    const ul = /^(?<indent>\s*)[-+*]\s+/.exec(line);
-    if (ul?.groups) return { kind: "ul", indent: getIndentWidth(line) };
-
-    const ol = /^(?<indent>\s*)(?<num>\d+)[.)]\s+/.exec(line);
-    if (ol?.groups) return { kind: "ol", indent: getIndentWidth(line) };
-
-    return null;
-  }
-
-  function looksLikeListContinuation(line: string): boolean {
-    // Heuristic: indented content is typically part of the preceding list item.
-    // This is intentionally conservative to avoid false-positive MD032.
-    return /^\s{2,}\S/.test(line) && !parseListMarker(line);
-  }
 
   for (let idx = 0; idx < lines.length; idx++) {
     const lineNo = idx + 1;
@@ -822,20 +1059,54 @@ async function main() {
   for (const filePath of markdownFiles) {
     if (options.verbose) console.log(`Linting ${filePath}`);
 
-    const original = await Deno.readTextFile(filePath);
+    let content = await Deno.readTextFile(filePath);
+    let changed = false;
 
     if (options.fix) {
-      const { fixed, changed } = applySafeFixes(original);
+      // First apply safe fixes
+      const safeResult = applySafeFixes(content);
+      if (safeResult.changed) {
+        content = safeResult.fixed;
+        changed = true;
+      }
+
+      // Iteratively apply specific fixes based on linting results
+      const maxIterations = 5;
+      for (let iteration = 0; iteration < maxIterations; iteration++) {
+        const findings = lintMarkdown(content, filePath, options);
+        const fixableFindings = findings.filter(f =>
+          f.rule === "MD032/blanks-around-lists" ||
+          f.rule === "MD029/ol-prefix" ||
+          f.rule === "MD060/table-column-style" ||
+          f.rule === "MD040/fenced-code-language" ||
+          f.rule === "MD004" ||
+          f.rule === "MD036/no-emphasis-as-heading" ||
+          f.rule === "MD049/emphasis-style" ||
+          f.rule === "MD010" ||
+          f.rule === "MD011"
+        );
+
+        const specificResult = applySpecificFixes(content, fixableFindings);
+        if (specificResult.changed) {
+          content = specificResult.fixed;
+          changed = true;
+          // Reapply safe fixes after specific fixes
+          const safeResult = applySafeFixes(content);
+          if (safeResult.changed) {
+            content = safeResult.fixed;
+          }
+        } else {
+          break; // No more changes possible
+        }
+      }
+
       if (changed) {
-        await Deno.writeTextFile(filePath, fixed);
+        await Deno.writeTextFile(filePath, content);
         fixedCount++;
       }
     }
 
-    const content = options.fix ? await Deno.readTextFile(filePath) : original;
     const findings = lintMarkdown(content, filePath, options);
-
-    // In non-strict mode, warnings are informational; errors fail.
     totalFindings = totalFindings.concat(findings);
   }
 

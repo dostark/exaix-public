@@ -147,16 +147,16 @@ Fragments are located in `Blueprints/Fragments/`.
 ## How to Use
 
 1. **Choose a pattern** that matches your needs.
-2. **Copy the template** to the parent directory (`Blueprints/Agents/`):
+
    ```bash
    cp templates/reflexive-agent.md.template ../my-reviewer.md
    ```
-3. **Edit the file**:
+1.
    - **Update Frontmatter:** Change `agent_id`, `name`, and `model`.
    - **Define Persona:** Replace `{{placeholder}}` values.
    - **Customize Criteria:** Adjust confidence thresholds, evaluation criteria.
    - **Refine Capabilities:** Add/remove tools as needed.
-4. **Validate:**
+1.
    ```bash
    exoctl blueprint validate my-reviewer
    ```
@@ -200,9 +200,9 @@ default_skills: ["code-review", "security-first"] # Applied to all requests
 **Skill Resolution Priority:**
 
 1. Request-level `skills` (highest priority)
-2. Trigger-matched skills (automatic)
-3. Blueprint `default_skills` (fallback)
-4. Minus any `skip_skills`
+
+1.
+1.
 
 ### Reflexive Agent Fields
 
@@ -256,3 +256,4 @@ context_window: 10 # Turns to keep in context
 | Conversational | ✅ Complete   | ✅ Phase 16.6   |
 
 See [Phase 16: Agent Orchestration Improvements](../../../agents/planning/phase-16-agent-orchestration-improvements.md) for implementation details.
+

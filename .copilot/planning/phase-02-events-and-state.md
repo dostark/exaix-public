@@ -10,8 +10,8 @@
 **The Problem:** When a user saves a file (especially large files), the OS doesn't write it atomically. Instead:
 
 1. The file system emits multiple events (create, modify, modify, modify...)
-2. The file may be partially written for several seconds
-3. If we read too early, we get incomplete or corrupted data
+
+1.
 
 **The Solution (Two-Stage Protection):**
 
@@ -27,10 +27,10 @@ multiple times due to rapid-fire events.
 **Implementation Checklist:**
 
 1. Set up `Deno.watchFs` on `/Inbox/Requests`
-2. Implement debounce timer (200ms)
-3. Implement `readFileWhenStable` with exponential backoff
-4. Log telemetry event `watcher.file_unstable` when retries are exhausted
-5. Only dispatch to the request processor when content is valid
+
+1.
+1.
+1.
 
 - **Justification:** Prevents crashing or processing corrupted data when users save large files or when editors create
   temporary files during save operations.
@@ -49,9 +49,9 @@ multiple times due to rapid-fire events.
 arrive as plain text:
 
 1. Frontmatter may be malformed (invalid TOML syntax)
-2. Required fields may be missing (`trace_id`, `status`, `agent_id`)
-3. Field types may be wrong (string instead of number, etc.)
-4. If we process invalid requests, agents fail with cryptic errors
+
+1.
+1.
 
 **The Solution (Three-Stage Parsing):**
 
@@ -64,10 +64,10 @@ arrive as plain text:
 **Implementation Checklist:**
 
 1. Create `src/parsers/markdown.ts` with frontmatter extraction
-2. Create `src/schemas/request.ts` with `RequestSchema`
-3. Create `FrontmatterParser` service that combines extraction + validation
-4. Log validation errors to Activity Journal with `action_type: "request.validation_failed"`
-5. Return typed `Request` object + body content
+
+1.
+1.
+1.
 
 **Example Request File:**
 
@@ -87,7 +87,7 @@ Create a modern login page with:
 - Email/password fields
 - "Remember me" checkbox
 - "Forgot password" link
-```
+
 
 - **Justification:** Type-safe request handling prevents runtime errors. Early validation catches malformed requests
   before they reach the agent runtime.
@@ -109,8 +109,8 @@ Create a modern login page with:
 **The Problem:** Agents operate on file paths provided in requests. Without validation:
 
 1. Agents could use `../../` to escape their sandbox.
-2. Agents could access files outside the designated "Portals".
-3. Hardcoded absolute paths make requests non-portable between users.
+
+1.
 
 **The Solution:** Create a `PathResolver` class that uses the configuration's `blueprints` (and future `portals`) to
 resolve and validate paths.
@@ -128,9 +128,9 @@ const unsafePath = resolver.resolve("@Blueprints/../../secret.txt");
 **Implementation Checklist:**
 
 1. Create `src/services/path_resolver.ts`.
-2. Implement `resolve(alias: string, relativePath: string): string`.
-3. Implement `validatePath(path: string, allowedRoots: string[]): string`.
-4. Ensure `Deno.realPath` (or equivalent) is used to resolve symlinks and `..` segments _before_ checking against
+
+1.
+1.
    allowed roots.
 
 - **Success Criteria:**
@@ -166,8 +166,8 @@ await generator.generate({
 **Implementation Checklist:**
 
 1. Create `src/services/context_card_generator.ts`.
-2. Implement `generate(info: PortalInfo): Promise<void>`.
-3. Use regex or string manipulation to split "Metadata" from "User Notes" to ensure preservation.
+
+1.
 
 - **Success Criteria:**
   - Test 1: Generate new card → Creates file with Header, Path, Tech Stack, and empty Notes section.
@@ -176,3 +176,4 @@ await generator.generate({
     valid).
 
 ---
+

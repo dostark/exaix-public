@@ -25,6 +25,11 @@ export interface IConfigService {
   get(): Config;
 
   /**
+   * Alias for get() to satisfy some consumers.
+   */
+  getAll(): Config;
+
+  /**
    * Reload configuration from disk.
    */
   reload(): Config;

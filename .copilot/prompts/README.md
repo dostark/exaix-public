@@ -65,22 +65,22 @@ This folder contains example prompts demonstrating how to effectively utilize th
    - Key pattern: Write failing test → implement → refactor
    - Context injection: TDD patterns, testing helpers
 
-2. **[refactoring-with-thinking.md](refactoring-with-thinking.md)** — Complex refactoring with thinking protocol
+1.
    - When to use: Multi-file changes, extracting patterns, restructuring
    - Key pattern: Analyze → Plan → Execute → Synthesize → Verify
    - Context injection: Refactoring patterns, service patterns
 
-3. **[debugging-systematic.md](debugging-systematic.md)** — Systematic bug diagnosis and fixing
+1.
    - When to use: Test failures, runtime errors, TypeScript issues
    - Key pattern: Reproduce → Diagnose → Fix → Document
    - Context injection: Component-specific debugging patterns
 
-4. **[implementation-plan-driven.md](implementation-plan-driven.md)** — Working from Implementation Plan steps
+1.
    - When to use: Every significant feature or change
    - Key pattern: Read Plan → Understand → Implement → Verify → Mark Complete
    - Context injection: Step-specific requirements
 
-5. **[commit-message.md](commit-message.md)** — Creating detailed, structured commit messages
+1.
    - When to use: After completing any work (features, fixes, refactoring)
    - Key pattern: Review changes → Identify type/scope → Write structured message
    - Context injection: Commit conventions, Implementation Plan references
@@ -99,12 +99,12 @@ This folder contains example prompts demonstrating how to effectively utilize th
    - Key pattern: Find task type → Read primary docs → Follow workflow
    - Context injection: Task-specific documentation
 
-2. **[self-improvement-loop.md](self-improvement-loop.md)** — Patch instruction gaps during execution
+1.
    - When to use: You notice `agents/` docs are missing guidance needed to complete the current task safely
    - Key pattern: Adequacy check → Gaps → Minimal doc patch → Rebuild/validate → Resume
    - Context injection: process doc + provider guide
 
-3. **[rag-context-injection.md](rag-context-injection.md)** — Semantic search and context injection
+1.
    - When to use: Complex questions, unfamiliar areas, multi-step tasks
    - Key pattern: Inspect → Inject → Execute with context
    - Context injection: Dynamic based on query
@@ -115,15 +115,15 @@ This folder contains example prompts demonstrating how to effectively utilize th
    - When to use: Any OpenAI-driven coding task
    - Key pattern: Inject context → Files/Plan/Diffs/Verification → cite doc paths
 
-2. **[openai-rag-context-injection.md](openai-rag-context-injection.md)** — Inspect → Inject → execute with context
+1.
    - When to use: Unfamiliar areas, multi-step tasks, cross-cutting changes
    - Key pattern: inspect_embeddings → inject_agent_context → minimal diffs
 
-3. **[openai-tdd-workflow.md](openai-tdd-workflow.md)** — Tests first with explicit assertions
+1.
    - When to use: New features, bugfixes that need regression coverage
    - Key pattern: failing tests → minimal implementation → verify
 
-4. **[openai-debugging-systematic.md](openai-debugging-systematic.md)** — Reproduce → Diagnose → Fix → Verify
+1.
    - When to use: Flakes, runtime errors, TypeScript failures
    - Key pattern: evidence-first debugging + minimal diffs
 
@@ -133,7 +133,7 @@ This folder contains example prompts demonstrating how to effectively utilize th
    - When to use: Global refactorings, architecture audits, complex systemic changes
    - Key pattern: Saturation → Global Check → TDD → high-quality diffs
 
-2. **[google-tdd-workflow.md](google-tdd-workflow.md)** — Exhaustive tests covering boundary conditions
+1.
    - When to use: New features requiring high reliability
    - Key pattern: Research → Plan (5+ cases) → Execute → Finalize
 
@@ -179,9 +179,9 @@ Replace placeholders with your specific details:
 Each template has an "Example Usage" section showing complete, ready-to-use prompts. You can:
 
 1. Copy the example prompt
-2. Modify placeholders for your specific case
-3. Paste into your conversation with Claude
-4. Claude will follow the structured workflow
+
+1.
+1.
 
 ### 4. Iterate as Needed
 
@@ -255,31 +255,31 @@ Use: implementation-plan-driven.md to verify and mark complete
 ### "I want to add a completely new feature"
 
 1. **Start:** [implementation-plan-driven.md](implementation-plan-driven.md) — Find or create Plan step
-2. **Design:** [rag-context-injection.md](rag-context-injection.md) — Inject architecture patterns
-3. **Implement:** [tdd-workflow.md](tdd-workflow.md) — TDD implementation
-4. **Complete:** [implementation-plan-driven.md](implementation-plan-driven.md) — Mark step done
+
+1.
+1.
 
 ### "I have a bug I can't figure out"
 
 1. **Start:** [debugging-systematic.md](debugging-systematic.md) — Systematic diagnosis
-2. **Context:** [rag-context-injection.md](rag-context-injection.md) — Inject component-specific patterns
-3. **Fix:** [tdd-workflow.md](tdd-workflow.md) — Write regression test, fix, verify
+
+1.
 
 ### "I need to refactor a complex pattern across multiple files"
 
 1. **Start:** [cross-reference-navigation.md](cross-reference-navigation.md) — Find refactoring docs
-2. **Plan:** [refactoring-with-thinking.md](refactoring-with-thinking.md) — Use thinking protocol
-3. **Execute:** Multi-step with context injection per step
-4. **Verify:** [tdd-workflow.md](tdd-workflow.md) — Ensure tests pass, coverage maintained
+
+1.
+1.
 
 ## Updating These Prompts
 
 When you discover better patterns:
 
 1. Create new prompt file or update existing one
-2. Follow frontmatter schema (see any example)
-3. Include "Example Usage" section
-4. Rebuild agents/ infrastructure:
+
+1.
+1.
 
    ```bash
    deno run --allow-read --allow-write scripts/build_agents_index.ts
@@ -297,3 +297,4 @@ These prompts ARE the agents/ documentation system in action. They demonstrate:
 - How to maintain consistency (Implementation Plan)
 
 The prompts themselves follow the patterns they teach. Use them as templates, adapt them to your needs, and contribute improvements back to this folder.
+

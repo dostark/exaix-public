@@ -45,6 +45,16 @@ export interface ISkillsService {
   listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]>;
 
   /**
+   * Initialize skills service.
+   */
+  initialize(): Promise<void>;
+
+  /**
+   * Create a new skill.
+   */
+  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill>;
+
+  /**
    * Get a specific skill by ID.
    */
   getSkill(skillId: string): Promise<ISkill | null>;

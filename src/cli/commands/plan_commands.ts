@@ -16,8 +16,8 @@ import { RequestCommands } from "./request_commands.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
-import { CommandUtils } from "../../helpers/command_utils.ts";
-import { enrichWithRequest } from "../../helpers/request_enricher.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
+import { enrichWithRequest } from "../helpers/request_enricher.ts";
 import {
   PLAN_REVIEW_COMMENT_PREFIX,
   PLAN_REVIEW_COMMENTS_HEADER,
@@ -76,7 +76,7 @@ export class PlanCommands extends BaseCommand {
     context: ICommandContext,
   ) {
     super(context);
-    const config = context.config;
+    const config = context.config.getAll();
     const root = config.system.root!;
     const workspace = config.paths.workspace!;
     // Resolve paths relative to system root and workspace
@@ -139,7 +139,7 @@ export class PlanCommands extends BaseCommand {
       }
 
       // Get user context
-      const { actor, actionLogger, now } = await this.getUserContext();
+      const { actor, now } = await this.getUserContext();
 
       // Update frontmatter
       const updatedFrontmatter: PlanFrontmatter = {
@@ -163,7 +163,7 @@ export class PlanCommands extends BaseCommand {
       await Deno.remove(sourcePath);
 
       // Log activity with user identity
-      actionLogger.info("plan.approved", planId, {
+      await this.display.info("plan.approved", planId, {
         approved_at: now,
         via: "cli",
         command: this.getCommandLineString(),
@@ -222,7 +222,7 @@ export class PlanCommands extends BaseCommand {
       const targetPath = join(this.workspaceRejectedDir, `${planId}_rejected.md`);
 
       // Get user context
-      const { actor, actionLogger, now } = await this.getUserContext();
+      const { actor, now } = await this.getUserContext();
 
       // Update frontmatter
       const updatedFrontmatter = {
@@ -244,11 +244,9 @@ export class PlanCommands extends BaseCommand {
       // Try to update the associated request with rejected_path for discoverability
       try {
         const rejectedRelative = join(this.config.paths.workspace, this.config.paths.rejected, `${planId}_rejected.md`);
-        const actionLogger = await this.getActionLogger();
         await this.updateRequestForRejection(
           frontmatter.request_id as string | undefined,
           rejectedRelative,
-          actionLogger,
         );
       } catch (err) {
         // Non-fatal: log and continue
@@ -256,7 +254,7 @@ export class PlanCommands extends BaseCommand {
       }
 
       // Log activity with user identity
-      actionLogger.info("plan.rejected", planId, {
+      await this.display.info("plan.rejected", planId, {
         reason: reason,
         rejected_at: now,
         via: "cli",
@@ -274,7 +272,6 @@ export class PlanCommands extends BaseCommand {
   private async updateRequestForRejection(
     requestId: string | undefined,
     rejectedPath: string,
-    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
   ): Promise<void> {
     if (!requestId) return;
 
@@ -294,13 +291,13 @@ export class PlanCommands extends BaseCommand {
       const updatedContent = this.serializePlan(updatedFrontmatter, body);
       await Deno.writeTextFile(requestPath, updatedContent);
 
-      actionLogger.info("request.rejected_linked", requestPath, {
+      await this.display.info("request.rejected_linked", requestPath, {
         request_id: requestId,
         rejected_path: rejectedPath,
         via: "cli",
       }, frontmatter.trace_id as string | undefined);
     } catch (error) {
-      actionLogger.warn("request.rejection_update_failed", requestId, {
+      await this.display.warn("request.rejection_update_failed", requestId, {
         error: error instanceof Error ? error.message : String(error),
       });
     }
@@ -331,7 +328,7 @@ export class PlanCommands extends BaseCommand {
       const { frontmatter, body } = await this.loadPlan(planPath);
 
       // Get user context
-      const { actor, actionLogger, now } = await this.getUserContext();
+      const { actor, now } = await this.getUserContext();
 
       // Update frontmatter
       const updatedFrontmatter = {
@@ -363,10 +360,10 @@ export class PlanCommands extends BaseCommand {
       const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
       await Deno.writeTextFile(planPath, updatedContent);
 
-      await this.updateRequestForRevision(frontmatter.request_id as string | undefined, comments, actionLogger);
+      await this.updateRequestForRevision(frontmatter.request_id as string | undefined, comments);
 
       // Log activity with user identity
-      actionLogger.info("plan.revision_requested", planId, {
+      await this.display.info("plan.revision_requested", planId, {
         comment_count: comments.length,
         reviewed_at: now,
         via: "cli",
@@ -384,7 +381,6 @@ export class PlanCommands extends BaseCommand {
   private async updateRequestForRevision(
     requestId: string | undefined,
     comments: string[],
-    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
   ): Promise<void> {
     if (!requestId) return;
 
@@ -405,13 +401,13 @@ export class PlanCommands extends BaseCommand {
       const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
       await Deno.writeTextFile(requestPath, updatedContent);
 
-      actionLogger.info("request.revision_queued", requestPath, {
+      await this.display.info("request.revision_queued", requestPath, {
         request_id: requestId,
         comment_count: comments.length,
         via: "cli",
       }, frontmatter.trace_id as string | undefined);
     } catch (error) {
-      actionLogger.warn("request.revision_update_failed", requestId, {
+      await this.display.warn("request.revision_update_failed", requestId, {
         error: error instanceof Error ? error.message : String(error),
       });
     }
@@ -633,18 +629,16 @@ export class PlanCommands extends BaseCommand {
   }
 
   /**
-   * Get current user identity and action logger
+   * Get current user identity
    * @private
    */
   private async getUserContext(): Promise<{
     actor: string;
-    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>;
     now: string;
   }> {
     const actor = await this.getUserIdentity();
-    const actionLogger = await this.getActionLogger();
     const now = new Date().toISOString();
 
-    return { actor, actionLogger, now };
+    return { actor, now };
   }
 }

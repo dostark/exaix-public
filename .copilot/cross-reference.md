@@ -57,43 +57,43 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 ### "I want to add a new feature"
 
 1. Read [docs/ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) to find or create Implementation Plan step
-2. Follow TDD guidance from [source/exoframe.md](source/exoframe.md)
-3. Use test helpers from [tests/testing.md](tests/testing.md)
-4. Update docs per [docs/documentation.md](docs/documentation.md)
+
+1.
+1.
 
 ### "I want to fix a bug"
 
 1. Check Implementation Plan for related step
-2. Write failing test per [tests/testing.md](tests/testing.md)
-3. Fix code following [source/exoframe.md](source/exoframe.md) patterns
-4. Verify coverage maintained with `deno test --coverage`
+
+1.
+1.
 
 ### "I want to use Claude effectively"
 
 1. Read [providers/claude.md](providers/claude.md) for prompt templates
-2. Use [providers/claude-rag.md](providers/claude-rag.md) for context injection
-3. Follow tool-use patterns (parallel reads, thinking protocol)
-4. Reference task-specific system prompts for TDD/refactoring/debugging
+
+1.
+1.
 
 ### "I want to use Gemini effectively"
 
 1. Read [providers/google.md](providers/google.md) for optimized prompts
-2. Use [providers/google-long-context.md](providers/google-long-context.md) to decide when to use RAG vs full context
-3. Follow thinking protocol (Saturate → Analyze → Plan)
+
+1.
 
 ### "I want to add security tests"
 
 1. Review [tests/testing.md](tests/testing.md) security section
-2. Label tests with `[security]` tag
-3. Test path traversal, injection, leakage
-4. Use PathResolver for all path validation
+
+1.
+1.
 
 ### "I want to set up RAG for semantic search"
 
 1. Read [providers/claude-rag.md](providers/claude-rag.md) for workflow
-2. Build embeddings: `deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock`
-3. Test retrieval: `deno run --allow-read scripts/inject_agent_context.ts --query "your query" --agent claude`
-4. Inspect similarity: `deno run --allow-read scripts/inspect_embeddings.ts --query "your query" --top 5`
+
+1.
+1.
 
 ## Provider-Specific Quick Links
 
@@ -128,26 +128,26 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 ### Test-Driven Development (TDD)
 
 1. **Docs**: [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
-2. **Pattern**: Write failing tests → Implement minimal code → Verify passing → Refactor
-3. **Helpers**: `initTestDbService()`, `createCliTestContext()`, `withEnv()`
+
+1.
 
 ### Code Refactoring
 
 1. **Docs**: [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
-2. **Pattern**: Read existing code + tests → Propose changes → Verify tests still pass → Check coverage
-3. **Tools**: `deno test --coverage`, grep for usage patterns
+
+1.
 
 ### Documentation Updates
 
 1. **Docs**: [docs/documentation.md](docs/documentation.md)
-2. **Pattern**: Check Implementation Plan → Update docs → Sync versions → Cross-reference
-3. **Rules**: Keep synchronized with Plan, maintain terminology consistency
+
+1.
 
 ### Debugging
 
 1. **Docs**: [providers/claude.md](providers/claude.md) (Debugging section)
-2. **Pattern**: Read error/stack trace → Check Plan step → Write reproducing test → Fix → Verify
-3. **Tools**: Add regression test for bug
+
+1.
 
 ## Canonical Prompt (Short)
 
@@ -158,3 +158,4 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 - Example prompt: "I need to add a security feature. Which docs should I read?" → Answer: Start with [.copilot/tests/testing.md](tests/testing.md) security section and [.copilot/source/exoframe.md](source/exoframe.md) system constraints.
 - Example prompt: "How do I set up Claude with RAG?" → Answer: Read [providers/claude-rag.md](providers/claude-rag.md) for the complete workflow.
 - Example prompt: "What's the TDD workflow?" → Answer: See [source/exoframe.md](source/exoframe.md) and [tests/testing.md](tests/testing.md) for patterns and helpers.
+

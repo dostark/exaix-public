@@ -28,3 +28,4 @@ Do / Don't
 - ✅ Do request line citations to verify reasoning.
 - ❌ Don't skip the synthesis phase for multi-module changes.
 ```
+

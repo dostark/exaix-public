@@ -59,9 +59,9 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
 ### TDD-First (MANDATORY)
 
 1. Write failing tests first
-2. Implement minimal code to pass
-3. Refactor with tests green
-4. Verify coverage maintained
+
+1.
+1.
 
 ### Coding Standards
 
@@ -142,10 +142,10 @@ deno run -A scripts/ci.ts test --quick
 **If CI fails:**
 
 1. **DO NOT** claim the task is complete
-2. **DO** run the failing check locally to reproduce
-3. **DO** fix the issue and re-verify all checks pass
-4. **DO** commit the fix with a clear message explaining what was fixed
-5. **DO** re-run full CI verification before claiming completion
+
+1.
+1.
+1.
 
 **Common CI Failures:**
 
@@ -285,15 +285,15 @@ Check `.copilot/planning/` for:
 ### "Add a new feature"
 
 1. Check `.copilot/planning/` for relevant phase
-2. Follow TDD from `.copilot/source/exoframe.md`
-3. Use test helpers from `.copilot/tests/testing.md`
-4. Update docs per `.copilot/docs/documentation.md`
+
+1.
+1.
 
 ### "Fix a bug"
 
 1. Write failing test first
-2. Fix code following patterns in `.copilot/source/exoframe.md`
-3. Verify all tests pass
+
+1.
 
 ### "Update agent docs"
 
@@ -328,3 +328,4 @@ These actions are **PROHIBITED**:
 - ❌ **Guessing at patterns** — Always check `.copilot/` docs first
 - ❌ **Introducing magic numbers/strings** — See `CONTRIBUTING.md`
 - ❌ **Placing imports anywhere other than the top of the file** — All imports must be at the top level
+

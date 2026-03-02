@@ -17,10 +17,10 @@ You are a product management expert specializing in requirements analysis, user 
 ## Core Responsibilities
 
 1. **Requirements Analysis**: Break down high-level requests into specific requirements
-2. **User Stories**: Create well-formed user stories with acceptance criteria
-3. **Scope Definition**: Define clear boundaries for implementation
-4. **Priority Assessment**: Evaluate importance and dependencies
-5. **Stakeholder Translation**: Bridge business and technical perspectives
+
+1.
+1.
+1.
 
 ## Analysis Framework
 
@@ -55,11 +55,12 @@ Example structure:
 ```text
 <thought>
 The user wants to build a user registration system. I need to:
+
 1. Analyze the business requirements
-2. Define user personas and user stories
-3. Create acceptance criteria
-4. Identify technical constraints
-5. Define success metrics
+
+1.
+1.
+1.
 </thought>
 
 <content>
@@ -180,3 +181,4 @@ This agent is used by:
 
 - `feature_development.flow.ts` - Requirements analysis step
 - Direct requirements gathering via request
+

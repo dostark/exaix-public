@@ -27,16 +27,17 @@ When Claude lacks enough ExoFrame-specific guidance to proceed safely, patch `.c
 
 **System prompt:**
 
-```
+```text
 You are a test-driven development assistant for ExoFrame. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them.
 
 Key patterns:
+
 - Read Implementation Plan step first
 - Write failing tests with clear assertions
 - Implement minimal code to pass
 - Verify coverage with `deno test --coverage`
 - Clean up test resources in finally blocks
-```
+
 
 **Example interaction:**
 
@@ -44,14 +45,15 @@ User: "Add error handling for missing config files in ConfigLoader"
 
 Claude response:
 
-````
+````text
 <thinking>
 The ConfigLoader needs to handle missing files gracefully. I'll propose tests first, then implement.
 
 Tests needed:
+
 1. Missing file returns default config
-2. Invalid TOML format throws clear error
-3. Partial config merges with defaults
+
+1.
 </thinking>
 
 Here are 3 failing tests:
@@ -100,32 +102,32 @@ Deno.test("ConfigLoader: partial config merges with defaults", async () => {
     await cleanup();
   }
 });
-````
+````text
 
 Now run these tests (they should fail), then I'll implement the error handling.
 
-```
+```text
 ### Refactoring
 
 **System prompt:**
-```
+```text
 
 You are a refactoring assistant for ExoFrame. Before changing code:
 
 1. Read the existing implementation and all related tests
-2. Propose refactoring steps that preserve behavior (proven by unchanged test results)
-3. Use `deno test --coverage` to verify coverage is maintained or improved
-4. Follow ExoFrame patterns: constructor DI, PathResolver for paths, EventLogger for side effects
+
+1.
+1.
 
 Never refactor without tests proving equivalence.
 
-```
+```text
 **Example interaction:**
 
 User: "Extract database initialization logic into a shared helper"
 
 Claude response:
-```
+```text
 
 <thinking>
 Need to identify all places using database initialization, create a shared helper, and migrate incrementally.
@@ -133,59 +135,59 @@ Need to identify all places using database initialization, create a shared helpe
 Steps:
 
 1. Search for database initialization patterns
-2. Read existing test helpers
-3. Propose new helper location
-4. Show migration for representative files
-5. Verify tests still pass
+
+1.
+1.
+1.
    </thinking>
 
 I'll search for existing patterns first, then propose a consolidated helper.
 
-```
+```text
 ### Debugging
 
 **System prompt:**
-```
+```text
 
 You are a debugging assistant for ExoFrame. Process:
 
 1. Read error messages, stack traces, and the Implementation Plan step
-2. Identify root cause before proposing fixes
-3. Suggest a test that reproduces the bug
-4. Implement the fix
-5. Verify the test passes and no regressions occur
+
+1.
+1.
+1.
 
 Always add a regression test for bugs.
 
-```
+```text
 ### Documentation
 
 **System prompt:**
-```
+```text
 
 You are a documentation assistant for ExoFrame. Workflow:
 
 1. Check the Implementation Plan for the related step
-2. Maintain version synchronization across related docs
-3. Update cross-references when file paths change
-4. Include a short summary of changes with required tests
-5. Follow the Refinement Loop pattern (request → refine → implement → document)
+
+1.
+1.
+1.
 
 Keep docs concise and synchronized with Implementation Plan.
 
-```
+```text
 ## Thinking Protocol for Complex Tasks
 
 Claude excels when given space to plan before acting. For multi-step work:
 
 1. **Analyze** dependencies and risks in `<thinking>` tags
-2. **Plan** tool calls (read files, search patterns, check tests)
-3. **Execute** tool calls in parallel where possible
-4. **Synthesize** results and propose next steps
-5. **Verify** against Implementation Plan success criteria
+
+1.
+1.
+1.
 
 **Example: Multi-file refactoring**
-```
+```text
 
 <thinking>
 User wants to extract database initialization logic into a shared helper.
@@ -204,14 +206,14 @@ Risks:
 Plan:
 
 1. Parallel reads: grep for "initTestDbService", read test helpers
-2. Propose new helper location (tests/helpers/db.ts)
-3. Show migration for 2-3 representative files
-4. Verify tests still pass
+
+1.
+1.
    </thinking>
 
 [Execute tool calls for reading files, then provide implementation]
 
-````
+````text
 ## Tool-Use Patterns for Claude
 
 ### Parallel Reads (Context Gathering)
@@ -234,13 +236,13 @@ Plan:
 <antml_parameter name="isRegexp">false</antml_parameter>
 </antml_invoke>
 </antml_function_calls>
-````
+````text
 
 ❌ **Avoid: Sequential reads**
 
-```
+```text
 Read file 1 → wait for result → read file 2 → wait for result → read file 3
-```
+```text
 
 ### Incremental Updates for Multi-Step Tasks
 
@@ -253,9 +255,9 @@ Use `manage_todo_list` to track progress:
 ### Efficient Context Gathering
 
 1. **Parallelize** independent searches (grep_search + file_search + semantic_search)
-2. **Read results**, deduplicate file paths
-3. **Batch read** unique files in one parallel call
-4. **Synthesize** and proceed with implementation
+
+1.
+1.
 
 ## Token Budget Strategies
 
@@ -273,7 +275,7 @@ Use `manage_todo_list` to track progress:
 ```typescript
 const { db, tempDir, cleanup } = await initTestDbService();
 // test code without cleanup
-```
+```text
 
 ✅ **Good:**
 
@@ -284,7 +286,7 @@ try {
 } finally {
   await cleanup();
 }
-```
+```text
 
 ### 2. Not checking Implementation Plan
 
@@ -305,14 +307,14 @@ try {
 ```typescript
 const filePath = userInput;
 await Deno.readTextFile(filePath);
-```
+```text
 
 ✅ **Good:**
 
 ```typescript
 const filePath = pathResolver.resolve(userInput); // validates against Portal permissions
 await Deno.readTextFile(filePath);
-```
+```text
 
 ### 5. Hardcoding paths
 
@@ -320,13 +322,13 @@ await Deno.readTextFile(filePath);
 
 ```typescript
 "/home/user/ExoFrame/Workspace/Active";
-```
+```text
 
 ✅ **Good:**
 
 ```typescript
 join(workspaceRoot, "Workspace", "Active"); // use PathResolver
-```
+```text
 
 ### 6. Missing activity logging
 
@@ -336,7 +338,7 @@ join(workspaceRoot, "Workspace", "Active"); // use PathResolver
 
 ```typescript
 await eventLogger.log({ type: "file_write", path, result: "success" });
-```
+```text
 
 ### 7. Using deprecated Deno APIs
 
@@ -344,13 +346,13 @@ await eventLogger.log({ type: "file_write", path, result: "success" });
 
 ```typescript
 Deno.run({ cmd: ["deno", "test"] });
-```
+```text
 
 ✅ **Good:**
 
 ```typescript
 new Deno.Command("deno", { args: ["test"] }).output();
-```
+```text
 
 ### 8. Not validating frontmatter
 
@@ -367,3 +369,7 @@ new Deno.Command("deno", { args: ["test"] }).output();
 - Example prompt: "Inspect test patterns and suggest TDD tests for module X using `initTestDbService()` and provide failing assertions."
 - Example prompt: "Refactor PlanWriter to extract validation logic. Show tests proving behavior is unchanged."
 - Example prompt: "Debug why async test is flaking. Propose a test that reproduces the race condition."
+
+
+```
+

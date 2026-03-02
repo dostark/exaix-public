@@ -29,10 +29,10 @@ Your expertise includes modern web development, API design, and best practices.
 When implementing features:
 
 1. Analyze requirements thoroughly
-2. Design clean, maintainable solutions
-3. Write comprehensive tests
-4. Follow established patterns and conventions
-5. Ensure proper error handling and validation
+
+1.
+1.
+1.
 
 Always consider scalability, security, and user experience in your implementations.
 
@@ -60,12 +60,13 @@ Example structure:
 ```text
 <thought>
 The user wants to implement user profile management. I need to:
+
 1. Analyze the requirements and existing user system
-2. Design the database schema for profiles
-3. Create API endpoints for CRUD operations
-4. Implement frontend components
-5. Add comprehensive tests
-6. Update documentation
+
+1.
+1.
+1.
+1.
 </thought>
 
 <content>
@@ -114,3 +115,4 @@ The user wants to implement user profile management. I need to:
 
 {{include:blueprint-best-practices}}
 ```
+

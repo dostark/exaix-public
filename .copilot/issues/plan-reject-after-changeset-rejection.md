@@ -52,8 +52,8 @@ exoctl plan reject request-08a998d4_plan --reason 'bad plan'
 ## Investigation Needed
 
 1. **Plan Status Logic**: Check if plan status changes to "rejected" or "invalid" when changeset is rejected
-2. **Rejection Command**: Investigate why plan rejection lookup fails when plan exists in list
-3. **Database State**: Verify plan record state after changeset rejection
+
+1.
 
 ## Root Cause
 
@@ -98,3 +98,4 @@ None currently known. Plan remains in limbo state.
 ## Priority Justification
 
 High priority - breaks the ability to clean up completed plans, potentially leading to accumulation of stale plan records and confusing UI state.
+

@@ -63,11 +63,11 @@ Example expected payload:
    - Files: `src/database/event_logger.ts`, `src/services/llm_service.ts`
    - Verify if token usage data is available at logging points
 
-2. **LLM Integration**: Examine how LLM responses are processed
+1.
    - Check if token counts are extracted from provider responses
    - Verify cost calculation logic exists
 
-3. **Database Schema**: Confirm activity table supports additional payload fields
+1.
    - File: `src/database/schema.ts`
 
 ## Related Files
@@ -92,10 +92,11 @@ High priority because token usage and cost tracking is a core declared feature o
 **Fix**:
 
 1. Changed token usage logging from `logger.debug()` to `logger.info()` in `handleProviderResponse()` to ensure it appears in the activity journal
-2. Extended `TokenMap` type to include `cost_usd` field
-3. Updated all `tokenMapper` functions (`tokenMapperOpenAI`, `tokenMapperGoogle`, `tokenMapperAnthropic`) to calculate and include cost based on provider rates
-4. Added `calculateCost()` helper function using existing cost rate constants
+
+1.
+1.
 
 **Commit**: Token usage with costs now logged as "llm.usage" events in the activity journal at info level.
 
 **Verified**: Code compiles successfully and maintains backward compatibility. Regression test added in `tests/token_usage_tracking_regression_test.ts`.
+

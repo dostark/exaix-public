@@ -62,8 +62,8 @@ exoctl journal --tail 5
 **Technical Details:**
 
 1. **Validation exists but is unused:** The `getValidatedEnvOverrides()` function in `src/config/env_schema.ts` correctly validates EXO_LLM_* environment variables but is never called.
-2. **Config loading doesn't apply overrides:** The `ConfigService.load()` method in `src/config/service.ts` only loads from `exo.config.toml` and validates against the schema, but doesn't merge environment overrides.
-3. **Provider selection uses config only:** `ProviderSelector.selectProviderForTask()` uses `config.provider_strategy` but doesn't check for environment overrides.
+
+1.
 
 **Code Locations:**
 
@@ -104,7 +104,7 @@ exoctl journal --tail 5
    - **Safety Check:** Blocks paid providers in test/CI environments unless `EXO_TEST_ENABLE_PAID_LLM=1` is set
    - Falls back to intelligent selection if override fails or is blocked
 
-2. **Code Location:** `src/ai/provider_selector.ts:113-135`
+1.
 
 **Testing:**
 
@@ -128,3 +128,4 @@ The fix successfully implements environment variable overrides for LLM provider 
 - Google provider successfully makes API calls and returns responses
 - Fallback logic works when environment provider is not available
 - **Safety:** Paid providers blocked in test/CI without explicit opt-in via `EXO_TEST_ENABLE_PAID_LLM=1`
+

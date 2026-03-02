@@ -35,9 +35,9 @@ inconsistencies that confuse users and complicate maintenance. This phase introd
 a **domain-driven folder hierarchy** that clearly separates:
 
 1. **Definitions** - Static templates and configurations
-2. **Runtime** - Active state and execution artifacts
-3. **Persistent** - Long-term storage (memory, archives)
-4. **Integration** - External project access
+
+1.
+1.
 
 ### Key Problems
 
@@ -65,7 +65,7 @@ a **domain-driven folder hierarchy** that clearly separates:
 
 ### Top-Level Folder Inventory
 
-```
+```text
 ExoFrame/
 ├── agents/              # ⚠️ CONFUSING: AI dev knowledge base (not agent definitions!)
 │   ├── chunks/          # Chunked docs for retrieval
@@ -98,7 +98,7 @@ ExoFrame/
 ├── templates/           # ⚠️ ORPHANED: Sample config files
 ├── tests/               # Test files
 └── tests_infra/         # Test infrastructure
-```
+```text
 
 ### Problem Analysis
 
@@ -106,18 +106,18 @@ ExoFrame/
 
 The request lifecycle is split across non-adjacent folders:
 
-```
+```text
 Current Flow:
   Inbox/Requests/ → Inbox/Plans/ → System/Active/ → ???
                                                     ↑
                                           No clear Archive!
-```
+```text
 
 **User Confusion:** Where do completed plans go? Where's the history?
 
 #### 2. System/ Mixed Concerns
 
-```
+```text
 System/
 ├── Active/          # Lifecycle state (plans)
 ├── journal.db       # Runtime artifact (database)
@@ -126,7 +126,7 @@ System/
 ├── daemon.pid       # Runtime artifact (process)
 ├── daemon.log       # Runtime artifact (logs)
 └── activity_export.md  # Export file
-```
+```text
 
 **Issues:**
 
@@ -136,10 +136,10 @@ System/
 
 #### 3. agents/ Naming Confusion
 
-```
+```text
 agents/          # Dev knowledge base for AI assistants
 Blueprints/Agents/  # Actual agent definitions
-```
+```text
 
 **Issues:**
 
@@ -149,13 +149,13 @@ Blueprints/Agents/  # Actual agent definitions
 
 #### 4. Orphaned templates/
 
-```
+```text
 templates/
 ├── Knowledge_Dashboard.md
 ├── README.md
 ├── README.template.md
 └── exo.config.sample.toml
-```
+```text
 
 **Issues:**
 
@@ -169,7 +169,7 @@ templates/
 
 ### Target Folder Hierarchy
 
-```
+```text
 ExoFrame/
 ├── .exo/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
@@ -217,7 +217,7 @@ ExoFrame/
 ├── src/                     # Source code
 ├── tests/                   # Tests
 └── tests_infra/             # Test infrastructure
-```
+```text
 
 ### Design Rationale
 
@@ -234,12 +234,12 @@ ExoFrame/
 
 #### Lifecycle Clarity
 
-```
+```text
 New Flow:
   Workspace/Requests/ → Workspace/Plans/ → Workspace/Active/ → Workspace/Archive/
 
   ↑ Clear linear progression through single parent folder
-```
+```text
 
 #### Naming Improvements
 
@@ -261,9 +261,9 @@ New Flow:
 **Deliverables:**
 
 1. Create `scripts/migrate_folders.ts` with dry-run mode
-2. Create backup mechanism before migration
-3. Create symlink generator for backward compatibility
-4. Add migration status tracking
+
+1.
+1.
 
 **Files to Create:**
 
@@ -289,7 +289,7 @@ New Flow:
     "backupDir": ".exo/migration-backup/"
   }
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -300,12 +300,12 @@ New Flow:
 
 **Projected Tests:** `tests/scripts/migrate_folders_test.ts`
 
-```
+```text
 ❌ Migration: dry-run reports planned changes
 ❌ Migration: creates backup before changes
 ❌ Migration: creates symlinks for compatibility
 ❌ Migration: rollback restores original state
-```
+```text
 
 ---
 
@@ -316,10 +316,10 @@ New Flow:
 **Deliverables:**
 
 1. Create `.exo/` directory structure
-2. Update `ConfigService` to use `.exo/journal.db`
-3. Update `DaemonCommands` to use `.exo/daemon.pid` and `.exo/daemon.log`
-4. Update `.gitignore` for new paths
-5. Create migration for existing `System/` runtime files
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -346,12 +346,12 @@ New Flow:
 
 **Projected Tests:** `tests/services/db_test.ts`, `tests/cli/daemon_commands_test.ts`
 
-```
+```text
 ❌ Database: uses .exo/journal.db path
 ❌ Daemon: writes PID to .exo/daemon.pid
 ❌ Daemon: writes logs to .exo/daemon.log
 ❌ Config: warns on deprecated System/ paths
-```
+```text
 
 ---
 
@@ -376,7 +376,7 @@ The notification system currently maintains a **redundant storage layer** in `Sy
 
 **Architecture Redundancy:**
 
-```
+```text
 Current (Redundant):
 ┌─────────────────────────┐
 │ NotificationService     │
@@ -384,7 +384,7 @@ Current (Redundant):
 │ 1. Log to journal.db    │ ← Already has the data!
 │ 2. Write to memory.json │ ← Redundant file I/O
 └─────────────────────────┘
-```
+```text
 
 **Problems with Current Approach:**
 
@@ -409,11 +409,11 @@ ExoFrame **already has** all the infrastructure needed:
 **Deliverables:**
 
 1. Remove `System/Notifications/` directory entirely
-2. Add `notifications` table to `journal.db` schema
-3. Update `NotificationService` to use database-only storage
-4. Update TUI dashboard to query from database
-5. Create migration to import existing `memory.json` data
-6. Remove file I/O code from NotificationService
+
+1.
+1.
+1.
+1.
 
 **Database Schema:**
 
@@ -437,7 +437,7 @@ CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
 CREATE INDEX idx_notifications_type ON notifications(type);
 CREATE INDEX idx_notifications_dismissed ON notifications(dismissed_at);
 CREATE INDEX idx_notifications_proposal ON notifications(proposal_id);
-```
+```text
 
 **Updated NotificationService:**
 
@@ -517,7 +517,7 @@ export class NotificationService {
     );
   }
 }
-```
+```text
 
 **Files to Modify:**
 
@@ -585,7 +585,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
   console.log(`✓ Migrated ${notifications.length} notifications to database`);
   console.log(`✓ Archived old file to: ${archivePath}`);
 }
-```
+```text
 
 **Benefits of SQLite Approach:**
 
@@ -612,7 +612,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 
 **Projected Tests:** `tests/services/notification_sqlite_test.ts`
 
-```
+```text
 ✅ Migration: adds notifications table to journal.db
 ✅ Migration: notifications table has correct schema
 ✅ NotificationService: inserts notification into DB
@@ -625,15 +625,15 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 ✅ NotificationService: handles concurrent inserts
 ✅ NotificationService: stores metadata as JSON
 ✅ NotificationService: returns empty array when none exist
-```
+```text
 
 **Why This is Better Than Files:**
 
 1. **No Redundancy:** Activity Journal already logs events, notifications extend it
-2. **Better Queries:** `WHERE dismissed_at IS NULL ORDER BY created_at DESC` vs reading entire file
-3. **Atomic Updates:** Database transactions prevent corruption
-4. **Future-Proof:** Easy to add columns (priority, read_at, expires_at)
-5. **System Consistency:** All persistent state in `.exo/journal.db`
+
+1.
+1.
+1.
 
 ---
 
@@ -645,7 +645,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 > **Completion Date:** 2026-01-06
 > **Details:** Target folder hierarchy drafted, rationale documented, structure ready for migration planning.
 
-```
+```text
 ExoFrame/
 ├── .exo/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
@@ -693,7 +693,7 @@ ExoFrame/
 ├── src/                     # Source code
 ├── tests/                   # Tests
 └── tests_infra/             # Test infrastructure
-```
+```text
 
 **Rationale:**
 
@@ -716,12 +716,12 @@ This structure enforces domain separation, lifecycle clarity, and naming consist
 **Deliverables:**
 
 1. Create `Workspace/` directory with subdirectories
-2. Move `Inbox/Requests/` → `Workspace/Requests/`
-3. Move `Inbox/Plans/` → `Workspace/Plans/`
-4. Move `System/Active/` → `Workspace/Active/`
-5. Create `Workspace/Archive/` with year/month structure
-6. Create symlinks: `Inbox/` → `Workspace/`, `System/Active/` → `Workspace/Active/`
-7. Update all services using these paths
+
+1.
+1.
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -742,7 +742,7 @@ This structure enforces domain separation, lifecycle clarity, and naming consist
 
 **Archive Structure:**
 
-```
+```text
 Workspace/Archive/
 ├── index.json           # Fast lookup index
 └── 2026/
@@ -752,7 +752,7 @@ Workspace/Archive/
         │   ├── plan.md
         │   └── summary.json
         └── ...
-```
+```text
 
 **Success Criteria:**
 
@@ -764,14 +764,14 @@ Workspace/Archive/
 
 **Projected Tests:** `tests/services/watcher_test.ts`, `tests/cli/request_commands_test.ts`
 
-```
+```text
 ❌ Watcher: monitors Workspace/Requests/
 ❌ Watcher: monitors Workspace/Plans/
 ❌ Watcher: monitors Workspace/Active/
 ❌ Request: creates in Workspace/Requests/
 ❌ Plan: writes to Workspace/Plans/
 ❌ Archive: stores completed plans by date
-```
+```text
 
 ---
 
@@ -782,11 +782,11 @@ Workspace/Archive/
 **Deliverables:**
 
 1. Move `agents/` → `.copilot/`
-2. Update all scripts referencing `agents/`
-3. Update documentation references
-4. Update all internal references to `agents/` in `.copilot/` files (planning docs, READMEs, manifests, etc.)
-5. Create symlink `agents/` → `.copilot/` for transition
-6. Update `.gitignore` patterns
+
+1.
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -820,11 +820,11 @@ Workspace/Archive/
 
 **Projected Tests:** `tests/scripts/build_agents_test.ts`
 
-```
+```text
 ❌ Build: agents index uses .copilot/ path
 ❌ Build: embeddings use .copilot/ path
 ❌ Verify: manifest fresh check uses .copilot/ path
-```
+```text
 
 ---
 
@@ -835,10 +835,10 @@ Workspace/Archive/
 **Deliverables:**
 
 1. Move `templates/exo.config.sample.toml` → root (sample config)
-2. Move `templates/README.template.md` → `Blueprints/Agents/templates/`
-3. Move `templates/Knowledge_Dashboard.md` → `docs/templates/`
-4. Remove empty `templates/` directory
-5. Update any references
+
+1.
+1.
+1.
 
 **Files to Move:**
 
@@ -873,16 +873,16 @@ Workspace/Archive/
 /System/*.log           # Will be obsolete
 /Inbox/                 # Will be obsolete
 /Portals/               # Correct - external symlinks
-```
+```text
 
 **Deliverables:**
 
 1. Add `.exo/` runtime directory patterns
-2. Add `Workspace/` lifecycle patterns
-3. Keep `Portals/` pattern (unchanged)
-4. Add deprecation comments for old patterns (transition period)
-5. Remove obsolete patterns after migration complete
-6. Organize patterns by domain with clear section headers
+
+1.
+1.
+1.
+1.
 
 **File to Modify:**
 
@@ -969,7 +969,7 @@ Portals/
 # --------------------------------------------
 exoframe
 /.ci-bin/
-```
+```text
 
 **Pattern Changes:**
 
@@ -994,12 +994,12 @@ exoframe
 
 **Projected Tests:** `tests/scripts/migrate_folders_test.ts`
 
-```
+```text
 ❌ Gitignore: .exo/ files not tracked
 ❌ Gitignore: Workspace/ user content not tracked
 ❌ Gitignore: Portals/ symlinks not tracked
 ❌ Gitignore: .copilot/coverage/ exception works
-```
+```text
 
 ---
 
@@ -1010,9 +1010,9 @@ exoframe
 **Deliverables:**
 
 1. Add path resolution with fallback to old paths
-2. Add deprecation warnings for old paths
-3. Add configuration for custom paths
-4. Update default path constants
+
+1.
+1.
 
 **Files to Modify:**
 
@@ -1029,7 +1029,7 @@ runtime = ".exo"             # Runtime artifacts
 memory = "Memory"            # Knowledge storage
 portals = "Portals"          # External projects
 blueprints = "Blueprints"    # Definitions
-```
+```text
 
 **Success Criteria:**
 
@@ -1040,12 +1040,12 @@ blueprints = "Blueprints"    # Definitions
 
 **Projected Tests:** `tests/config/service_test.ts`
 
-```
+```text
 ❌ Config: resolves Workspace path
 ❌ Config: resolves .exo runtime path
 ❌ Config: warns on deprecated Inbox path
 ❌ Config: supports custom path overrides
-```
+```text
 
 ---
 
@@ -1056,10 +1056,10 @@ blueprints = "Blueprints"    # Definitions
 **Deliverables:**
 
 1. Update `request` commands for `Workspace/Requests/`
-2. Update `plan` commands for `Workspace/Plans/`
-3. Update `daemon` commands for `.exo/`
-4. Add `archive` subcommands for `Workspace/Archive/`
-5. Update help text with new paths
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -1075,7 +1075,7 @@ exoctl archive list              # List archived plans
 exoctl archive show <trace-id>   # Show archived plan details
 exoctl archive search <query>    # Search archive
 exoctl archive stats             # Archive statistics
-```
+```text
 
 **Success Criteria:**
 
@@ -1086,13 +1086,13 @@ exoctl archive stats             # Archive statistics
 
 **Projected Tests:** `tests/cli/*_commands_test.ts`
 
-```
+```text
 ❌ Request: uses Workspace/Requests/ path
 ❌ Plan: uses Workspace/Plans/ path
 ❌ Daemon: uses .exo/ path
 ❌ Archive: list shows archived plans
 ❌ Archive: search finds by query
-```
+```text
 
 ---
 
@@ -1103,10 +1103,10 @@ exoctl archive stats             # Archive statistics
 **Deliverables:**
 
 1. Update `docs/ExoFrame_Architecture.md` diagrams
-2. Update `docs/ExoFrame_User_Guide.md` paths
-3. Update `README.md` quick start
-4. Update `CLAUDE.md` context
-5. Create migration guide for existing users
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -1134,10 +1134,10 @@ exoctl archive stats             # Archive statistics
 **Deliverables:**
 
 1. Create `ArchiveService` for plan archival
-2. Implement date-based directory structure
-3. Create archive index for fast lookups
-4. Add archival trigger after plan completion
-5. Implement archive search and retrieval
+
+1.
+1.
+1.
 
 **Files to Create:**
 
@@ -1159,7 +1159,7 @@ const ArchiveEntrySchema = z.object({
   portal: z.string().optional(),
   tags: z.array(z.string()),
 });
-```
+```text
 
 **Success Criteria:**
 
@@ -1171,14 +1171,14 @@ const ArchiveEntrySchema = z.object({
 
 **Projected Tests:** `tests/services/archive_service_test.ts`
 
-```
+```text
 ❌ Archive: stores completed plan
 ❌ Archive: creates year/month structure
 ❌ Archive: updates index.json
 ❌ Archive: retrieves by trace_id
 ❌ Archive: searches by date range
 ❌ Archive: searches by agent
-```
+```text
 
 ---
 
@@ -1189,10 +1189,10 @@ const ArchiveEntrySchema = z.object({
 **Deliverables:**
 
 1. Update test fixtures for new paths
-2. Run full test suite
-3. Fix any path-related failures
-4. Add migration regression tests
-5. Performance test archive operations
+
+1.
+1.
+1.
 
 **Files to Modify:**
 
@@ -1208,11 +1208,11 @@ const ArchiveEntrySchema = z.object({
 
 **Projected Tests:** Full suite + new tests
 
-```
+```text
 ❌ Migration: regression tests pass
 ❌ Archive: performance under load
 ❌ Paths: no hardcoded old paths in tests
-```
+```text
 
 ---
 
@@ -1247,7 +1247,7 @@ export interface Notification {
   autoExpire: boolean;
   duration: number; // milliseconds
 }
-```
+```text
 
 **Current State:**
 
@@ -1257,7 +1257,7 @@ export interface DashboardViewState {
   notifications: Notification[]; // In-memory array
   // ... other fields
 }
-```
+```text
 
 **Current Behavior:**
 
@@ -1275,7 +1275,7 @@ export interface DashboardViewState {
    - Layout save/restore
    - View switching
 
-2. **Notification Display:**
+1.
    - Panel shown with `n` key
    - Badge in status bar: `🔔${count}`
    - Most recent shown first
@@ -1300,7 +1300,7 @@ export interface TuiNotification {
   dismissed_at?: string | null; // Soft-delete timestamp
   metadata?: string; // JSON metadata
 }
-```
+```text
 
 ### 2. Add NotificationService Dependency
 
@@ -1325,7 +1325,7 @@ export async function launchTuiDashboard(
 
   // ...
 }
-```
+```text
 
 ### 3. Replace In-Memory Notifications with Database Queries
 
@@ -1342,7 +1342,7 @@ export interface DashboardViewState {
   showNotifications: boolean;
   // notifications removed - query from DB on demand
 }
-```
+```text
 
 **Query Notifications from Database:**
 
@@ -1372,7 +1372,7 @@ export class TuiDashboardImpl implements TuiDashboard {
     await this.notificationService.clearAllNotifications();
   }
 }
-```
+```text
 
 ### 4. Update Notification Rendering
 
@@ -1450,7 +1450,7 @@ function getNotificationIcon(type: string): string {
   };
   return iconMap[type] || DASHBOARD_ICONS.notification.info;
 }
-```
+```text
 
 ### 5. Update Status Bar Badge
 
@@ -1469,7 +1469,7 @@ async renderStatusBar(): Promise<string> {
 
   return `${indicator} │ Active: ${activePane?.view.name}${notificationBadge}`;
 }
-```
+```text
 
 ### 6. Add Memory Update Notification Handling
 
@@ -1480,7 +1480,7 @@ async renderStatusBar(): Promise<string> {
 
 // Add to DASHBOARD_KEY_BINDINGS
 { key: "m", action: "show_memory_notifications", description: "Memory updates", category: "General" },
-```
+```text
 
 **Memory Notification Actions:**
 
@@ -1514,7 +1514,7 @@ if (key === "m") {
     }
   }
 }
-```
+```text
 
 ### 7. Update Dashboard Tests
 
@@ -1552,7 +1552,7 @@ class MockNotificationService {
     this.notifications.push(notification);
   }
 }
-```
+```text
 
 **Update Tests:**
 
@@ -1596,7 +1596,7 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
   const count = await dashboard.getNotificationCount();
   assertEquals(count, 0);
 });
-```
+```text
 
 ## Implementation Checklist
 
@@ -1667,16 +1667,16 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 **Estimated Effort:** 0.5 day
 
 1. Core Integration: 2 hours
-2. Memory Update Handling: 1 hour
-3. Testing: 1 hour
-4. Documentation: 30 minutes
+
+1.
+1.
 
 ---
 
 **Next Steps:**
 
 1. Completed all planned integration phases.
-2. Final review and documentation update.
+
 
 ## Backward Compatibility Strategy
 
@@ -1684,19 +1684,19 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 
 During transition (2 release cycles), symlinks maintain compatibility:
 
-```
+```text
 Inbox/ → Workspace/           # Symlink
 System/Active/ → Workspace/Active/  # Symlink
 agents/ → .copilot/           # Symlink
-```
+```text
 
 ### Deprecation Warnings
 
-```
+```text
 ⚠️  DEPRECATED: 'Inbox/Requests/' is deprecated.
     Use 'Workspace/Requests/' instead.
     Symlink compatibility will be removed in v2.0.0
-```
+```text
 
 ### Migration Command
 
@@ -1704,7 +1704,7 @@ agents/ → .copilot/           # Symlink
 exoctl migrate folders --dry-run    # Preview changes
 exoctl migrate folders              # Execute migration
 exoctl migrate folders --rollback   # Restore if needed
-```
+```text
 
 ---
 
@@ -1754,3 +1754,7 @@ exoctl migrate folders --rollback   # Restore if needed
 - [ExoFrame Architecture](../../docs/ExoFrame_Architecture.md)
 - [Phase 17: Skills Architecture](./phase-17-skills-architecture.md)
 - [Phase 18: Blueprint Modernization](./phase-18-blueprint-modernization.md)
+
+
+```
+

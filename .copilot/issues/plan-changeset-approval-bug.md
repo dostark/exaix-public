@@ -16,12 +16,12 @@ When following the manual test scenario for plan approval and changeset approval
 ## Reproduction Steps
 
 1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.
-2. Submit a request and approve the generated plan.
-3. Run `exoctl plan list` and `exoctl plan list --status=approved`.
-4. Observe that no plans are listed, even though approval succeeded.
-5. Check the portal repo: the feature branch and changeset are present.
-6. Run `exoctl changeset list`.
-7. Observe that no changesets are listed.
+
+1.
+1.
+1.
+1.
+1.
 
 ## Expected vs Observed Behavior
 
@@ -67,6 +67,7 @@ exoctl changeset list
 
 # But in portal repo:
 git branch
+
 * feat/request-a300d5a5-a300d5a5
   master
 ```
@@ -81,7 +82,7 @@ Root causes identified and resolved:
 
 1. **Changeset List Missing Config Portals**: The `exoctl changeset list` command only scanned portal symlinks in the workspace but ignored portals defined in `config.portals`. Changesets in portal repositories defined only in config were not discovered.
 
-2. **Execution Loop Hardcoded Archive Path**: The execution loop used a hardcoded "Archive" path instead of the configured `config.paths.archive` value, causing plan archiving to fail or use incorrect locations.
+1.
 
 ### Changes Made
 
@@ -94,3 +95,4 @@ Root causes identified and resolved:
 - All existing tests pass
 - Manual testing confirms `exoctl changeset list` now shows changesets from portal repositories
 - Plan approval and archiving now uses correct configured paths
+

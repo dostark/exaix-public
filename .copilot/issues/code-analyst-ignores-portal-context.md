@@ -13,8 +13,8 @@ The `code-analyst` agent often generates plans that reference files or logic tha
 ### Fix
 
 1. **Context Injection**: Updated `RequestProcessor` to fetch a shallow file list of the target portal and inject it into the `Portal Context` block.
-2. **Prompt Refinement**: Updated `code-analyst.md` system prompt to explicitly instruct the agent to use the provided file list and avoid hallucinations.
-3. **Prompt System**: Updated `buildPortalContextBlock` to include optional file lists.
+
+1.
 
 ### Verification
 
@@ -74,3 +74,4 @@ Manually perform analysis or request a revision and regenerate a new plan via a 
 ## Priority Justification
 
 High: breaks the core value of portal-aware analysis for code-analyst.
+

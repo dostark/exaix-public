@@ -60,7 +60,7 @@ exoctl plan list
    - ❌ **ISSUE**: Rejected plans are moved to `Workspace/Rejected` with `_rejected.md` suffix
    - ✅ **SOLUTION**: Update `show()` method to search multiple directories like `list()` does
 
-2. **Plan Storage**: Verify how rejected plans are stored
+1.
    - ✅ **CONFIRMED**: Rejected plans moved to `Workspace/Rejected` with `_rejected.md` suffix
    - ✅ **CONFIRMED**: `list()` method correctly handles this, but `show()` does not
 
@@ -84,3 +84,4 @@ Medium priority - affects user experience for reviewing rejected plans, but has 
 - **Fix**: Updated `show()` method to search multiple directories (Plans, Rejected, Active, Archive) in order of likelihood
 - **Commit**: a6692a4
 - **Verified**: Added test case and all existing tests pass
+

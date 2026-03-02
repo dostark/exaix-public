@@ -37,15 +37,15 @@ However, there are legitimate scenarios where a security expert should write fil
 ### Current Workaround Limitations
 
 1. **Modifying Blueprints** - Requires changing agent identity, breaks separation of concerns
-2. **Creating New Agents** - Proliferates similar agents, maintenance burden
-3. **Manual Execution** - User must manually create files from agent output
+
+1.
 
 ### Solution: Runtime Skills Injection
 
 Allow users to inject skills (e.g., `documentation-driven`, `file-ops`) at:
 
 1. **Request creation** - `exoctl request "..." --skills <skills>`
-2. **Plan approval** - `exoctl plan approve <id> --skills <skills>`
+
 
 Skills override blueprint constraints via instruction precedence in the LLM prompt.
 
@@ -55,7 +55,7 @@ Skills override blueprint constraints via instruction precedence in the LLM prom
 
 ### Skills Injection Flow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Request Creation (CLI)                            │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -110,7 +110,7 @@ Skills override blueprint constraints via instruction precedence in the LLM prom
 │                           ↓
 │  Prompt: [Context] + [Skills] + [Step Instructions]
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ### Data Flow
 
@@ -159,7 +159,7 @@ if (skillsApplied.length > 0) {
   skillContext = await skillsService.buildSkillContext(skillsApplied);
   // Inject into prompt before user request
 }
-```
+```text
 
 ---
 
@@ -202,7 +202,7 @@ if (skillsApplied.length > 0) {
     skills: options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
   });
 });
-```
+```text
 
 **Success Criteria:**
 
@@ -213,11 +213,11 @@ if (skillsApplied.length > 0) {
 
 **Tests:** `tests/cli/request_commands_skills_test.ts`
 
-```
+```text
 ✅ create request with explicit skills
 ✅ create request with single skill
 ✅ create request without skills
-```
+```text
 
 ---
 
@@ -250,7 +250,7 @@ export function buildParsedRequest(body: string, frontmatter: Record<string, any
     skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
   };
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -261,11 +261,11 @@ export function buildParsedRequest(body: string, frontmatter: Record<string, any
 
 **Tests:** `tests/cli/request_commands_skills_test.ts`
 
-```
+```text
 ✅ Frontmatter contains skills as JSON string
 ✅ YAML parser deserializes to array
 ✅ ParsedRequest includes skills field
-```
+```text
 
 ---
 
@@ -301,7 +301,7 @@ export interface RequestEntry {
   // ... existing fields ...
   skills?: string[]; // NEW
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -314,7 +314,7 @@ export interface RequestEntry {
 
 ```bash
 deno check src/cli/exoctl.ts  # ✅ Passed
-```
+```text
 
 ---
 
@@ -357,7 +357,7 @@ async approve(planId: string, skills?: string[]): Promise<void> {
 
   // ... write to Workspace/Active ...
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -368,10 +368,10 @@ async approve(planId: string, skills?: string[]): Promise<void> {
 
 **Tests:** `tests/cli/plan_commands_skills_test.ts`
 
-```
+```text
 ✅ approve plan with skills
 ✅ approve plan without skills
-```
+```text
 
 ---
 
@@ -430,11 +430,12 @@ ${step.content}
 
 ${this.buildSkillsContext(context.frontmatter)}
 INSTRUCTIONS:
+
 1. Analyze the current task.
-2. Determine which tools to use...
+
 `;
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -445,10 +446,10 @@ INSTRUCTIONS:
 
 **Tests:** `tests/cli/plan_commands_skills_test.ts`
 
-```
+```text
 ✅ Plan frontmatter contains skills after approval
 ✅ Skills persisted through plan lifecycle
-```
+```text
 
 ---
 
@@ -465,7 +466,7 @@ deno check src/cli/plan_commands.ts             # ✅ Passed
 deno check src/services/plan_executor.ts        # ✅ Passed
 deno check src/services/request_processor.ts    # ✅ Passed
 deno check src/services/request_common.ts       # ✅ Passed
-```
+```text
 
 **Success Criteria:**
 
@@ -584,7 +585,7 @@ deno check src/services/request_common.ts       # ✅ Passed
 
 **File:** `tests/cli/request_commands_skills_test.ts`
 
-```
+```text
 ✅ create request with explicit skills
    - Verifies skills stored as JSON string in frontmatter
    - Verifies YAML parser deserializes to array
@@ -596,13 +597,13 @@ deno check src/services/request_common.ts       # ✅ Passed
 ✅ create request without skills
    - Verifies backward compatibility
    - Verifies skills field is undefined when not provided
-```
+```text
 
 ### Plan-Level Skills
 
 **File:** `tests/cli/plan_commands_skills_test.ts`
 
-```
+```text
 ✅ approve plan with skills
    - Creates mock plan in Workspace/Plans
    - Approves with skills array
@@ -612,18 +613,18 @@ deno check src/services/request_common.ts       # ✅ Passed
 ✅ approve plan without skills
    - Verifies backward compatibility
    - Verifies skills field is undefined when not provided
-```
+```text
 
 ### Integration with AgentRunner
 
 **Existing Tests:** `tests/agent_runner_test.ts` (from Phase 17.7)
 
-```
+```text
 ✅ AgentRunner: uses request-level explicit skills
 ✅ AgentRunner: trigger matches override blueprint defaults
 ✅ AgentRunner: applies blueprint default skills
 ✅ AgentRunner: filters out skipSkills from matched
-```
+```text
 
 ---
 
@@ -638,7 +639,7 @@ exoctl request "Perform security audit and write report to audit.md" \
   --skills documentation-driven,file-ops
 
 # Result: security-expert can now write files despite no_code_changes: true
-```
+```text
 
 ### Plan-Level Skills Injection
 
@@ -650,7 +651,7 @@ exoctl request "Refactor authentication module" --agent code-architect
 exoctl plan approve plan-abc123 --skills documentation-driven,testing-best-practices
 
 # Result: Plan execution will apply these skills to all steps
-```
+```text
 
 ### Combined Workflow
 
@@ -666,7 +667,7 @@ exoctl request "Add user profile feature" \
 exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 # Result: Execution uses both TDD and security-first approaches
-```
+```text
 
 ---
 
@@ -768,3 +769,7 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 **Completion Date:** 2026-01-27
 **Total Implementation Time:** ~2 hours
 **Test Coverage:** 10 tests, 100% passing
+
+
+```
+

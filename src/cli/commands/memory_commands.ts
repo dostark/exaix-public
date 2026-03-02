@@ -9,23 +9,15 @@
 
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { Config } from "../../shared/schemas/config.ts";
-import type { IDatabaseService } from "../../services/db.ts";
-import { MemoryBankService } from "../../services/memory_bank.ts";
-import { MemoryExtractorService } from "../../services/memory_extractor.ts";
-import { MemoryEmbeddingService } from "../../services/memory_embedding.ts";
+import type { ICliApplicationContext } from "../cli_context.ts";
 import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../shared/enums.ts";
 import { type ISkillMatchRequest as SkillMatchRequest } from "../../shared/types/skill.ts";
-import { SkillsService } from "../../services/skills.ts";
 import type { ILearning, IMemorySearchResult } from "../../shared/schemas/memory_bank.ts";
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
 import { MemoryFormatter } from "../formatters/memory_formatter.ts";
 import { IMemoryBankSummary, OutputFormat } from "../memory_types.ts";
 
-export interface IMemoryCommandsContext {
-  config: Config;
-  db: IDatabaseService;
-}
+export interface IMemoryCommandsContext extends ICliApplicationContext {}
 
 /**
  * Memory Commands handler
@@ -33,27 +25,49 @@ export interface IMemoryCommandsContext {
  * Provides CLI interface for Memory Banks operations.
  */
 export class MemoryCommands {
-  private config: Config;
-  private db: IDatabaseService;
-  private memoryBank: MemoryBankService;
-  private extractor: MemoryExtractorService;
-  private embedding: MemoryEmbeddingService;
-  private skills: SkillsService;
+  private context: ICliApplicationContext;
   private formatter: MemoryFormatter;
   private memoryRoot: string;
 
   constructor(context: IMemoryCommandsContext) {
-    this.config = context.config;
-    this.db = context.db;
-    this.memoryBank = new MemoryBankService(context.config, context.db);
-    this.extractor = new MemoryExtractorService(context.config, context.db, this.memoryBank);
-    this.embedding = new MemoryEmbeddingService(context.config);
-    this.skills = new SkillsService(
-      { memoryDir: join(context.config.system.root, context.config.paths.memory) },
-      context.db,
-    );
+    this.context = context;
+    this.memoryRoot = join(context.config.getAll().system.root, context.config.getAll().paths.memory);
     this.formatter = new MemoryFormatter();
-    this.memoryRoot = join(context.config.system.root, context.config.paths.memory);
+  }
+
+  /**
+   * Get the memory bank service.
+   */
+  private get memoryBank() {
+    return this.context.memoryBank;
+  }
+
+  /**
+   * Get the extractor service.
+   */
+  private get extractor() {
+    return this.context.extractor;
+  }
+
+  /**
+   * Get the embedding service.
+   */
+  private get embedding() {
+    return this.context.embeddings;
+  }
+
+  /**
+   * Get the skills service.
+   */
+  private get skills() {
+    return this.context.skills;
+  }
+
+  /**
+   * Get the configuration.
+   */
+  private get config() {
+    return this.context.config.getAll();
   }
 
   // ===== Memory List Command =====

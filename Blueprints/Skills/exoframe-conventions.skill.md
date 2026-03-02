@@ -65,7 +65,7 @@ Follow these ExoFrame-specific patterns and conventions:
 
 ## 1. Project Structure
 
-```
+```text
 src/
 ├── commands/        # CLI command implementations
 ├── config/          # Configuration schemas and loading
@@ -86,7 +86,7 @@ Memory/              # Memory Banks
 ├── Execution/       # Execution history
 ├── Global/          # Cross-project learnings
 └── Skills/          # Procedural memory (skills)
-```
+```text
 
 ## 2. Service Pattern
 
@@ -144,7 +144,7 @@ export class ExampleService {
     );
   }
 }
-```
+```text
 
 ## 3. Test Patterns
 
@@ -177,7 +177,7 @@ Deno.test("ExampleService", async (t) => {
     assertEquals(result.name, "Test");
   });
 });
-```
+```text
 
 ## 4. Schema-First Design
 
@@ -207,7 +207,7 @@ export const ExampleSchema = ExampleInputSchema.extend({
 // Export types
 export type ExampleInput = z.infer<typeof ExampleInputSchema>;
 export type Example = z.infer<typeof ExampleSchema>;
-```
+```text
 
 ## 5. Activity Journal Integration
 
@@ -228,7 +228,7 @@ const EVENT_TYPES = {
   "agent.invoked": "Agent was invoked",
   "agent.completed": "Agent completed execution",
 };
-```
+```text
 
 ## 6. Flow Definitions
 
@@ -259,7 +259,7 @@ export default defineFlow({
     },
   ],
 });
-```
+```text
 
 ## 7. Configuration
 
@@ -274,7 +274,7 @@ root = "."
 enabled = true
 auto_match = true
 max_skills_per_request = 5
-```
+```text
 
 ## 8. Common Imports
 
@@ -292,7 +292,7 @@ import { z } from "zod";
 // ExoFrame internal
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
-```
+```text
 
 ## 9. Error Handling
 
@@ -317,4 +317,8 @@ export class FlowExecutionError extends ExoFrameError {
     );
   }
 }
+```text
+
+
 ```
+

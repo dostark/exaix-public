@@ -60,13 +60,13 @@ Follow the Conventional Commits specification for consistent, parseable commit h
 
 ## Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 [optional body]
 
 [optional footer(s)]
-```
+```text
 
 ## Types
 
@@ -87,18 +87,18 @@ Follow the Conventional Commits specification for consistent, parseable commit h
 
 ### Simple Fix
 
-```
+```text
 fix(auth): prevent race condition in token refresh
 
 Token refresh could fire multiple times if multiple requests
 failed simultaneously. Added mutex to ensure single refresh.
 
 Fixes #123
-```
+```text
 
 ### New Feature
 
-```
+```text
 feat(api): add user profile endpoints
 
 - GET /api/users/:id/profile
@@ -106,46 +106,46 @@ feat(api): add user profile endpoints
 - Added profile image upload support
 
 Closes #456
-```
+```text
 
 ### Breaking Change
 
-```
+```text
 feat(api)!: change authentication to JWT
 
 BREAKING CHANGE: Session-based auth removed.
 All clients must now use JWT tokens.
 
 Migration guide: docs/migration-v2.md
-```
+```text
 
 ### Documentation
 
-```
+```text
 docs(readme): add installation instructions for Windows
-```
+```text
 
 ### Refactor
 
-```
+```text
 refactor(core): extract validation logic to separate module
 
 No functional changes. Moved validation functions from
 UserService to new ValidationService for reuse.
-```
+```text
 
 ## Subject Line Rules
 
 1. **Use imperative mood**: "Add feature" not "Added feature"
-2. **Don't capitalize first letter** after type
-3. **No period at the end**
-4. **Max 72 characters** (50 is better)
 
-```
+1.
+1.
+
+```text
 ✅ feat(cart): add quantity validation
 ❌ feat(cart): Added quantity validation.
 ❌ feat(Cart): Add Quantity Validation
-```
+```text
 
 ## Body Guidelines
 
@@ -156,7 +156,7 @@ UserService to new ValidationService for reuse.
 
 ## Footer Guidelines
 
-```
+```text
 # Reference issues
 Fixes #123
 Closes #456
@@ -167,7 +167,7 @@ BREAKING CHANGE: description of what breaks
 
 # Co-authors
 Co-authored-by: Name <email@example.com>
-```
+```text
 
 ## Scope Suggestions
 
@@ -191,7 +191,11 @@ Use consistent scopes across your project:
 ## Why Conventional Commits?
 
 1. **Automated changelogs** from commit history
-2. **Semantic versioning** determined automatically
-3. **Searchable history** by type/scope
-4. **Clear communication** of change nature
-5. **CI/CD triggers** based on commit type
+
+1.
+1.
+1.
+
+
+```
+

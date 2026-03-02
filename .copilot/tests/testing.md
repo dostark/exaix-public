@@ -62,9 +62,9 @@ Target: Minimum 70% branch coverage on new features. Request an implementation w
 Deduplication checklist:
 
 1. Search for similar test file names
-2. Compare test case names for duplicates
-3. Merge unique cases into canonical location
-4. Delete duplicate files
+
+1.
+1.
 
 ### Security Tests as First-Class Citizens
 
@@ -136,3 +136,4 @@ if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
   - This keeps behavior consistent between local runs and CI without extra build steps.
 
 ---
+

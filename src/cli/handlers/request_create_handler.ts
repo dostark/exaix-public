@@ -14,13 +14,13 @@ import { RequestPriority } from "../../shared/enums.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
-import { CommandUtils } from "../../helpers/command_utils.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
 import {
   type IRequestMetadata as RequestMetadata,
   type IRequestOptions as RequestOptions,
   type RequestSource,
 } from "../../shared/types/request.ts";
-import { resolveSubject } from "../../helpers/subject_generator.ts";
+import { resolveSubject } from "../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
@@ -94,9 +94,8 @@ export class RequestCreateHandler extends BaseCommand {
       // Write file
       await Deno.writeTextFile(path, content);
 
-      // Log activity using EventLogger
-      const actionLogger = await this.getActionLogger();
-      actionLogger.info("request.created", path, {
+      // Log activity using DisplayService
+      await this.display.info("request.created", path, {
         trace_id,
         priority,
         agent,

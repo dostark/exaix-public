@@ -17,9 +17,9 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Success Criteria:**
 
 1. [x] Provider adapters supported via `ModelFactory` for `gpt-4.1`, `gpt-4o`, and `gpt-5-mini` (shims returning OpenAI-compatible clients).
-2. [x] Default test configurations use `mock` provider to avoid billing during CI.
-3. [x] Documentation updated with setup instructions and sample configs. (See `docs/CostFree_LLMs.md`)
-4. [x] Backward compatibility maintained with existing LLM provider interfaces.
+
+1.
+1.
 
 **Test Definitions:**
 
@@ -42,12 +42,12 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Success Criteria:**
 
 1. [x] Create `agents/` directory with a standardized layout and a top-level `agents/README.md` describing intent and maintenance policy.
-2. [x] Add a Copilot-focused doc (e.g., `agents/copilot/exoframe.md`) containing: short repo summary, critical conventions (file locations, important modules), canonical prompts, example workflows, and "Do / Don't" guidance for automation tasks.
-3. [x] Add provider-specific adaptation docs under `agents/providers/` (OpenAI, Claude, Google) that explain model-specific considerations (token limits, tooling, prompt templates) and include provider-tailored example prompts.
-4. [x] Define a small YAML frontmatter schema for agent docs (required fields: `agent`, `scope`, `title`, `summary`, `version`) so the docs are machine-discoverable and validate with a lightweight `scripts/validate_agents_docs.ts` script.
-5. [x] Migrate existing `src/AGENT_INSTRUCTIONS.md`, `tests/AGENT_INSTRUCTIONS.md`, and `docs/AGENT_INSTRUCTIONS.md` into `agents/` and consolidate enhanced guidance; legacy files removed.
-6. [x] Add CI validation (linting job) that runs the validation script on PRs and ensures each agent doc contains required metadata and at least one canonical example prompt.
-7. [x] Add a short quickstart in `agents/docs/documentation.md` that explains how to use the `agents/` content with VS Code Copilot / Copilot Labs and other agent interfaces.
+
+1.
+1.
+1.
+1.
+1.
 
 **Test Definitions:**
 
@@ -72,25 +72,25 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Enhancements to maximize agent adoption (multi-provider):**
 
 1. Manifest & short summaries — agents often prefer small, structured entry points. `agents/manifest.json` + `short_summary` fields make it trivial for any agent to discover and ingest the most relevant content.
-2. Chunking & embeddings — split long docs into small chunks and optionally precompute embeddings to enable fast semantic retrieval with RAG. Embed building should be provider-agnostic and reversible.
-3. Prompt injection helpers — `scripts/inject_agent_context.ts` and a simple CLI (`bin/agent-context`) allow any automation pipeline to deterministically insert curated context into prompts.
-4. Provider adapters — document explicit prompt templates for OpenAI/Claude/Google that include how to handle token limits and instruct the agent to reference `manifest.json` first.
-5. VS Code integration — provide a snippet and Copilot Labs prompt that standardizes how devs include `agents/` content in copilot requests; include a small VS Code task to run `bin/agent-context` and copy the returned context into the clipboard for manual use.
-6. CI & tests — build a `validate-agent-docs` workflow that runs schema checks, safety checks, and a retrieval smoke test that verifies `inject_agent_context` returns content for a small list of canonical queries.
-7. Monitoring & metrics — optionally add a manual logging step in developer agent wrappers to count usage (how often a doc was injected) so teams can monitor whether docs are actually being used and which docs are most useful.
+
+1.
+1.
+1.
+1.
+1.
 
 **Implementation Plan (step-by-step, extended):**
 
 1. Create `agents/README.md` with purpose, schema reference, and maintenance guidelines.
-2. Add `agents/copilot/exoframe.md` (concise repo summary, key files, canonical prompts, example dev tasks, "Do/Don't" guidance) and a `summary.md` per doc for quick ingestion.
-3. Add `agents/providers/{openai,claude,google}.md` with adaptation notes and sample prompt templates (include `token_limit_hints` and examples of `inject_agent_context` usage).
-4. Implement `scripts/validate_agents_docs.ts` and `tests/agents_docs_test.ts` to check schema, required fields, safety rules, and presence of canonical prompts.
-5. Implement `scripts/build_agents_index.ts` (creates `manifest.json` and `chunks/`) and `scripts/build_agents_embeddings.ts` optionally to produce `agents/embeddings/*`.
-6. Add `scripts/inject_agent_context.ts` and a thin CLI wrapper `bin/agent-context` that returns the best matching short_summary and chunk set for a query and agent type.
-7. Add CI workflow step `validate-agent-docs` that runs validation + retrieval smoke test + optional embedding build check.
-8. Add VS Code snippet and a short `agents/docs/documentation.md` quickstart with Copilot Labs instructions and an example using `bin/agent-context`.
-9. Migrate or add references from the existing `AGENT_INSTRUCTIONS.md` files to the new `agents/` structure; add small redirect/wrapper files in the original locations for 3 months before deprecation.
-10. Add an integration (manual) test and a small automated smoke test that runs `bin/agent-context` for canonical queries and asserts it returns expected short_summary strings and at least one chunk.
+
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Additional Exit Criteria:**
 
@@ -141,9 +141,9 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
     - Strategy: Matrix build (Linux, macOS, Windows) to catch platform-specific bugs.
     - Steps:
       1. Checkout
-      2. Install Deno (uses `denoland/setup-deno`)
-      3. Run `deno run scripts/ci.ts check` (Fast feedback)
-      4. Run `deno run scripts/ci.ts test --quick` (Skip integration tests)
+      1.
+      1.
+      1.
   - **`merge-validation.yml`**:
     - Triggers: `push` (branches: main)
     - Steps: Full pipeline (`ci.ts all`) + Coverage uploading to Codecov.
@@ -202,7 +202,7 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
   ├── exoframe-x86_64-apple-darwin
   ├── exoframe-aarch64-apple-darwin
   └── exoframe-x86_64-pc-windows-msvc.exe
-  ```
+  ```text
 - **Validation**:
   - Verify binary size is within limits (e.g. < 100MB).
   - Run `dist/bin/exoframe-<target> --version` to verify successful compilation.
@@ -217,12 +217,12 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 - **Action**: Document the setup process for enabling and maintaining the ExoFrame CI pipeline on GitHub.
 - **Guideline**:
   1. **Permissions**: Go to Repo Settings -> Actions -> General. Ensure "Allow all actions and reusable workflows" is selected. Set "Workflow permissions" to "Read and write permissions" (required for the Release Pipeline to upload assets).
-  2. **Branch Protection**: Go to Repo Settings -> Branches -> Add rule for `main`.
+  1.
      - Enable "Require a pull request before merging".
      - Enable "Require status checks to pass before merging".
      - Search and add `PR Validation (ubuntu-latest)`, `PR Validation (macos-latest)`, `PR Validation (windows-latest)` as required checks.
-  3. **Release configuration**: To trigger automated binary builds, create a new Release in GitHub and tag it. The `release-pipeline.yml` will automatically build and attach all 4 target binaries to the release.
-  4. **Local setup**: Run `deno task hooks:install` to sync your local environment with the CI gates.
+  1.
+  1.
 - **Success Criteria**:
   - [x] Guide is integrated into the Implementation Plan
   - [x] All 3 workflows are correctly triggered by their respective events
@@ -238,13 +238,13 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 **Success Criteria:**
 
 1. [x] `agents/providers/claude.md` expanded with concrete, actionable prompt templates for different task types (TDD, refactoring, debugging, documentation)
-2. [x] `agents/providers/claude-rag.md` created with retrieval-augmented generation (RAG) workflow documentation
-3. [x] "Thinking Protocol" section added to guide Claude through complex multi-step tasks
-4. [x] "Quick Start Guide for New Agent Docs" added to `agents/README.md` with step-by-step instructions and frontmatter template
-5. [x] Tool-use best practices section added showing parallel reads, incremental updates, and efficient context gathering patterns
-6. [x] Cross-reference map created (`agents/cross-reference.md`) mapping task types to primary/secondary agent docs
-7. [x] "Common Pitfalls" section added with ExoFrame-specific anti-patterns and best practices
-8. [x] Short summaries reviewed and optimized for conciseness (1-3 sentences max)
+
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Test Definitions:**
 
@@ -279,8 +279,8 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
   Tests needed:
 
   1. Missing file returns default config
-  2. Invalid TOML format throws clear error
-  3. Partial config merges with defaults
+  1.
+  1.
      </thinking>
 
   Here are 3 failing tests:
@@ -315,12 +315,12 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
       await cleanup();
     }
   });
-  ```
-  ````
+  ```text
+  ````text
 
   Now run these tests (they should fail), then I'll implement the error handling.
-  ```
-  ```
+  ```text
+  ```text
 
 - **Thinking budget hints**: Guide Claude to use `<thinking>` tags for complex planning before tool invocations
 - **Token budget strategies**: "With 200k context, include up to 4-6 relevant chunk files from `agents/chunks/` for high-confidence guidance"
@@ -357,8 +357,8 @@ ExoFrame pre-computes embeddings for all agent documentation, enabling semantic 
 ## Workflow
 
 1. **Generate query embedding** for user's task (or use mock vector)
-2. **Rank chunks** by cosine similarity
-3. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)
+
+1.
 
 ## Tools
 
@@ -368,8 +368,8 @@ Find best matching chunks for a query:
 
 ```bash
 deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup" --top 5
-```
-````
+```text
+````text
 
 Output: ranked list of `agents/chunks/*.txt` files with cosine similarity scores.
 
@@ -383,7 +383,7 @@ if (context.found) {
   const systemPrompt = `${context.short_summary}\n\nRelevant docs:\n${context.snippet}`;
   // Pass systemPrompt to Claude API
 }
-```
+```text
 
 ## Token Budget Strategies
 
@@ -396,7 +396,7 @@ if (context.found) {
 The mock embeddings use SHA-256-based deterministic vectors (64-dim). For production:
 
 1. Generate OpenAI embeddings: `deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai`
-2. Or use precomputed embeddings: Place JSON files in `agents/embeddings/` following `precomputed_template.json` format
+
 
 ## Example: Multi-Step Task with RAG
 
@@ -418,14 +418,15 @@ Key patterns from docs:
 ${context.snippet}
 
 Task: Propose 3 security tests for PathResolver that check:
+
 - Path traversal attacks (../)
 - Symlink escape attempts
 - Absolute path handling
-`;
+
 
 // 4. Call Claude API with context
 const response = await claude.complete(systemPrompt, userMessage);
-```
+```text
 
 ## Best Practices
 
@@ -433,8 +434,9 @@ const response = await claude.complete(systemPrompt, userMessage);
 - **Combine chunks intelligently**: Group related chunks (e.g., all testing.md chunks together)
 - **Validate freshness**: Run `scripts/verify_manifest_fresh.ts` before retrieval to ensure embeddings match current docs
 
-````
+````text
 **Success Criteria:**
+
 - [x] RAG workflow documented with code examples
 - [x] Token budget strategies explained
 - [x] Semantic search quality guidance added
@@ -452,10 +454,10 @@ const response = await claude.complete(systemPrompt, userMessage);
 Claude excels when given space to plan before acting. For multi-step work:
 
 1. **Analyze** dependencies and risks in `<thinking>` tags
-2. **Plan** tool calls (read files, search patterns, check tests)
-3. **Execute** tool calls in parallel where possible
-4. **Synthesize** results and propose next steps
-5. **Verify** against Implementation Plan success criteria
+
+1.
+1.
+1.
 
 **Example: Multi-file refactoring**
 
@@ -463,23 +465,26 @@ Claude excels when given space to plan before acting. For multi-step work:
 User wants to extract database initialization logic into a shared helper.
 
 Dependencies:
+
 - Read all files that call initTestDbService()
 - Check if a shared helper already exists
 - Verify test coverage won't drop
 
 Risks:
+
 - Breaking existing tests if import paths change
 - Circular dependencies if helper is in wrong location
 
 Plan:
+
 1. Parallel reads: grep for "initTestDbService", read test helpers
-2. Propose new helper location (tests/helpers/db.ts)
-3. Show migration for 2-3 representative files
-4. Verify tests still pass
+
+1.
+1.
 </thinking>
 
 [tool calls for reading files, then implementation]
-````
+````text
 
 **Success Criteria:**
 
@@ -501,7 +506,7 @@ Plan:
    - `docs/` — documentation maintenance
    - `providers/` — provider-specific adaptations
 
-2. **Add frontmatter** with required fields:
+1.
    ```yaml
    ---
    agent: claude  # or copilot, openai, google, general
@@ -511,38 +516,38 @@ Plan:
    version: "0.1"
    topics: ["keyword1", "keyword2", "keyword3"]
    ---
-   ```
-````
+   ```text
+````text
 
-3. **Include required sections**:
+1.
    - **Key points** — bullet list of 3-5 critical takeaways
    - **Canonical prompt (short)** — example system prompt showing ideal usage
    - **Examples** — 2-3 example prompts with expected responses
    - **Do / Don't** — guidance on safe/unsafe patterns
 
-4. **Regenerate manifest**:
+1.
    ```bash
    deno run --allow-read --allow-write scripts/build_agents_index.ts
-   ```
+   ```text
 
-5. **Build embeddings** (optional but recommended):
+1.
    ```bash
    # Mock embeddings (deterministic, no API calls)
    deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock
 
    # Or OpenAI embeddings (requires API key)
    deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai
-   ```
+   ```text
 
-6. **Validate**:
+1.
    ```bash
    deno run --allow-read scripts/validate_agents_docs.ts
-   ```
+   ```text
 
-7. **Test retrieval**:
+1.
    ```bash
    deno run --allow-read scripts/inject_agent_context.ts --query "your test query" --agent claude
-   ```
+   ```text
 
 **Template file**: Copy `agents/providers/claude.md` as starting point.
 
@@ -553,8 +558,9 @@ Plan:
 - Not including canonical prompt example
 - Skipping manifest regeneration (doc won't be discoverable)
 
-````
+````text
 **Success Criteria:**
+
 - [x] 7-step guide added to README.md
 - [x] Frontmatter template included
 - [x] Common mistakes section added
@@ -588,7 +594,7 @@ Plan:
 <antml_parameter name="isRegexp">false</antml_parameter>
 </antml_invoke>
 </antml_function_calls>
-````
+````text
 
 ❌ **Avoid: Sequential reads** (read file 1, wait for result, then read file 2)
 
@@ -600,16 +606,17 @@ Use `manage_todo_list` to track progress:
 - Mark tasks in-progress before starting
 - Complete immediately after finishing each step
 - Provide status updates between major operations
-```
+
 
 **Efficient context gathering**:
 
 ```markdown
+
 1. Parallelize independent searches (grep + file_search + semantic_search)
-2. Read results, deduplicate file paths
-3. Batch read unique files in one parallel call
-4. Synthesize and proceed with implementation
-```
+
+1.
+1.
+```text
 
 **Success Criteria:**
 
@@ -665,23 +672,23 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 **"I want to add a new feature"**
 
 1. Read [docs/ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) to find or create Implementation Plan step
-2. Follow TDD guidance from [source/exoframe.md](source/exoframe.md)
-3. Use test helpers from [tests/testing.md](tests/testing.md)
-4. Update docs per [docs/documentation.md](docs/documentation.md)
+
+1.
+1.
 
 **"I want to fix a bug"**
 
 1. Check Implementation Plan for related step
-2. Write failing test per [tests/testing.md](tests/testing.md)
-3. Fix code following [source/exoframe.md](source/exoframe.md) patterns
-4. Verify coverage maintained
+
+1.
+1.
 
 **"I want to use Claude effectively"**
 
 1. Read [providers/claude.md](providers/claude.md) for prompt templates
-2. Use [providers/claude-rag.md](providers/claude-rag.md) for context injection
-3. Follow tool-use patterns (parallel reads, thinking protocol)
-```
+
+1.
+```text
 
 **Success Criteria:**
 
@@ -702,35 +709,35 @@ topics: ["navigation", "quick-reference", "task-mapping"]
    - ❌ Bad: `const { db, tempDir, cleanup } = await initTestDbService(); // no cleanup`
    - ✅ Good: Use `try/finally` or `afterEach` to always call `cleanup()`
 
-2. **Not checking Implementation Plan**
+1.
    - ❌ Bad: Implement features without corresponding Plan step
    - ✅ Good: Read Plan first, create step if missing, then implement
 
-3. **Skipping TDD workflow**
+1.
    - ❌ Bad: Write implementation first, add tests later (or never)
    - ✅ Good: Write failing tests FIRST, then implement minimal code to pass
 
-4. **Ignoring security patterns**
+1.
    - ❌ Bad: `const filePath = userInput; await Deno.readTextFile(filePath);`
    - ✅ Good: `const filePath = pathResolver.resolve(userInput); // validates against Portal permissions`
 
-5. **Hardcoding paths**
+1.
 
 - ❌ Bad: `"/home/user/ExoFrame/.exo/Active"`
 - ✅ Good: `join(workspaceRoot, ".exo", "Active")` (use PathResolver)
 
-6. **Missing activity logging**
+1.
    - ❌ Bad: Side effects (file writes, executions) without EventLogger calls
    - ✅ Good: `await eventLogger.log({ type: "file_write", path, ... })`
 
-7. **Using deprecated Deno APIs**
+1.
    - ❌ Bad: `Deno.run({ cmd: ["deno", "test"] })`
    - ✅ Good: `new Deno.Command("deno", { args: ["test"] }).output()`
 
-8. **Not validating frontmatter**
+1.
    - ❌ Bad: Manually parse YAML without schema validation
    - ✅ Good: Use Zod schemas from `src/schemas/` for all YAML frontmatter
-```
+```text
 
 **Success Criteria:**
 
@@ -746,13 +753,13 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 ```yaml
 short_summary: "Guidance for producing and maintaining docs in the docs/ directory and cross-referencing the Implementation Plan."
-```
+```text
 
 **After:**
 
 ```yaml
 short_summary: "How to maintain docs/ and sync with Implementation Plan. Includes Refinement Loop, version control, terminology."
-```
+```text
 
 **Files to review:**
 
@@ -799,14 +806,14 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
     assert(fm.short_summary);
     assert((fm.short_summary as string).length <= 200);
   });
-  ```
+  ```text
 
 - Integration tests (manual):
   1. Load `agents/providers/claude.md` content into Claude API
-  2. Ask: "Write tests for ConfigLoader error handling"
-  3. Verify response includes `initTestDbService()`, TDD workflow, and follows few-shot example pattern
-  4. Ask: "How do I use embeddings for context injection?"
-  5. Verify response references `claude-rag.md` and includes `inspect_embeddings.ts` usage
+  1.
+  1.
+  1.
+  1.
 
 - CI checks: Extend `.github/workflows/validate-agent-docs.yml`
   ```yaml
@@ -814,20 +821,20 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
     run: |
       deno test --allow-read tests/agents/claude_enhancements_test.ts
       deno run --allow-read scripts/validate_agents_docs.ts
-  ```
+  ```text
 
 **Success Criteria:**
 
 1. [x] `agents/providers/claude.md` expanded with 4+ task-type prompts, 2+ few-shot examples, thinking protocol, token strategies
-2. [x] `agents/providers/claude-rag.md` created with RAG workflow, tools usage, token budget strategies, multi-step example
-3. [x] "Thinking Protocol" section added to `claude.md` with 5-step framework and refactoring example
-4. [x] "Quick Start Guide" added to `agents/README.md` with 7-step process and frontmatter template
-5. [x] Tool-use best practices added to `claude.md` (parallel reads, incremental updates, context gathering)
-6. [x] `agents/cross-reference.md` created with task mapping table, topic search, workflow examples
-7. [x] "Common Pitfalls" section added to `claude.md` with 8+ ExoFrame-specific anti-patterns
-8. [x] All `short_summary` fields optimized to ≤200 chars
-9. [x] Unit tests pass (`tests/agents/claude_enhancements_test.ts`) - 12/12 tests passing
-10. [x] CI validation includes Claude enhancement checks (validate_agents_docs.ts passes)
+
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Notes:**
 
@@ -852,19 +859,19 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 **Success Criteria:**
 
 1. [x] `agents/providers/openai.md` expanded to include **Key points**, **Canonical prompt**, **Examples**, and **Do / Don't** in addition to OpenAI-specific guidance
-2. [x] OpenAI doc includes 4 task-type prompt patterns (TDD, refactoring, debugging, documentation) mirroring Step 10.5’s “task-type system prompts” approach
-3. [x] Clear “pit of success” RAG workflow documented for OpenAI: retrieve → plan → patch → verify, with chunk count guidance (2–3 simple, 4–6 standard, 8–10 complex)
-4. [x] New `agents/providers/openai-rag.md` created with tool-centric recipes (`inject_agent_context.ts`, `inspect_embeddings.ts`, embeddings modes)
-5. [x] New OpenAI prompt templates added under `agents/prompts/` (at least 4):
+
+1.
+1.
+1.
    - openai-quickstart.md (diff-first + budgets)
    - openai-rag-context-injection.md (inspect → inject)
    - openai-tdd-workflow.md (tests-first + assertions)
    - openai-debugging-systematic.md (repro → isolate → fix → test)
-6. [x] `agents/prompts/README.md` updated to include the new OpenAI templates and when to use them
-7. [x] `agents/cross-reference.md` updated so OpenAI users can find the “right doc first” (task → doc mapping + topic search entries)
-8. [x] All OpenAI-related `short_summary` fields are ≤200 chars and topics are populated (improves retrieval quality)
-9. [x] Unit tests added (`tests/agents/openai_enhancements_test.ts`) to enforce required sections, frontmatter compliance, and summary limits
-10. [x] CI validation includes OpenAI enhancements via `deno task test` (runs the new OpenAI enhancement tests) plus `check:docs` (manifest freshness) and `validate_agents_docs.ts`
+1.
+1.
+1.
+1.
+1.
 
 **Test Definitions:**
 
@@ -924,15 +931,15 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 **Success Criteria:**
 
 1. [x] `agents/providers/google.md` expanded with Gemini-optimized system prompts, parallel function calling patterns, and multimodal guidance
-2. [x] New `agents/providers/google-long-context.md` created, documenting the "Full-Context Injection" strategy (injecting entire documentation sets for complex reasoning)
-3. [x] Gemini-specific thinking protocol added, focusing on long-context synthesis and cross-file reasoning
-4. [x] Google-specific prompt templates added under `agents/prompts/` (at least 3):
+
+1.
+1.
    - `google-quickstart.md` (Native long-context + broad reasoning)
    - `google-tdd-workflow.md` (Exhaustive test coverage + multi-file impact analysis)
-5. [x] `agents/cross-reference.md` updated with Google/Gemini mapping, highlighting long-context advantages
-6. [x] "Common Pitfalls" section updated with Gemini-specific considerations (e.g., "lost in the middle" mitigation, instruction following for specific output formats)
-7. [x] Unit tests added (`tests/agents/google_enhancements_test.ts`) to ensure frontmatter compliance, required section presence, and summary length
-8. [x] CI validation includes Google enhancements via `deno task test` and `validate_agents_docs.ts`
+1.
+1.
+1.
+1.
 
 **Test Definitions:**
 
@@ -983,31 +990,31 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 **Success Criteria:**
 
 1. [x] A provider-agnostic process doc exists: `agents/process/self-improvement.md` defining the self-improvement loop, when to trigger it, and how to keep doc updates minimal and grounded.
-2. [x] A common prompt template exists: `agents/prompts/self-improvement-loop.md` that forces (a) adequacy check, (b) explicit gaps list, (c) doc patch plan, (d) execution plan, (e) verification.
-3. [x] Provider docs (`claude.md`, `openai.md`, `google.md`) each include a short “Self-improvement loop” section that:
+
+1.
    - references the common process doc,
    - clarifies provider-specific implementation details (e.g., Claude thinking protocol, OpenAI diff-first output contract, Gemini long-context saturation).
-4. [x] Discovery surfaces include the process:
+1.
    - `agents/cross-reference.md` includes a row/topic mapping for “instruction gaps / self-improvement loop”.
    - `agents/prompts/README.md` lists the new template and when to use it.
-5. [x] Enforcement tests exist and pass: `tests/agents/self_improvement_process_test.ts` ensures the process doc/template exist, have required sections/frontmatter, and that each provider doc references the process.
+1.
 
 **Process Definition (to be captured in the common doc):**
 
 - **Trigger:** Before any non-trivial change (multi-file code edits, new feature, refactor, debugging session, doc updates) the agent performs an **Instruction Adequacy Check**:
   1. Identify the task type (TDD/refactor/debug/docs/CI/etc).
-  2. Retrieve relevant agent docs (cross-reference + provider guide + any domain docs).
-  3. Answer: “Do the current docs contain enough concrete, ExoFrame-specific guidance to execute safely and verify?”
+  1.
+  1.
 
 - **If adequate:** Proceed with the task using the existing provider workflow (retrieve → plan → diff/patch → verify).
 
 - **If not adequate:** Execute a **Doc Patch Loop** (minimal, targeted):
   1. List missing guidance as actionable gaps (e.g., missing test helper, missing CLI command pattern, missing schema expectation).
-  2. Propose the smallest doc update(s) that close the gap (new section, new example, new prompt template, or cross-reference row).
-  3. Apply the doc patch during the task (only changes directly relevant to the current request).
-  4. Rebuild `agents/manifest.json` + `agents/chunks/` and (mock) embeddings; run `validate_agents_docs.ts`.
-  5. Add/update a regression test that prevents the same gap from reappearing.
-  6. Continue the primary task with the improved instructions.
+  1.
+  1.
+  1.
+  1.
+  1.
 
 - **Guardrails:**
   - Keep doc updates **minimal and task-scoped**; avoid speculative “nice-to-have” content.
@@ -1052,3 +1059,7 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 - Add a cross-reference row/topic for “self-improvement loop”.
 - Add a prompts README entry for the new template.
 - Add `tests/agents/self_improvement_process_test.ts` mirroring the Claude/OpenAI/Google enhancement test style.
+
+
+```
+

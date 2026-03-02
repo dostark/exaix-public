@@ -8,39 +8,62 @@
  */
 
 import { join, resolve } from "@std/path";
-import type { Config } from "../../shared/schemas/config.ts";
-import type { IDatabaseService } from "../../services/db.ts";
-import { ConfigService } from "../../config/service.ts";
-import { ContextCardGenerator } from "../../services/context_card_generator.ts";
-import type { JSONValue } from "../../shared/types/json.ts";
-import { EventLogger } from "../../services/event_logger.ts";
+import { exists } from "@std/fs";
+import type { ICliApplicationContext } from "../cli_context.ts";
 import { PortalStatus } from "../../shared/enums.ts";
 import { PortalExecutionStrategy } from "../../shared/enums.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
 
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
+import type { IPortalInfo as IContextCardPortalInfo } from "../../shared/interfaces/i_context_card_generator_service.ts";
 
-interface PortalCommandsContext {
-  config: Config;
-  db?: IDatabaseService;
-  configService?: ConfigService;
-}
+export interface IPortalCommandsContext extends ICliApplicationContext {}
 
 export class PortalCommands {
-  private config: Config;
-  private db?: IDatabaseService;
-  private configService?: ConfigService;
+  private context: ICliApplicationContext;
   private portalsDir: string;
-  private contextCardGenerator: ContextCardGenerator;
   private reservedNames = ["System", "Workspace", "Memory", "Blueprints", "Active", "Archive", "Portals"];
 
-  constructor(context: PortalCommandsContext) {
-    this.config = context.config;
-    this.db = context.db;
-    this.configService = context.configService;
+  constructor(context: IPortalCommandsContext) {
+    this.context = context;
     // Resolve paths relative to system root
-    this.portalsDir = join(this.config.system.root as string, this.config.paths.portals as string);
-    this.contextCardGenerator = new ContextCardGenerator(this.config, this.db);
+    const config = context.config.getAll();
+    this.portalsDir = join(config.system.root as string, config.paths.portals as string);
+  }
+
+  /**
+   * Get the configuration.
+   */
+  private get config() {
+    return this.context.config.getAll();
+  }
+
+  /**
+   * Get the config service.
+   */
+  private get configService() {
+    return this.context.config;
+  }
+
+  /**
+   * Get the context card generator.
+   */
+  private get contextCardGenerator() {
+    return this.context.contextCards;
+  }
+
+  /**
+   * Get the portal service.
+   */
+  private get portalService() {
+    return this.context.portals;
+  }
+
+  /**
+   * Get the display service (logger).
+   */
+  private get logger() {
+    return this.context.display;
   }
 
   /**
@@ -476,16 +499,11 @@ export class PortalCommands {
   }
 
   /**
-   * Log activity to database using EventLogger
+   * Log activity to database using DisplayService
    */
-  private async logActivity(actionType: string, payload: Record<string, JSONValue>): Promise<void> {
-    if (!this.db) return;
-
+  private async logActivity(actionType: string, payload: Record<string, any>): Promise<void> {
     try {
-      const userIdentity = await EventLogger.getUserIdentity();
-      const logger = new EventLogger({ db: this.db });
-      const actionLogger = logger.child({ actor: userIdentity });
-      actionLogger.info(actionType, "portal", {
+      await this.logger.info(actionType, "portal", {
         ...payload,
         via: "cli",
         command: `exoctl ${Deno.args.join(" ")}`,

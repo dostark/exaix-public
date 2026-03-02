@@ -20,7 +20,7 @@ model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]
 default_skills: ["code-review", "error-handling", "portal-grounding"]  # NEW
 ---
-```
+```text
 
 **Available Core Skills:** `code-review`, `security-first`, `tdd-methodology`, `error-handling`, `documentation-driven`, `typescript-patterns`, `commit-message`, `exoframe-conventions`
 
@@ -34,31 +34,31 @@ Active blueprints are ready to use:
 
 ```bash
 exoctl request "Task description" --agent senior-coder
-```
+```text
 
 ### Using Examples
 
 Examples in `examples/` are for learning. To use one:
 
 1. Copy it to this directory: `cp examples/code-reviewer.md .`
-2. Run `exoctl blueprint validate code-reviewer` to check it.
-3. Use it: `exoctl request "Review this code" --agent code-reviewer`
+
+1.
 
 ### Using Templates
 
 Templates in `templates/` are for creating new agents:
 
 1. Copy a template: `cp templates/pipeline-agent.md.template my-agent.md`
-2. Edit the file to replace placeholders (e.g., `{{agent_name}}`) with your values.
-3. Add appropriate `default_skills` for the agent's role.
-4. Validate and use.
+
+1.
+1.
 
 Each blueprint file contains:
 
 1. **YAML Frontmatter** (between `---` delimiters)
    - agent_id, name, model, capabilities, default_skills, etc.
 
-2. **System Prompt** (markdown body)
+1.
    - Agent persona and capabilities
    - **JSON Plan Schema** with examples
    - Response format instructions
@@ -108,7 +108,7 @@ See `docs/Plan_Format_Reference.md` for the complete schema reference.
   "estimatedDuration": "2-3 hours",
   "risks": ["Risk 1"]
 }
-```
+```text
 
 ## Available Tools
 
@@ -164,8 +164,8 @@ To reduce code duplication in blueprints, use the `{{include:fragment_name}}` sy
 ### Plan JSON Schema
 
 {{include:plan-schema-full}}
-```
-````
+```text
+````text
 
 ### Key Fragments:
 
@@ -175,15 +175,15 @@ To reduce code duplication in blueprints, use the `{{include:fragment_name}}` sy
 
 Fragments are resolved recursively, allowing fragments to include other fragments.
 
-````
+````text
 ## Validation
 
 The system will:
 
 1. Extract JSON from `<content>` tags
-2. Validate against PlanSchema (src/schemas/plan_schema.ts)
-3. Convert to markdown for storage (src/services/plan_adapter.ts)
-4. Reject invalid plans with detailed error messages
+
+1.
+1.
 
 ## Testing
 
@@ -191,6 +191,10 @@ Test your blueprint with:
 
 ```bash
 exoctl request "Your test request" --agent my-agent
-````
+````text
 
 Check the generated plan in `Workspace/Plans/` - it should contain properly formatted markdown converted from JSON.
+
+
+```
+

@@ -50,8 +50,8 @@ Executing an approved plan for a portal-based request can lead to apparent data 
 **Technical Details:**
 
 1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/ExoFrame`.
-2. **Massive Staging**: After each step, `PlanExecutor` calls `git.commit()`, which runs `git add .` in the runtime root, staging and committing the entire ExoFrame installation into a feature branch.
-3. **Destructive Rollback**: `ExecutionLoop.handleFailure` runs `git reset --hard HEAD` and `git checkout main` in the system root. This removes all files from the working directory because the `main`/`master` branch in this accidental repo defaults to empty or only contains a `.gitignore`.
+
+1.
 
 ## Resolved: Implemented Changes (2026-02-17)
 
@@ -94,22 +94,22 @@ The system has been hardened with multiple layers of security to prevent reposit
 **Manual Recovery:**
 
 1. Check current branch: `git branch` in `~/ExoFrame`.
-2. Locate the branch containing your files (usually `feat/request-...`).
-3. Checkout the files: `git checkout <branch> -- .`
-4. Delete the accidental `.git` folder ONLY if you are sure you've recovered everything. **CAUTION: This is destructive.**
+
+1.
+1.
 
 ## Critical Security Requirements
 
 1. **Destructive Operations Prohibited**: Any git rollback operations like `git reset --hard` are **strictly prohibited** in any circumstances within a portal or the runtime workspace. Rollbacks must be handled through safe mechanisms (e.g., `git restore` on specific files or deleting the temporary worktree/branch) that do not risk deleting uncommitted or unrelated work.
-2. **Protected Branches**: All code changes in a portal are allowed **ONLY** on designated feature branches and/or worktrees. Direct modifications or checkouts to the `main`/`master` branch by the agent are **STRICTLY FORBIDDEN**.
-3. **Isolation**: The system must ensure that the execution environment is completely isolated from the runtime root to prevent accidental "cross-contamination" of Git repositories.
+
+1.
 
 ## Recommended Fix
 
 1. **Pass Repo Path**: Ensure `PlanExecutor` and `ExecutionLoop` always receive and pass the explicit portal repository path when creating `GitService`.
-2. **Safety Guard in GitService**: Implement a guard in `GitService.runGitCommand` to block destructive commands (like `reset --hard`) if the target path is detected as the system root or a protected branch.
-3. **Branch Enforcement**: Modify `GitService.checkoutBranch` to throw an error if an agent attempts to switch to `main`, `master`, or any other protected system branch.
-4. **Remove Global Rollbacks**: Replace the `git reset --hard` logic in `ExecutionLoop.handleFailure` with targeted cleanup of the specific feature branch or worktree associated with the trace ID.
+
+1.
+1.
 
 ## Fix Plan
 
@@ -120,19 +120,19 @@ The primary objective is to enforce strict repository isolation and eliminate de
 ### Phase 1: Repository Isolation
 
 1. [x] **Refactor `PlanExecutor`**: Update `src/services/plan_executor.ts` to make `repoPath` a required constructor argument. Remove any defaults to `config.system.root`.
-2. [x] **Trace-Scoped Worktrees**: Modify `ExecutionLoop` to always use `PortalExecutionStrategy.WORKTREE` for portal tasks, ensuring work is performed in a temporary directory outside the system root.
+
 
 ### Phase 2: Git Service Guards
 
 1. [x] **Command Whitelisting/Blacklisting**: Add a validation layer in `GitService.runGitCommand` (`src/services/git_service.ts`):
    - Throw `GitSecurityError` if arguments contain `reset`, `--hard`, or `clean -xfd` (global destructive operations).
    - Verify that the `cwd` (repoPath) is not equal to `config.system.root`.
-2. [x] **Branch Protection**: Update `checkoutBranch` to explicitly block checkouts to `main`, `master`, or `develop`.
+1.
 
 ### Phase 3: Lifecycle Refactoring
 
 1. [x] **Safe Reversion**: In `ExecutionLoop.handleFailure` (`src/services/execution_loop.ts`), remove the global `git reset --hard` and `git checkout main` calls.
-2. [x] **Cleanup Logic**: Implement safe cleanup:
+
    - If using worktrees: `git worktree remove --force <path>`.
    - If using branches: simply leave the branch in an error state for user inspection, or delete it if it's untracked.
 
@@ -143,16 +143,16 @@ The primary objective is to enforce strict repository isolation and eliminate de
 ## Success Criteria
 
 1. **Zero System Root Taint**: Running any plan (successful or failing) never creates a `.git` folder or initializes a repository in `~/ExoFrame`.
-2. **No Destructive Resets**: The `git reset --hard` command is never executed by the daemon during any lifecycle stage.
-3. **Branch Integrity**: The `main`/`master` branch of any portal repository remains untouched by the agent execution engine.
-4. **Explicit Errors**: Attempting to perform unauthorized Git operations (e.g., path traversal or destructive commands) results in a logged `GitSecurityError`.
+
+1.
+1.
 
 ## Success Criteria Verification (2026-02-17)
 
 1. **Zero System Root Taint**: **PASSED**. Multi-layered guards in `GitService` and `ExecutionLoop` prevent any Git activity in `~/ExoFrame`.
-2. **No Destructive Resets**: **PASSED**. Security middleware blocks `reset --hard` at the service level, and all such calls have been removed from the lifecycle.
-3. **Branch Integrity**: **PASSED**. `checkoutBranch` and `validateGitArguments` correctly block operations on protected local and remote branches.
-4. **Regression Testing**: **PASSED**. New suite `tests/git_security_regression_test.ts` covers all guard scenarios.
+
+1.
+1.
 
 ## Planned Testing
 
@@ -160,11 +160,12 @@ The primary objective is to enforce strict repository isolation and eliminate de
    - `tests/unit/git_service_security_test.ts`: Verify that `GitService` throws an error when attempting to run `reset --hard`.
    - `tests/unit/git_service_security_test.ts`: Verify that `checkoutBranch("master")` is blocked.
    - _Note: These are covered by `tests/git_security_regression_test.ts`._
-2. **Lifecycle Integration Test**: **PASSED**
+1.
    - `tests/integration/portal_data_safety_test.ts`: Trigger a failing plan in a portal and verify that the runtime directory `src/` folder remains intact and `git status` in the root shows "not a git repository".
-3. **Regression Tests**: **PASSED**
+1.
    - Verify that successful feature branch deployments through portals still function correctly with the new worktree/branch guards.
 
 ## Priority Justification
 
 **Critical.** Resolved. The patch eliminates a catastrophic data loss risk and ensures that ExoFrame's runtime environment remains secure and stable during automated plan execution. Detailed reproduction and root cause analysis are preserved for historical audit.
+

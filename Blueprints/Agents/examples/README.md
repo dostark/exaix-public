@@ -4,7 +4,7 @@ This directory contains comprehensive example agent blueprints demonstrating rea
 
 ## 📁 Directory Structure
 
-```
+```text
 Blueprints/Agents/examples/
 ├── README.md                           # This file
 ├── code-reviewer.md                    # Code quality and security review
@@ -16,7 +16,7 @@ Blueprints/Agents/examples/
 Blueprints/Agents/templates/
 ├── pipeline-agent.md.template          # Template for systematic processing
 └── collaborative-agent.md.template     # Template for multi-agent workflows
-```
+```text
 
 ## ⚠️ Prerequisites
 
@@ -25,8 +25,8 @@ These examples are **reference implementations**. They demonstrate best practice
 **To use an example agent:**
 
 1. **Copy it** to the parent directory (`Blueprints/Agents/`).
-2. **Validate it** using `exoctl blueprint validate <filename>`.
-3. **Ensure model availability:** Check that the `model` specified in the frontmatter is available in your environment (e.g., via Ollama).
+
+1.
 
 ## 🤖 Example Agents
 
@@ -89,7 +89,7 @@ Detailed system prompt for the agent...
 
 Example blueprints are standardized using shared fragments from `Blueprints/Fragments/`.
 Always use `{{include:standard-response-format}}` and `{{include:plan-schema-full}}` to ensure the agent outputs valid, executable plans.
-```
+```text
 
 ## 🛠️ Available MCP Tools
 
@@ -112,17 +112,17 @@ Agents can use the following MCP (Model Context Protocol) tools:
 Agents can only access portals that:
 
 1. List the agent in `agents_allowed` (or use `"*"` for all agents)
-2. Include required operations in the `operations` array
-3. Allow access within portal boundaries (no `../` traversal)
+
+1.
 
 ## 📝 Creating Custom Agents
 
 ### Using Examples as Templates
 
 1. Copy an example agent that matches your use case
-2. Modify the `name`, `model`, and system prompt
-3. Adjust capabilities based on required tools
-4. Test with portal permissions
+
+1.
+1.
 
 ### Using Templates
 
@@ -138,19 +138,19 @@ Replace `{agent_name}`, `{model_name}`, `{specialty}`, etc. with your specific v
 Each agent should be tested for:
 
 1. **Blueprint Loading**: Validates against schema
-2. **MCP Tool Access**: Proper permissions and error handling
-3. **Portal Integration**: Works with configured portals
-4. **Flow Compatibility**: Can be used in multi-agent flows
+
+1.
+1.
 
 See `agents/tests/testing.md` for comprehensive testing guidelines.
 
 ## 🚀 Getting Started
 
 1. Review the example agents that match your use case
-2. Copy and customize the blueprint
-3. Configure portal permissions
-4. Test with `exoctl blueprint validate <agent-name>`
-5. Use in flows or standalone execution
+
+1.
+1.
+1.
 
 ## 📚 Related Documentation
 
@@ -158,3 +158,7 @@ See `agents/tests/testing.md` for comprehensive testing guidelines.
 - `agents/source/exoframe.md` - Blueprint creation guidelines
 - `agents/tests/testing.md` - Testing guidelines
 - `Blueprints/Flows/examples/` - Flow examples that use these agents
+
+
+```
+

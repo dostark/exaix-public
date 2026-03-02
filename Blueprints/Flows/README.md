@@ -31,8 +31,8 @@ export default defineFlow({
 **Skill Priority:**
 
 1. Step-level `skills` (highest)
-2. Flow-level `defaultSkills`
-3. Blueprint `default_skills` (fallback)
+
+1.
 
 ## Usage Guide
 
@@ -49,18 +49,18 @@ exoctl flow run --id code-review
 Examples in `examples/` are for learning. To use one:
 
 1. Copy it to this directory: `cp examples/development/code-review.flow.ts .`
-2. Review the required agents in the file.
-3. Create any missing agents using `exoctl blueprint create`.
-4. Run the flow.
+
+1.
+1.
 
 ### Using Templates
 
 Templates in `templates/` are for building new flows:
 
 1. Copy a template: `cp templates/pipeline.flow.template.ts my-new-flow.flow.ts`
-2. Edit the file to replace placeholders (e.g., `agent: "coordinator-agent"`) with your actual agents.
-3. Add `defaultSkills` for common behaviors across steps.
-4. Customize the logic.
+
+1.
+1.
 
 ## Available Flows
 
@@ -126,3 +126,4 @@ export default defineFlow({
 ```
 
 See `examples/` for detailed usage patterns.
+

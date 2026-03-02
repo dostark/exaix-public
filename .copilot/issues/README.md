@@ -46,8 +46,8 @@ Clear description of the issue. What is broken or missing?
 # Step-by-step commands to reproduce
 command1
 command2
-```
-````
+```text
+````text
 
 ## Observed Behavior
 
@@ -75,7 +75,7 @@ What should happen instead?
    - Specific file or function to check
    - Hypothesis about root cause
 
-2. **Area 2**: Additional investigation
+1.
    - Related systems to verify
 
 ## Related Files
@@ -98,7 +98,7 @@ Why this priority level? Impact on users/system.
 - **Commit**: Link to commit or PR
 - **Verified**: How the fix was tested
 
-````
+````text
 ## Naming Convention
 
 Use descriptive, kebab-case filenames:
@@ -113,10 +113,10 @@ Use descriptive, kebab-case filenames:
 ## Status Workflow
 
 1. **open** - Issue created, needs investigation
-2. **in-progress** - Actively being worked on
-3. **blocked** - Waiting on external dependency or decision
-4. **resolved** - Fixed and verified
-5. **wontfix** - Decided not to fix (explain why in document)
+1.
+1.
+1.
+1.
 
 ## Priority Levels
 
@@ -175,27 +175,27 @@ Common labels to use:
 ## Integration with Development Workflow
 
 1. **Discovery**: Create issue document with reproduction steps
-2. **Investigation**: Update with findings and hypotheses
-3. **Implementation**: Reference issue in commit messages
-4. **Testing**: Document verification steps
-5. **Resolution**: Update status and add resolution section
-6. **Knowledge Update**: Extract learnings into `.copilot/embeddings/`
-7. **Archive**: Move to `.copilot/issues/resolved/` (optional)
+1.
+1.
+1.
+1.
+1.
+1.
 
 ## Updating Knowledge Base
 
 When an issue is **resolved**, valuable learnings should be propagated to the project's embeddings (`.copilot/embeddings/`) to improve future context retrieval and prevent recurrence.
 
 1. **Identify Learnings**: What was the root cause? specific architectural nuance? "Gotcha"?
-2. **Update Embeddings**:
+1.
    - Ensure the relevant issue or documentation file is located within the `.copilot/` directory (e.g., move resolved issues to `.copilot/issues/resolved/`).
    - Run the embeddings generation script:
      ```bash
      deno run --allow-read --allow-write --allow-env scripts/build_agents_embeddings.ts --mode mock
-     ```
+     ```text
      *(Use `--mode openai` if configured with `OPENAI_API_KEY`)*
    - This script scans all `.md` files in `.copilot/` and regenerates the vector index in `.copilot/embeddings/`.
-3. **Benefit**: This ensures the AI assistant "remembers" this fix for future tasks.
+1.
 
 ## Linking to GitHub Issues
 
@@ -207,7 +207,7 @@ github_issue: #123
 ---
 
 See also: https://github.com/org/repo/issues/123
-````
+````text
 
 ## Searching Issues
 
@@ -220,7 +220,7 @@ grep -l "priority: high" .copilot/issues/*.md
 
 # Find issues by component
 grep -l "labels:.*daemon" .copilot/issues/*.md
-```
+```text
 
 ## Maintenance
 
@@ -232,3 +232,7 @@ grep -l "labels:.*daemon" .copilot/issues/*.md
 ---
 
 **Remember**: Good issue documentation saves debugging time and helps future contributors understand the problem context.
+
+
+````
+

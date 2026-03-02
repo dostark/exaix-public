@@ -48,3 +48,4 @@ Do / Don't
 - ✅ Do use parallel function calling to speed up context gathering.
 - ✅ Do ask for citations (line numbers) to verify grounding in long context.
 - ❌ Don't rely solely on RAG chunks if the task requires holistic architectural understanding.
+

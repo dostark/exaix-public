@@ -13,10 +13,10 @@
 **The Solution:** Create a `ToolRegistry` service that:
 
 1. Registers available tools with JSON schemas (for LLM function calling)
-2. Validates tool invocations against security policies
-3. Executes tools within sandboxed context (Deno permissions, path restrictions)
-4. Logs all tool executions to Activity Journal
-5. Returns structured results for LLM to interpret
+
+1.
+1.
+1.
 
 **Core Tools:**
 
@@ -50,28 +50,28 @@
 **The Solution:** Create a `GitService` that:
 
 1. Auto-initializes git repository if not present
-2. Auto-configures git identity (user.name, user.email) if missing
-3. Creates feature branches with naming convention: `feat/{requestId}-{traceId}`
-4. Commits changes with trace_id in commit message footer
-5. Handles branch name conflicts (appends timestamp if needed)
-6. Validates changes exist before attempting commit
+
+1.
+1.
+1.
+1.
 
 **Branch Naming Convention:**
 
-```
+```text
 feat/implement-auth-550e8400
 feat/fix-bug-abc12345
-```
+```text
 
 **Commit Message Format:**
 
-```
+```text
 Implement authentication system
 
 Created login handler, JWT tokens, and user session management.
 
 [ExoTrace: 550e8400-e29b-41d4-a716-446655440000]
-```
+```text
 
 **Error Handling:**
 
@@ -102,14 +102,14 @@ Created login handler, JWT tokens, and user session management.
 **The Solution:** Create an `ExecutionLoop` service that:
 
 1. Monitors `/System/Active` for approved plans
-2. Acquires lease on active task file (prevents concurrent execution)
-3. Executes plan using Tool Registry and Git Service
-4. Handles both success and failure paths with appropriate reporting
-5. Cleans up resources (releases leases, closes connections)
+
+1.
+1.
+1.
 
 **Execution Flow:**
 
-```
+```text
 Agent creates plan → /Inbox/Plans/{requestId}_plan.md (status: review)
   ↓
 [HUMAN REVIEWS PLAN IN OBSIDIAN]
@@ -161,7 +161,7 @@ Execute tools (wrapped in try/catch)
       └─ Log: execution.failed (trace_id, actor: 'system', metadata: error_details)
   ↓
 Release lease
-```
+```text
 
 **Human Review Actions:**
 
@@ -169,7 +169,7 @@ Release lease
    - Action: Move file from `/Inbox/Plans/{requestId}_plan.md` to `/System/Active/{requestId}.md`
    - Logging: Insert activity record with `action_type: 'plan.approved'`, `actor: 'human'`
 
-2. **Reject Plan**
+1.
    - Action: Move file to `/Inbox/Rejected/{requestId}_rejected.md`
    - Add to frontmatter:
      ```toml
@@ -177,10 +177,10 @@ Release lease
      rejected_by = "user@example.com"
      rejected_at = "2024-11-25T15:30:00Z"
      rejection_reason = "Approach is too risky, use incremental strategy instead"
-     ```
+     ```text
    - Logging: Insert activity record with `action_type: 'plan.rejected'`, `actor: 'human'`, `metadata: {reason: "..."}`
 
-3. **Request Changes**
+1.
    - Action: Edit plan file in-place, append comments section:
      ```markdown
      ## Review Comments
@@ -192,13 +192,13 @@ Release lease
      - ⚠️ Need to add rollback migration
      - ✅ Login handler looks good
      - 💡 Consider adding rate limiting to prevent brute force
-     ```
+     ```text
    - Update frontmatter:
      ```toml
      status = "needs_revision"
      reviewed_by = "user@example.com"
      reviewed_at = "2024-11-25T15:30:00Z"
-     ```
+     ```text
    - Logging: Insert activity record with `action_type: 'plan.revision_requested'`, `actor: 'human'`,
      `metadata: {comment_count: 4}`
 
@@ -231,7 +231,7 @@ SELECT
   COUNT(*) FILTER (WHERE action_type = 'plan.rejected') * 100.0 / COUNT(*) as rejection_rate
 FROM activity
 WHERE action_type IN ('plan.approved', 'plan.rejected');
-```
+```text
 
 **Failure Report Format:**
 
@@ -251,7 +251,7 @@ error_type = "ToolExecutionError"
 Execution failed during tool operation: write_file
 
 ## Error Details
-```
+```text
 
 PermissionDenied: write access to /etc/passwd is not allowed at PathResolver.validatePath
 (src/services/path_resolver.ts:45) at ToolRegistry.executeTool (src/services/tool_registry.ts:89)
@@ -266,7 +266,11 @@ PermissionDenied: write access to /etc/passwd is not allowed at PathResolver.val
 ## Next Steps
 
 1. Review the error and adjust the request
-2. Move corrected request back to /Inbox/Requests
-3. System will retry execution
+
+1.
 
 ---
+
+
+```
+

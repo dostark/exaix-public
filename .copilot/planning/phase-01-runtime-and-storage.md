@@ -16,15 +16,16 @@ structure.
 **Core Functionality:**
 
 1. [x] `deno task start` runs `main.ts` and prints "ExoFrame Daemon Active"
-2. [x] Process fails with PermissionDenied when required permissions removed from `deno.json`
-3. [x] `deno.lock` file generated and committed to version control
+
+1.
 
 **Code Quality:**
-4. [x] `deno task fmt:check` passes with no formatting issues
-5. [x] `deno task lint` passes with no linting errors
-6. [x] CI pipeline runs both checks automatically
 
-7. [x] Complete Deno configuration created with security sandbox and task definitions
+1.
+1.
+1.
+
+1.
 
 **Implementation:** See `deno.json` in project root for complete configuration with:
 
@@ -74,19 +75,21 @@ Add a `deno.json` `test` task for convenience so contributors can run `deno task
 **Core Functionality:**
 
 1. [x] Database file created at `/System/journal.db` with WAL mode enabled
-2. [x] `activity` table with trace_id, actor, agent_id, action_type, payload, timestamp
-3. [x] `leases` table for file locking with TTL expiration
-4. [x] `schema_version` table for migration tracking
+
+1.
+1.
 
 **Database Operations:**
-5. [x] Insert structured log entry and retrieve by trace_id
-6. [x] Query by actor (agent/human/system) and agent_id
-7. [x] Lease acquisition and expiration working correctly
+
+1.
+1.
+1.
 
 **Migration System:**
-8. [x] `deno task migrate up` applies schema changes cleanly
-9. [x] `deno task migrate down` reverts changes without errors
-10. [x] Migration history tracked in schema_version table
+
+1.
+1.
+1.
 
 **Schema:**
 
@@ -138,14 +141,15 @@ INSERT INTO schema_version (version) VALUES (1);
 **Core Functionality:**
 
 1. [x] ConfigService loads `exo.config.toml` on system startup
-2. [x] Zod schema validates all required configuration fields
-3. [x] Readable error messages for malformed TOML or missing keys
-4. [x] Config checksum logged to Activity Journal for auditability
+
+1.
+1.
 
 **Configuration Validation:**
-5. [x] System paths (Knowledge, Inbox, System, Blueprints) validated
-6. [x] LLM provider settings validated (API keys, endpoints)
-7. [x] Watcher settings validated (debounce_ms, file patterns)
+
+1.
+1.
+1.
 
 ### Step 1.4: The Knowledge Vault Scaffold ✅ COMPLETED
 
@@ -161,12 +165,14 @@ INSERT INTO schema_version (version) VALUES (1);
 **Directory Structure:**
 
 1. [x] `/Knowledge` directory created as vault root
-2. [x] `/Knowledge/Context` directory for read-only reference files
-3. [x] `/Knowledge/Reports` directory for agent-generated mission reports
-4. [x] `/Knowledge/Portals` directory for auto-generated context cards
+
+1.
+1.
 
 **Documentation:**
-5. [x] `README.md` created in `/Knowledge` explaining Obsidian integration
-6. [x] Setup script is idempotent (safe to run multiple times)
+
+1.
+1.
 
 ---
+

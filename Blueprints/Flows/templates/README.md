@@ -88,15 +88,16 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 ## How to Use
 
 1. **Choose a pattern** that matches your needs.
-2. **Copy the template** to the parent directory (`Blueprints/Flows/`):
+
    ```bash
    cp templates/pipeline.flow.template.ts ../my-process.flow.ts
    ```
-3. **Edit the file**:
+1.
    - **Update Metadata:** Change `id`, `name`, and `description`.
    - **Assign Agents:** Replace placeholder agent names (e.g., `coordinator-agent`) with your actual agents (e.g., `senior-coder`).
    - **Define Inputs:** Configure how data flows into each step.
-4. **Validate:**
+1.
    ```bash
    exoctl flow validate ../my-process.flow.ts
    ```
+

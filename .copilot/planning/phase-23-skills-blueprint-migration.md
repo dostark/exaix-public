@@ -22,8 +22,9 @@ estimated_effort: 4-6 hours
 > This planning document has been implemented and its features are now part of the core codebase.
 
 **Created:** 2026-01-09
-**Status:** 📋 **PLANNED**
-**Priority:** Medium
+
+# Status:** 📋 **PLANNED
+
 **Estimated Duration:** 4-6 hours
 **Parent Phase:** [Phase 22: Architecture & Quality](./phase-22-architecture-and-quality-improvement.md)
 
@@ -73,7 +74,7 @@ The core skills currently located in `Memory/Skills/core/` are fundamentally blu
 
 Located in `Memory/Skills/core/`:
 
-```
+```text
 Memory/Skills/core/
 ├── code-review.skill.md          # Code review methodology blueprint
 ├── commit-message.skill.md       # Commit message best practices
@@ -83,17 +84,17 @@ Memory/Skills/core/
 ├── security-first.skill.md       # Security-first development
 ├── tdd-methodology.skill.md      # Test-driven development approach
 └── typescript-patterns.skill.md  # TypeScript best practices
-```
+```text
 
 ### Skill Reference Analysis
 
-**Agents referencing core skills:**
+# Agents referencing core skills:
 
 - `Blueprints/Agents/senior-coder.md`: `["typescript-patterns", "error-handling", "code-review"]`
 - `Blueprints/Agents/code-analyst.md`: References various skills
 - `Blueprints/Agents/quality-judge.md`: References code review skills
 
-**Flows referencing core skills:**
+# Flows referencing core skills:
 
 - `Blueprints/Flows/code_review.flow.ts`: `defaultSkills: ["code-review"]`
 - Various other flows reference core skills
@@ -102,22 +103,22 @@ Memory/Skills/core/
 
 Current `Blueprints/` structure:
 
-```
+```text
 Blueprints/
 ├── Agents/          # Agent configuration blueprints
 ├── Flows/           # Flow orchestration blueprints
 └── src/             # Flow implementation code
-```
+```text
 
-**Proposed new structure:**
+# Proposed new structure:
 
-```
+```text
 Blueprints/
 ├── Agents/          # Agent configuration blueprints
 ├── Flows/           # Flow orchestration blueprints
 ├── Skills/          # ← NEW: Skill capability blueprints
 └── src/             # Flow implementation code
-```
+```text
 
 ---
 
@@ -125,7 +126,7 @@ Blueprints/
 
 ### Target Structure
 
-```
+```text
 Blueprints/
 ├── Agents/
 │   ├── senior-coder.md     # References "typescript-patterns" skill
@@ -144,7 +145,7 @@ Blueprints/
 │   └── exoframe-conventions.skill.md
 └── src/
     └── flows/
-```
+```text
 
 ### Migration Strategy
 
@@ -184,13 +185,13 @@ Blueprints/
 
 **Objective:** Create new Skills blueprint directory and documentation
 
-**Tasks:**
+# Tasks:
 
 1. [x] Create `Blueprints/Skills/` directory
-2. [x] Create `Blueprints/Skills/README.md` with purpose and structure
-3. [x] Update `Blueprints/README.md` to include Skills section
 
-**Success Criteria:**
+1.
+
+# Success Criteria:
 
 - `Blueprints/Skills/` directory exists
 - Skills README explains purpose and structure
@@ -200,13 +201,13 @@ Blueprints/
 
 **Objective:** Move core skills to blueprint location
 
-**Tasks:**
+# Tasks:
 
 1. [x] Move all `.skill.md` files from `Memory/Skills/core/` to `Blueprints/Skills/`
-2. [x] Preserve file metadata and permissions
-3. [x] Verify file integrity with checksums
 
-**Success Criteria:**
+1.
+
+# Success Criteria:
 
 - All 8 core skill files moved successfully
 - File contents unchanged (verified with diff)
@@ -216,14 +217,14 @@ Blueprints/
 
 **Objective:** Update skill loading logic to use new location
 
-**Tasks:**
+# Tasks:
 
 1. [x] Locate skill loading code in `src/services/memory_bank.ts` or similar
-2. [x] Update path resolution to check `Blueprints/Skills/` first
-3. [x] Add fallback to old location during transition
-4. [x] Update any hardcoded skill paths
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - Skill loading prioritizes `Blueprints/Skills/`
 - Fallback to old location works
@@ -233,14 +234,14 @@ Blueprints/
 
 **Objective:** Ensure all references work with new structure
 
-**Tasks:**
+# Tasks:
 
 1. [x] Test agent loading with skill references
-2. [x] Test flow execution with skill dependencies
-3. [x] Run skill-related tests
-4. [x] Verify no broken references
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - All agents load successfully
 - All flows execute without skill errors
@@ -251,14 +252,14 @@ Blueprints/
 
 **Objective:** Update documentation and remove old structure
 
-**Tasks:**
+# Tasks:
 
 1. [x] Update project README with new structure
-2. [x] Update developer documentation
-3. [x] Remove `Memory/Skills/core/` directory
-4. [x] Update Memory README to clarify purpose
 
-**Success Criteria:**
+1.
+1.
+
+# Success Criteria:
 
 - Project documentation updated
 - Old directory removed safely
@@ -269,26 +270,32 @@ Blueprints/
 ## Verification Commands
 
 ```bash
+
 # Verify directory structure
-find Blueprints/ -name "*.skill.md" | head -10
+
+
 # Should show skills in Blueprints/Skills/
 
 # Test skill loading
-deno run -A scripts/test-skill-loading.ts
+
+
 # Should load skills from new location
 
 # Test agent references
-deno run -A scripts/test-agent-skills.ts
+
+
 # Should resolve skill references correctly
 
 # Test flow execution
-deno run -A scripts/test-flow-skills.ts
+
+
 # Should execute flows with skill dependencies
 
 # Verify no old references
-grep -r "Memory/Skills/core" src/ docs/
+
+
 # Should return no results
-```
+
 
 ---
 
@@ -356,3 +363,7 @@ Moving core skills from `Memory/Skills/core/` to `Blueprints/Skills/` aligns wit
 - **Memory/**: Learned and adapted knowledge from actual usage
 
 This change improves code organization, reduces confusion, and makes the relationship between blueprints and their referenced skills more obvious. The migration is straightforward with clear success criteria and comprehensive testing requirements.
+
+
+```
+

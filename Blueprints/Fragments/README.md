@@ -19,8 +19,8 @@ This will be replaced by the contents of `Blueprints/Fragments/fragment_name.md`
 ## Benefits
 
 1. **Consistency**: Ensure all agents follow the same response format and schema.
-2. **Maintainability**: Update a schema or instruction in one place and have it reflect across all agents.
-3. **Readability**: Keeps individual blueprint files focused on the agent's persona rather than boilerplate instructions.
+
+1.
 
 ## Recursive Inclusion
 
@@ -28,3 +28,4 @@ Fragments can include other fragments. The `BlueprintLoader` resolves these recu
 
 > [!CAUTION]
 > Avoid circular inclusions as they will be detected and blocked by the loader.
+

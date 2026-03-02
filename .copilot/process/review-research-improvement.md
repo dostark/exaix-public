@@ -21,7 +21,7 @@ A structured methodology for evaluating ExoFrame subsystems, identifying archite
 
 ## Pattern Overview
 
-```
+```text
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   REVIEW    │───▶│  RESEARCH   │───▶│    PLAN     │───▶│  ARTIFACTS  │
 │  (Analyze)  │    │ (Compare)   │    │ (Prioritize)│    │  (Create)   │
@@ -30,7 +30,7 @@ A structured methodology for evaluating ExoFrame subsystems, identifying archite
       ▼                  ▼                  ▼                  ▼
   Weaknesses        Best Practices      Phased Plan       Templates
   Identified        Identified          Document          Examples
-```
+```text
 
 ## Phase 1: Review (Analyze Current State)
 
@@ -98,7 +98,7 @@ Compare current implementation to best practices:
 | Feature A | Basic         | Advanced      | Missing X, Y    |
 | Feature B | None          | Required      | Not implemented |
 | Feature C | Good          | Good          | None            |
-```
+```text
 
 ### 2.3 Document Weaknesses
 
@@ -123,10 +123,10 @@ Create numbered weakness list with:
 // agent_runner.ts:115 - Single-pass execution
 const rawResponse = await this.modelProvider.generate(combinedPrompt);
 const result = this.parseResponse(rawResponse); // Direct return
-```
-````
+```text
+````text
 
-````
+````text
 ## Phase 3: Plan (Create Improvement Roadmap)
 
 ### 3.1 Planning Document Structure
@@ -163,7 +163,7 @@ Create `agents/planning/phase-N-<subsystem>-improvements.md`:
 
 ## Success Metrics
 [How to measure improvement]
-````
+````text
 
 ### 3.2 Sub-Phase Design
 
@@ -206,16 +206,16 @@ This phase should update:
 **Tasks:**
 
 1. Document new features with examples
-2. Update CLI reference
-3. Add troubleshooting section
-4. Update configuration reference
+
+1.
+1.
 
 **Success Criteria:**
 
 - [ ] User guide complete
 - [ ] Each feature has example
 - [ ] CLI documented
-```
+
 
 ### 3.4 Prioritization Matrix
 
@@ -270,7 +270,7 @@ Create reusable templates that encode best practices:
 ## When to Use
 
 [✅ Good for / ❌ Not ideal for]
-```
+```text
 
 ### 4.2 Example Implementations
 
@@ -311,11 +311,11 @@ Before completing the pattern:
 **Process:**
 
 1. **Review:** Read `Blueprints/Flows/`, `src/flows/`, examples, templates
-2. **Research:** Multi-agent patterns, LLM-as-a-Judge, DAG orchestration
-3. **Plan:** Created `phase-15-flow-orchestration-improvements.md`
+
+1.
    - Identified 8 weaknesses (dead fields, no quality gates, etc.)
    - Proposed 6 sub-phases
-4. **Artifacts:**
+1.
    - `llm-judge-code-review.flow.template.ts`
    - `quality-judge.md` agent blueprint
    - Updated templates README
@@ -327,11 +327,11 @@ Before completing the pattern:
 **Process:**
 
 1. **Review:** Read `Blueprints/Agents/`, `AgentRunner`, `AgentExecutor`, templates
-2. **Research:** Reflexion, ReAct, tool-use patterns, confidence scoring
-3. **Plan:** Created `phase-16-agent-orchestration-improvements.md`
+
+1.
    - Identified 8 weaknesses (no self-reflection, weak validation, etc.)
    - Proposed 8 sub-phases
-4. **Artifacts:**
+1.
    - `reflexive-agent.md.template`
    - `research-agent.md.template`
    - `judge-agent.md.template`
@@ -355,11 +355,16 @@ Before completing the pattern:
 
 ## Canonical Prompt
 
-```
+```text
 "Perform a Review-Research-Improvement analysis on [subsystem]:
+
 1. Review: Read all docs, implementation, templates
-2. Research: Compare to state-of-the-art patterns
-3. Plan: Create agents/planning/phase-N document with weaknesses and improvement phases
-4. Artifacts: Create templates/examples that encode best practices
+
+1.
+1.
 Commit all artifacts with descriptive commit message."
+```text
+
+
 ```
+

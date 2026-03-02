@@ -51,13 +51,13 @@ exoctl request "Create folder src/, create file src/utils.ts, add hello world fu
 # 6. Check results
 exoctl plan list  # Shows: count: 0, message: No plans found
 exoctl journal    # Shows validation failure
-```
+```text
 
 ## Observed Behavior
 
 Journal shows the following error sequence:
 
-```
+```text
 1/21/2026, 3:16:41 PM request.skipped
 1/21/2026, 3:16:41 PM request.skipped
 1/21/2026, 3:16:41 PM request.processing
@@ -66,22 +66,22 @@ Journal shows the following error sequence:
 1/21/2026, 3:16:40 PM agent.execution_completed
 1/21/2026, 3:16:36 PM agent.execution_started
 1/21/2026, 3:16:36 PM provider.selected agent=agent:request-processor trace=ffb0287f target=test-provider
-```
+```text
 
 **Key Issues:**
 
 1. System selects `test-provider` instead of configured `google:gemini-2.0-flash-exp`
-2. Plan validation fails
-3. Request is marked as failed
-4. No plan is generated in `Workspace/Plans/`
+
+1.
+1.
 
 ## Expected Behavior
 
 1. System should use the configured Google provider (as shown in daemon startup logs: `llm.provider.initialized agent=system trace=b5de8b7f target=google-gemini-2.0-flash-exp`)
-2. Plan should be generated successfully
-3. Plan should pass validation
-4. Plan should be written to `Workspace/Plans/`
-5. `exoctl plan list` should show the generated plan
+
+1.
+1.
+1.
 
 ## Environment
 
@@ -102,3 +102,7 @@ Journal shows the following error sequence:
 ## Priority Justification
 
 **HIGH** - This breaks the core request → plan → execution workflow. Users cannot process requests in deployed workspaces, making the system unusable for its primary purpose.
+
+
+```
+

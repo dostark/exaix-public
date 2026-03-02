@@ -8,14 +8,14 @@
  */
 
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { ArchiveService } from "../../services/archive_service.ts";
 
 export class ArchiveCommands extends BaseCommand {
-  private archiveService: ArchiveService;
+  private get archiveService() {
+    return this.context.archive;
+  }
 
   constructor(context: ICommandContext) {
     super(context);
-    this.archiveService = new ArchiveService(this.config.paths.archive);
   }
 
   async list(): Promise<void> {

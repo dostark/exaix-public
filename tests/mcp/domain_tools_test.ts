@@ -1,9 +1,3 @@
-/**
- * @module DomainToolsTest
- * @path tests/mcp/domain_tools_test.ts
- * @description Unit tests for MCP domain tools (CreateRequest, ListPlans, ApprovePlan, QueryJournal).
- */
-
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { stub } from "@std/testing/mock";
 import { join } from "@std/path";

@@ -18,9 +18,9 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 **New Tools:**
 
 1. `exoframe_create_request`: Create a new request file.
-2. `exoframe_list_plans`: List pending plans.
-3. `exoframe_approve_plan`: Approve a plan by ID.
-4. `exoframe_query_journal`: Query the Activity Journal.
+
+1.
+1.
 
 **Implementation Plan:**
 
@@ -79,30 +79,30 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 **Success Criteria:**
 
 1. [x] MCP server starts via `exoctl mcp start`
-2. [x] Server exposes standard MCP capabilities
-3. [x] Stdio transport for local connections
-4. [x] Server metadata includes name and version
-5. [x] Graceful shutdown on SIGTERM
+
+1.
+1.
+1.
 
 ### Step 13.2: Tool Implementations
 
 **Success Criteria:**
 
 1. [x] `exoframe_create_request` creates request files
-2. [x] `exoframe_list_plans` returns pending plans
-3. [x] `exoframe_approve_plan` approves plans
-4. [x] `exoframe_query_journal` queries Activity Journal
-5. [x] All operations logged to Activity Journal
-6. [x] Error responses follow MCP error schema
+
+1.
+1.
+1.
+1.
 
 ### Step 13.3: Client Integration Examples
 
 **Success Criteria:**
 
 1. [x] Documentation for Claude Desktop setup (see `templates/mcp/claude_desktop_config.json`)
-2. [x] Documentation for Cline/IDE integration (see `templates/mcp/cline_settings.json`)
-3. [x] Example prompts for using MCP tools
-4. [x] Troubleshooting guide for MCP connections
+
+1.
+1.
 
 ### Step 13.4: Testing & Documentation
 
@@ -116,10 +116,10 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 **Success Criteria:**
 
 1. [x] Unit tests for all MCP tools
-2. [x] Integration test with MCP client
-3. [x] Documentation in User Guide
-4. [x] Architecture diagram updated
-5. [x] Example repository with MCP configurations
+
+1.
+1.
+1.
 
 ### Phase 13 Benefits
 
@@ -146,3 +146,4 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 - [x] Documentation for IDE integration
 - [x] Example configurations repository
 - [x] User Guide updated with MCP section
+

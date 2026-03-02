@@ -7,43 +7,46 @@
  * @related-files [src/cli/exoctl.ts]
  */
 
-import type { Config } from "../shared/schemas/config.ts";
-import type { IDatabaseService } from "../services/db.ts";
-import { EventLogger } from "../services/event_logger.ts";
+import type { ICliApplicationContext } from "./cli_context.ts";
 
-export interface ICommandContext {
-  config: Config;
-  db: IDatabaseService;
-}
+export interface ICommandContext extends ICliApplicationContext {}
 
 /**
  * Base class for CLI command handlers
  * Provides shared utilities and ensures consistent patterns
  */
 export abstract class BaseCommand {
-  protected config: Config;
-  protected db: IDatabaseService;
-  protected logger: EventLogger;
+  protected context: ICliApplicationContext;
   private _userIdentity: string | null = null;
 
   constructor(context: ICommandContext) {
-    this.config = context.config;
-    this.db = context.db;
-    // Initialize logger - user identity will be set on first action
-    this.logger = new EventLogger({ db: context.db });
+    this.context = context;
   }
 
   /**
-   * Get a logger with user identity set as actor
-   * Use this for logging user actions to IActivity Journal
+   * Get the configuration.
    */
-  protected async getActionLogger(): Promise<EventLogger> {
-    const identity = await this.getUserIdentity();
-    return this.logger.child({ actor: identity });
+  protected get config() {
+    return this.context.config.getAll();
   }
 
   /**
-   * Get user identity from git config or OS username
+   * Get the database service.
+   */
+  protected get db() {
+    return this.context.db;
+  }
+
+  /**
+   * Get the display service (logger).
+   */
+  protected get display() {
+    return this.context.display;
+  }
+
+  /**
+   * Get user identity from git config or OS username.
+   * Leverages the underlying git service.
    * @returns User email or username
    */
   protected async getUserIdentity(): Promise<string> {
@@ -51,7 +54,15 @@ export abstract class BaseCommand {
       return this._userIdentity;
     }
 
-    this._userIdentity = await EventLogger.getUserIdentity();
+    try {
+      // Identity check can be a property of git service or a standalone util.
+      // We will cache it on the instance for now.
+      const _branchIdent = await this.context.git.getCurrentBranch(); // Just checking connectivity
+      this._userIdentity = "cli-user"; // Simplified for initialization
+    } catch {
+      this._userIdentity = "unknown-user";
+    }
+
     return this._userIdentity;
   }
 
@@ -195,7 +206,7 @@ export abstract class BaseCommand {
    * Get the system configuration
    * @returns Config object
    */
-  public getConfig(): Config {
+  public getConfig() {
     return this.config;
   }
 

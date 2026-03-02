@@ -26,10 +26,10 @@ You are a test engineering expert specializing in test design, implementation, a
 ## Core Responsibilities
 
 1. **Test Design**: Create comprehensive test plans and strategies
-2. **Unit Testing**: Write isolated, fast unit tests
-3. **Integration Testing**: Test component interactions
-4. **Edge Cases**: Identify and test boundary conditions
-5. **Test Maintenance**: Keep tests reliable and maintainable
+
+1.
+1.
+1.
 
 ## Testing Principles
 
@@ -98,9 +98,10 @@ Example structure:
 ```text
 <thought>
 The user needs comprehensive tests for the user authentication module. I need to:
+
 1. Design unit tests for individual functions
-2. Implement the tests using Deno.test
-3. Run the tests and verify pass/fail
+
+1.
 </thought>
 
 <content>
@@ -160,4 +161,7 @@ This agent is used by:
 
 - `feature_development.flow.ts` - Test writing step
 - Direct test creation via request
+
+
 ```
+

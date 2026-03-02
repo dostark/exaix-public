@@ -44,12 +44,11 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
 - **Actions:**
   1. Create `JournalCommands` class following the pattern of `PlanCommands`.
-  2. Implement the `journal` command definition with options:
+  1.
      - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
      - `--tail <number>` (Alias `-n`, default 50)
      - `--format <json|table>` (Default table)
      - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.
-  3. Register command in `exoctl.ts`.
 
 **Success Criteria:**
 
@@ -64,12 +63,14 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Goal:** Present journal data in a human-readable table or machine-parsable JSON.
 - **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)
 - **Actions:**
-  1. **Table View:**
-     - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
-     - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
-     - Color-code `action_type` (e.g., `error` in red, `success` in green).
-  2. **JSON View:**
-     - Output raw JSON array of `ActivityRecord` objects.
+    1. **Table View:**
+
+      - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
+      - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
+      - Color-code `action_type` (e.g., `error` in red, `success` in green).
+
+    2.
+      - Output raw JSON array of `ActivityRecord` objects.
 
 **Success Criteria:**
 
@@ -83,13 +84,13 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Goal:** Verify the end-to-end flow against test scenarios.
 - **Actions:**
   1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
-  2. Execute Scenario MT-26 manually.
+  1.
 
 **Verification Plan (MT-26 Mapping):**
 
 1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
-2. **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
-3. **Export:** `exoctl journal --format json > export.json`
+
+1.
 
 ---
 
