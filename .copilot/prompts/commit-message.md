@@ -31,9 +31,11 @@ Do / Don't
 - ✅ Do keep summary ≤72 chars, body wrapped at 72
 - ✅ Do include testing verification and file changes
 - ✅ Do format body with short section headers for non-trivial commits
+- ✅ Do create commits with a real multiline message (editor or heredoc)
 - ❌ Don't exceed 72 chars for summary line
 - ❌ Don't forget to list breaking changes if any
 - ❌ Don't use vague summaries like "updated files" or "WIP"
+- ❌ Don't chain multiple `-m` flags to assemble commit bodies
 
 Recommended detailed format:
 `<type>(<scope>): <summary>`
@@ -50,9 +52,27 @@ Recommended detailed format:
 `References:`
 - Optional issue links, plan step, or breaking-change note.
 
+Recommended command pattern (single multiline message):
+`git commit -F - <<'COMMIT_MSG'`
+`<type>(<scope>): <summary>`
+
+`Context:`
+`<why this change is needed>`
+
+`Changes:`
+`- <important change 1>`
+`- <important change 2>`
+
+`Validation:`
+`- <checks run>`
+
+`References:`
+`- <issue/plan step/breaking change note>`
+`COMMIT_MSG`
+
 Expected Response Pattern:
 1. Show `git add` command for changed files
-2. Show complete `git commit -m "..."` with full message
+2. Show a single multiline commit command (heredoc or editor flow), not chained `-m` flags
 3. Include summary plus structured body sections (Context/Changes/Validation/References)
 4. List specific changes and testing verification
 ```

@@ -1,12 +1,29 @@
+`Context:`
+- One short paragraph describing why this change is needed.
+
+`Changes:`
+- Bullet list of the most important code/doc/test updates.
+
 `Validation:`
 - Commands or checks run (for example: `deno check`, `deno lint`).
 
 `References:`
 - Optional issue links, plan step, or breaking-change note.
 
-Expected Response Pattern:
-1. Show `git add` command for changed files
-2. Show complete `git commit -m "..."` with full message
-3. Include summary plus structured body sections (Context/Changes/Validation/References)
-4. List specific changes and testing verification
-```
+Recommended command pattern (single multiline message):
+`git commit -F - <<'COMMIT_MSG'`
+`<type>(<scope>): <summary>`
+
+`Context:`
+`<why this change is needed>`
+
+`Changes:`
+`- <important change 1>`
+`- <important change 2>`
+
+`Validation:`
+`- <checks run>`
+
+`References:`
+`- <issue/plan step/breaking change note>`
+`COMMIT_MSG`

@@ -72,6 +72,7 @@ Use Conventional Commits for all changes:
 - Subject in imperative mood and ≤72 characters
 - Include a body for non-trivial changes (what/why, wrapped at 72 chars)
 - Reference issues and breaking changes in footer when applicable
+- Do not chain multiple `-m` flags; use one multiline commit message (editor or heredoc)
 
 Preferred detailed body format for medium/large changes:
 
@@ -91,6 +92,28 @@ Validation:
 
 References:
 - Optional issue/plan step/breaking change note
+```
+
+Preferred CLI commit invocation:
+
+```bash
+git commit -F - <<'COMMIT_MSG'
+<type>(<scope>): <subject>
+
+Context:
+Why this change is necessary.
+
+Changes:
+- Key implementation/test/doc change 1
+- Key implementation/test/doc change 2
+
+Validation:
+- deno check
+- deno lint
+
+References:
+- Optional issue/plan step/breaking change note
+COMMIT_MSG
 ```
 
 Authoritative guidance:

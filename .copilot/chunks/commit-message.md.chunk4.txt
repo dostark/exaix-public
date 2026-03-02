@@ -1,11 +1,6 @@
-LOW Priority:
-- Created cross-reference.md mapping 12 task types to primary/secondary docs
-- Added 8 ExoFrame-specific common pitfalls with code examples
-- Optimized all short summaries to ≤200 chars (copilot/exoframe.md: 229→131)
-- Created agents/prompts/ with 7 ready-to-use prompt templates
-
-Testing:
-- Added tests/agents/claude_enhancements_test.ts (12 tests, all passing)
-- All docs pass validate_agents_docs.ts
-- Manifest updated with 18 total docs (7 new)
-- Embeddings regenerated (64-dim mock vectors)
+Expected Response Pattern:
+1. Show `git add` command for changed files
+2. Show a single multiline commit command (heredoc or editor flow), not chained `-m` flags
+3. Include summary plus structured body sections (Context/Changes/Validation/References)
+4. List specific changes and testing verification
+```
