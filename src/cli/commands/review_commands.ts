@@ -9,17 +9,18 @@
 
 import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
+import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { GitService } from "../../services/git_service.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../helpers/command_utils.ts";
 import { enrichWithRequest } from "../helpers/request_enricher.ts";
-import { ArtifactRegistry } from "../../services/artifact_registry.ts";
 import { isReviewStatus, ReviewStatus } from "../../reviews/review_status.ts";
 import type { IReviewStatus } from "../../reviews/review_status.ts";
+import type { IArtifact, IArtifactFilters, IArtifactWithContent } from "../../shared/schemas/artifact.ts";
+import type { IGitService } from "../../shared/interfaces/i_git_service.ts";
 
 export interface IReviewMetadata {
   type?: "code" | "artifact";
@@ -66,19 +67,27 @@ export interface ReviewDetails extends IReviewMetadata {
 
 export type ReviewTypeFilter = "all" | "code" | "artifact";
 
+type ArtifactFrontmatterData = {
+  status?: IReviewStatus;
+  type?: "analysis" | "report" | "diagram";
+  agent?: string;
+  portal?: string | null;
+  target_branch?: string | null;
+  created?: string;
+  request_id?: string;
+};
+
 /**
  * Commands for reviewing and managing agent-generated code reviews
  */
 export class ReviewCommands extends BaseCommand {
   private requestCommands: RequestCommands;
   private planCommands: PlanCommands;
-  private artifactRegistry: ArtifactRegistry;
 
   constructor(context: ICommandContext) {
     super(context);
     this.requestCommands = new RequestCommands(context);
     this.planCommands = new PlanCommands(context);
-    this.artifactRegistry = new ArtifactRegistry(this.db, this.config.system.root);
   }
 
   private isArtifactId(id: string): boolean {
@@ -265,7 +274,10 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
-  private async cleanupWorktreeReview(portalGitService: GitService, review: ReviewDetails): Promise<void> {
+  private async cleanupWorktreeReview(
+    portalGitService: Pick<IGitService, "runGitCommand">,
+    review: ReviewDetails,
+  ): Promise<void> {
     const worktreePath = review.worktree_path?.trim();
     if (!worktreePath) return;
 
@@ -279,7 +291,7 @@ export class ReviewCommands extends BaseCommand {
     await this.removeExecutionWorktreePointer(review.trace_id);
   }
 
-  private async bestEffortAbortMerge(portalGitService: GitService): Promise<void> {
+  private async bestEffortAbortMerge(portalGitService: Pick<IGitService, "runGitCommand">): Promise<void> {
     try {
       await portalGitService.runGitCommand(["merge", "--abort"], { throwOnError: false });
     } catch {
@@ -287,7 +299,10 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
-  private async bestEffortCleanupWorktreeCheckout(portalGitService: GitService, review: ReviewDetails): Promise<void> {
+  private async bestEffortCleanupWorktreeCheckout(
+    portalGitService: Pick<IGitService, "runGitCommand">,
+    review: ReviewDetails,
+  ): Promise<void> {
     const worktreePath = review.worktree_path?.trim();
     if (!worktreePath) return;
 
@@ -349,6 +364,160 @@ export class ReviewCommands extends BaseCommand {
     }
 
     throw new Error(`Branch not found in any repository: ${branchName}`);
+  }
+
+  private async createPortalGitService(
+    repoPath: string,
+    traceId: string,
+  ): Promise<Pick<IGitService, "runGitCommand">> {
+    const { GitService } = await import("../../services/git_service.ts");
+    const portalGitService = new GitService({
+      config: this.config,
+      db: this.db,
+      repoPath,
+      traceId,
+      agentId: await this.getUserIdentity(),
+    });
+
+    return {
+      runGitCommand: (args, options) => portalGitService.runGitCommand(args, options),
+    };
+  }
+
+  private async getArtifactRecord(artifactId: string): Promise<IArtifact> {
+    const rows = await this.db.preparedAll<{
+      id: string;
+      status: string;
+      type: string;
+      agent: string;
+      portal: string | null;
+      target_branch: string | null;
+      created: string;
+      updated: string | null;
+      request_id: string;
+      file_path: string;
+      rejection_reason: string | null;
+    }>(
+      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
+       FROM artifacts WHERE id = ?`,
+      [artifactId],
+    );
+
+    if (rows.length === 0) {
+      throw new Error(`Artifact not found: ${artifactId}`);
+    }
+
+    const row = rows[0];
+    const status = isReviewStatus(row.status) ? row.status : ReviewStatus.PENDING;
+
+    return {
+      id: row.id,
+      status,
+      type: row.type as "analysis" | "report" | "diagram",
+      agent: row.agent,
+      portal: row.portal,
+      target_branch: row.target_branch,
+      created: row.created,
+      updated: row.updated,
+      request_id: row.request_id,
+      file_path: row.file_path,
+      rejection_reason: row.rejection_reason,
+    };
+  }
+
+  private async listArtifacts(filters?: IArtifactFilters): Promise<IArtifact[]> {
+    let query =
+      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
+       FROM artifacts WHERE 1=1`;
+    const params: (string | null)[] = [];
+
+    if (filters?.status) {
+      query += ` AND status = ?`;
+      params.push(filters.status);
+    }
+
+    if (filters?.agent) {
+      query += ` AND agent = ?`;
+      params.push(filters.agent);
+    }
+
+    if (filters?.portal !== undefined) {
+      query += ` AND portal = ?`;
+      params.push(filters.portal);
+    }
+
+    if (filters?.type) {
+      query += ` AND type = ?`;
+      params.push(filters.type);
+    }
+
+    query += ` ORDER BY created DESC`;
+
+    const rows = await this.db.preparedAll<{
+      id: string;
+      status: string;
+      type: string;
+      agent: string;
+      portal: string | null;
+      target_branch: string | null;
+      created: string;
+      updated: string | null;
+      request_id: string;
+      file_path: string;
+      rejection_reason: string | null;
+    }>(query, params);
+
+    return rows.map((row) => ({
+      id: row.id,
+      status: isReviewStatus(row.status) ? row.status : ReviewStatus.PENDING,
+      type: row.type as "analysis" | "report" | "diagram",
+      agent: row.agent,
+      portal: row.portal,
+      target_branch: row.target_branch,
+      created: row.created,
+      updated: row.updated,
+      request_id: row.request_id,
+      file_path: row.file_path,
+      rejection_reason: row.rejection_reason,
+    }));
+  }
+
+  private async getArtifact(artifactId: string): Promise<IArtifactWithContent> {
+    const artifact = await this.getArtifactRecord(artifactId);
+    const content = await Deno.readTextFile(join(this.config.system.root, artifact.file_path));
+    const match = content.match(/^---\n[\s\S]*?\n---\n\n([\s\S]*)$/);
+
+    return {
+      ...artifact,
+      content,
+      body: match ? match[1] : "",
+    };
+  }
+
+  private async updateArtifactStatus(
+    artifactId: string,
+    status: Exclude<IReviewStatus, typeof ReviewStatus.PENDING>,
+    reason?: string,
+  ): Promise<void> {
+    const artifact = await this.getArtifactRecord(artifactId);
+    const fullPath = join(this.config.system.root, artifact.file_path);
+    const content = await Deno.readTextFile(fullPath);
+    const match = content.match(/^---\n([\s\S]*?)\n---\n\n([\s\S]*)$/);
+
+    if (!match) {
+      throw new Error(`Invalid artifact format: ${artifactId}`);
+    }
+
+    const frontmatter = parseYaml(match[1]) as ArtifactFrontmatterData;
+    frontmatter.status = status;
+
+    const updatedContent = `---\n${stringifyYaml(frontmatter)}---\n\n${match[2]}`;
+    await Deno.writeTextFile(fullPath, updatedContent);
+
+    await this.db.preparedRun(
+      `UPDATE artifacts SET status = ?, updated = ?, rejection_reason = ? WHERE id = ?`,
+      [status, new Date().toISOString(), reason || null, artifactId],
+    );
   }
 
   private async extractReviewMetadataWithContext(
@@ -499,7 +668,7 @@ export class ReviewCommands extends BaseCommand {
     reviews: IReviewMetadata[],
     normalizedStatus: IReviewStatus | undefined,
   ) {
-    const artifacts = await this.artifactRegistry.listArtifacts({
+    const artifacts = await this.listArtifacts({
       status: normalizedStatus,
     });
 
@@ -763,7 +932,7 @@ export class ReviewCommands extends BaseCommand {
   async show(branchName: string): Promise<ReviewDetails> {
     // Artifact-backed review
     if (this.isArtifactId(branchName)) {
-      const artifact = await this.artifactRegistry.getArtifact(branchName);
+      const artifact = await this.getArtifact(branchName);
       return {
         type: "artifact",
         branch: artifact.id,
@@ -791,10 +960,10 @@ export class ReviewCommands extends BaseCommand {
         fullBranch = match.branch;
       } else {
         // Fallback: allow request_id shorthand for artifacts
-        const artifacts = await this.artifactRegistry.listArtifacts();
+        const artifacts = await this.listArtifacts();
         const byRequest = artifacts.find((a) => a.request_id === branchName);
         if (byRequest) {
-          const artifact = await this.artifactRegistry.getArtifact(byRequest.id);
+          const artifact = await this.getArtifact(byRequest.id);
           return {
             type: "artifact",
             branch: artifact.id,
@@ -928,7 +1097,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Artifact approval path
       if (this.isArtifactId(branchName)) {
-        await this.artifactRegistry.updateStatus(branchName, ReviewStatus.APPROVED);
+        await this.updateArtifactStatus(branchName, ReviewStatus.APPROVED);
         await this.display.info(
           "review.approved",
           branchName,
@@ -947,7 +1116,7 @@ export class ReviewCommands extends BaseCommand {
 
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
-        await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.APPROVED);
+        await this.updateArtifactStatus(review.branch, ReviewStatus.APPROVED);
         await this.display.info(
           "review.approved",
           review.request_id,
@@ -984,14 +1153,7 @@ export class ReviewCommands extends BaseCommand {
         );
       }
 
-      // Create GitService for the portal repository
-      const portalGitService = new GitService({
-        config: this.config,
-        db: this.db,
-        repoPath,
-        traceId: review.trace_id,
-        agentId: await this.getUserIdentity(),
-      });
+      const portalGitService = await this.createPortalGitService(repoPath, review.trace_id);
 
       // Merge branch
       try {
@@ -1065,7 +1227,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Artifact rejection path
       if (this.isArtifactId(branchName)) {
-        await this.artifactRegistry.updateStatus(branchName, ReviewStatus.REJECTED, reason);
+        await this.updateArtifactStatus(branchName, ReviewStatus.REJECTED, reason);
         await this.display.info(
           "review.rejected",
           branchName,
@@ -1081,7 +1243,7 @@ export class ReviewCommands extends BaseCommand {
 
         // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
         try {
-          const artifact = await this.artifactRegistry.getArtifact(branchName);
+          const artifact = await this.getArtifact(branchName);
           const config = this.config;
           const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
           await ensureDir(rejectedDir);
@@ -1107,7 +1269,7 @@ export class ReviewCommands extends BaseCommand {
 
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
-        await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.REJECTED, reason);
+        await this.updateArtifactStatus(review.branch, ReviewStatus.REJECTED, reason);
         await this.display.info(
           "review.rejected",
           review.request_id,
@@ -1123,7 +1285,7 @@ export class ReviewCommands extends BaseCommand {
 
         // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
         try {
-          const artifact = await this.artifactRegistry.getArtifact(review.branch);
+          const artifact = await this.getArtifact(review.branch);
           const config = this.config;
           const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
           await ensureDir(rejectedDir);
@@ -1146,14 +1308,7 @@ export class ReviewCommands extends BaseCommand {
       }
       const repoPath = await this.findRepoForBranch(review.branch);
 
-      // Create GitService for the portal repository
-      const portalGitService = new GitService({
-        config: this.config,
-        db: this.db,
-        repoPath,
-        traceId: review.trace_id,
-        agentId: await this.getUserIdentity(),
-      });
+      const portalGitService = await this.createPortalGitService(repoPath, review.trace_id);
 
       if (review.worktree_path) {
         await this.cleanupWorktreeReview(portalGitService, review);
@@ -1180,7 +1335,10 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
-  private async deleteBranchWithWorktreeHandling(portalGitService: GitService, branch: string): Promise<void> {
+  private async deleteBranchWithWorktreeHandling(
+    portalGitService: Pick<IGitService, "runGitCommand">,
+    branch: string,
+  ): Promise<void> {
     try {
       await portalGitService.runGitCommand(["branch", "-D", branch]);
       return;
@@ -1221,7 +1379,10 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
-  private async findWorktreePathForBranch(portalGitService: GitService, branch: string): Promise<string | null> {
+  private async findWorktreePathForBranch(
+    portalGitService: Pick<IGitService, "runGitCommand">,
+    branch: string,
+  ): Promise<string | null> {
     const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
     const worktrees = worktreeList.output.trim().split("\n");
 

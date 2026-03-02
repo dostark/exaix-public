@@ -1,6 +1,10 @@
 # Phase 44: CLI and Core Separation
 
-## Status: PLANNED 🗓️
+## Status: COMPLETED ✅
+
+## Progress Snapshot
+
+- ✅ Completed: Steps 1, 2, 3, 4, 5, 6, 7, and 8
 
 Decouple the CLI implementation from the ExoFrame core by enforcing a strict interface-driven boundary. This mirrors Phase 43 (TUI/Core separation) and is a prerequisite for moving the CLI into a separate Git repository in a future phase.
 
@@ -102,12 +106,11 @@ Utilities currently in `src/helpers/` that may be CLI-exclusive.
 
 **Actions:**
 
-1. For each of `command_utils.ts`, `request_enricher.ts`, `subject_generator.ts`: run:
-   ```bash
-   grep -rn 'from.*helpers/command_utils\|request_enricher\|subject_generator' src/ --include="*.ts" | grep -v src/cli/
-   ```
-1.
-1.
+For each of `command_utils.ts`, `request_enricher.ts`, `subject_generator.ts`: run:
+
+```bash
+grep -rn 'from.*helpers/command_utils\|request_enricher\|subject_generator' src/ --include="*.ts" | grep -v src/cli/
+```
 
 **Success Criteria:**
 
@@ -401,14 +404,14 @@ grep -rn 'from ".*\.\./config/service' src/cli/commands/ src/cli/handlers/ src/c
 
 | Batch                 | Steps                           | Scope           | Status     |
 | --------------------- | ------------------------------- | --------------- | ---------- |
-| **1 — Discovery**     | Step 1 (classify helpers)       | Research        | ⬜ PENDING |
-| **2 — Consolidation** | Step 2 (move helpers)           | Refactoring     | ⬜ PENDING |
-| **3 — Contracts**     | Step 3 (interfaces)             | Architecture    | ⬜ PENDING |
-| **4 — Bridges**       | Step 4 (adapters + tests)       | Architecture    | ⬜ PENDING |
-| **5 — Context**       | Step 5 (ICliApplicationContext) | Architecture    | ⬜ PENDING |
-| **6 — Migration**     | Step 6 (command refactoring)    | The bulk effort | ⬜ PENDING |
-| **7 — Integration**   | Step 7 (composition root)       | Integration     | ⬜ PENDING |
-| **8 — Guard**         | Step 8 (CI check)               | CI/CD           | ⬜ PENDING |
+| **1 — Discovery**     | Step 1 (classify helpers)       | Research        | ✅ DONE    |
+| **2 — Consolidation** | Step 2 (move helpers)           | Refactoring     | ✅ DONE    |
+| **3 — Contracts**     | Step 3 (interfaces)             | Architecture    | ✅ DONE    |
+| **4 — Bridges**       | Step 4 (adapters + tests)       | Architecture    | ✅ DONE    |
+| **5 — Context**       | Step 5 (ICliApplicationContext) | Architecture    | ✅ DONE    |
+| **6 — Migration**     | Step 6 (command refactoring)    | The bulk effort | ✅ DONE    |
+| **7 — Integration**   | Step 7 (composition root)       | Integration     | ✅ DONE    |
+| **8 — Guard**         | Step 8 (CI check)               | CI/CD           | ✅ DONE    |
 
 ---
 
@@ -460,10 +463,4 @@ grep -rn 'from ".*cli/helpers' src/ --include="*.ts" | grep -v src/cli/
 
 ### Manual Smoke Tests
 
-1. `deno task cli request list` — Request listing works.
-
-1.
-1.
-1.
-1.
-
+`deno task cli request list` — Request listing works.

@@ -7,8 +7,6 @@ version: "0.2"
 topics: ["provider-adaptations", "prompts", "tdd", "refactoring", "debugging", "tool-use"]
 ---
 
-# Claude Provider Adaptation Guide
-
 ## Overview
 
 Claude 3.5 Sonnet provides a 200k context window and excellent reasoning capabilities. This guide provides task-specific prompt templates (including TDD test patterns), thinking protocols, and tool-use patterns optimized for ExoFrame development.
@@ -372,4 +370,3 @@ new Deno.Command("deno", { args: ["test"] }).output();
 
 
 ```
-

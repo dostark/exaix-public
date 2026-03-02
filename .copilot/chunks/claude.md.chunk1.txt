@@ -1,5 +1,3 @@
-## Task-Specific System Prompts
-
 ### TDD Workflow
 
 **System prompt:**
@@ -20,3 +18,7 @@ Key patterns:
 User: "Add error handling for missing config files in ConfigLoader"
 
 Claude response:
+
+````text
+<thinking>
+The ConfigLoader needs to handle missing files gracefully. I'll propose tests first, then implement.

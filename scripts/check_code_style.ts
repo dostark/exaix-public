@@ -389,6 +389,12 @@ async function checkFile(path: string) {
 
   // TUI Boundary Isolation Checks - implemented during main loop for efficiency
   const isTuiFile = path.includes("/src/tui/");
+  const isCliBoundaryFile =
+    path.includes("/src/cli/commands/") ||
+    path.includes("/src/cli/handlers/") ||
+    path.includes("/src/cli/formatters/") ||
+    path.includes("/src/cli/command_builders/");
+  const isCliFile = path.includes("/src/cli/");
   const tuiSegments = path.split("/src/tui/")[1]?.split("/").filter(Boolean) || [];
   const tuiDepth = tuiSegments.length - 1;
 
@@ -429,6 +435,37 @@ async function checkFile(path: string) {
           `ERROR [core-boundary-tui-helpers] ${path}:${
             idx + 1
           } – Non-TUI modules must not import from 'src/tui/helpers/'.`,
+        );
+        errorCount++;
+      }
+    }
+
+    if (isCliBoundaryFile) {
+      if (line.match(/import\b.*?\bfrom\s+["'](?:\.\.\/)+services\/(?!adapters\/)/)) {
+        console.log(
+          `ERROR [cli-boundary-services] ${path}:${
+            idx + 1
+          } – CLI command/handler/formatter/builder modules must not import from 'src/services/' except 'src/services/adapters/'.`,
+        );
+        errorCount++;
+      }
+
+      if (line.match(/import\b.*?\bfrom\s+["'](?:\.\.\/)+config\/service(?:\.ts)?["']/)) {
+        console.log(
+          `ERROR [cli-boundary-config] ${path}:${
+            idx + 1
+          } – CLI command/handler/formatter/builder modules must not import from 'src/config/service.ts'.`,
+        );
+        errorCount++;
+      }
+    }
+
+    if (!isCliFile) {
+      if (line.match(/import\b.*?\bfrom\s+["'].*?src\/cli\/helpers\//)) {
+        console.log(
+          `ERROR [core-boundary-cli-helpers] ${path}:${
+            idx + 1
+          } – Non-CLI modules must not import from 'src/cli/helpers/'.`,
         );
         errorCount++;
       }

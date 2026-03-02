@@ -246,9 +246,9 @@ runtime bugs.
 
 - **Module Structure Order:** Every module **must** follow this specific structural order:
   1. **Header Comment:** A brief description of the module and the Implementation Plan step it satisfies (warning if missing).
-  2. **Imports:** All import declarations.
-  3. **Exports:** All exported interfaces, types, and enums.
-  4. **Functional Code:** Classes, functions, and variable initializations.
+  1. **Imports:** All import declarations.
+  1. **Exports:** All exported interfaces, types, and enums.
+  1. **Functional Code:** Classes, functions, and variable initializations.
 - **Top-of-module placement:** Imports and exported interfaces must appear at the top of the file, before any functional code.
 
 ---
@@ -268,7 +268,29 @@ ExoFrame enforces a strict boundary between the Terminal User Interface (TUI) an
 
 ---
 
-## 8. Related Documents
+## 8. Module Boundaries & CLI Isolation
+
+ExoFrame enforces a strict boundary between the CLI command layer and core implementations to preserve interface-driven separation.
+
+- **CLI boundary scope**: `src/cli/commands/`, `src/cli/handlers/`, `src/cli/formatters/`, and `src/cli/command_builders/`.
+- **No direct core service imports**: Files in the CLI boundary scope must not import from `src/services/` except `src/services/adapters/`.
+- **No direct config service imports**: Files in the CLI boundary scope must not import `src/config/service.ts`.
+- **Allowed dependencies in CLI boundary scope**:
+  - `src/shared/**` (interfaces, types, enums, constants, schemas, status)
+  - `src/cli/**` (context, base class, CLI-owned helpers)
+  - `src/parsers/markdown.ts` (cross-cutting parser utility)
+  - `src/ai/types.ts` (`IModelProvider` interface only)
+- **CLI helpers ownership rule**: `src/cli/helpers/**` is CLI-owned; modules outside `src/cli/` must not import it.
+
+These rules are enforced by `scripts/check_code_style.ts` via:
+
+- `[cli-boundary-services]`
+- `[cli-boundary-config]`
+- `[core-boundary-cli-helpers]`
+
+---
+
+## 9. Related Documents
 
 This file is the single source for code style. Original sections remain in the
 following documents only as cross‑references:
