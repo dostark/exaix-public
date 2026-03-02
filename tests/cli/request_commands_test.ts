@@ -16,6 +16,8 @@ import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 
 describe("RequestCommands", () => {
   let tempDir: string;
@@ -30,7 +32,6 @@ describe("RequestCommands", () => {
     tempDir = result.tempDir;
     db = result.db;
     cleanup = result.cleanup;
-    const config = result.config;
 
     // Create mock flow file for testing
     const flowsDir = join(tempDir, "Blueprints", "Flows");
@@ -40,7 +41,7 @@ describe("RequestCommands", () => {
     requestsDir = getWorkspaceRequestsDir(tempDir);
 
     // Initialize RequestCommands
-    requestCommands = new RequestCommands({ config, db });
+    requestCommands = new RequestCommands(result.context);
   });
 
   afterEach(async () => {
@@ -459,9 +460,14 @@ Minimal content for show
     it("should return empty array when Workspace/Requests directory does not exist", async () => {
       // Create a fresh RequestCommands with non-existent directory
       const emptyDir = join(tempDir, "empty_workspace");
-      const emptyCommands = new RequestCommands(
-        { config: createMockConfig(emptyDir), db },
-      );
+      const context: ICliApplicationContext = {
+        config: createStubConfig(createMockConfig(emptyDir)),
+        db,
+        git: createStubGit(),
+        provider: createStubProvider(),
+        display: createStubDisplay(),
+      };
+      const emptyCommands = new RequestCommands(context);
 
       const requests = await emptyCommands.list();
       assertEquals(requests, []);
@@ -530,9 +536,14 @@ Minimal content for show
     it("should throw error when directory does not exist", async () => {
       // Create a fresh RequestCommands with non-existent directory
       const emptyDir = join(tempDir, "nonexistent_workspace");
-      const emptyCommands = new RequestCommands(
-        { config: createMockConfig(emptyDir), db },
-      );
+      const context: ICliApplicationContext = {
+        config: createStubConfig(createMockConfig(emptyDir)),
+        db,
+        git: createStubGit(),
+        provider: createStubProvider(),
+        display: createStubDisplay(),
+      };
+      const emptyCommands = new RequestCommands(context);
 
       await assertRejects(
         async () => await emptyCommands.show("any-id"),
@@ -607,9 +618,14 @@ Minimal content for show
       // Create a fresh workspace without the Requests dir
       const freshDir = join(tempDir, "fresh_workspace");
       await ensureDir(join(freshDir, ".exo")); // Need runtime dir for db
-      const freshCommands = new RequestCommands(
-        { config: createMockConfig(freshDir), db },
-      );
+      const context: ICliApplicationContext = {
+        config: createStubConfig(createMockConfig(freshDir)),
+        db,
+        git: createStubGit(),
+        provider: createStubProvider(),
+        display: createStubDisplay(),
+      };
+      const freshCommands = new RequestCommands(context);
 
       // This should create the directory automatically
       const result = await freshCommands.create("Test auto-create dir");

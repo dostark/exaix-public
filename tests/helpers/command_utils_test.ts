@@ -6,7 +6,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { CommandUtils } from "../../src/helpers/command_utils.ts";
+import { CommandUtils } from "../../src/cli/helpers/command_utils.ts";
 import { type ValidationResult } from "../../src/cli/base/command.ts";
 
 Deno.test("CommandUtils.formatValidationErrors: formats required fields and minimums", () => {

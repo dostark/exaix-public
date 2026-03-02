@@ -19,6 +19,8 @@ import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/path
 import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import type { EventLogger } from "../src/services/event_logger.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "./test_helpers.ts";
+import type { ICliApplicationContext } from "../src/cli/cli_context.ts";
 
 import type { JSONObject } from "../src/shared/types/json.ts";
 function parseFrontmatter(content: string): JSONObject {
@@ -313,7 +315,14 @@ Request info.
     assertStringIncludes(rejectedContent, `{"title": "Invalid Plan", "description": "Missing steps array"}`);
 
     // Verify CLI can display the error
-    const handler = new RequestShowHandler({ config, db });
+    const context: ICliApplicationContext = {
+      config: createStubConfig(config),
+      db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+    const handler = new RequestShowHandler(context);
     const showResult = await handler.show(requestId);
     assertEquals(showResult.metadata.error, "Technical writer generated invalid plan JSON");
   } finally {
@@ -372,7 +381,14 @@ error: "Validation failed"
 `,
     );
 
-    const handler = new RequestShowHandler({ config, db });
+    const context: ICliApplicationContext = {
+      config: createStubConfig(config),
+      db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+    const handler = new RequestShowHandler(context);
     const result = await handler.show(requestId);
 
     assertEquals(result.metadata.error, "Validation failed");

@@ -10,25 +10,25 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { ConfigService } from "../../src/config/service.ts";
-import type { Config } from "../../src/shared/schemas/config.ts";
 import { DaemonCommands } from "../../src/cli/commands/daemon_commands.ts";
 import { isProcessAlive } from "../../src/cli/process_utils.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
+import type { IDisplayService } from "../../src/shared/interfaces/i_display_service.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
-import { createStubDb } from "../test_helpers.ts";
+import { createStubContext, createStubDb } from "../test_helpers.ts";
 import type { JSONObject } from "../../src/shared/types/json.ts";
 
 /**
  * Helper class to expose and mock protected methods of DaemonCommands
  */
 class TestDaemonCommands extends DaemonCommands {
-  public mockActionLogger?: EventLogger;
+  public mockActionLogger?: IDisplayService;
 
-  public override async getActionLogger(): Promise<EventLogger> {
+  public override getActionLogger(): IDisplayService {
     if (this.mockActionLogger) return this.mockActionLogger;
-    return await super.getActionLogger();
+    return super.getActionLogger();
   }
 
   public override async logDaemonActivity(actionType: string, payload: JSONObject): Promise<void> {
@@ -93,7 +93,6 @@ describe("DaemonCommands", {
   let pidFile: string;
   let logFile: string;
   let mainScript: string;
-  let config: Config;
   let configService: ConfigService;
   let testCleanup: () => Promise<void>;
 
@@ -102,7 +101,6 @@ describe("DaemonCommands", {
     const result = await createCliTestContext();
     tempDir = result.tempDir;
     db = result.db;
-    config = result.config;
     configService = result.configService;
     testCleanup = result.cleanup;
 
@@ -134,7 +132,7 @@ await new Promise(() => {});
     // Ensure DaemonCommands uses our mock script
     Deno.env.set("EXO_DAEMON_SCRIPT", mainScript);
 
-    daemonCommands = new TestDaemonCommands({ config, db, configService });
+    daemonCommands = new TestDaemonCommands(createStubContext({ config: configService, db }));
   });
 
   afterEach(async () => {
@@ -585,7 +583,6 @@ describe("DaemonCommands - Edge Cases", () => {
   let db: DatabaseService;
   let daemonCommands: TestDaemonCommands;
   let pidFile: string;
-  let config: Config;
   let configService: ConfigService;
   let cleanup: () => Promise<void>;
 
@@ -594,13 +591,12 @@ describe("DaemonCommands - Edge Cases", () => {
     const result = await createCliTestContext();
     tempDir = result.tempDir;
     db = result.db;
-    config = result.config;
     configService = result.configService!;
     cleanup = result.cleanup;
 
     pidFile = join(tempDir, ".exo", "daemon.pid");
 
-    daemonCommands = new TestDaemonCommands({ config, db, configService });
+    daemonCommands = new TestDaemonCommands(createStubContext({ config: configService, db }));
   });
 
   afterEach(async () => {
@@ -671,9 +667,7 @@ describe("DaemonCommands - Edge Cases", () => {
 
   it("start() should throw when daemon command fails", async () => {
     const failingCommands = new TestDaemonCommands({
-      config: config,
-      db: db,
-      configService: configService,
+      ...createStubContext({ config: configService, db }),
       Command: MockCommand,
     });
 
@@ -698,9 +692,7 @@ describe("DaemonCommands - Edge Cases", () => {
 
   it("start() should throw when daemon command returns invalid PID", async () => {
     const failingCommands = new TestDaemonCommands({
-      config: config,
-      db: db,
-      configService: configService,
+      ...createStubContext({ config: configService, db }),
       Command: MockCommand,
     });
 

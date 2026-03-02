@@ -11,14 +11,14 @@ import type { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 Deno.test("DashboardCommands.show delegates to dashboard launcher", async () => {
-  const { config, db, cleanup } = await createCliTestContext();
+  const { context, db, cleanup } = await createCliTestContext();
   try {
     // Use correct type for calls array, matching launchTuiDashboard options
     type LaunchDashboardOptions = Parameters<typeof launchTuiDashboard>[0];
     const calls: Array<LaunchDashboardOptions | undefined> = [];
 
     const commands = DashboardCommands.create(
-      { config, db },
+      context,
       {
         launchDashboard: (options: LaunchDashboardOptions) => {
           calls.push(options);

@@ -1,3 +1,9 @@
+/**
+ * @module MCPDomainToolsTest
+ * @path tests/mcp/domain_tools_test.ts
+ * @description Tests for MCP domain tools including plan approval, request creation, and journal querying.
+ */
+
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { stub } from "@std/testing/mock";
 import { join } from "@std/path";
@@ -6,6 +12,8 @@ import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } f
 import { DatabaseService } from "../../src/services/db.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
 import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 
 // Mock Config
 const createMockConfig = (rootDir: string): Config => ({
@@ -51,8 +59,16 @@ Deno.test("MCP Domain Tools", async (t) => {
     );
   `);
 
+  const context: ICliApplicationContext = {
+    config: createStubConfig(config),
+    db,
+    git: createStubGit(),
+    provider: createStubProvider(),
+    display: createStubDisplay(),
+  };
+
   await t.step("CreateRequestTool", async () => {
-    const tool = new CreateRequestTool(config, db);
+    const tool = new CreateRequestTool(context);
     const result = await tool.execute({
       description: "Test Request",
       agent: "test-agent",
@@ -94,7 +110,7 @@ Plan content
 `;
     await Deno.writeTextFile(join(plansDir, `${planId}.md`), planContent);
 
-    const tool = new ListPlansTool(config, db);
+    const tool = new ListPlansTool(context);
     const result = await tool.execute({
       status: "pending",
       agent_id: "user-1",
@@ -123,7 +139,7 @@ To be approved
 `;
     await Deno.writeTextFile(join(plansDir, `${planId}.md`), planContent);
 
-    const tool = new ApprovePlanTool(config, db);
+    const tool = new ApprovePlanTool(context);
     const result = await tool.execute({
       plan_id: planId,
       agent_id: "user-1",
@@ -146,7 +162,7 @@ To be approved
     // Since we don't have public flush, let's just wait a bit or use getRecentActivities which flushes internally?
     // Looking at db.ts: getRecentActivity calls flush(). Great.
 
-    const tool = new QueryJournalTool(config, db);
+    const tool = new QueryJournalTool(context);
     const result = await tool.execute({
       limit: 10,
       agent_id: "user-1",
@@ -159,7 +175,7 @@ To be approved
   });
 
   await t.step("ListPlansTool uses default status", async () => {
-    const tool = new ListPlansTool(config, db);
+    const tool = new ListPlansTool(context);
     // No status provided -> should be PENDING
     const result = await tool.execute({
       agent_id: "user-1",
@@ -172,7 +188,7 @@ To be approved
   });
 
   await t.step("QueryJournalTool with trace_id", async () => {
-    const tool = new QueryJournalTool(config, db);
+    const tool = new QueryJournalTool(context);
     // Generate a known trace_id via logActivity
     const traceId = "special-trace-123";
     await db.logActivity("actor", "action", "target", {}, traceId);
@@ -200,7 +216,7 @@ To be approved
       () => Promise.reject(new Error("Database Failure")),
     );
 
-    const tool = new QueryJournalTool(config, db);
+    const tool = new QueryJournalTool(context);
 
     try {
       await assertRejects(
@@ -220,10 +236,10 @@ To be approved
 
   await t.step("Tools expose valid definitions", () => {
     const tools = [
-      new CreateRequestTool(config, db),
-      new ListPlansTool(config, db),
-      new ApprovePlanTool(config, db),
-      new QueryJournalTool(config, db),
+      new CreateRequestTool(context),
+      new ListPlansTool(context),
+      new ApprovePlanTool(context),
+      new QueryJournalTool(context),
     ];
 
     for (const tool of tools) {

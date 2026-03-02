@@ -14,6 +14,8 @@ import type { IRecordedResponse } from "../../../src/ai/providers/mock_llm_provi
  */
 
 import { dirname, fromFileUrl, join } from "@std/path";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../../test_helpers.ts";
+import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 import { FlowStepType, McpToolName, MemoryOperation, PortalOperation } from "../../../src/shared/enums.ts";
 import { copySync, ensureDir, exists } from "@std/fs";
 import { DatabaseService } from "../../../src/services/db.ts";
@@ -67,6 +69,19 @@ export class TestEnvironment {
     this.config = config;
     this.db = db;
     this._dbCleanup = cleanup;
+  }
+
+  /**
+   * Get ICliApplicationContext for this environment
+   */
+  getContext(): ICliApplicationContext {
+    return {
+      config: createStubConfig(this.config),
+      db: this.db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
   }
 
   /**

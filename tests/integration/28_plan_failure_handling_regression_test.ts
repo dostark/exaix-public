@@ -53,7 +53,7 @@ Deno.test("Integration: Plan Failure Handling - moves to Rejected and updates Re
     assertStringIncludes(updatedRequestContent, `status: ${ExecutionStatus.FAILED}`);
 
     // 6. Verify RequestListHandler inbox is now empty (archived requests are moved out)
-    const handler = new RequestListHandler({ config: env.config, db: env.db });
+    const handler = new RequestListHandler(env.getContext());
     const requests = await handler.list();
 
     assertEquals(requests.length, 0, "Inbox should be empty after request is archived on failure");

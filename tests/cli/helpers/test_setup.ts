@@ -12,6 +12,8 @@ import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";
 import { GitTestHelper, setupGitRepo } from "../../helpers/git_test_helper.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../../test_helpers.ts";
+import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 
 /**
  * Creates a complete portal test environment with all necessary directories
@@ -39,7 +41,14 @@ export async function initPortalTest(options?: {
   }
 
   const config = createMockConfig(tempRoot);
-  const commands = new PortalCommands({ config, db });
+  const context: ICliApplicationContext = {
+    config: createStubConfig(config),
+    db,
+    git: createStubGit(),
+    provider: createStubProvider(),
+    display: createStubDisplay(),
+  };
+  const commands = new PortalCommands(context);
 
   const cleanup = async () => {
     await dbCleanup();
@@ -55,6 +64,7 @@ export async function initPortalTest(options?: {
     config,
     db,
     commands,
+    context,
     cleanup,
   };
 }
@@ -146,12 +156,20 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
   const configPath = join(tempDir, "exo.config.toml");
   const configService = new ConfigService(configPath);
 
+  const context: ICliApplicationContext = {
+    config: configService,
+    db,
+    git: createStubGit(),
+    provider: createStubProvider(),
+    display: createStubDisplay(),
+  };
+
   const cleanupAll = async () => {
     Deno.env.delete("EXO_TEST_CLI_MODE");
     await cleanup();
   };
 
-  return { db, tempDir, config, configService, cleanup: cleanupAll };
+  return { db, tempDir, config, configService, context, cleanup: cleanupAll };
 }
 
 /**

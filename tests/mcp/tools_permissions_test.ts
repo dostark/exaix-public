@@ -13,6 +13,8 @@ import { ReadFileTool } from "../../src/mcp/handlers/read_file_tool.ts";
 import { WriteFileTool } from "../../src/mcp/handlers/write_file_tool.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
 import { initToolPermissionTest } from "./helpers/test_setup.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 
 // ============================================================================
 // Read Operation Permission Tests
@@ -26,12 +28,19 @@ async function withToolPermission(
     initGit?: boolean;
     agentId?: string;
   },
-  fn: (ctx: { config: any; db: any; permissions: PortalPermissionsService }) => Promise<void>,
+  fn: (ctx: { context: ICliApplicationContext; permissions: PortalPermissionsService }) => Promise<void>,
 ) {
   const ctx = await initToolPermissionTest(options);
   try {
     const permissions = new PortalPermissionsService([ctx.permissions]);
-    await fn({ ...ctx, permissions });
+    const context: ICliApplicationContext = {
+      config: createStubConfig(ctx.config),
+      db: ctx.db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+    await fn({ context, permissions });
   } finally {
     await ctx.cleanup();
   }
@@ -47,8 +56,8 @@ Deno.test("MCP Tools: read_file requires read permission", async () => {
       operations: [PortalOperation.READ],
       fileContent: { "test.txt": "content" },
     },
-    async ({ config, db, permissions }) => {
-      const tool = new ReadFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new ReadFileTool(context, permissions);
 
       const result = await tool.execute({
         portal: "TestPortal",
@@ -67,8 +76,8 @@ Deno.test("MCP Tools: read_file rejects when read permission denied", async () =
       operations: [PortalOperation.WRITE], // No read permission
       fileContent: { "test.txt": "content" },
     },
-    async ({ config, db, permissions }) => {
-      const tool = new ReadFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new ReadFileTool(context, permissions);
 
       await assertRejects(
         async () => {
@@ -94,8 +103,8 @@ Deno.test("MCP Tools: write_file requires write permission", async () => {
     {
       operations: [PortalOperation.READ, PortalOperation.WRITE],
     },
-    async ({ config, db, permissions }) => {
-      const tool = new WriteFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new WriteFileTool(context, permissions);
 
       const result = await tool.execute({
         portal: "TestPortal",
@@ -114,8 +123,8 @@ Deno.test("MCP Tools: write_file rejects when write permission denied", async ()
     {
       operations: [PortalOperation.READ], // No write permission
     },
-    async ({ config, db, permissions }) => {
-      const tool = new WriteFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new WriteFileTool(context, permissions);
 
       await assertRejects(
         async () => {
@@ -143,8 +152,8 @@ Deno.test("MCP Tools: git_status requires git permission", async () => {
       operations: [PortalOperation.READ, PortalOperation.GIT],
       initGit: true,
     },
-    async ({ config, db, permissions }) => {
-      const tool = new GitStatusTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new GitStatusTool(context, permissions);
 
       const result = await tool.execute({
         portal: "TestPortal",
@@ -161,8 +170,8 @@ Deno.test("MCP Tools: git_status rejects when git permission denied", async () =
     {
       operations: [PortalOperation.READ, PortalOperation.WRITE], // No git permission
     },
-    async ({ config, db, permissions }) => {
-      const tool = new GitStatusTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new GitStatusTool(context, permissions);
 
       await assertRejects(
         async () => {
@@ -189,8 +198,8 @@ Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
       fileContent: { "test.txt": "content" },
     },
-    async ({ config, db, permissions }) => {
-      const tool = new ReadFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new ReadFileTool(context, permissions);
 
       await assertRejects(
         async () => {
@@ -214,8 +223,8 @@ Deno.test("MCP Tools: allows wildcard agent access", async () => {
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
       fileContent: { "test.txt": "content" },
     },
-    async ({ config, db, permissions }) => {
-      const tool = new ReadFileTool(config, db, permissions);
+    async ({ context, permissions }) => {
+      const tool = new ReadFileTool(context, permissions);
 
       const result = await tool.execute({
         portal: "TestPortal",

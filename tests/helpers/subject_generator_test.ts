@@ -5,7 +5,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { extractFallbackSubject, resolveSubject, validateSubject } from "../../src/helpers/subject_generator.ts";
+import { extractFallbackSubject, resolveSubject, validateSubject } from "../../src/cli/helpers/subject_generator.ts";
 
 Deno.test("subject_generator - extractFallbackSubject", () => {
   assertEquals(extractFallbackSubject("Short description"), "Short description");

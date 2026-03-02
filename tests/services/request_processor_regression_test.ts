@@ -1,3 +1,9 @@
+/**
+ * @module RequestProcessorRegressionTest
+ * @path tests/services/request_processor_regression_test.ts
+ * @description Regression test for request processor provider selection issues.
+ */
+
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { ConfigService } from "../../src/config/service.ts";

@@ -10,7 +10,6 @@ import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { BaseCommand, type ICommandContext } from "../../src/cli/base.ts";
-import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 // Concrete implementation of BaseCommand for testing
@@ -55,18 +54,15 @@ class TestCommand extends BaseCommand {
 
 describe("BaseCommand", () => {
   let _tempDir: string;
-  let db: DatabaseService;
   let testCommand: TestCommand;
   let cleanup: () => Promise<void>;
 
   beforeEach(async () => {
     const result = await createCliTestContext();
     _tempDir = result.tempDir;
-    db = result.db;
-    const config = result.config;
     cleanup = result.cleanup;
 
-    testCommand = new TestCommand({ config, db });
+    testCommand = new TestCommand(result.context);
   });
 
   afterEach(async () => {

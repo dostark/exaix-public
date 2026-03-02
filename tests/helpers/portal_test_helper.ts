@@ -11,6 +11,8 @@ import { initTestDbService } from "./db.ts";
 import { createTestConfigService } from "./config.ts";
 import type { ConfigService } from "../../src/config/service.ts";
 import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";
+import { createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import { getPortalsDir } from "./paths_helper.ts";
 
 /**
@@ -35,14 +37,21 @@ export class PortalConfigTestHelper {
     const { db, cleanup: dbCleanup } = await initTestDbService();
 
     const configService = await createTestConfigService(tempRoot);
-    const config = configService.get();
 
     // Create portal symlink directory (Portals/) for mounted projects
     // and portal context store (Memory/Portals/) for portal context cards (Markdown)
     await Deno.mkdir(join(tempRoot, "Portals"), { recursive: true });
     await Deno.mkdir(getPortalsDir(tempRoot), { recursive: true });
 
-    const commands = new PortalCommands({ config, db, configService });
+    const context: ICliApplicationContext = {
+      config: configService,
+      db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+
+    const commands = new PortalCommands(context);
 
     return new PortalConfigTestHelper(
       tempRoot,
@@ -107,8 +116,14 @@ export class PortalConfigTestHelper {
    * Get fresh commands instance with updated config
    */
   getRefreshedCommands(): PortalCommands {
-    const config = this.configService.get();
-    return new PortalCommands({ config, db: this.db, configService: this.configService });
+    const context: ICliApplicationContext = {
+      config: this.configService,
+      db: this.db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+    return new PortalCommands(context);
   }
 
   /**

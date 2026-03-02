@@ -7,7 +7,8 @@
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
 
-import { type CLIContext, FlowCommands } from "../../src/cli/commands/flow_commands.ts";
+import { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";
@@ -18,23 +19,24 @@ import { createMockProvider } from "../helpers/mock_provider.ts";
 
 async function createMockContext(
   exit?: (code?: number) => never,
-): Promise<CLIContext & { cleanup: () => Promise<void> }> {
-  const { config, db, cleanup } = await createCliTestContext();
+): Promise<ICliApplicationContext & { exit?: (code?: number) => never; cleanup: () => Promise<void> }> {
+  const { context, cleanup } = await createCliTestContext();
   return {
-    config,
-    db,
+    ...context,
     provider: createMockProvider([]),
     exit,
     cleanup,
   };
 }
-function getFlowDir(ctx: CLIContext) {
-  return join(ctx.config.system.root, ctx.config.paths.blueprints, "Flows");
+function getFlowDir(ctx: ICliApplicationContext) {
+  const config = ctx.config.getAll();
+  return join(config.system.root, config.paths.blueprints, "Flows");
 }
 
-function seedFlowModuleSupportFiles(ctx: CLIContext, _flowDir: string) {
+function seedFlowModuleSupportFiles(ctx: ICliApplicationContext, _flowDir: string) {
   // We need the shared directory and define_flow.ts in Blueprints/Flows for dynamic import to work
-  const blueprintsDir = join(ctx.config.system.root, ctx.config.paths.blueprints);
+  const config = ctx.config.getAll();
+  const blueprintsDir = join(config.system.root, config.paths.blueprints);
   const flowsDir = join(blueprintsDir, "Flows");
   copySync("src/shared", join(flowsDir, "shared"));
 
@@ -49,7 +51,7 @@ function seedFlowModuleSupportFiles(ctx: CLIContext, _flowDir: string) {
 }
 
 async function withFlowsDir(
-  ctx: CLIContext & { cleanup: () => Promise<void> },
+  ctx: ICliApplicationContext & { cleanup: () => Promise<void> },
   fn: (flowDir: string) => Promise<void>,
 ) {
   const flowDir = getFlowDir(ctx);

@@ -7,7 +7,15 @@
 
 import type { IDatabaseService } from "../src/services/db.ts";
 import type { ActivityRepository } from "../src/repositories/activity_repository.ts";
+import { type Config, ConfigSchema } from "../src/shared/schemas/config.ts";
+import type { ICliApplicationContext } from "../src/cli/cli_context.ts";
+import type { IModelProvider } from "../src/ai/types.ts";
+import type { IGitService } from "../src/shared/interfaces/i_git_service.ts";
+import type { IDisplayService } from "../src/shared/interfaces/i_display_service.ts";
+import type { IConfigService } from "../src/shared/interfaces/i_config_service.ts";
 import { JSONObject } from "../src/shared/types/json.ts";
+import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { LogLevel } from "../src/shared/enums.ts";
 
 /**
  * Create a fully-typed stub implementation of the DatabaseService used in tests.
@@ -68,5 +76,88 @@ export function createMockRepo(overrides: Partial<ActivityRepository> = {}): Act
     getActivitiesByActionType: () => Promise.resolve([]),
     getRecentActivities: () => Promise.resolve([]),
   };
+  return Object.assign(base, overrides);
+}
+
+/**
+ * Create a stub IConfigService for tests.
+ */
+export function createStubConfig(config: Config): IConfigService {
+  return {
+    get: () => config,
+    getAll: () => config,
+    getConfigPath: () => "/mock/exo.config.toml",
+    reload: () => config,
+    addPortal: () => Promise.resolve(),
+    removePortal: () => Promise.resolve(),
+    getPortals: () => [],
+    getPortal: () => undefined,
+  };
+}
+
+/**
+ * Create a stub IModelProvider for tests.
+ */
+export function createStubProvider(): IModelProvider {
+  return {
+    id: "mock-provider",
+    generate: () => Promise.resolve("Mock response"),
+  };
+}
+
+/**
+ * Create a stub IGitService for tests.
+ */
+export function createStubGit(): IGitService {
+  return {
+    setRepository: () => {},
+    getRepository: () => "/mock/repo",
+    ensureRepository: () => Promise.resolve(),
+    ensureIdentity: () => Promise.resolve(),
+    createBranch: () => Promise.resolve("feature/test"),
+    commit: () => Promise.resolve("abcdef"),
+    checkoutBranch: () => Promise.resolve(),
+    getCurrentBranch: () => Promise.resolve("main"),
+    getDefaultBranch: () => Promise.resolve("main"),
+    addWorktree: () => Promise.resolve(),
+    removeWorktree: () => Promise.resolve(),
+    pruneWorktrees: () => Promise.resolve(""),
+    listWorktrees: () => Promise.resolve([]),
+    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
+  };
+}
+
+/**
+ * Create a stub IDisplayService for tests.
+ */
+export function createStubDisplay(): IDisplayService {
+  return {
+    info: () => {},
+    warn: () => {},
+    error: () => {},
+    debug: () => {},
+    log: () => {},
+    success: () => {},
+  } as unknown as IDisplayService;
+}
+
+/**
+ * Create a stub ICliApplicationContext for tests.
+ */
+export function createStubContext(overrides: Partial<ICliApplicationContext> = {}): ICliApplicationContext {
+  const root = "/tmp/exo-test";
+  const config: Config = ConfigSchema.parse({
+    system: { root, log_level: LogLevel.INFO },
+    paths: { ...ExoPathDefaults },
+  });
+
+  const base: ICliApplicationContext = {
+    db: createStubDb(),
+    config: createStubConfig(config),
+    provider: createStubProvider(),
+    git: createStubGit(),
+    display: createStubDisplay(),
+  };
+
   return Object.assign(base, overrides);
 }

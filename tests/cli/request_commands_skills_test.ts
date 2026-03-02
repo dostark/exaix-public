@@ -13,8 +13,8 @@ import { createCliTestContext } from "./helpers/test_setup.ts";
 import type { JSONObject } from "../../src/shared/types/json.ts";
 
 Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
-  const { tempDir, config, db, cleanup } = await createCliTestContext();
-  const requestCommands = new RequestCommands({ config, db });
+  const { tempDir, cleanup, context } = await createCliTestContext();
+  const requestCommands = new RequestCommands(context);
 
   await t.step("create request with explicit skills", async () => {
     // 1. Create request with skills

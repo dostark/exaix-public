@@ -8,7 +8,7 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { createStubDb } from "./test_helpers.ts";
+import { createStubConfig, createStubContext, createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { ConfigSchema } from "../src/shared/schemas/config.ts";
@@ -58,7 +58,9 @@ This blueprint uses multi-line YAML array format.
 
     const stubDb = createStubDb();
 
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
+    const blueprintCommands = new BlueprintCommands(
+      createStubContext({ config: createStubConfig(config), db: stubDb }),
+    );
 
     // List should find the blueprint and parse arrays correctly
     const blueprints = await blueprintCommands.list();

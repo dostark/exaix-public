@@ -24,7 +24,7 @@ describe("GitCommands", () => {
     const result = await createCliTestContext();
     tempDir = result.tempDir;
     db = result.db;
-    const config = result.config;
+    const config = result.configService;
     cleanup = result.cleanup;
 
     // Initialize git repository (creates master branch with 1 empty commit)
@@ -39,7 +39,7 @@ describe("GitCommands", () => {
     await runGitCommand(tempDir, [MemoryOperation.ADD, "System"]);
     await runGitCommand(tempDir, ["commit", "-m", "Setup project files"]);
 
-    gitCommands = new GitCommands({ config, db });
+    gitCommands = new GitCommands({ ...result.context, config, db });
   });
 
   afterEach(async () => {

@@ -8,13 +8,12 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { createStubDb } from "./test_helpers.ts";
+import { createStubConfig, createStubContext, createStubDb } from "./test_helpers.ts";
 import { type IReviewMetadata, ReviewCommands } from "../src/cli/commands/review_commands.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
-import type { ICommandContext } from "../src/cli/base.ts";
 import { createMockConfig } from "./helpers/config.ts";
-import type { IGitService } from "../src/services/git_service.ts";
+import type { IGitService } from "../src/shared/interfaces/i_git_service.ts";
 
 const TEST_REQUEST_ID = "request-test123";
 const TEST_TRACE_ID = "test-trace-123";
@@ -102,12 +101,8 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
 
     // Import ReviewCommands and dependencies
 
-    // Create mock config
+    // Create mock config and context
     const config = createMockConfig(tempDir);
-    const context: ICommandContext = {
-      config,
-      db: createStubDb({ getActivitiesByTrace: () => [] }),
-    };
 
     // Create a minimal mock for IGitService
     const mockGitService: IGitService = {
@@ -127,8 +122,14 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
       runGitCommand: (_args, _opts) => Promise.resolve({ output: "", exitCode: 0 }),
     };
 
+    const context = createStubContext({
+      config: createStubConfig(config),
+      db: createStubDb({ getActivitiesByTrace: () => [] }),
+      git: mockGitService,
+    });
+
     // Test that ReviewCommands can be instantiated with the enhanced interface
-    const reviewCommands = new ReviewCommands(context, mockGitService);
+    const reviewCommands = new ReviewCommands(context);
 
     // Verify the instance has the expected methods
     assertEquals(typeof reviewCommands.list, "function");

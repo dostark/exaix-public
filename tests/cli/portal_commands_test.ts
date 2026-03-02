@@ -285,9 +285,9 @@ Deno.test("PortalCommands: refresh regenerates context card", async () => {
 });
 
 Deno.test("PortalCommands: handles missing database gracefully", async () => {
-  const { tempRoot, targetDir, config } = await initPortalTest();
+  const { tempRoot, targetDir, context } = await initPortalTest();
   try {
-    const commands = new PortalCommands({ config });
+    const commands = new PortalCommands(context);
     await commands.add(targetDir, "NoDB");
 
     const portals = await commands.list();

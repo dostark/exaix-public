@@ -38,7 +38,7 @@ Deno.test("Integration: Request List - includes archived when requested", async 
     await loop.processTask(planC);
 
     // 3. Test: List without --all (should only show 'Active task')
-    const handler = new RequestListHandler({ config: env.config, db: env.db });
+    const handler = new RequestListHandler(env.getContext());
     const activeOnly = await handler.list();
     assertEquals(activeOnly.length, 1, "Should only show one active request");
     assertEquals(activeOnly[0].trace_id, traceActive);

@@ -11,6 +11,8 @@ import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import {
   getMemoryExecutionDir,
   getMemoryGlobalDir,
@@ -68,8 +70,16 @@ export class TestEnvironmentFactory {
     // Use the config returned by initTestDbService
     const config = baseConfig;
 
+    const context: ICliApplicationContext = {
+      config: createStubConfig(config),
+      db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+
     const memoryBank = new MemoryBankService(config, db);
-    const commands = new MemoryCommands({ config, db });
+    const commands = new MemoryCommands(context);
 
     // Extractor is optional but often needed
     const extractor = new MemoryExtractorService(config, db, memoryBank);

@@ -14,6 +14,8 @@ import type { IPortalPermissions } from "../../../src/shared/schemas/portal_perm
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import type { JSONValue } from "../../../src/shared/types/json.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../../test_helpers.ts";
+import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 
 export interface IToolPermissionOptions {
   portalAlias?: string;
@@ -108,13 +110,27 @@ async function initTestEnv(options: IPortalTestOptions & { prefix?: string }) {
 }
 
 /**
+ * Helper to create ICliApplicationContext from test env
+ */
+function createTestContext(config: any, db: any): ICliApplicationContext {
+  return {
+    config: createStubConfig(config),
+    db,
+    git: createStubGit(),
+    provider: createStubProvider(),
+    display: createStubDisplay(),
+  };
+}
+
+/**
  * Initialize MCP server test environment with portal
  */
 export async function initMCPTest(
   options: IPortalTestOptions = {},
 ): Promise<IMCPTestContext> {
   const env = await initTestEnv(options);
-  const server = new MCPServer({ config: env.config, db: env.db, transport: MCPTransport.STDIO });
+  const context = createTestContext(env.config, env.db);
+  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
   await server.start();
 
   const cleanup = async () => {
@@ -184,7 +200,8 @@ export async function initMCPTestWithoutPortal(): Promise<
   const { db, cleanup: dbCleanup } = await initTestDbService();
 
   const config = createMockConfig(tempDir);
-  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
+  const context = createTestContext(config, db);
+  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
   await server.start();
 
   const cleanup = async () => {

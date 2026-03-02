@@ -13,7 +13,7 @@ import { PORTAL_CONTEXT_KEY } from "../src/shared/constants.ts";
 import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
 import { ISkillsService } from "../src/shared/interfaces/i_skills_service.ts";
 import { ISkillMatchRequest } from "../src/shared/types/skill.ts";
-import type { ISkillMatch } from "../src/shared/schemas/memory_bank.ts";
+import type { ISkill, ISkillMatch } from "../src/shared/schemas/memory_bank.ts";
 
 // ============================================================================
 // Test Fixtures
@@ -791,7 +791,10 @@ class MockSkillsService implements ISkillsService {
     return Promise.resolve();
   }
 
-  deriveSkillFromLearnings(): Promise<any> {
+  deriveSkillFromLearnings(
+    _learningIds: string[],
+    _skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+  ): Promise<any> {
     return Promise.resolve({ skill_id: "derived" });
   }
 
@@ -801,6 +804,16 @@ class MockSkillsService implements ISkillsService {
 
   listSkills(): Promise<any[]> {
     return Promise.resolve([]);
+  }
+
+  initialize(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  createSkill(
+    _skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+  ): Promise<any> {
+    return Promise.resolve({ skill_id: "created" });
   }
 
   getSkill(_id: string): Promise<any> {

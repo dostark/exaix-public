@@ -7,7 +7,7 @@
 
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
-import { createStubDb } from "./test_helpers.ts";
+import { createStubConfig, createStubContext, createStubDb } from "./test_helpers.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import type { IDatabaseService } from "../src/services/db.ts";
 import { ExoPathDefaults } from "../src/shared/constants.ts";
@@ -200,7 +200,7 @@ Deno.test("[regression] BlueprintCommands works with stub db", async () => {
   const stubDb = createStubDb();
 
   // Create command handler
-  const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
+  const blueprintCommands = new BlueprintCommands(createStubContext({ config: createStubConfig(config), db: stubDb }));
 
   // list() should work without throwing db errors
   try {
@@ -225,7 +225,7 @@ Deno.test("[regression] RequestCommands works with stub db", async () => {
   const stubDb = createStubDb();
 
   // Create command handler
-  const requestCommands = new RequestCommands({ config, db: stubDb });
+  const requestCommands = new RequestCommands(createStubContext({ config: createStubConfig(config), db: stubDb }));
 
   // list() should work without throwing db errors
   try {
@@ -248,7 +248,7 @@ Deno.test("[regression] PlanCommands works with stub db", async () => {
   const stubDb = createStubDb();
 
   // Create command handler
-  const planCommands = new PlanCommands({ config, db: stubDb });
+  const planCommands = new PlanCommands(createStubContext({ config: createStubConfig(config), db: stubDb }));
 
   // list() should work without throwing db errors
   try {

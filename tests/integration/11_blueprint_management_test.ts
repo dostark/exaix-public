@@ -14,9 +14,7 @@ import type { IBlueprintMetadata } from "../../src/shared/schemas/blueprint.ts";
 
 Deno.test("Integration: Blueprint Management - Full Lifecycle", async (t) => {
   const env = await TestEnvironment.create();
-  const blueprintCommands = new BlueprintCommands(
-    { config: env.config, db: env.db },
-  );
+  const blueprintCommands = new BlueprintCommands(env.getContext());
 
   try {
     let customPromptPath: string;

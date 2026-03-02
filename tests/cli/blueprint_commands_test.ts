@@ -37,10 +37,7 @@ let context: ICommandContext;
 
 async function setupTest() {
   testEnv = await TestEnvironment.create();
-  context = {
-    config: testEnv.config,
-    db: testEnv.db,
-  };
+  context = testEnv.getContext();
   commands = new BlueprintCommands(context);
 }
 

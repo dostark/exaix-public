@@ -18,7 +18,7 @@ import {
   PlanReviewerView,
 } from "../../src/tui/plan_reviewer_view.ts";
 import { createPlanReviewerSession, sampleBasicPlans, samplePendingPlans, samplePlansWithStatuses } from "./helpers.ts";
-import { PlanServiceAdapter } from "../../src/services/adapters/plan_adapter.ts";
+import { PlanAdapter } from "../../src/services/adapters/plan_adapter.ts";
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 
 function yamlFrontmatter(obj: Record<string, string>): string {
@@ -84,7 +84,7 @@ async function setupPlanReviewerTest(options: {
     db,
   };
   const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanServiceAdapter(cmd));
+  const view = new PlanReviewerView(new PlanAdapter(cmd));
 
   return { root, view, cmd, db, planId };
 }

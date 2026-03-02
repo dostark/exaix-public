@@ -9,6 +9,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
 import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { createStubConfig, createStubContext } from "../test_helpers.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs } from "./helpers/test_utils.ts";
 import {
@@ -44,7 +45,7 @@ Deno.test("JournalCommands maps explicit options into query filters", async () =
   };
 
   try {
-    const cmd = new JournalCommands({ config, db });
+    const cmd = new JournalCommands(createStubContext({ config: createStubConfig(config), db }));
     await captureConsoleOutput(() =>
       cmd.show({
         tail: JOURNAL_TAIL_LIMIT,
@@ -79,7 +80,7 @@ Deno.test("JournalCommands maps filter strings to query filters", async () => {
   };
 
   try {
-    const cmd = new JournalCommands({ config, db });
+    const cmd = new JournalCommands(createStubContext({ config: createStubConfig(config), db }));
     await captureConsoleOutput(() =>
       cmd.show({
         filter: [
@@ -105,7 +106,7 @@ Deno.test("JournalCommands maps filter strings to query filters", async () => {
 
 Deno.test("JournalCommands warns on unknown filter keys", async () => {
   const { db, config, cleanup } = await initTestDbService();
-  const cmd = new JournalCommands({ config, db });
+  const cmd = new JournalCommands(createStubContext({ config: createStubConfig(config), db }));
 
   try {
     const { errs } = await captureAllOutputs(() =>
@@ -119,7 +120,7 @@ Deno.test("JournalCommands warns on unknown filter keys", async () => {
 
 Deno.test("JournalCommands exits on invalid filter format", async () => {
   const { db, config, cleanup } = await initTestDbService();
-  const cmd = new JournalCommands({ config, db });
+  const cmd = new JournalCommands(createStubContext({ config: createStubConfig(config), db }));
 
   try {
     const result = await expectExitWithLogs(() =>

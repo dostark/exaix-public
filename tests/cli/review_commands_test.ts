@@ -2,7 +2,7 @@
  * @module ReviewCommandsTest
  * @path tests/cli/review_commands_test.ts
  * @description Verifies CLI review operations for execution artifacts, including status listing,
- * detailed review viewing, and approval/rejection of agent-produced changes.
+ * detailed review viewing, and approval/rejection of code branches and artifacts.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
@@ -13,15 +13,15 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ReviewCommands } from "../../src/cli/commands/review_commands.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
-import { GitService } from "../../src/services/git_service.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
 
 describe("ReviewCommands", () => {
   let tempDir: string;
   let db: DatabaseService;
-  let gitService: GitService;
   let reviewCommands: ReviewCommands;
   let config: Config;
   let cleanup: () => Promise<void>;
@@ -37,8 +37,7 @@ describe("ReviewCommands", () => {
     // Initialize git repository
     await initGitRepo(tempDir);
 
-    gitService = new GitService({ config, db });
-    reviewCommands = new ReviewCommands({ config, db }, gitService);
+    reviewCommands = new ReviewCommands(result.context);
   });
 
   afterEach(async () => {
@@ -133,11 +132,16 @@ describe("ReviewCommands", () => {
           }],
         };
 
+        const portalContext: ICliApplicationContext = {
+          config: createStubConfig(portalConfig),
+          db,
+          git: createStubGit(),
+          provider: createStubProvider(),
+          display: createStubDisplay(),
+        };
+
         // Create review commands with the portal config
-        const portalReviewCommands = new ReviewCommands(
-          { config: portalConfig, db },
-          new GitService({ config: portalConfig, db }),
-        );
+        const portalReviewCommands = new ReviewCommands(portalContext);
 
         // Should find the review in the portal repo
         const reviews = await portalReviewCommands.list();
@@ -638,8 +642,6 @@ function delay(ms: number): Promise<void> {
 // Additional edge case tests from tests/review_commands_test.ts
 describe("ReviewCommands - Edge Cases", () => {
   let tempDir: string;
-  let db: DatabaseService;
-  let gitService: GitService;
   let reviewCommands: ReviewCommands;
   let cleanup: () => Promise<void>;
 
@@ -647,15 +649,12 @@ describe("ReviewCommands - Edge Cases", () => {
     // Initialize shared CLI test context
     const result = await createCliTestContext();
     tempDir = result.tempDir;
-    db = result.db;
-    const config = result.config;
     cleanup = result.cleanup;
 
     // Initialize git repository with master branch (like user's repo)
     await initGitRepo(tempDir);
 
-    gitService = new GitService({ config, db });
-    reviewCommands = new ReviewCommands({ config, db }, gitService);
+    reviewCommands = new ReviewCommands(result.context);
   });
 
   afterEach(async () => {

@@ -8,12 +8,13 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { createStubDb } from "./test_helpers.ts";
+import { createStubContext, createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import type { IPlanMetadata } from "../src/shared/types/plan.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
-import type { Config } from "../src/shared/schemas/config.ts";
+import { ConfigSchema } from "../src/shared/schemas/config.ts";
+import { LogLevel } from "../src/shared/enums.ts";
 
 const TEST_AGENT_ID = "test-agent";
 const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";
@@ -60,14 +61,20 @@ async function createTestWorkspace(baseDir: string): Promise<{
   return { plansDir, activeDir, rejectedDir };
 }
 
+import { createStubConfig } from "./test_helpers.ts";
+
 // Helper for test setup
 function initPlanTest(tempDir: string) {
-  const config = {
-    system: { root: tempDir },
+  const config = ConfigSchema.parse({
+    system: { root: tempDir, log_level: LogLevel.INFO },
     paths: { ...ExoPathDefaults },
-  } as Partial<Config> as Config;
+  });
   const stubDb = createStubDb();
-  return { config, stubDb };
+  const context = createStubContext({
+    config: createStubConfig(config),
+    db: stubDb,
+  });
+  return { context };
 }
 
 // ============================================================================
@@ -84,8 +91,8 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     const traceId = crypto.randomUUID();
     await createPlanFile(activeDir, TEST_PLAN_FILE, PlanStatus.APPROVED, traceId);
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // List with status=approved - should find the plan in Active directory
     const approvedPlans = await planCommands.list(PlanStatus.APPROVED);
@@ -110,8 +117,8 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     const traceId = crypto.randomUUID();
     await createPlanFile(rejectedDir, TEST_PLAN_REJECTED_FILE, PlanStatus.REJECTED, traceId);
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // List with status=rejected - should find the plan in Rejected directory
     const rejectedPlans = await planCommands.list(PlanStatus.REJECTED);
@@ -132,8 +139,8 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     // Create a review plan in Plans directory
     const traceId = crypto.randomUUID();
     await createPlanFile(plansDir, TEST_PLAN_FILE, PlanStatus.REVIEW, traceId);
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // List with status=review - should find the plan in Plans directory
     const reviewPlans = await planCommands.list(PlanStatus.REVIEW);
@@ -156,8 +163,8 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     await createPlanFile(activeDir, "approved_plan.md", PlanStatus.APPROVED, crypto.randomUUID());
     await createPlanFile(rejectedDir, "rejected_plan.md", PlanStatus.REJECTED, crypto.randomUUID());
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // List without filter - should find all 3 plans from all directories
     const allPlans = await planCommands.list();
@@ -179,8 +186,8 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
 
     // Don't create any plan files - directories are empty
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // Should not throw, just return empty array
     const allPlans = await planCommands.list();
@@ -215,8 +222,8 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
     await createPlanFile(activeDir, `${activePlanId}.md`, PlanStatus.APPROVED, crypto.randomUUID());
     await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, PlanStatus.REJECTED, crypto.randomUUID());
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // Before the fix: reject() would only search Workspace/Plans directory
     // After the fix: reject() searches all directories like show() and list()
@@ -292,8 +299,8 @@ This plan references a request and should show request context.
 `;
     await Deno.writeTextFile(planPath, planContent);
 
-    const { config, stubDb } = initPlanTest(tempDir);
-    const planCommands = new PlanCommands({ config, db: stubDb });
+    const { context } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands(context);
 
     // Test plan list includes request context
     const plans = await planCommands.list();

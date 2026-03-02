@@ -52,7 +52,6 @@ describe("PlanCommands", () => {
     tempDir = result.tempDir;
     db = result.db;
     cleanup = result.cleanup;
-    const config = result.config;
 
     // Derived paths
     inboxPlansDir = getWorkspacePlansDir(tempDir);
@@ -61,7 +60,7 @@ describe("PlanCommands", () => {
     archiveDir = getWorkspaceArchiveDir(tempDir);
 
     // Initialize PlanCommands
-    planCommands = new PlanCommands({ config, db });
+    planCommands = new PlanCommands(result.context);
   });
 
   afterEach(async () => {

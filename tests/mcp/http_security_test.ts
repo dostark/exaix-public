@@ -13,6 +13,8 @@ import { initTestDbService } from "../helpers/db.ts";
 import { join } from "@std/path";
 import type { Config } from "../../src/shared/schemas/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
+import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
+import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 
 /**
  * Clean up audit folder created during tests
@@ -42,9 +44,16 @@ async function withMCPServerSecurity(
   }
 
   try {
-    const server = new MCPServer({
-      config,
+    const context: ICliApplicationContext = {
+      config: createStubConfig(config),
       db,
+      git: createStubGit(),
+      provider: createStubProvider(),
+      display: createStubDisplay(),
+    };
+
+    const server = new MCPServer({
+      context,
       transport: options.transport || MCPTransport.STDIO,
     });
 

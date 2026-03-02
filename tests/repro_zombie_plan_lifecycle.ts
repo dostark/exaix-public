@@ -1,3 +1,9 @@
+/**
+ * @module ZombiePlanLifecycleReproTest
+ * @path tests/repro_zombie_plan_lifecycle.ts
+ * @description Reproduction test for zombie plan lifecycle issue in manual execution mode.
+ */
+
 import { assert } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";

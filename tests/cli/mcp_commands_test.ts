@@ -12,7 +12,7 @@ import { createCliTestContext } from "./helpers/test_setup.ts";
 import { TEST_MCP_DEFAULT_PORT, TEST_MCP_PORT } from "../config/constants.ts";
 
 Deno.test("McpCommands.start(sse): calls MCPServer.startHTTPServer with requested/default port", async () => {
-  const { config, db, cleanup } = await createCliTestContext();
+  const { context, cleanup } = await createCliTestContext();
 
   const originalStart = MCPServer.prototype.start;
   const originalStartHTTP = MCPServer.prototype.startHTTPServer;
@@ -30,7 +30,7 @@ Deno.test("McpCommands.start(sse): calls MCPServer.startHTTPServer with requeste
       return Promise.resolve();
     };
 
-    const commands = new McpCommands({ config, db });
+    const commands = new McpCommands(context);
 
     await commands.start({ sse: true, port: TEST_MCP_PORT });
     await commands.start({ sse: true });

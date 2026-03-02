@@ -19,8 +19,8 @@ interface Frontmatter {
 }
 
 Deno.test("PlanCommands - Skills Injection on Approve", async (t) => {
-  const { tempDir, config, db, cleanup } = await createCliTestContext();
-  const planCommands = new PlanCommands({ config, db });
+  const { tempDir, context, cleanup } = await createCliTestContext();
+  const planCommands = new PlanCommands(context);
 
   await t.step("approve plan with skills", async () => {
     // 1. Create a mock plan file in Workspace/Plans
