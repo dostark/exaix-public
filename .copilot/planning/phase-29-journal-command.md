@@ -44,11 +44,7 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
 - **Actions:**
   1. Create `JournalCommands` class following the pattern of `PlanCommands`.
-  1.
-     - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
-     - `--tail <number>` (Alias `-n`, default 50)
-     - `--format <json|table>` (Default table)
-     - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.
+  1. Define command options: `--filter <string[]>` (allow multiple, e.g. `-f trace_id=... -f action_type=...`), `--tail <number>` (alias `-n`, default 50), `--format <json|table>` (default table), and `--follow, -f` (future: streaming support; decision for this step is static query first).
 
 **Success Criteria:**
 
@@ -144,3 +140,4 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 - [x] Manual verification via `exoctl dashboard`.
 - [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.
+

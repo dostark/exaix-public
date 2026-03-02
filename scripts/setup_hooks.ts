@@ -44,14 +44,25 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 5. Complexity Check
+# 5. Markdown Lint (only when staged markdown files changed)
+STAGED_MD_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.md$' || true)
+if [ -n "$STAGED_MD_FILES" ]; then
+  echo "📝 Markdown files changed; running markdown lint..."
+  printf '%s\n' "$STAGED_MD_FILES" | xargs deno run --allow-read scripts/markdown_lint.ts
+  if [ $? -ne 0 ]; then
+    echo "❌ Error: Markdown lint failed."
+    exit 1
+  fi
+fi
+
+# 6. Complexity Check
 deno task check:complexity
 if [ $? -ne 0 ]; then
   echo "❌ Error: Code complexity exceeds threshold. Please refactor complex functions."
   exit 1
 fi
 
-# 6. Architecture Check
+# 7. Architecture Check
 deno task check:arch
 if [ $? -ne 0 ]; then
   echo "❌ Error: Architecture validation failed."
@@ -109,7 +120,7 @@ async function installHooks() {
   }
 
   console.log("✅ Hooks installed successfully in .git/hooks/");
-  console.log("   - pre-commit: fmt, lint, style/boundary, docs drift, complexity, architecture");
+  console.log("   - pre-commit: fmt, lint, style/boundary, docs drift, markdown lint (staged .md only), complexity, architecture");
   console.log("   - pre-push: type-check, security tests");
 }
 

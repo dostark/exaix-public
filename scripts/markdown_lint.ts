@@ -228,6 +228,36 @@ function parseFenceStart(line: string): Fence | null {
   return null;
 }
 
+function isTableSeparatorRow(line: string): boolean {
+  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+}
+
+function normalizeSeparatorCell(cell: string): string {
+  const trimmed = cell.trim();
+  const left = trimmed.startsWith(":");
+  const right = trimmed.endsWith(":");
+  const hyphenCount = (trimmed.match(/-/g) || []).length;
+  const dashes = "-".repeat(Math.max(3, hyphenCount || 3));
+  return `${left ? ":" : ""}${dashes}${right ? ":" : ""}`;
+}
+
+function normalizeTableRowCompact(row: string, separatorRow: boolean): string {
+  const trimmed = row.trim();
+  const hasLeadingPipe = trimmed.startsWith("|");
+  const hasTrailingPipe = trimmed.endsWith("|");
+
+  let core = trimmed;
+  if (hasLeadingPipe) core = core.slice(1);
+  if (hasTrailingPipe) core = core.slice(0, -1);
+
+  const rawCells = core.split("|");
+  const cells = separatorRow
+    ? rawCells.map((cell) => normalizeSeparatorCell(cell))
+    : rawCells.map((cell) => cell.trim());
+
+  return `| ${cells.join(" | ")} |`;
+}
+
 function isFenceClose(line: string, fence: Fence): boolean {
   const trimmed = line.trimStart();
   const closeMatch = new RegExp(`^${fence.char}{${fence.length},}(?:\\s*)$`).exec(
@@ -352,39 +382,32 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
   // Fix MD060: table column style
   const md060Fixes = findings.filter(f => f.rule === "MD060/table-column-style");
   if (md060Fixes.length > 0) {
-    // This is more complex - we need to realign table pipes
-    // For now, implement a basic fix that ensures consistent spacing
     const lines = splitLines(text);
-    const newLines: string[] = [];
+    const newLines = [...lines];
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes("|")) {
-        // Check if this is part of a table
-        const isTableRow = line.includes("|");
-        const isSeparatorRow = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+    for (let i = 0; i + 1 < lines.length; i++) {
+      const header = lines[i];
+      const separator = lines[i + 1];
 
-        if (isTableRow && !isSeparatorRow) {
-          // Apply compact style: single space padding around content
-          const parts = line.split("|");
-          const cleanedParts = parts.map((part, idx) => {
-            const trimmed = part.trim();
-            if (idx === 0 && !line.trim().startsWith("|")) {
-              return trimmed + " ";
-            } else if (idx === parts.length - 1 && !line.trim().endsWith("|")) {
-              return " " + trimmed;
-            } else {
-              return " " + trimmed + " ";
-            }
-          });
-          newLines.push(cleanedParts.join("|"));
-          changed = true;
-        } else {
-          newLines.push(line);
-        }
-      } else {
-        newLines.push(line);
+      if (!header.includes("|") || !isTableSeparatorRow(separator)) {
+        continue;
       }
+
+      let rowIndex = i;
+      while (rowIndex < lines.length) {
+        const row = lines[rowIndex];
+        if (row.trim() === "" || !row.includes("|")) break;
+
+        const normalized = normalizeTableRowCompact(row, isTableSeparatorRow(row));
+        if (normalized !== row) {
+          newLines[rowIndex] = normalized;
+          changed = true;
+        }
+
+        rowIndex++;
+      }
+
+      i = Math.max(i, rowIndex - 1);
     }
 
     text = newLines.join("\n");
@@ -799,14 +822,6 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
   // MD060/table-column-style: enforce aligned table pipes.
   // Checks that the '|' characters align across header/separator/body rows.
   {
-    const isTableSeparatorRow = (s: string): boolean => {
-      // Examples:
-      // | --- | --- |
-      // |:--- | ---:|
-      // ---|---
-      return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(s);
-    };
-
     const isEscapedAt = (s: string, index: number): boolean => {
       // A character is escaped if preceded by an odd number of backslashes.
       let count = 0;

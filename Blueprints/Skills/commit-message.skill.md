@@ -78,15 +78,18 @@ Context:
 <why this change is needed>
 
 Changes:
+
 - <important change 1>
 - <important change 2>
 
 Validation:
+
 - <checks run>
 
 References:
+
 - <issue/plan step/breaking change note>
-```
+
 
 When committing from CLI, avoid chained `-m` usage. Prefer one multiline message:
 
@@ -98,15 +101,18 @@ Context:
 <why this change is needed>
 
 Changes:
+
 - <important change 1>
 - <important change 2>
 
 Validation:
+
 - <checks run>
 
 References:
+
 - <issue/plan step/breaking change note>
-COMMIT_MSG
+
 ```
 
 ## Types
@@ -178,9 +184,9 @@ UserService to new ValidationService for reuse.
 ## Subject Line Rules
 
 1. **Use imperative mood**: "Add feature" not "Added feature"
-2. **Don't capitalize first letter** after type
-3. **No period at the end**
-4. **Max 72 characters** (50 is better)
+
+1.
+1.
 
 ```text
 ✅ feat(cart): add quantity validation
@@ -232,7 +238,8 @@ Use consistent scopes across your project:
 ## Why Conventional Commits?
 
 1. **Automated changelogs** from commit history
-2. **Semantic versioning** determined automatically
-3. **Searchable history** by type/scope
-4. **Clear communication** of change nature
-5. **CI/CD triggers** based on commit type
+
+1.
+1.
+1.
+

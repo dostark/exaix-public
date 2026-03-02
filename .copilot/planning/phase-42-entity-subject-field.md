@@ -43,7 +43,7 @@ The subject is stored in each entity's frontmatter/metadata, displayed in CLI `l
 ### 1. Subject Field Specification
 
 | Property | Value |
-|---|---|
+| --- | --- |
 | Field name | `subject` |
 | Type | `string` (optional) |
 | Max length | 80 characters (truncated with `…` if longer) |
@@ -311,3 +311,4 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 - Review a plan and verify subject propagation to review.
 
 ```
+
