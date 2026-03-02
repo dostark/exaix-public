@@ -3,6 +3,8 @@
  * @path src/shared/interfaces/i_context_card_generator_service.ts
  * @description Interface for context card generation services.
  * @architectural-layer Shared
+ * @dependencies []
+ * @related-files [src/services/adapters/context_card_adapter.ts, src/cli/cli_context.ts]
  */
 
 export interface IContextCardOptions {

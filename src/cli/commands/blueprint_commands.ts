@@ -14,7 +14,6 @@ import { BaseCommand, ICommandContext } from "../base.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../helpers/command_utils.ts";
-import { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import {
   BlueprintFrontmatterSchema,
   type IBlueprintCreateResult,
@@ -322,10 +321,6 @@ exoctl request "Test request" --agent mock
 export class BlueprintCommands extends BaseCommand {
   constructor(context: ICommandContext) {
     super(context);
-  }
-
-  private get display(): IDisplayService {
-    return this.context.display;
   }
 
   /**

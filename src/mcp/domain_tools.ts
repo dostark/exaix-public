@@ -28,7 +28,7 @@ export class CreateRequestTool extends ToolHandler {
     const { description, agent, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
 
     try {
-      const requestCmd = new RequestCommands({ config: this.config, db: this.db });
+      const requestCmd = new RequestCommands(this.context);
 
       // Note: context support might need to be added to RequestCommands or handled here if important.
       // CLI create() takes options: agent, priority, portal, model. Context files are usually passed in creating context cards or implicit.
@@ -100,7 +100,7 @@ export class ListPlansTool extends ToolHandler {
     const filterStatus: PlanStatusType = status ?? PlanStatus.PENDING;
 
     try {
-      const planCmd = new PlanCommands({ config: this.config, db: this.db });
+      const planCmd = new PlanCommands(this.context);
 
       const plans = await planCmd.list(filterStatus);
 
@@ -156,7 +156,7 @@ export class ApprovePlanTool extends ToolHandler {
     const { plan_id, agent_id } = validatedArgs;
 
     try {
-      const planCmd = new PlanCommands({ config: this.config, db: this.db });
+      const planCmd = new PlanCommands(this.context);
 
       // We don't check existence separately as approve() handles it (or throws)
       await planCmd.approve(plan_id);

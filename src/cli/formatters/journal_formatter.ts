@@ -9,12 +9,12 @@
 
 import { Table } from "@cliffy/table";
 import * as colors from "@std/fmt/colors";
-import { ActivityRecord } from "../../services/db.ts";
+import { IActivityRecord } from "../../shared/types/database.ts";
 import { IJournalFilterOptions } from "../../shared/types/database.ts";
 
 export class JournalFormatter {
   static render(
-    activities: ActivityRecord[],
+    activities: IActivityRecord[],
     filter: IJournalFilterOptions,
     format: "json" | "table" | "text" = "text",
   ): void {
@@ -35,14 +35,14 @@ export class JournalFormatter {
     }
   }
 
-  private static renderTable(activities: ActivityRecord[], filter: IJournalFilterOptions) {
+  private static renderTable(activities: IActivityRecord[], filter: IJournalFilterOptions) {
     // Handle different query types
     if (filter.distinct) {
       // DISTINCT query - show the distinct field values
       const table = new Table()
         .header([colors.bold(filter.distinct)])
         .body(
-          activities.map((a) => [String(a[filter.distinct as keyof ActivityRecord] || "")]),
+          activities.map((a) => [String(a[filter.distinct as keyof IActivityRecord] || "")]),
         );
       table.render();
       return;
@@ -93,7 +93,7 @@ export class JournalFormatter {
     table.render();
   }
 
-  private static renderText(activities: ActivityRecord[], filter: IJournalFilterOptions) {
+  private static renderText(activities: IActivityRecord[], filter: IJournalFilterOptions) {
     // Handle different query types
     if (filter.distinct) {
       this.renderDistinctText(activities, filter.distinct);
@@ -122,14 +122,14 @@ export class JournalFormatter {
     }
   }
 
-  private static renderDistinctText(activities: ActivityRecord[], distinctField: string) {
+  private static renderDistinctText(activities: IActivityRecord[], distinctField: string) {
     for (const activity of activities) {
-      const value = activity[distinctField as keyof ActivityRecord] || "";
+      const value = activity[distinctField as keyof IActivityRecord] || "";
       console.log(value);
     }
   }
 
-  private static renderCountText(activities: ActivityRecord[]) {
+  private static renderCountText(activities: IActivityRecord[]) {
     for (const activity of activities) {
       console.log(`${activity.action_type}: ${activity.count || 0}`);
     }

@@ -315,6 +315,22 @@ export class MinimalSkillsServiceMock implements ISkillsService {
   rebuildIndex(): Promise<void> {
     return Promise.resolve();
   }
+
+  initialize(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill> {
+    const newSkill: ISkill = {
+      ...skillDef,
+      id: `skill-${Date.now()}`,
+      skill_id: `skill-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      usage_count: 0,
+    };
+    this.skills.push(newSkill);
+    return Promise.resolve(newSkill);
+  }
 }
 
 // ===== TUI Session Class =====

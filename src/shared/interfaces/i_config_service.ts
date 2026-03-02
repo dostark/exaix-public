@@ -30,6 +30,11 @@ export interface IConfigService {
   getAll(): Config;
 
   /**
+   * Get the path to the configuration file.
+   */
+  getConfigPath(): string;
+
+  /**
    * Reload configuration from disk.
    */
   reload(): Config;

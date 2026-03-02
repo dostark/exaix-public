@@ -11,12 +11,12 @@ import type { RequestCommands } from "../commands/request_commands.ts";
 import { RequestPriority } from "../../shared/enums.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
-import type { EventLogger } from "../../services/event_logger.ts";
+import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
 
 export interface IRequestActionContext {
   requestCommands: RequestCommands;
-  display: EventLogger;
+  display: IDisplayService;
 }
 
 export interface RequestCreateOptions {

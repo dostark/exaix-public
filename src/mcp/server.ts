@@ -8,6 +8,7 @@
  */
 import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
+import type { ICliApplicationContext } from "../cli/cli_context.ts";
 import { MCPConfigSchema, type MCPTool } from "../shared/schemas/mcp.ts";
 import { JSONValue } from "../shared/types/json.ts";
 import { ToolHandler } from "./tool_handler.ts";
@@ -42,8 +43,7 @@ import { logInfo } from "../services/structured_logger.ts";
  */
 
 interface MCPServerOptions {
-  config: Config;
-  db: IDatabaseService;
+  context: ICliApplicationContext;
   transport: "stdio" | "sse";
 }
 
@@ -96,6 +96,7 @@ interface HasConstructor {
 }
 
 export class MCPServer {
+  private context: ICliApplicationContext;
   private config: Config;
   private db: IDatabaseService;
   private transport: "stdio" | "sse";
@@ -105,8 +106,9 @@ export class MCPServer {
   private tools: Map<string, ToolHandler> = new Map();
 
   constructor(options: MCPServerOptions) {
-    this.config = options.config;
-    this.db = options.db;
+    this.context = options.context;
+    this.config = options.context.config.getAll();
+    this.db = options.context.db;
     this.transport = options.transport;
 
     // Validate MCP config
@@ -115,16 +117,16 @@ export class MCPServer {
     this.serverVersion = mcpConfig.version;
 
     // Register tools
-    this.registerTool(new ReadFileTool(this.config, this.db));
-    this.registerTool(new WriteFileTool(this.config, this.db));
-    this.registerTool(new ListDirectoryTool(this.config, this.db));
-    this.registerTool(new GitCreateBranchTool(this.config, this.db));
-    this.registerTool(new GitCommitTool(this.config, this.db));
-    this.registerTool(new GitStatusTool(this.config, this.db));
-    this.registerTool(new CreateRequestTool(this.config, this.db));
-    this.registerTool(new ListPlansTool(this.config, this.db));
-    this.registerTool(new ApprovePlanTool(this.config, this.db));
-    this.registerTool(new QueryJournalTool(this.config, this.db));
+    this.registerTool(new ReadFileTool(this.context));
+    this.registerTool(new WriteFileTool(this.context));
+    this.registerTool(new ListDirectoryTool(this.context));
+    this.registerTool(new GitCreateBranchTool(this.context));
+    this.registerTool(new GitCommitTool(this.context));
+    this.registerTool(new GitStatusTool(this.context));
+    this.registerTool(new CreateRequestTool(this.context));
+    this.registerTool(new ListPlansTool(this.context));
+    this.registerTool(new ApprovePlanTool(this.context));
+    this.registerTool(new QueryJournalTool(this.context));
   }
 
   /**

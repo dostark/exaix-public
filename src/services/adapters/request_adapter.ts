@@ -7,7 +7,6 @@
  * @related-files [src/cli/commands/request_commands.ts, src/shared/interfaces/i_request_service.ts]
  */
 
-import { RequestCommands } from "../../cli/commands/request_commands.ts";
 import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
 import { type RequestStatusType } from "../../shared/status/request_status.ts";
 import type {
@@ -18,15 +17,15 @@ import type {
   RequestSource,
 } from "../../shared/types/request.ts";
 
-export class RequestServiceAdapter implements IRequestService {
-  constructor(private commands: RequestCommands) {}
+export class RequestAdapter implements IRequestService {
+  constructor(private service: any) {}
 
   async create(
     description: string,
     options?: IRequestOptions,
     source?: RequestSource,
   ): Promise<IRequestMetadata> {
-    return await this.commands.create(description, options, source);
+    return await this.service.create(description, options, source);
   }
 
   async createRequest(description: string, options?: IRequestOptions): Promise<IRequestMetadata> {
@@ -37,7 +36,7 @@ export class RequestServiceAdapter implements IRequestService {
     status?: RequestStatusType,
     includeArchived?: boolean,
   ): Promise<IRequestEntry[]> {
-    return await this.commands.list(status, includeArchived);
+    return await this.service.list(status, includeArchived);
   }
 
   async listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequestEntry[]> {
@@ -45,17 +44,14 @@ export class RequestServiceAdapter implements IRequestService {
   }
 
   async show(idOrFilename: string): Promise<IRequestShowResult> {
-    return await this.commands.show(idOrFilename);
+    return await this.service.show(idOrFilename);
   }
 
   async getRequestContent(requestId: string): Promise<string> {
-    const details = await this.show(requestId);
-    return details.content;
+    return await this.service.getRequestContent(requestId);
   }
 
-  updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
-    // RequestCommands doesn't have updateRequestStatus yet
-    // This would require a handler that parses the request file and updates frontmatter
-    return Promise.resolve(false);
+  async updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
+    return await this.service.updateRequestStatus(requestId, status);
   }
 }

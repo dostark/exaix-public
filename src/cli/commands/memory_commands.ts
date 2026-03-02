@@ -9,7 +9,7 @@
 
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { ICliApplicationContext } from "../cli_context.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../shared/enums.ts";
 import { type ISkillMatchRequest as SkillMatchRequest } from "../../shared/types/skill.ts";
 import type { ILearning, IMemorySearchResult } from "../../shared/schemas/memory_bank.ts";
@@ -17,57 +17,21 @@ import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
 import { MemoryFormatter } from "../formatters/memory_formatter.ts";
 import { IMemoryBankSummary, OutputFormat } from "../memory_types.ts";
 
-export interface IMemoryCommandsContext extends ICliApplicationContext {}
+export interface IMemoryCommandsContext extends ICommandContext {}
 
 /**
  * Memory Commands handler
  *
  * Provides CLI interface for Memory Banks operations.
  */
-export class MemoryCommands {
-  private context: ICliApplicationContext;
+export class MemoryCommands extends BaseCommand {
   private formatter: MemoryFormatter;
   private memoryRoot: string;
 
-  constructor(context: IMemoryCommandsContext) {
-    this.context = context;
-    this.memoryRoot = join(context.config.getAll().system.root, context.config.getAll().paths.memory);
+  constructor(context: ICommandContext) {
+    super(context);
+    this.memoryRoot = join(this.context.config.getAll().system.root, this.context.config.getAll().paths.memory);
     this.formatter = new MemoryFormatter();
-  }
-
-  /**
-   * Get the memory bank service.
-   */
-  private get memoryBank() {
-    return this.context.memoryBank;
-  }
-
-  /**
-   * Get the extractor service.
-   */
-  private get extractor() {
-    return this.context.extractor;
-  }
-
-  /**
-   * Get the embedding service.
-   */
-  private get embedding() {
-    return this.context.embeddings;
-  }
-
-  /**
-   * Get the skills service.
-   */
-  private get skills() {
-    return this.context.skills;
-  }
-
-  /**
-   * Get the configuration.
-   */
-  private get config() {
-    return this.context.config.getAll();
   }
 
   // ===== Memory List Command =====

@@ -10,7 +10,7 @@
 import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { GitService, type IGitService } from "../../services/git_service.ts";
+import { GitService } from "../../services/git_service.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
@@ -70,17 +70,12 @@ export type ReviewTypeFilter = "all" | "code" | "artifact";
  * Commands for reviewing and managing agent-generated code reviews
  */
 export class ReviewCommands extends BaseCommand {
-  private gitService: IGitService;
   private requestCommands: RequestCommands;
   private planCommands: PlanCommands;
   private artifactRegistry: ArtifactRegistry;
 
-  constructor(
-    context: ICommandContext,
-    gitService: IGitService,
-  ) {
+  constructor(context: ICommandContext) {
     super(context);
-    this.gitService = gitService;
     this.requestCommands = new RequestCommands(context);
     this.planCommands = new PlanCommands(context);
     this.artifactRegistry = new ArtifactRegistry(this.db, this.config.system.root);

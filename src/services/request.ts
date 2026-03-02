@@ -1,0 +1,255 @@
+/**
+ * @module RequestService
+ * @path src/services/request_service.ts
+ * @description Core service for managing agent requests.
+ * @architectural-layer Services
+ * @dependencies [DisplayService, ConfigService]
+ * @related-files [src/cli/commands/request_commands.ts, src/shared/interfaces/i_request_service.ts]
+ */
+
+import { join } from "@std/path";
+import { ensureDir, exists } from "@std/fs";
+import { Config } from "../shared/schemas/config.ts";
+import { RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
+import { RequestPriority } from "../shared/enums.ts";
+import {
+  IRequestEntry,
+  IRequestMetadata,
+  IRequestOptions,
+  IRequestShowResult,
+  RequestSource,
+} from "../shared/types/request.ts";
+import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
+import { IConfigService } from "../shared/interfaces/i_config_service.ts";
+
+export class RequestService {
+  private requestsDir: string;
+
+  constructor(
+    private config: Config,
+    private configService: IConfigService,
+    private display: IDisplayService,
+    private userIdentityGetter: () => Promise<string>,
+  ) {
+    const root = config.system.root!;
+    const workspace = config.paths.workspace!;
+    this.requestsDir = join(root, workspace, config.paths.requests!);
+  }
+
+  async create(
+    description: string,
+    options: IRequestOptions = {},
+    source: RequestSource = "cli",
+  ): Promise<IRequestMetadata> {
+    const trimmedDescription = description.trim();
+    if (!trimmedDescription) throw new Error("Description cannot be empty");
+
+    const priority = options.priority || RequestPriority.NORMAL;
+    const agent = options.agent || "default";
+    const portal = options.portal;
+
+    const trace_id = crypto.randomUUID();
+    const shortId = trace_id.slice(0, 8);
+    const filename = `request-${shortId}.md`;
+    const path = join(this.requestsDir, filename);
+
+    const created_by = await this.userIdentityGetter();
+    const created = new Date().toISOString();
+
+    const subject = options.subject || trimmedDescription.split("\n")[0].substring(0, 80);
+
+    const frontmatterFields: Record<string, any> = {
+      trace_id,
+      created,
+      status: RequestStatus.PENDING,
+      priority,
+      agent,
+      source,
+      created_by,
+      subject,
+      subject_is_fallback: !options.subject?.trim(),
+    };
+
+    if (portal) frontmatterFields.portal = portal;
+    if (options.target_branch) frontmatterFields.target_branch = options.target_branch;
+    if (options.model) frontmatterFields.model = options.model;
+    if (options.flow) frontmatterFields.flow = options.flow;
+    if (options.skills && options.skills.length > 0) {
+      frontmatterFields.skills = JSON.stringify(options.skills);
+    }
+
+    const yamlLines = Object.entries(frontmatterFields)
+      .filter(([_, v]) => v !== undefined && v !== null)
+      .map(([k, v]) => {
+        const str = String(v);
+        return (str.includes(":") || str.includes("-")) ? `${k}: "${str}"` : `${k}: ${str}`;
+      });
+
+    const content = `---\n${yamlLines.join("\n")}\n---\n\n# Request\n\n${trimmedDescription}\n`;
+
+    await ensureDir(this.requestsDir);
+    await Deno.writeTextFile(path, content);
+
+    await this.display.info("request.created", path, {
+      trace_id,
+      priority,
+      agent,
+      portal: portal || null,
+      source,
+      created_by,
+    });
+
+    return {
+      trace_id,
+      filename,
+      path,
+      status: RequestStatus.PENDING,
+      priority,
+      agent,
+      portal,
+      target_branch: options.target_branch,
+      model: options.model,
+      flow: options.flow,
+      skills: options.skills,
+      created,
+      created_by,
+      source,
+      subject,
+    };
+  }
+
+  async list(status?: RequestStatusType, _includeArchived?: boolean): Promise<IRequestEntry[]> {
+    const entries: IRequestEntry[] = [];
+    if (!await exists(this.requestsDir)) return [];
+
+    for await (const entry of Deno.readDir(this.requestsDir)) {
+      if (!entry.isFile || !entry.name.endsWith(".md")) continue;
+
+      const path = join(this.requestsDir, entry.name);
+      const content = await Deno.readTextFile(path);
+
+      // Basic frontmatter parse
+      const match = content.match(/^---\n([\s\S]*?)\n---\n/);
+      if (!match) continue;
+
+      const fm: Record<string, string> = {};
+      match[1].split("\n").forEach((line) => {
+        const parts = line.split(":");
+        if (parts.length >= 2) fm[parts[0].trim()] = parts.slice(1).join(":").trim().replace(/"/g, "");
+      });
+
+      if (status && fm.status !== status) continue;
+
+      entries.push(this.toRequestEntry(fm, entry.name, path));
+    }
+
+    return entries.sort((a, b) => b.created.localeCompare(a.created));
+  }
+
+  async show(idOrFilename: string): Promise<IRequestShowResult> {
+    let filename = idOrFilename;
+    if (!filename.endsWith(".md")) {
+      const list = await this.list();
+      const found = list.find((e) => e.trace_id === idOrFilename || e.trace_id.startsWith(idOrFilename));
+      if (found) filename = found.filename;
+      else filename = `request-${idOrFilename}.md`;
+    }
+
+    const path = join(this.requestsDir, filename);
+    if (!await exists(path)) throw new Error(`Request not found: ${idOrFilename}`);
+
+    const content = await Deno.readTextFile(path);
+    const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+
+    if (!match) {
+      return {
+        metadata: {
+          trace_id: "",
+          filename,
+          status: RequestStatus.PENDING,
+          priority: RequestPriority.NORMAL,
+          agent: "default",
+          created: "",
+          created_by: "unknown",
+          source: "cli",
+          subject: "",
+        },
+        content: content.trim(),
+      };
+    }
+
+    const fm: Record<string, string> = {};
+    match[1].split("\n").forEach((line) => {
+      const parts = line.split(":");
+      if (parts.length >= 2) fm[parts[0].trim()] = parts.slice(1).join(":").trim().replace(/"/g, "");
+    });
+
+    return {
+      metadata: {
+        trace_id: fm.trace_id || "",
+        filename,
+        status: fm.status as RequestStatusType,
+        priority: (fm.priority as any) || RequestPriority.NORMAL,
+        agent: fm.agent || "default",
+        portal: fm.portal,
+        created: fm.created || "",
+        created_by: fm.created_by || "unknown",
+        source: (fm.source as any) || "cli",
+        subject: fm.subject || "",
+      },
+      content: match[2].trim(),
+    };
+  }
+
+  async getRequestContent(requestId: string): Promise<string> {
+    const _res = await this.show(requestId);
+    return _res.content;
+  }
+
+  async updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
+    try {
+      const _res = await this.show(requestId);
+      const filename = requestId.endsWith(".md")
+        ? requestId
+        : (await this.findFilename(requestId) || `request-${requestId}.md`);
+      const path = join(this.requestsDir, filename);
+
+      const content = await Deno.readTextFile(path);
+      const match = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+      if (!match) return false;
+
+      const lines = match[1].split("\n");
+      const newLines = lines.map((line) => {
+        if (line.trim().startsWith("status:")) return `status: ${status}`;
+        return line;
+      });
+
+      const newContent = `---\n${newLines.join("\n")}\n---\n${match[2]}`;
+      await Deno.writeTextFile(path, newContent);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private toRequestEntry(fm: Record<string, string>, filename: string, path: string): IRequestEntry {
+    return {
+      trace_id: fm.trace_id || "",
+      filename,
+      path,
+      status: fm.status as RequestStatusType,
+      priority: (fm.priority as any) || RequestPriority.NORMAL,
+      agent: fm.agent || "default",
+      created: fm.created || "",
+      created_by: fm.created_by || "unknown",
+      source: (fm.source as any) || "cli",
+      subject: fm.subject || "",
+    };
+  }
+
+  private async findFilename(id: string): Promise<string | null> {
+    const list = await this.list();
+    const found = list.find((e) => e.trace_id === id || e.trace_id.startsWith(id) || e.filename === id);
+    return found ? found.filename : null;
+  }
+}

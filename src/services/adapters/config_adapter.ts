@@ -16,7 +16,7 @@ import { PortalExecutionStrategy } from "../../shared/enums.ts";
  * Adapter that implements the IConfigService interface
  * and delegates to the core ConfigService.
  */
-export class ConfigServiceAdapter implements IConfigService {
+export class ConfigAdapter implements IConfigService {
   constructor(private configService: ConfigService) {}
 
   /**
@@ -31,6 +31,13 @@ export class ConfigServiceAdapter implements IConfigService {
    */
   getAll(): Config {
     return this.configService.get();
+  }
+
+  /**
+   * Get the path to the configuration file.
+   */
+  getConfigPath(): string {
+    return this.configService.getConfigPath();
   }
 
   /**

@@ -783,6 +783,19 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
  * MockSkillsService
  */
 export class MockSkillsService implements ISkillsService {
+  initialize(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill> {
+    return Promise.resolve({
+      ...skillDef,
+      id: "mock-id",
+      created_at: new Date().toISOString(),
+      usage_count: 0,
+    } as ISkill);
+  }
+
   matchSkills(_request: ISkillMatchRequest): Promise<ISkillMatch[]> {
     return Promise.resolve([]);
   }

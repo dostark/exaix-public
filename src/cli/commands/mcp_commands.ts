@@ -61,11 +61,9 @@ export class McpCommands extends BaseCommand {
   }
 
   async start(options: { sse?: boolean; port?: number }) {
-    const { config, db } = this;
     const transport = options.sse ? "sse" : "stdio";
     const server = new MCPServer({
-      config,
-      db,
+      context: this.context,
       transport,
     });
 

@@ -13,19 +13,22 @@ import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { DaemonCommands } from "../cli/commands/daemon_commands.ts";
 
-import { PortalServiceAdapter } from "./adapters/portal_adapter.ts";
-import { PlanServiceAdapter } from "./adapters/plan_adapter.ts";
-import { RequestServiceAdapter } from "./adapters/request_adapter.ts";
+import { PortalAdapter } from "./adapters/portal_adapter.ts";
+import { PlanAdapter } from "./adapters/plan_adapter.ts";
+import { RequestAdapter } from "./adapters/request_adapter.ts";
 import { DaemonServiceAdapter } from "./adapters/daemon_adapter.ts";
 import { AgentServiceAdapter } from "./adapters/agent_adapter.ts";
 import { MemoryServiceAdapter } from "./adapters/memory_adapter.ts";
 import { JournalServiceAdapter } from "./adapters/journal_adapter.ts";
 import { LogServiceAdapter } from "./adapters/log_adapter.ts";
 
+import { getGlobalLogger } from "./structured_logger.ts";
+import { EventLogger } from "./event_logger.ts";
+import { DisplayAdapter } from "./adapters/display_adapter.ts";
+
 import { MemoryBankService } from "./memory_bank.ts";
 import { MemoryExtractorService } from "./memory_extractor.ts";
 import { SkillsService } from "./skills.ts";
-import { getGlobalLogger } from "./structured_logger.ts";
 
 import { join } from "@std/path";
 import type { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
@@ -75,21 +78,63 @@ export function createTuiServices(
   const { config, databaseService } = options;
 
   // Create command context for CLI commands
+  const configService = {
+    get(): Config {
+      return config;
+    },
+    getAll(): Config {
+      return config;
+    },
+    getConfigPath(): string {
+      return "exo.config.toml";
+    }, // dummy path
+    reload(): Config {
+      return config;
+    },
+    addPortal: () => {
+      throw new Error("Not implemented in TUI context");
+    },
+    removePortal: () => {
+      throw new Error("Not implemented in TUI context");
+    },
+    getPortals(): any[] {
+      return config.portals || [];
+    },
+    getPortal: (alias: string) => (config.portals || []).find((p) => p.alias === alias),
+  };
+
+  const displayAdapter = new DisplayAdapter(new EventLogger({ prefix: "[TUI]" }));
+
   const context = {
-    config,
+    config: configService,
     db: databaseService,
+    display: displayAdapter,
+    // Add minimal required services for CLI commands used as adapters
+    provider: undefined as any, // Not needed for TUI adapters
+    git: undefined as any, // Not needed for TUI adapters
+    memory: undefined,
+    memoryBank: undefined,
+    extractor: undefined,
+    embeddings: undefined,
+    archive: undefined,
+    flowValidator: undefined,
+    contextCards: undefined,
+    skills: undefined,
+    portals: undefined,
+    requests: undefined,
+    plans: undefined,
   };
 
   // Create service adapters that implement TUI interfaces
-  const portalService: IPortalService = new PortalServiceAdapter(
-    new PortalCommands(context),
+  const portalService: IPortalService = new PortalAdapter(
+    new PortalCommands(context) as any,
   );
-  const planService: IPlanService = new PlanServiceAdapter(
-    new PlanCommands(context),
+  const planService: IPlanService = new PlanAdapter(
+    new PlanCommands(context) as any,
   );
   const journalService: IJournalService = new JournalServiceAdapter(databaseService);
-  const requestService: IRequestService = new RequestServiceAdapter(
-    new RequestCommands(context),
+  const requestService: IRequestService = new RequestAdapter(
+    new RequestCommands(context) as any,
   );
   const daemonService: IDaemonService = new DaemonServiceAdapter(
     new DaemonCommands(context),

@@ -8,6 +8,17 @@
  */
 
 import type { ICliApplicationContext } from "./cli_context.ts";
+import type { IMemoryService } from "../shared/interfaces/i_memory_service.ts";
+import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
+import type { IMemoryExtractorService } from "../shared/interfaces/i_memory_extractor_service.ts";
+import type { IMemoryEmbeddingService } from "../shared/interfaces/i_memory_embedding_service.ts";
+import type { IArchiveService } from "../shared/interfaces/i_archive_service.ts";
+import type { IFlowValidatorService } from "../shared/interfaces/i_flow_validator_service.ts";
+import type { IContextCardGeneratorService } from "../shared/interfaces/i_context_card_generator_service.ts";
+import type { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
+import type { IPortalService } from "../shared/interfaces/i_portal_service.ts";
+import type { IRequestService } from "../shared/interfaces/i_request_service.ts";
+import type { IPlanService } from "../shared/interfaces/i_plan_service.ts";
 
 export interface ICommandContext extends ICliApplicationContext {}
 
@@ -42,6 +53,79 @@ export abstract class BaseCommand {
    */
   protected get display() {
     return this.context.display;
+  }
+
+  /**
+   * Get the logger (alias for display for backward compatibility).
+   */
+  protected get logger() {
+    return this.context.display;
+  }
+
+  /**
+   * Get the action logger (alias for display for backward compatibility).
+   */
+  protected getActionLogger() {
+    return this.context.display;
+  }
+
+  protected get git() {
+    return this.context.git;
+  }
+
+  protected get memory(): IMemoryService {
+    if (!this.context.memory) throw new Error("Memory service not initialized");
+    return this.context.memory;
+  }
+
+  protected get memoryBank(): IMemoryBankService {
+    if (!this.context.memoryBank) throw new Error("Memory Bank service not initialized");
+    return this.context.memoryBank;
+  }
+
+  protected get extractor(): IMemoryExtractorService {
+    if (!this.context.extractor) throw new Error("Memory Extractor service not initialized");
+    return this.context.extractor;
+  }
+
+  protected get embedding(): IMemoryEmbeddingService {
+    if (!this.context.embeddings) throw new Error("Memory Embedding service not initialized");
+    return this.context.embeddings;
+  }
+
+  protected get archive(): IArchiveService {
+    if (!this.context.archive) throw new Error("Archive service not initialized");
+    return this.context.archive;
+  }
+
+  protected get flowValidator(): IFlowValidatorService {
+    if (!this.context.flowValidator) throw new Error("Flow Validator service not initialized");
+    return this.context.flowValidator;
+  }
+
+  protected get contextCardGenerator(): IContextCardGeneratorService {
+    if (!this.context.contextCards) throw new Error("Context Card Generator service not initialized");
+    return this.context.contextCards;
+  }
+
+  protected get skills(): ISkillsService {
+    if (!this.context.skills) throw new Error("Skills service not initialized");
+    return this.context.skills;
+  }
+
+  protected get portals(): IPortalService {
+    if (!this.context.portals) throw new Error("Portals service not initialized");
+    return this.context.portals;
+  }
+
+  protected get requests(): IRequestService {
+    if (!this.context.requests) throw new Error("Requests service not initialized");
+    return this.context.requests;
+  }
+
+  protected get plans(): IPlanService {
+    if (!this.context.plans) throw new Error("Plans service not initialized");
+    return this.context.plans;
   }
 
   /**

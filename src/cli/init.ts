@@ -7,22 +7,47 @@
  * @related-files [src/cli/main.ts, src/cli/exoctl.ts]
  */
 
+import { join } from "@std/path";
 import { ConfigService } from "../config/service.ts";
 import { GitService, IGitService } from "../services/git_service.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
+import { FlowLoader } from "../flows/flow_loader.ts";
 import { ExoPathDefaults } from "../shared/constants.ts";
 import type { Config } from "../shared/schemas/config.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
+import type { ICliApplicationContext } from "./cli_context.ts";
 
-export interface ServiceContext {
-  config: Config;
-  db: IDatabaseService;
-  gitService: IGitService;
-  provider: IModelProvider;
-  display: EventLogger;
-  configService?: ConfigService;
+// Concrete services for adapters
+import { MemoryBankService } from "../services/memory_bank.ts";
+import { MemoryExtractorService } from "../services/memory_extractor.ts";
+import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
+import { SkillsService } from "../services/skills.ts";
+import { ArchiveService } from "../services/archive_service.ts";
+import { FlowValidatorImpl } from "../services/flow_validator.ts";
+import { ContextCardGenerator } from "../services/context_card_generator.ts";
+import { PortalService } from "../services/portal.ts";
+import { RequestService } from "../services/request.ts";
+import { PlanService } from "../services/plan.ts";
+
+// Adapters
+import {
+  ArchiveAdapter,
+  ConfigAdapter,
+  ContextCardAdapter,
+  DisplayAdapter,
+  FlowValidatorAdapter,
+  MemoryBankAdapter,
+  MemoryEmbeddingAdapter,
+  MemoryExtractorAdapter,
+  PlanAdapter,
+  PortalAdapter,
+  RequestAdapter,
+  SkillsAdapter,
+} from "../services/adapters/mod.ts";
+
+export interface ServiceContext extends ICliApplicationContext {
   success: boolean;
   error?: string;
 }
@@ -119,16 +144,50 @@ export async function initializeServices(
     // For provider, ensure we have a valid model name or fallback
     const model = cfg.agents?.default_model || "mock:test";
     const providerLocal = await ProviderFactory.createByName(cfg, model);
-    const displayLocal = new EventLogger({});
+    const displayLogger = new EventLogger({});
+    const displayAdapter = new DisplayAdapter(displayLogger);
+    const configAdapter = new ConfigAdapter(cfgService as any);
+
+    const userIdentityGetter = async () => {
+      return await Promise.resolve("cli-user");
+    };
+
+    // Instantiate concrete services and group into adapters
+    const memoryBank = new MemoryBankService(cfg, dbLocal);
+    const extractor = new MemoryExtractorService(cfg, dbLocal, memoryBank);
+    const embedding = new MemoryEmbeddingService(cfg);
+    const skills = new SkillsService({
+      memoryDir: join(cfg.system.root!, cfg.paths.memory!),
+      portal: cfg.paths.workspace,
+    }, dbLocal);
+    const archive = new ArchiveService(join(cfg.system.root!, cfg.paths.archive!));
+    const flowsPath = join(cfg.system.root!, cfg.paths.flows!);
+    const flowLoader = new FlowLoader(flowsPath);
+    const blueprintsPath = join(cfg.system.root!, cfg.paths.blueprints!);
+    const flowValidator = new FlowValidatorImpl(flowLoader, blueprintsPath);
+    const contextCards = new ContextCardGenerator(cfg);
+
+    const portals = new PortalService(cfg, configAdapter, contextCards, displayAdapter);
+    const requests = new RequestService(cfg, configAdapter, displayAdapter, userIdentityGetter);
+    const plans = new PlanService(cfg, configAdapter, dbLocal, displayAdapter, userIdentityGetter);
 
     return {
       success: true,
-      config: cfg,
       db: dbLocal,
-      gitService: gitLocal,
+      git: gitLocal,
       provider: providerLocal,
-      display: displayLocal,
-      configService: cfgService,
+      display: displayAdapter,
+      config: configAdapter,
+      memoryBank: new MemoryBankAdapter(memoryBank),
+      extractor: new MemoryExtractorAdapter(extractor),
+      embeddings: new MemoryEmbeddingAdapter(embedding),
+      skills: new SkillsAdapter(skills),
+      archive: new ArchiveAdapter(archive),
+      flowValidator: new FlowValidatorAdapter(flowValidator),
+      contextCards: new ContextCardAdapter(contextCards),
+      portals: new PortalAdapter(portals),
+      requests: new RequestAdapter(requests),
+      plans: new PlanAdapter(plans),
     };
   } catch (err) {
     // Fallback minimal stubs (same as runtime fallback)
@@ -156,12 +215,12 @@ export async function initializeServices(
     return {
       success: false,
       error: String(err),
-      config: cfg,
-      // Stub db with no-op methods to prevent EventLogger crashes
       db: createDatabaseStub(),
-      gitService: createGitServiceStub(),
+      git: createGitServiceStub(),
       provider: providerLocal,
-      display: displayLocal,
+      display: new DisplayAdapter(displayLocal),
+      config: new ConfigAdapter(new ConfigService() as any),
+      // Minimal optional adapters can be undefined in fallback
     };
   }
 }

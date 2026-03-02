@@ -3,19 +3,16 @@
  * @path src/cli/commands/flow_commands.ts
  * @description Provides CLI commands for flow management and execution, including list, show, run, plan, history, and validation.
  * @architectural-layer CLI
- * @dependencies [table, path, flow_loader, flow_validator, event_logger, config, db, providers]
+ * @dependencies [table, path, flow_loader, shared_interfaces]
  * @related-files [src/flows/flow_loader.ts, src/cli/main.ts]
  */
 
 import { Table } from "@cliffy/table";
 import { join } from "@std/path";
 import { FlowLoader } from "../../flows/flow_loader.ts";
-import { FlowValidatorImpl } from "../../services/flow_validator.ts";
-import { EventLogger } from "../../services/event_logger.ts";
-import type { Config } from "../../shared/schemas/config.ts";
-import type { IDatabaseService } from "../../services/db.ts";
-import { IModelProvider } from "../../ai/types.ts";
 import type { IFlow } from "../../shared/schemas/flow.ts";
+import { BaseCommand } from "../base.ts";
+import type { ICliApplicationContext } from "../cli_context.ts";
 
 interface FlowListOptions {
   json?: boolean;
@@ -29,35 +26,16 @@ interface FlowValidateOptions {
   json?: boolean;
 }
 
-export interface CLIContext {
-  config: Config;
-  db: IDatabaseService;
-  provider: IModelProvider;
-  exit?: (code?: number) => never;
-}
-
-export class FlowCommands {
+export class FlowCommands extends BaseCommand {
   private flowLoader: FlowLoader;
-  private flowValidator: FlowValidatorImpl;
-  private eventLogger: EventLogger;
 
-  constructor(private context: CLIContext) {
-    const flowsDir = join(context.config.system.root, context.config.paths.blueprints, context.config.paths.flows);
+  constructor(context: ICliApplicationContext) {
+    super(context);
+    const flowsDir = join(this.config.system.root, this.config.paths.blueprints, this.config.paths.flows);
     this.flowLoader = new FlowLoader(flowsDir);
-    this.flowValidator = new FlowValidatorImpl(
-      this.flowLoader,
-      flowsDir,
-    );
-    this.eventLogger = new EventLogger({
-      db: context.db,
-      defaultActor: "cli",
-    });
   }
 
   private exit(code?: number): never {
-    if (this.context.exit) {
-      return this.context.exit(code);
-    }
     return Deno.exit(code);
   }
 
@@ -160,18 +138,24 @@ export class FlowCommands {
 
   async validateFlow(flowId: string, options: FlowValidateOptions = {}) {
     try {
-      const validation = await this.flowValidator.validateFlow(flowId);
+      const filePath = join(
+        this.config.system.root,
+        this.config.paths.blueprints,
+        this.config.paths.flows,
+        `${flowId}.flow.ts`,
+      );
+      const validation = await this.flowValidator.validateFile(filePath);
 
       if (options.json) {
         console.log(JSON.stringify(validation, null, 2));
         return;
       }
 
-      if (validation.valid) {
+      if (validation.isValid) {
         console.log(`✅ Flow '${flowId}' is valid`);
       } else {
         console.log(`❌ Flow '${flowId}' validation failed:`);
-        console.log(validation.error);
+        console.log(validation.errors.join("\n"));
         this.exit(1);
       }
     } catch (error) {

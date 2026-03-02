@@ -2,8 +2,8 @@
  * @module DisplayAdapter
  * @path src/services/adapters/display_adapter.ts
  * @description Adapter for EventLogger that satisfies the IDisplayService interface.
- * @architectural-layer Services/Adapters
- */
+ * @architectural-layer Services/Adapters * @dependencies [shared_interfaces, tui_services]
+ * @related-files [src/shared/interfaces/i_display_service.ts, src/tui/] */
 
 import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import type { EventLogger } from "../event_logger.ts";

@@ -9,12 +9,12 @@
 
 import type { PlanCommands } from "../commands/plan_commands.ts";
 import { PlanStatus } from "../../shared/status/plan_status.ts";
-import type { EventLogger } from "../../services/event_logger.ts";
+import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
 
 export interface IPlanActionContext {
   planCommands: PlanCommands;
-  display: EventLogger;
+  display: IDisplayService;
 }
 
 export interface PlanListOptions {

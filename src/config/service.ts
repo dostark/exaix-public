@@ -126,6 +126,13 @@ stability_check = true
     return this.config;
   }
 
+  /**
+   * Alias for get() to satisfy some consumers.
+   */
+  public getAll(): Config {
+    return this.get();
+  }
+
   public getConfigPath(): string {
     return this.configPath;
   }

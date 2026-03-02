@@ -25,12 +25,8 @@ import { IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
-import { GitService, type IGitService } from "../services/git_service.ts";
-import type { Config } from "../shared/schemas/config.ts";
-import type { IDatabaseService } from "../services/db.ts";
-import type { IModelProvider } from "../ai/types.ts";
-import type { EventLogger } from "../services/event_logger.ts";
-import type { ConfigService } from "../config/service.ts";
+import { ICliApplicationContext } from "./cli_context.ts";
+import { GitService } from "../services/git_service.ts";
 
 // Extracted action handlers
 import {
@@ -55,34 +51,23 @@ export function isTestMode() {
   return isTestModeImport();
 }
 
-let config: Config;
-let db: IDatabaseService;
-let gitService: IGitService;
-let provider: IModelProvider;
-let display: EventLogger;
-let context: { config: Config; db: IDatabaseService; provider: IModelProvider };
-let configService: ConfigService | undefined;
-
 const services = await initializeServices();
-if (services.success) {
-  ({ config, db, gitService, provider, display, configService } = services);
-  context = { config, db, provider };
-} else {
-  // Fallback context from safe initialization
-  ({ config, db, gitService, provider, display } = services);
-  context = { config, db, provider };
-}
+const fullContext: ICliApplicationContext = services;
+const context = fullContext;
+const { db, provider, display } = services;
+const gitService = services.git;
+const config = services.config.getAll();
 
-const requestCommands = new RequestCommands(context);
-const planCommands = new PlanCommands(context);
-const reviewCommands = new ReviewCommands(context, gitService);
-const gitCommands = new GitCommands(context);
-const daemonCommands = new DaemonCommands({ ...context, configService });
-const portalCommands = new PortalCommands({ config, db, configService });
-const blueprintCommands = new BlueprintCommands(context);
-const flowCommands = new FlowCommands(context);
-const dashboardCommands = new DashboardCommands(context);
-const memoryCommands = new MemoryCommands({ config, db });
+const requestCommands = new RequestCommands(fullContext);
+const planCommands = new PlanCommands(fullContext);
+const reviewCommands = new ReviewCommands(fullContext);
+const gitCommands = new GitCommands(fullContext);
+const daemonCommands = new DaemonCommands(fullContext);
+const portalCommands = new PortalCommands(fullContext);
+const blueprintCommands = new BlueprintCommands(fullContext);
+const flowCommands = new FlowCommands(fullContext);
+const dashboardCommands = new DashboardCommands(fullContext);
+const memoryCommands = new MemoryCommands(fullContext);
 
 // Export test helper for unit tests to inspect module-internal context when running in test mode.
 export function __test_getContext() {
@@ -429,7 +414,7 @@ export const __test_command = new Command()
                   let repoPath = config.system.root as string;
 
                   if (options.portal) {
-                    const portal = configService?.getPortal(options.portal);
+                    const portal = fullContext.config?.getPortal(options.portal);
                     if (!portal) {
                       throw new Error(`Portal not found in config: ${options.portal}`);
                     }
@@ -486,7 +471,7 @@ export const __test_command = new Command()
                   let repoPath = config.system.root as string;
 
                   if (options.portal) {
-                    const portal = configService?.getPortal(options.portal);
+                    const portal = fullContext.config?.getPortal(options.portal);
                     if (!portal) {
                       throw new Error(`Portal not found in config: ${options.portal}`);
                     }

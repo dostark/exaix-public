@@ -3,6 +3,8 @@
  * @path src/cli/cli_context.ts
  * @description Defines the ICliApplicationContext interface used by CLI commands.
  * @architectural-layer CLI
+ * @dependencies [shared_interfaces, ai_types]
+ * @related-files [src/cli/commands/, src/cli/main.ts]
  */
 
 import type { IDatabaseService } from "../shared/interfaces/i_database_service.ts";
@@ -28,15 +30,15 @@ export interface ICliApplicationContext {
   git: IGitService;
   display: IDisplayService;
   config: IConfigService;
-  memory: IMemoryService;
-  memoryBank: IMemoryBankService;
-  extractor: IMemoryExtractorService;
-  embeddings: IMemoryEmbeddingService;
-  archive: IArchiveService;
-  flowValidator: IFlowValidatorService;
-  contextCards: IContextCardGeneratorService;
-  skills: ISkillsService;
-  portals: IPortalService;
-  requests: IRequestService;
-  plans: IPlanService;
+  memory?: IMemoryService;
+  memoryBank?: IMemoryBankService;
+  extractor?: IMemoryExtractorService;
+  embeddings?: IMemoryEmbeddingService;
+  archive?: IArchiveService;
+  flowValidator?: IFlowValidatorService;
+  contextCards?: IContextCardGeneratorService;
+  skills?: ISkillsService;
+  portals?: IPortalService;
+  requests?: IRequestService;
+  plans?: IPlanService;
 }

@@ -11,7 +11,6 @@ import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import { CLI_DEFAULTS } from "../cli.config.ts";
-import { ConfigService } from "../../config/service.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { DAEMON_STOP_TIMEOUT_MS } from "../../shared/constants.ts";
 import { isProcessAlive } from "../process_utils.ts";
@@ -24,14 +23,12 @@ import type { IDaemonStatus } from "../../shared/types/daemon.ts";
  */
 export class DaemonCommands extends BaseCommand {
   private pidFile: string;
-  private configService?: ConfigService;
   private Command: typeof Deno.Command;
 
-  constructor(context: ICommandContext & { configService?: ConfigService; Command?: typeof Deno.Command }) {
+  constructor(context: ICommandContext & { Command?: typeof Deno.Command }) {
     super(context);
     const workspaceRoot = this.config.system.root!;
     this.pidFile = join(workspaceRoot, this.config.paths.runtime!, "daemon.pid");
-    this.configService = context.configService;
     this.Command = context.Command ?? Deno.Command;
   }
 
@@ -71,8 +68,8 @@ export class DaemonCommands extends BaseCommand {
       const env: Record<string, string> = Deno.env.toObject();
 
       // Explicitly pass config path if available
-      if (this.configService) {
-        env.EXO_CONFIG_PATH = this.configService.getConfigPath();
+      if (this.context.config) {
+        env.EXO_CONFIG_PATH = this.context.config.getConfigPath();
       }
 
       const exoEnvVars = Object.entries(env)

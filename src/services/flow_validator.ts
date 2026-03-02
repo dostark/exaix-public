@@ -22,7 +22,51 @@ export class FlowValidatorImpl implements IFlowValidator {
   ) {}
 
   /**
-   * Validate a flow by ID
+   * Validate an IFlow object
+   */
+  validate(flow: IFlow): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
+    const errors: string[] = [];
+    const flowId = flow.id || "unnamed";
+
+    const structureError = this.validateStructure(flowId, flow);
+    if (structureError) errors.push(structureError);
+
+    const dependencyError = this.validateDependencies(flowId, flow.steps);
+    if (dependencyError) errors.push(dependencyError);
+
+    const agentError = this.validateStepAgents(flowId, flow.steps);
+    if (agentError) errors.push(agentError);
+
+    const outputError = this.validateOutput(flowId, flow);
+    if (outputError) errors.push(outputError);
+
+    return Promise.resolve({
+      isValid: errors.length === 0,
+      errors,
+      warnings: [],
+    });
+  }
+
+  /**
+   * Validate a flow from a file path
+   */
+  async validateFile(path: string): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
+    try {
+      // Simplistic ID extraction from path
+      const flowId = path.split("/").pop()?.replace(".flow.ts", "") || "unknown";
+      const flow = await this.flowLoader.loadFlow(flowId);
+      return await this.validate(flow);
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [error instanceof Error ? error.message : String(error)],
+        warnings: [],
+      };
+    }
+  }
+
+  /**
+   * Validate a flow by ID (legacy method)
    */
   async validateFlow(flowId: string): Promise<{ valid: boolean; error?: string }> {
     try {
@@ -35,21 +79,12 @@ export class FlowValidatorImpl implements IFlowValidator {
       if (loadResult.error || !loadResult.flow) {
         return { valid: false, error: loadResult.error || `IFlow '${flowId}' failed to load` };
       }
-      const flow = loadResult.flow;
 
-      const structureError = this.validateStructure(flowId, flow);
-      if (structureError) return { valid: false, error: structureError };
-
-      const dependencyError = this.validateDependencies(flowId, flow.steps);
-      if (dependencyError) return { valid: false, error: dependencyError };
-
-      const agentError = this.validateStepAgents(flowId, flow.steps);
-      if (agentError) return { valid: false, error: agentError };
-
-      const outputError = this.validateOutput(flowId, flow);
-      if (outputError) return { valid: false, error: outputError };
-
-      return { valid: true };
+      const result = await this.validate(loadResult.flow);
+      return {
+        valid: result.isValid,
+        error: result.errors.length > 0 ? result.errors[0] : undefined,
+      };
     } catch (error) {
       return {
         valid: false,

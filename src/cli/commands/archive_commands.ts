@@ -10,23 +10,19 @@
 import { BaseCommand, type ICommandContext } from "../base.ts";
 
 export class ArchiveCommands extends BaseCommand {
-  private get archiveService() {
-    return this.context.archive;
-  }
-
   constructor(context: ICommandContext) {
     super(context);
   }
 
   async list(): Promise<void> {
-    const index = await this.archiveService.searchByDateRange("0000-01-01T00:00:00Z", "9999-12-31T23:59:59Z");
+    const index = await this.archive.searchByDateRange("0000-01-01T00:00:00Z", "9999-12-31T23:59:59Z");
     for (const entry of index) {
       console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.agent_id} | ${entry.status}`);
     }
   }
 
   async show(traceId: string): Promise<void> {
-    const entry = await this.archiveService.getByTraceId(traceId);
+    const entry = await this.archive.getByTraceId(traceId);
     if (!entry) {
       console.error(`No archive entry found for trace_id: ${traceId}`);
       return;
@@ -36,14 +32,14 @@ export class ArchiveCommands extends BaseCommand {
 
   async search(query: string): Promise<void> {
     // For demo: search by agent_id
-    const results = await this.archiveService.searchByAgent(query);
+    const results = await this.archive.searchByAgent(query);
     for (const entry of results) {
       console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.agent_id} | ${entry.status}`);
     }
   }
 
   async stats(): Promise<void> {
-    const index = await this.archiveService.searchByDateRange("0000-01-01T00:00:00Z", "9999-12-31T23:59:59Z");
+    const index = await this.archive.searchByDateRange("0000-01-01T00:00:00Z", "9999-12-31T23:59:59Z");
     const total = index.length;
     const byStatus = index.reduce((acc, e) => {
       acc[e.status] = (acc[e.status] || 0) + 1;

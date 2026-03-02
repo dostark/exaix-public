@@ -3,6 +3,8 @@
  * @path src/shared/interfaces/i_git_service.ts
  * @description Interface for Git operations.
  * @architectural-layer Shared
+ * @dependencies []
+ * @related-files [src/services/git_service.ts, src/cli/cli_context.ts, src/cli/commands/review_commands.ts, src/services/plan_executor.ts, src/services/execution_loop.ts, src/cli/exoctl.ts]
  */
 
 export interface IBranchOptions {

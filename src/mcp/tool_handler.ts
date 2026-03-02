@@ -9,6 +9,7 @@
 import { join, normalize, relative } from "@std/path";
 import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
+import type { ICliApplicationContext } from "../cli/cli_context.ts";
 import { type MCPToolResponse } from "../shared/schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
 import { PortalOperation } from "../shared/enums.ts";
@@ -19,13 +20,15 @@ import { JSONValue, LogMetadata, toSafeJson } from "../shared/types/json.ts";
  * Provides common validation and logging functionality
  */
 export abstract class ToolHandler {
+  protected context: ICliApplicationContext;
   protected config: Config;
   protected db: IDatabaseService;
   protected permissions: PortalPermissionsService | null;
 
-  constructor(config: Config, db: IDatabaseService, permissions?: PortalPermissionsService) {
-    this.config = config;
-    this.db = db;
+  constructor(context: ICliApplicationContext, permissions?: PortalPermissionsService) {
+    this.context = context;
+    this.config = context.config.getAll();
+    this.db = context.db;
     this.permissions = permissions || null;
   }
 

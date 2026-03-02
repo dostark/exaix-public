@@ -7,24 +7,24 @@
  * @related-files [src/cli/commands/portal_commands.ts, src/shared/interfaces/i_portal_service.ts]
  */
 
-import { PortalCommands } from "../../cli/commands/portal_commands.ts";
+import { PortalService } from "../portal.ts";
 import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
 import { PortalExecutionStrategy } from "../../shared/enums.ts";
 
-export class PortalServiceAdapter implements IPortalService {
-  constructor(private commands: PortalCommands) {}
+export class PortalAdapter implements IPortalService {
+  constructor(private service: PortalService) {}
 
   async add(
     targetPath: string,
     alias: string,
     options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
   ): Promise<void> {
-    await this.commands.add(targetPath, alias, options);
+    await this.service.add(targetPath, alias, options);
   }
 
   async list(): Promise<IPortalInfo[]> {
-    return await this.commands.list();
+    return await this.service.list();
   }
 
   async listPortals(): Promise<IPortalInfo[]> {
@@ -32,7 +32,7 @@ export class PortalServiceAdapter implements IPortalService {
   }
 
   async show(alias: string): Promise<IPortalDetails> {
-    return await this.commands.show(alias);
+    return await this.service.show(alias);
   }
 
   async getPortalDetails(alias: string): Promise<IPortalDetails> {
@@ -40,7 +40,7 @@ export class PortalServiceAdapter implements IPortalService {
   }
 
   async remove(alias: string, options?: { keepCard?: boolean }): Promise<void> {
-    await this.commands.remove(alias, options);
+    await this.service.remove(alias, options);
   }
 
   async removePortal(alias: string, options?: { keepCard?: boolean }): Promise<boolean> {
@@ -53,11 +53,11 @@ export class PortalServiceAdapter implements IPortalService {
   }
 
   async verify(alias?: string): Promise<IVerificationResult[]> {
-    return await this.commands.verify(alias);
+    return await this.service.verify(alias);
   }
 
   async refresh(alias: string): Promise<void> {
-    await this.commands.refresh(alias);
+    await this.service.refresh(alias);
   }
 
   async refreshPortal(alias: string): Promise<boolean> {
@@ -70,13 +70,12 @@ export class PortalServiceAdapter implements IPortalService {
   }
 
   openPortal(_alias: string): Promise<boolean> {
-    // TUI-specific, could open editor or change dashboard focus
-    // Stubbed for now
+    // TUI-specific stub
     return Promise.resolve(true);
   }
 
   closePortal(_alias: string): Promise<boolean> {
-    // TUI-specific
+    // TUI-specific stub
     return Promise.resolve(true);
   }
 
@@ -90,7 +89,6 @@ export class PortalServiceAdapter implements IPortalService {
   }
 
   getPortalActivityLog(_alias: string): string[] {
-    // In a real implementation, this would query the DB for activity related to this portal
     return ["Portal activity log not yet implemented in adapter."];
   }
 }
