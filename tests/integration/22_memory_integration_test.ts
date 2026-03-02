@@ -19,6 +19,11 @@ import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
+import {
+  MemoryBankAdapter,
+  MemoryEmbeddingAdapter,
+  MemoryExtractorAdapter,
+} from "../../src/services/adapters/mod.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
@@ -307,8 +312,14 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
       db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(db),
     };
+    const memoryBank = new MemoryBankService(config, db);
+    const extractor = new MemoryExtractorService(config, db, memoryBank);
+    const embedding = new MemoryEmbeddingService(config);
+    context.memoryBank = new MemoryBankAdapter(memoryBank);
+    context.extractor = new MemoryExtractorAdapter(extractor);
+    context.embeddings = new MemoryEmbeddingAdapter(embedding);
     const commands = new MemoryCommands(context);
 
     // Step 1: List (should be empty or minimal)
@@ -316,7 +327,6 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
     assertExists(listResult);
 
     // Step 2: Create project memory via service (simulating real usage)
-    const memoryBank = new MemoryBankService(config, db);
     await memoryBank.createProjectMemory({
       portal: "cli-test-portal",
       overview: "CLI integration test project",
@@ -361,11 +371,13 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
       db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(db),
     };
-    const commands = new MemoryCommands(context);
     const memoryBank = new MemoryBankService(config, db);
     const extractor = new MemoryExtractorService(config, db, memoryBank);
+    context.memoryBank = new MemoryBankAdapter(memoryBank);
+    context.extractor = new MemoryExtractorAdapter(extractor);
+    const commands = new MemoryCommands(context);
 
     // Create test data
     await memoryBank.createProjectMemory({

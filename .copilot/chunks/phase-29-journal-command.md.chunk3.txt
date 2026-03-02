@@ -1,11 +1,3 @@
-- [x] `exoctl journal --help` shows usage.
-- [x] Arguments parsed correctly (key-value pairs for filters).
-- [x] Command calls `DatabaseService.queryActivity`.
-
----
-
-## Step 29.3: Smart Output Formatting
-
 - **Goal:** Present journal data in a human-readable table or machine-parsable JSON.
 - **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)
 - **Actions:**
@@ -19,3 +11,10 @@
       - Output raw JSON array of `ActivityRecord` objects.
 
 **Success Criteria:**
+
+- [x] JSON output is valid and complete.
+- [x] Table output is aligned and readable on standard terminal width.
+
+---
+
+## Step 29.4: Integration & Verification

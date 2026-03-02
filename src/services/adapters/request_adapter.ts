@@ -52,6 +52,9 @@ export class RequestAdapter implements IRequestService {
   }
 
   async updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
+    if (typeof this.service.updateRequestStatus !== "function") {
+      return false;
+    }
     return await this.service.updateRequestStatus(requestId, status);
   }
 }

@@ -12,8 +12,9 @@ import type { ICliApplicationContext } from "../src/cli/cli_context.ts";
 import type { IModelProvider } from "../src/ai/types.ts";
 import type { IGitService } from "../src/shared/interfaces/i_git_service.ts";
 import type { IDisplayService } from "../src/shared/interfaces/i_display_service.ts";
-import type { IConfigService } from "../src/shared/interfaces/i_config_service.ts";
-import { JSONObject } from "../src/shared/types/json.ts";
+import type { IConfigService, IPortalConfigEntry } from "../src/shared/interfaces/i_config_service.ts";
+import type { PortalExecutionStrategy } from "../src/shared/enums.ts";
+import { JSONObject, type JSONValue, type LogMetadata } from "../src/shared/types/json.ts";
 import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { LogLevel } from "../src/shared/enums.ts";
 
@@ -83,15 +84,48 @@ export function createMockRepo(overrides: Partial<ActivityRepository> = {}): Act
  * Create a stub IConfigService for tests.
  */
 export function createStubConfig(config: Config): IConfigService {
+  const portals: IPortalConfigEntry[] = [...(config.portals ?? [])];
+
+  const getConfig = (): Config => ({
+    ...config,
+    portals: [...portals],
+  });
+
   return {
-    get: () => config,
-    getAll: () => config,
+    get: () => getConfig(),
+    getAll: () => getConfig(),
     getConfigPath: () => "/mock/exo.config.toml",
-    reload: () => config,
-    addPortal: () => Promise.resolve(),
-    removePortal: () => Promise.resolve(),
-    getPortals: () => [],
-    getPortal: () => undefined,
+    reload: () => getConfig(),
+    addPortal: (alias: string, targetPath: string, options?: {
+      defaultBranch?: string;
+      executionStrategy?: PortalExecutionStrategy;
+    }) => {
+      const existingIndex = portals.findIndex((portal) => portal.alias === alias);
+      const next: IPortalConfigEntry = {
+        alias,
+        target_path: targetPath,
+        created: new Date().toISOString(),
+        default_branch: options?.defaultBranch,
+        execution_strategy: options?.executionStrategy,
+      };
+
+      if (existingIndex >= 0) {
+        portals[existingIndex] = next;
+      } else {
+        portals.push(next);
+      }
+
+      return Promise.resolve();
+    },
+    removePortal: (alias: string) => {
+      const index = portals.findIndex((portal) => portal.alias === alias);
+      if (index >= 0) {
+        portals.splice(index, 1);
+      }
+      return Promise.resolve();
+    },
+    getPortals: () => [...portals],
+    getPortal: (alias: string) => portals.find((portal) => portal.alias === alias),
   };
 }
 
@@ -130,14 +164,37 @@ export function createStubGit(): IGitService {
 /**
  * Create a stub IDisplayService for tests.
  */
-export function createStubDisplay(): IDisplayService {
+export function createStubDisplay(db?: IDatabaseService): IDisplayService {
+  const logWithLevel = async (
+    action: string,
+    target: string | null,
+    payload: LogMetadata = {},
+    traceId?: string,
+  ): Promise<void> => {
+    if (!db) {
+      return;
+    }
+    db.logActivity(
+      "system",
+      action,
+      target,
+      payload as Record<string, JSONValue>,
+      traceId,
+      null,
+    );
+  };
+
   return {
-    info: () => {},
-    warn: () => {},
-    error: () => {},
-    debug: () => {},
-    log: () => {},
-    success: () => {},
+    info: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
+      logWithLevel(action, target, payload, traceId),
+    warn: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
+      logWithLevel(action, target, payload, traceId),
+    error: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
+      logWithLevel(action, target, payload, traceId),
+    debug: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
+      logWithLevel(action, target, payload, traceId),
+    fatal: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
+      logWithLevel(action, target, payload, traceId),
   } as unknown as IDisplayService;
 }
 
@@ -158,6 +215,11 @@ export function createStubContext(overrides: Partial<ICliApplicationContext> = {
     git: createStubGit(),
     display: createStubDisplay(),
   };
+  const context = Object.assign(base, overrides);
 
-  return Object.assign(base, overrides);
+  if (!overrides.display) {
+    context.display = createStubDisplay(context.db);
+  }
+
+  return context;
 }

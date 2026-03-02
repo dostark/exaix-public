@@ -9,7 +9,15 @@ import type { Config } from "../../src/shared/schemas/config.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
+import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
+import { SkillsService } from "../../src/services/skills.ts";
 import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
+import {
+  MemoryBankAdapter,
+  MemoryEmbeddingAdapter,
+  MemoryExtractorAdapter,
+  SkillsAdapter,
+} from "../../src/services/adapters/mod.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
@@ -17,6 +25,7 @@ import {
   getMemoryExecutionDir,
   getMemoryGlobalDir,
   getMemoryIndexDir,
+  getMemoryDir,
   getMemoryPendingDir,
   getMemoryProjectsDir,
   getMemorySkillsDir,
@@ -75,14 +84,23 @@ export class TestEnvironmentFactory {
       db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(db),
     };
 
     const memoryBank = new MemoryBankService(config, db);
-    const commands = new MemoryCommands(context);
-
-    // Extractor is optional but often needed
+    const embedding = new MemoryEmbeddingService(config);
+    const skills = new SkillsService({
+      memoryDir: getMemoryDir(tempDir),
+      portal: config.paths.workspace,
+    }, db);
     const extractor = new MemoryExtractorService(config, db, memoryBank);
+
+    context.memoryBank = new MemoryBankAdapter(memoryBank);
+    context.extractor = new MemoryExtractorAdapter(extractor);
+    context.embeddings = new MemoryEmbeddingAdapter(embedding);
+    context.skills = new SkillsAdapter(skills);
+
+    const commands = new MemoryCommands(context);
 
     const cleanup = async () => {
       await dbCleanup();

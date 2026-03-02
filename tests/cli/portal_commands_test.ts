@@ -285,7 +285,7 @@ Deno.test("PortalCommands: refresh regenerates context card", async () => {
 });
 
 Deno.test("PortalCommands: handles missing database gracefully", async () => {
-  const { tempRoot, targetDir, context } = await initPortalTest();
+  const { targetDir, context, cleanup } = await initPortalTest();
   try {
     const commands = new PortalCommands(context);
     await commands.add(targetDir, "NoDB");
@@ -293,8 +293,7 @@ Deno.test("PortalCommands: handles missing database gracefully", async () => {
     const portals = await commands.list();
     assertEquals(portals.length, 1);
   } finally {
-    await Deno.remove(tempRoot, { recursive: true });
-    await Deno.remove(targetDir, { recursive: true });
+    await cleanup();
   }
 });
 

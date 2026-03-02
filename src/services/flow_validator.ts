@@ -31,14 +31,17 @@ export class FlowValidatorImpl implements IFlowValidator {
     const structureError = this.validateStructure(flowId, flow);
     if (structureError) errors.push(structureError);
 
-    const dependencyError = this.validateDependencies(flowId, flow.steps);
-    if (dependencyError) errors.push(dependencyError);
+    const hasValidSteps = Array.isArray(flow.steps) && flow.steps.length > 0;
+    if (hasValidSteps) {
+      const dependencyError = this.validateDependencies(flowId, flow.steps);
+      if (dependencyError) errors.push(dependencyError);
 
-    const agentError = this.validateStepAgents(flowId, flow.steps);
-    if (agentError) errors.push(agentError);
+      const agentError = this.validateStepAgents(flowId, flow.steps);
+      if (agentError) errors.push(agentError);
 
-    const outputError = this.validateOutput(flowId, flow);
-    if (outputError) errors.push(outputError);
+      const outputError = this.validateOutput(flowId, flow);
+      if (outputError) errors.push(outputError);
+    }
 
     return Promise.resolve({
       isValid: errors.length === 0,

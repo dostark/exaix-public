@@ -80,7 +80,7 @@ export class TestEnvironment {
       db: this.db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(this.db),
     };
   }
 

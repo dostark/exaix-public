@@ -47,6 +47,7 @@ export class DaemonCommands extends BaseCommand {
       const status = await this.status();
       if (status.running) {
         await this.logger.info("daemon.already_running", "daemon", { pid: status.pid ?? null });
+        console.log("daemon.already_running");
         return;
       }
 
@@ -135,6 +136,7 @@ export class DaemonCommands extends BaseCommand {
 
       if (!status.running) {
         await this.logger.info("daemon.not_running", "daemon");
+        console.log("daemon.not_running");
         return;
       }
 
@@ -274,6 +276,7 @@ export class DaemonCommands extends BaseCommand {
 
       if (!await exists(logFile)) {
         await this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });
+        console.log("daemon.no_logs");
         return;
       }
 

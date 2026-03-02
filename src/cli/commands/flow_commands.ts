@@ -10,6 +10,7 @@
 import { Table } from "@cliffy/table";
 import { join } from "@std/path";
 import { FlowLoader } from "../../flows/flow_loader.ts";
+import { FlowValidatorImpl } from "../../services/flow_validator.ts";
 import type { IFlow } from "../../shared/schemas/flow.ts";
 import { BaseCommand } from "../base.ts";
 import type { ICliApplicationContext } from "../cli_context.ts";
@@ -36,6 +37,10 @@ export class FlowCommands extends BaseCommand {
   }
 
   private exit(code?: number): never {
+    const testExit = (this.context as ICliApplicationContext & { exit?: (code?: number) => never }).exit;
+    if (typeof testExit === "function") {
+      return testExit(code);
+    }
     return Deno.exit(code);
   }
 
@@ -144,10 +149,19 @@ export class FlowCommands extends BaseCommand {
         this.config.paths.flows,
         `${flowId}.flow.ts`,
       );
-      const validation = await this.flowValidator.validateFile(filePath);
+      const validator = this.context.flowValidator ??
+        new FlowValidatorImpl(
+          this.flowLoader,
+          join(this.config.system.root, this.config.paths.blueprints, this.config.paths.agents),
+        );
+      const validation = await validator.validateFile(filePath);
 
       if (options.json) {
-        console.log(JSON.stringify(validation, null, 2));
+        console.log(JSON.stringify({
+          valid: validation.isValid,
+          errors: validation.errors,
+          warnings: validation.warnings,
+        }, null, 2));
         return;
       }
 

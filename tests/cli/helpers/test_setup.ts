@@ -8,6 +8,8 @@
 import { join } from "@std/path";
 import { ConfigService } from "../../../src/config/service.ts";
 import { PortalCommands } from "../../../src/cli/commands/portal_commands.ts";
+import { ContextCardGenerator } from "../../../src/services/context_card_generator.ts";
+import { ContextCardAdapter } from "../../../src/services/adapters/context_card_adapter.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";
@@ -41,12 +43,14 @@ export async function initPortalTest(options?: {
   }
 
   const config = createMockConfig(tempRoot);
+  const contextCards = new ContextCardAdapter(new ContextCardGenerator(config));
   const context: ICliApplicationContext = {
     config: createStubConfig(config),
     db,
     git: createStubGit(),
     provider: createStubProvider(),
-    display: createStubDisplay(),
+    display: createStubDisplay(db),
+    contextCards,
   };
   const commands = new PortalCommands(context);
 
@@ -155,13 +159,15 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
 
   const configPath = join(tempDir, "exo.config.toml");
   const configService = new ConfigService(configPath);
+  const contextCards = new ContextCardAdapter(new ContextCardGenerator(config));
 
   const context: ICliApplicationContext = {
     config: configService,
     db,
     git: createStubGit(),
     provider: createStubProvider(),
-    display: createStubDisplay(),
+    display: createStubDisplay(db),
+    contextCards,
   };
 
   const cleanupAll = async () => {

@@ -2,10 +2,14 @@
 - **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
 - **Actions:**
   1. Create `JournalCommands` class following the pattern of `PlanCommands`.
-  1.
-     - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
-     - `--tail <number>` (Alias `-n`, default 50)
-     - `--format <json|table>` (Default table)
-     - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.
+  1. Define command options: `--filter <string[]>` (allow multiple, e.g. `-f trace_id=... -f action_type=...`), `--tail <number>` (alias `-n`, default 50), `--format <json|table>` (default table), and `--follow, -f` (future: streaming support; decision for this step is static query first).
 
 **Success Criteria:**
+
+- [x] `exoctl journal --help` shows usage.
+- [x] Arguments parsed correctly (key-value pairs for filters).
+- [x] Command calls `DatabaseService.queryActivity`.
+
+---
+
+## Step 29.3: Smart Output Formatting

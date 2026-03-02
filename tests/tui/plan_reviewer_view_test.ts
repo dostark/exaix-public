@@ -76,12 +76,36 @@ async function setupPlanReviewerTest(options: {
 
   const root = await setupWorkspace(planId, frontmatter, body);
   const db = new MockDB();
+  const config = {
+    system: { root: root },
+    paths: { ...ExoPathDefaults },
+  };
   const context: any = {
     config: {
-      system: { root: root },
-      paths: { ...ExoPathDefaults },
+      get: () => config,
+      getAll: () => config,
+      getConfigPath: () => `${root}/exo.config.toml`,
+      reload: () => config,
+      addPortal: () => Promise.resolve(),
+      removePortal: () => Promise.resolve(),
+      getPortals: () => [],
+      getPortal: () => undefined,
     },
     db,
+    display: {
+      info: () => Promise.resolve(),
+      warn: () => Promise.resolve(),
+      error: () => Promise.resolve(),
+      debug: () => Promise.resolve(),
+      fatal: () => Promise.resolve(),
+    },
+    git: {
+      getCurrentBranch: () => Promise.resolve("main"),
+    },
+    provider: {
+      id: "mock-provider",
+      generate: () => Promise.resolve(""),
+    },
   };
   const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanAdapter(cmd));

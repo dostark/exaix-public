@@ -11,6 +11,8 @@ import { initTestDbService } from "./db.ts";
 import { createTestConfigService } from "./config.ts";
 import type { ConfigService } from "../../src/config/service.ts";
 import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";
+import { ContextCardGenerator } from "../../src/services/context_card_generator.ts";
+import { ContextCardAdapter } from "../../src/services/adapters/context_card_adapter.ts";
 import { createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import { getPortalsDir } from "./paths_helper.ts";
@@ -43,12 +45,15 @@ export class PortalConfigTestHelper {
     await Deno.mkdir(join(tempRoot, "Portals"), { recursive: true });
     await Deno.mkdir(getPortalsDir(tempRoot), { recursive: true });
 
+    const contextCards = new ContextCardAdapter(new ContextCardGenerator(configService.getAll()));
+
     const context: ICliApplicationContext = {
       config: configService,
       db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(db),
+      contextCards,
     };
 
     const commands = new PortalCommands(context);
@@ -116,12 +121,14 @@ export class PortalConfigTestHelper {
    * Get fresh commands instance with updated config
    */
   getRefreshedCommands(): PortalCommands {
+    const contextCards = new ContextCardAdapter(new ContextCardGenerator(this.configService.getAll()));
     const context: ICliApplicationContext = {
       config: this.configService,
       db: this.db,
       git: createStubGit(),
       provider: createStubProvider(),
-      display: createStubDisplay(),
+      display: createStubDisplay(this.db),
+      contextCards,
     };
     return new PortalCommands(context);
   }
