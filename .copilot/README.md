@@ -489,4 +489,3 @@ EOF
 - **Labels**: Tag by type, component, and impact
 
 **See [issues/README.md](issues/README.md) for complete guidelines, templates, and best practices.**
-

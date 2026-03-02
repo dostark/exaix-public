@@ -310,6 +310,4 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 - Process a request through to plan and verify subject propagation.
 - Review a plan and verify subject propagation to review.
 
-
 ```
-

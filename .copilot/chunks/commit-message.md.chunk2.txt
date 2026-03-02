@@ -5,13 +5,16 @@ Do / Don't
 - ✅ Do explain WHY in body, not just WHAT
 - ✅ Do keep summary ≤72 chars, body wrapped at 72
 - ✅ Do include testing verification and file changes
+- ✅ Do format body with short section headers for non-trivial commits
 - ❌ Don't exceed 72 chars for summary line
 - ❌ Don't forget to list breaking changes if any
 - ❌ Don't use vague summaries like "updated files" or "WIP"
 
-Expected Response Pattern:
-1. Show `git add` command for changed files
-2. Show complete `git commit -m "..."` with full message
-3. Include summary, detailed body, and footer references
-4. List specific changes and testing verification
-```
+Recommended detailed format:
+`<type>(<scope>): <summary>`
+
+`Context:`
+- One short paragraph describing why this change is needed.
+
+`Changes:`
+- Bullet list of the most important code/doc/test updates.

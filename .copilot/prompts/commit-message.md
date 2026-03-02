@@ -13,6 +13,7 @@ Key points
 - Use conventional commit format: `<type>(<scope>): <summary>`
 - Reference Implementation Plan steps and issues
 - Wrap body at 72 chars, keep summary ≤72 chars
+- Prefer structured body sections for readability: Context, Changes, Validation, References
 
 Canonical prompt (short):
 "You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references."
@@ -29,14 +30,30 @@ Do / Don't
 - ✅ Do explain WHY in body, not just WHAT
 - ✅ Do keep summary ≤72 chars, body wrapped at 72
 - ✅ Do include testing verification and file changes
+- ✅ Do format body with short section headers for non-trivial commits
 - ❌ Don't exceed 72 chars for summary line
 - ❌ Don't forget to list breaking changes if any
 - ❌ Don't use vague summaries like "updated files" or "WIP"
 
+Recommended detailed format:
+`<type>(<scope>): <summary>`
+
+`Context:`
+- One short paragraph describing why this change is needed.
+
+`Changes:`
+- Bullet list of the most important code/doc/test updates.
+
+`Validation:`
+- Commands or checks run (for example: `deno check`, `deno lint`).
+
+`References:`
+- Optional issue links, plan step, or breaking-change note.
+
 Expected Response Pattern:
 1. Show `git add` command for changed files
 2. Show complete `git commit -m "..."` with full message
-3. Include summary, detailed body, and footer references
+3. Include summary plus structured body sections (Context/Changes/Validation/References)
 4. List specific changes and testing verification
 ```
 

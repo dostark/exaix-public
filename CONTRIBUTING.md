@@ -73,6 +73,26 @@ Use Conventional Commits for all changes:
 - Include a body for non-trivial changes (what/why, wrapped at 72 chars)
 - Reference issues and breaking changes in footer when applicable
 
+Preferred detailed body format for medium/large changes:
+
+```text
+<type>(<scope>): <subject>
+
+Context:
+Why this change is necessary.
+
+Changes:
+- Key implementation/test/doc change 1
+- Key implementation/test/doc change 2
+
+Validation:
+- deno check
+- deno lint
+
+References:
+- Optional issue/plan step/breaking change note
+```
+
 Authoritative guidance:
 
 - [`.copilot/prompts/commit-message.md`](.copilot/prompts/commit-message.md)
@@ -94,4 +114,3 @@ Authoritative guidance:
 ## 6. Architecture
 
 For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how ExoFrame works.
-

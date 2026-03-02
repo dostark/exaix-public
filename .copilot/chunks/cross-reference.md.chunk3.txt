@@ -8,6 +8,7 @@
 - **`rag`** → [providers/claude-rag.md](providers/claude-rag.md)
 - **`openai`** → [providers/openai.md](providers/openai.md), [providers/openai-rag.md](providers/openai-rag.md)
 - **`prompts`** → [providers/claude.md](providers/claude.md), [providers/openai.md](providers/openai.md)
+- **`commit`** → [prompts/commit-message.md](prompts/commit-message.md), [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md)
 - **`refactoring`** → [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
 - **`debugging`** → [providers/claude.md](providers/claude.md)
 - **`coverage`** → [tests/testing.md](tests/testing.md)

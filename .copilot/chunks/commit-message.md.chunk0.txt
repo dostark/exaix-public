@@ -4,6 +4,7 @@ Key points
 - Use conventional commit format: `<type>(<scope>): <summary>`
 - Reference Implementation Plan steps and issues
 - Wrap body at 72 chars, keep summary ≤72 chars
+- Prefer structured body sections for readability: Context, Changes, Validation, References
 
 Canonical prompt (short):
 "You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references."
