@@ -30,21 +30,28 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 3. Docs Drift Check
+# 3. Style/Boundary Check
+deno task check:style
+if [ $? -ne 0 ]; then
+  echo "❌ Error: Code style/boundary validation failed."
+  exit 1
+fi
+
+# 4. Docs Drift Check
 deno task check:docs
 if [ $? -ne 0 ]; then
   echo "❌ Error: Documentation manifest is out of date. Run 'deno run -A scripts/verify_manifest_fresh.ts' to update."
   exit 1
 fi
 
-# 4. Complexity Check
+# 5. Complexity Check
 deno task check:complexity
 if [ $? -ne 0 ]; then
   echo "❌ Error: Code complexity exceeds threshold. Please refactor complex functions."
   exit 1
 fi
 
-# 5. Architecture Check
+# 6. Architecture Check
 deno task check:arch
 if [ $? -ne 0 ]; then
   echo "❌ Error: Architecture validation failed."
@@ -102,7 +109,7 @@ async function installHooks() {
   }
 
   console.log("✅ Hooks installed successfully in .git/hooks/");
-  console.log("   - pre-commit: fmt, lint, docs drift, complexity, architecture");
+  console.log("   - pre-commit: fmt, lint, style/boundary, docs drift, complexity, architecture");
   console.log("   - pre-push: type-check, security tests");
 }
 

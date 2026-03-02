@@ -29,6 +29,7 @@
     "cache": "deno cache src/main.ts",
     "hooks:install": "deno run --allow-read --allow-write scripts/setup_hooks.ts",
     "check": "deno check src/main.ts",
+    "check:style": "deno run -A scripts/check_code_style.ts",
     "check:docs": "deno run --allow-all scripts/verify_manifest_fresh.ts",
     "check:arch": "deno run --allow-read scripts/validate_architecture.ts",
     "check:complexity": "deno run --allow-read --allow-net scripts/measure_complexity.ts --threshold 15 --json > complexity.json && deno run --allow-read scripts/check_complexity_breaches.ts && rm complexity.json",

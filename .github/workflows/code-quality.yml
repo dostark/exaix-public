@@ -37,6 +37,9 @@ jobs:
       - name: Lint Check
         run: deno lint
 
+      - name: Style/Boundary Validation
+        run: deno task check:style
+
       - name: Code Duplication Check
         run: deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.1
 

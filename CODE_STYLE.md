@@ -266,6 +266,16 @@ ExoFrame enforces a strict boundary between the Terminal User Interface (TUI) an
 - **TUI-owned Helpers**: Utilities specifically for terminal rendering and interaction (e.g., keyboard handling, tree views, spinners) must reside in `src/tui/helpers/`. These are private to the TUI and must not be imported by Core modules.
 - **Core-to-TUI Direction**: The core system may only import from `src/tui/` to initialize and launch the dashboard interface.
 
+These rules are enforced by `scripts/check_code_style.ts` via:
+
+- `[tui-boundary-cli]`
+- `[tui-boundary-services]`
+- `[tui-boundary-config]`
+- `[tui-boundary-helpers]`
+- `[core-boundary-tui-helpers]`
+
+Boundary checks run as part of the standard quality gates in pre-commit hooks and CI.
+
 ---
 
 ## 8. Module Boundaries & CLI Isolation
