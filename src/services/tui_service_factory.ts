@@ -43,6 +43,10 @@ import type { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import type { ILogService } from "../shared/interfaces/i_log_service.ts";
 import type { IJournalService } from "../shared/interfaces/i_journal_service.ts";
 import type { Config } from "../shared/schemas/config.ts";
+import type { IConfigService, IPortalConfigEntry } from "../shared/interfaces/i_config_service.ts";
+import type { ICliApplicationContext } from "../cli/cli_context.ts";
+import type { IGitService } from "../shared/interfaces/i_git_service.ts";
+import type { IModelProvider } from "../ai/types.ts";
 
 /**
  * Service bundle for TUI initialization
@@ -78,7 +82,7 @@ export function createTuiServices(
   const { config, databaseService } = options;
 
   // Create command context for CLI commands
-  const configService = {
+  const configService: IConfigService = {
     get(): Config {
       return config;
     },
@@ -92,49 +96,59 @@ export function createTuiServices(
       return config;
     },
     addPortal: () => {
-      throw new Error("Not implemented in TUI context");
+      return Promise.reject(new Error("Not implemented in TUI context"));
     },
     removePortal: () => {
-      throw new Error("Not implemented in TUI context");
+      return Promise.reject(new Error("Not implemented in TUI context"));
     },
-    getPortals(): any[] {
+    getPortals(): IPortalConfigEntry[] {
       return config.portals || [];
     },
     getPortal: (alias: string) => (config.portals || []).find((p) => p.alias === alias),
   };
 
+  const providerStub: IModelProvider = {
+    id: "tui-provider-stub",
+    generate: () => Promise.resolve(""),
+  };
+
+  const gitStub: IGitService = {
+    setRepository: () => {},
+    getRepository: () => config.system.root,
+    ensureRepository: () => Promise.resolve(),
+    ensureIdentity: () => Promise.resolve(),
+    createBranch: () => Promise.resolve(""),
+    commit: () => Promise.resolve(""),
+    checkoutBranch: () => Promise.resolve(),
+    getCurrentBranch: () => Promise.resolve("main"),
+    getDefaultBranch: () => Promise.resolve("main"),
+    addWorktree: () => Promise.resolve(),
+    removeWorktree: () => Promise.resolve(),
+    pruneWorktrees: () => Promise.resolve(""),
+    listWorktrees: () => Promise.resolve([]),
+    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
+  };
+
   const displayAdapter = new DisplayAdapter(new EventLogger({ prefix: "[TUI]" }));
 
-  const context = {
+  const context: ICliApplicationContext = {
     config: configService,
     db: databaseService,
     display: displayAdapter,
-    // Add minimal required services for CLI commands used as adapters
-    provider: undefined as any, // Not needed for TUI adapters
-    git: undefined as any, // Not needed for TUI adapters
-    memory: undefined,
-    memoryBank: undefined,
-    extractor: undefined,
-    embeddings: undefined,
-    archive: undefined,
-    flowValidator: undefined,
-    contextCards: undefined,
-    skills: undefined,
-    portals: undefined,
-    requests: undefined,
-    plans: undefined,
+    provider: providerStub,
+    git: gitStub,
   };
 
   // Create service adapters that implement TUI interfaces
   const portalService: IPortalService = new PortalAdapter(
-    new PortalCommands(context) as any,
+    new PortalCommands(context),
   );
   const planService: IPlanService = new PlanAdapter(
-    new PlanCommands(context) as any,
+    new PlanCommands(context),
   );
   const journalService: IJournalService = new JournalServiceAdapter(databaseService);
   const requestService: IRequestService = new RequestAdapter(
-    new RequestCommands(context) as any,
+    new RequestCommands(context),
   );
   const daemonService: IDaemonService = new DaemonServiceAdapter(
     new DaemonCommands(context),

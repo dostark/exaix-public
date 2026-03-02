@@ -20,6 +20,7 @@ import {
 import { createPlanReviewerSession, sampleBasicPlans, samplePendingPlans, samplePlansWithStatuses } from "./helpers.ts";
 import { PlanAdapter } from "../../src/services/adapters/plan_adapter.ts";
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
+import type { IPlanDetails } from "../../src/shared/types/plan.ts";
 
 function yamlFrontmatter(obj: Record<string, string>): string {
   const lines = ["---"];
@@ -284,7 +285,7 @@ Deno.test("PlanReviewerView: reject throws if reason missing", async () => {
     },
     revise: () => Promise.resolve(),
     list: () => Promise.resolve([]),
-    show: (id: string) => Promise.resolve({ metadata: { id, status: PlanStatus.REVIEW }, content: "" } as any),
+    show: (id: string) => Promise.resolve({ metadata: { id, status: PlanStatus.REVIEW }, content: "" } as IPlanDetails),
   });
   let threw = false;
   try {

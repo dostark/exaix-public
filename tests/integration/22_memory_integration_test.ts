@@ -19,11 +19,7 @@ import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
-import {
-  MemoryBankAdapter,
-  MemoryEmbeddingAdapter,
-  MemoryExtractorAdapter,
-} from "../../src/services/adapters/mod.ts";
+import { MemoryBankAdapter, MemoryEmbeddingAdapter, MemoryExtractorAdapter } from "../../src/services/adapters/mod.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";

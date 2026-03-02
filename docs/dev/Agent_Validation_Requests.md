@@ -22,19 +22,19 @@ This document contains realistic validation requests for each agent blueprint in
 
 1.
 
-   ```bash
-   export EXO_TEST_ENABLE_PAID_LLM=1
-   # Set provider API key(s) as needed for your target model
-   export GOOGLE_API_KEY=...
-   export OPENAI_API_KEY=...
-   export ANTHROPIC_API_KEY=...
-   ```
+```bash
+export EXO_TEST_ENABLE_PAID_LLM=1
+# Set provider API key(s) as needed for your target model
+export GOOGLE_API_KEY=...
+export OPENAI_API_KEY=...
+export ANTHROPIC_API_KEY=...
+```
 
-   Then restart the daemon:
+Then restart the daemon:
 
-   ```bash
-   exoctl daemon restart
-   ```
+```bash
+exoctl daemon restart
+```
 
 ### Portal Configuration
 
@@ -80,7 +80,6 @@ Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/comm
 - Error handling consistency
 - CLI argument validation approaches
 - Opportunities for command consolidation or refactoring
-
 ```
 
 **Expected Output**:
@@ -117,7 +116,7 @@ exoctl request --portal portal-exoframe --agent performance-engineer "Analyze th
 
 **Request**:
 
-```text
+````text
 Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify:
 
 - Connection pool sizing and utilization patterns
@@ -156,7 +155,7 @@ Analyze the performance characteristics of ExoFrame's database connection poolin
 
 ```bash
 exoctl request --portal portal-exoframe --agent product-manager "We need to implement a real-time agent monitoring dashboard in the TUI. As a product manager, analyze this requirement and create: - Detailed user stories with acceptance criteria for monitoring active agents, request queues, and system health - Technical requirements considering the existing TUI architecture in src/tui/ - Success metrics for the dashboard feature (response time, user satisfaction, error detection) - Potential risks and dependencies with the daemon and database services Structure this as a complete requirements specification for the Team+ edition feature."
-```
+````
 
 **Request**:
 
@@ -167,7 +166,6 @@ We need to implement a real-time agent monitoring dashboard in the TUI. As a pro
 - Technical requirements considering the existing TUI architecture in src/tui/
 - Success metrics for the dashboard feature (response time, user satisfaction, error detection)
 - Potential risks and dependencies with the daemon and database services
-
 ```
 
 **Expected Output**:
@@ -212,7 +210,6 @@ Create a comprehensive testing strategy for ExoFrame's portal permission system.
 - Edge cases for symlinked directories, permission escalation, and concurrent access
 - Test data requirements for different portal configurations
 - Automation recommendations for CI/CD pipeline integration
-
 ```
 
 **Expected Output**:
@@ -257,7 +254,6 @@ Evaluate the quality of the security implementation in ExoFrame's context loader
 - Input sanitization and path traversal protection
 - Error handling for unauthorized access attempts
 - Code maintainability and adherence to security best practices
-
 ```
 
 **Expected Output**:
@@ -302,7 +298,6 @@ Perform a security audit of ExoFrame's AI provider API key management system. Id
 - Access control for API keys across different editions (Solo/Team/Enterprise)
 - Key rotation and expiration handling
 - Compliance with security best practices for credential management
-
 ```
 
 **Expected Output**:
@@ -347,7 +342,6 @@ Implement a new CLI command for memory bank management in ExoFrame. Plan the imp
 - Database schema changes for memory metadata storage
 - Input validation and security measures for memory operations
 - Error handling strategy and user feedback mechanisms
-
 ```
 
 **Expected Output**:
@@ -392,7 +386,6 @@ Design the architecture for MCP (Model Context Protocol) server support in ExoFr
 - Authentication and authorization for external MCP clients
 - Resource and tool discovery mechanisms for ExoFrame capabilities
 - Performance and security requirements for the Team+ edition MCP server
-
 ```
 
 **Expected Output**:
@@ -438,7 +431,6 @@ Create comprehensive API documentation for ExoFrame's flow engine. Include:
 - Error handling documentation for flow validation and execution failures
 - Code examples in TypeScript for creating custom flows
 - Integration guides for multi-agent workflow orchestration
-
 ```
 
 **Expected Output**:
@@ -483,7 +475,6 @@ Implement comprehensive tests for ExoFrame's review registry system. Create:
 - End-to-end tests for complete review lifecycle (creation, approval, execution)
 - Mock data and test fixtures for different review scenarios
 - Test automation setup for CI/CD validation of review integrity
-
 ```
 
 **Expected Output**:
@@ -529,7 +520,6 @@ Generate comprehensive documentation for the ExoFrame agent blueprint schema. Do
 - Capability definitions and tool access permissions
 - Example blueprints for each agent type with detailed field explanations
 - Migration guides for updating blueprints between versions
-
 ```
 
 **Expected Output**:
@@ -575,7 +565,6 @@ Perform a comprehensive code review of ExoFrame's plan executor implementation. 
 - Performance optimization opportunities in the execution pipeline
 - Maintainability concerns with the multi-step plan processing
 - Testing coverage and quality for the core execution engine
-
 ```
 
 **Expected Output**:
@@ -643,4 +632,3 @@ If validation reveals issues, document them with:
 - Expected vs actual behavior
 - Recommended fixes
 - Re-validation requirements
-

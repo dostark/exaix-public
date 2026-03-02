@@ -12,6 +12,7 @@ import { BaseCommand, type ICommandContext } from "../base.ts";
 import { PortalStatus } from "../../shared/enums.ts";
 import { PortalExecutionStrategy } from "../../shared/enums.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
+import type { JSONValue } from "../../shared/types/json.ts";
 
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
 
@@ -463,7 +464,7 @@ export class PortalCommands extends BaseCommand {
   /**
    * Log activity to database using DisplayService
    */
-  private async logActivity(actionType: string, payload: Record<string, any>): Promise<void> {
+  private async logActivity(actionType: string, payload: Record<string, JSONValue>): Promise<void> {
     try {
       await this.logger.info(actionType, "portal", {
         ...payload,

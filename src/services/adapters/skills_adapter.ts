@@ -10,6 +10,7 @@ import type { ISkillsService } from "../../shared/interfaces/i_skills_service.ts
 import type { SkillsService } from "../skills.ts";
 import type { ISkill, ISkillMatch } from "../../shared/schemas/memory_bank.ts";
 import type { ISkillMatchRequest } from "../../shared/types/skill.ts";
+import { SkillStatus } from "../../shared/enums.ts";
 
 export class SkillsAdapter implements ISkillsService {
   constructor(private inner: SkillsService) {}
@@ -46,7 +47,25 @@ export class SkillsAdapter implements ISkillsService {
   }
 
   async listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]> {
-    return await this.inner.listSkills(filter as any);
+    const normalized: {
+      status?: SkillStatus;
+      source?: "core" | "project" | "user" | "learned";
+    } = {};
+
+    if (filter?.status && Object.values(SkillStatus).includes(filter.status as SkillStatus)) {
+      normalized.status = filter.status as SkillStatus;
+    }
+
+    if (
+      filter?.source === "core" ||
+      filter?.source === "project" ||
+      filter?.source === "user" ||
+      filter?.source === "learned"
+    ) {
+      normalized.source = filter.source;
+    }
+
+    return await this.inner.listSkills(normalized);
   }
 
   async getSkill(skillId: string): Promise<ISkill | null> {

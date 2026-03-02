@@ -277,8 +277,7 @@ Minimal next steps after repository creation (creator-only, do these once):
 cp exo.config.sample.toml exo.config.toml 2>/dev/null || true
 ```
 
-1.
-   commands:
+1. commands:
 
 ```bash
 # Push initial branch
@@ -288,8 +287,7 @@ git push -u origin main
 gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}' || true
 ```
 
-1.
-   See the Implementation Plan for secure developer guidance.
+1. See the Implementation Plan for secure developer guidance.
 
 If you want, add a reference to this repository-build doc in the repo root (e.g., `REPOSITORY_BUILD.md`) and link it
 from `README.md` so new contributors follow the canonical onboarding flow.
@@ -297,4 +295,3 @@ from `README.md` so new contributors follow the canonical onboarding flow.
 ---
 
 # End of Repository Build
-

@@ -7,15 +7,6 @@
  * @related-files [src/ai/provider_registry.ts, src/ai/factories/abstract_provider_factory.ts]
  */
 
-/**
- * Provider configuration options
- */
-export interface IProviderConfig {
-  [key: string]: string | number | boolean | string[] | null | undefined;
-}
-
-declare const Deno: { env: { get(key: string): string | undefined } };
-
 import { ProviderRegistry } from "./provider_registry.ts";
 import { IModelOptions, IModelProvider, IResolvedProviderOptions } from "./types.ts";
 import {
@@ -44,6 +35,15 @@ import {
 
 import { MockStrategy, ProviderType } from "../shared/enums.ts";
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
+
+declare const Deno: { env: { get(key: string): string | undefined } };
+
+/**
+ * Provider configuration options
+ */
+export interface IProviderConfig {
+  [key: string]: string | number | boolean | string[] | null | undefined;
+}
 
 // ============================================================================
 // Mock Provider (for testing)

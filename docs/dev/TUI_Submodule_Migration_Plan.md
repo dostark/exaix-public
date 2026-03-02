@@ -53,4 +53,3 @@ The new TUI is a significant project with high implementation efforts, separate 
 ---
 
 # Created: 2026-02-27
-

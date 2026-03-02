@@ -2875,4 +2875,3 @@ Cost tracking supports all major AI providers:
 ---
 
 ### End of User Guide
-

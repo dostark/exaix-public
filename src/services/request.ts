@@ -21,6 +21,7 @@ import {
 } from "../shared/types/request.ts";
 import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
+import type { JSONValue } from "../shared/types/json.ts";
 
 export class RequestService {
   private requestsDir: string;
@@ -58,7 +59,7 @@ export class RequestService {
 
     const subject = options.subject || trimmedDescription.split("\n")[0].substring(0, 80);
 
-    const frontmatterFields: Record<string, any> = {
+    const frontmatterFields: Record<string, JSONValue> = {
       trace_id,
       created,
       status: RequestStatus.PENDING,
@@ -189,12 +190,12 @@ export class RequestService {
         trace_id: fm.trace_id || "",
         filename,
         status: fm.status as RequestStatusType,
-        priority: (fm.priority as any) || RequestPriority.NORMAL,
+        priority: this.parsePriority(fm.priority),
         agent: fm.agent || "default",
         portal: fm.portal,
         created: fm.created || "",
         created_by: fm.created_by || "unknown",
-        source: (fm.source as any) || "cli",
+        source: this.parseSource(fm.source),
         subject: fm.subject || "",
       },
       content: match[2].trim(),
@@ -238,13 +239,32 @@ export class RequestService {
       filename,
       path,
       status: fm.status as RequestStatusType,
-      priority: (fm.priority as any) || RequestPriority.NORMAL,
+      priority: this.parsePriority(fm.priority),
       agent: fm.agent || "default",
       created: fm.created || "",
       created_by: fm.created_by || "unknown",
-      source: (fm.source as any) || "cli",
+      source: this.parseSource(fm.source),
       subject: fm.subject || "",
     };
+  }
+
+  private parsePriority(priority?: string): RequestPriority {
+    if (
+      priority === RequestPriority.LOW ||
+      priority === RequestPriority.NORMAL ||
+      priority === RequestPriority.HIGH ||
+      priority === RequestPriority.CRITICAL
+    ) {
+      return priority;
+    }
+    return RequestPriority.NORMAL;
+  }
+
+  private parseSource(source?: string): RequestSource {
+    if (source === "cli" || source === "file" || source === "interactive" || source === "tui") {
+      return source;
+    }
+    return "cli";
   }
 
   private async findFilename(id: string): Promise<string | null> {

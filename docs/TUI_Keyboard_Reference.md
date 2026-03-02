@@ -254,7 +254,7 @@ All features are accessible via keyboard:
 
 Add to `exo.config.toml`:
 
-```toml
+````toml
 [tui]
 high_contrast = false
 screen_reader = false
@@ -291,5 +291,4 @@ theme = "dark"  # "dark", "light", or "system"
 - [ExoFrame User Guide](./ExoFrame_User_Guide.md) - Complete user documentation
 - [ExoFrame Architecture](./ExoFrame_Architecture.md) - Technical architecture details
 - [Implementation Plan](./ExoFrame_Implementation_Plan.md) - Development roadmap
-
-```
+````

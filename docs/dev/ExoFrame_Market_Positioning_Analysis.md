@@ -109,7 +109,7 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 
 # inadequate governance
 
-   - Audit trails becoming **non-negotiable** for enterprises
+- Audit trails becoming **non-negotiable** for enterprises
 
 1.
    - Single-agent solutions transitioning to multi-agent orchestration
@@ -239,8 +239,7 @@ orchestration platforms**
 
 - Add competitive matrix showing ExoFrame vs. 3 categories:
   1. IDE Agents (Cursor, Copilot) - "not a replacement"
-  1.
-     compliance-focused"
+  1. compliance-focused"
   1.
 
 #### 3. MCP Value Underemphasized
@@ -485,7 +484,7 @@ positioning
 
 ### ExoFrame vs. Market Segments
 
-```text
+````text
 ┌─────────────────────────────────────────────────────────────────┐
 │ AI Agent Orchestration Market Positioning Map (2026)             │
 ├─────────────────────────────────────────────────────────────────┤
@@ -661,5 +660,4 @@ multi-agent coordination) strongly favor ExoFrame's positioning.
 
 **Verdict: PROCEED with recommended positioning refinements and feature
 priorities.**
-
-```
+````

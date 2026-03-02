@@ -10,7 +10,6 @@
 import { Table } from "@cliffy/table";
 import { join } from "@std/path";
 import { FlowLoader } from "../../flows/flow_loader.ts";
-import { FlowValidatorImpl } from "../../services/flow_validator.ts";
 import type { IFlow } from "../../shared/schemas/flow.ts";
 import { BaseCommand } from "../base.ts";
 import type { ICliApplicationContext } from "../cli_context.ts";
@@ -25,6 +24,12 @@ interface FlowShowOptions {
 
 interface FlowValidateOptions {
   json?: boolean;
+}
+
+interface IFlowValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
 export class FlowCommands extends BaseCommand {
@@ -149,19 +154,20 @@ export class FlowCommands extends BaseCommand {
         this.config.paths.flows,
         `${flowId}.flow.ts`,
       );
-      const validator = this.context.flowValidator ??
-        new FlowValidatorImpl(
-          this.flowLoader,
-          join(this.config.system.root, this.config.paths.blueprints, this.config.paths.agents),
-        );
-      const validation = await validator.validateFile(filePath);
+      const validation = this.context.flowValidator
+        ? await this.context.flowValidator.validateFile(filePath)
+        : await this.validateFlowWithoutService(flowId);
 
       if (options.json) {
-        console.log(JSON.stringify({
-          valid: validation.isValid,
-          errors: validation.errors,
-          warnings: validation.warnings,
-        }, null, 2));
+        console.log(JSON.stringify(
+          {
+            valid: validation.isValid,
+            errors: validation.errors,
+            warnings: validation.warnings,
+          },
+          null,
+          2,
+        ));
         return;
       }
 
@@ -178,6 +184,49 @@ export class FlowCommands extends BaseCommand {
       }
       console.error("Error validating flow:", error instanceof Error ? error.message : String(error));
       this.exit(1);
+    }
+  }
+
+  private async validateFlowWithoutService(flowId: string): Promise<IFlowValidationResult> {
+    try {
+      const flow = await this.flowLoader.loadFlow(flowId);
+      const errors: string[] = [];
+
+      if (!Array.isArray(flow.steps) || flow.steps.length === 0) {
+        errors.push(`IFlow '${flowId}' must contain at least one step`);
+      } else {
+        for (const step of flow.steps) {
+          if (!step.agent || typeof step.agent !== "string" || step.agent.trim() === "") {
+            errors.push(`IFlow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`);
+            break;
+          }
+        }
+
+        if (flow.output?.from) {
+          const stepIds = new Set(flow.steps.map((step) => step.id));
+          const outputFrom = flow.output.from;
+          if (typeof outputFrom === "string" && !stepIds.has(outputFrom)) {
+            errors.push(`IFlow '${flowId}' output.from references non-existent step: ${outputFrom}`);
+          } else if (Array.isArray(outputFrom)) {
+            const invalid = outputFrom.find((stepId) => !stepIds.has(stepId));
+            if (invalid) {
+              errors.push(`IFlow '${flowId}' output.from references non-existent step: ${invalid}`);
+            }
+          }
+        }
+      }
+
+      return {
+        isValid: errors.length === 0,
+        errors,
+        warnings: [],
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        errors: [error instanceof Error ? error.message : String(error)],
+        warnings: [],
+      };
     }
   }
 

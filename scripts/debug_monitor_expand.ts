@@ -2,7 +2,6 @@
  * @module debug_monitor_expand
  * @description Script: debug_monitor_expand
  */
-import { KEYS } from "../src/tui/helpers/keyboard.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
 const { monitorView } = await createMonitorViewWithLogs([
@@ -32,16 +31,16 @@ const session = monitorView.createTuiSession();
 
 async function run() {
   // Switch to grouped mode
-  await session.handleKey(KEYS.G);
+  await session.handleKey("g");
 
   console.log("After grouping (before collapse):");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 
-  await session.handleKey(KEYS.C);
+  await session.handleKey("c");
   console.log("After collapse:");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 
-  await session.handleKey(KEYS.E);
+  await session.handleKey("e");
   console.log("After expand:");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 }

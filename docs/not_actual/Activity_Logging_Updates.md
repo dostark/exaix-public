@@ -13,7 +13,7 @@ the ExoFrame codebase.
 - Added index on `agent_id` column for query performance
 - `agent_id` is NULL for human/system actions, populated for agent actions
 
-```sql
+````sql
 CREATE TABLE IF NOT EXISTS activity (
   id TEXT PRIMARY KEY,
   trace_id TEXT NOT NULL,
@@ -328,5 +328,4 @@ code.
 - Batched INSERT (100 entries): ~10-50ms total = 0.1-0.5ms per log (non-blocking)
 - Throughput improvement: **10-50x faster**
 - Latency improvement: **Operations return immediately (0ms)**
-
-```
+````

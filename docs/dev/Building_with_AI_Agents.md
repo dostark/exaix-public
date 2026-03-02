@@ -37,7 +37,7 @@ The agent caught things like:
 
 **The Conversation**:
 
-```text
+``````text
 Me: "I believe that agentId should also be tracked in the event record."
 Agent: [searches codebase, finds gaps]
 Agent: "You're right. Currently only trace_id is logged. Adding agent_id..."
@@ -4970,5 +4970,4 @@ Deno.test("buildExecutionPrompt: prevents instruction override", () => {
 - What are the failure modes?
 
 **The Result**: A system where security is woven into the fabric, not bolted on after the fact. AI agents that are safe by design, not by accident.
-
-```
+``````

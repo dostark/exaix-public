@@ -82,6 +82,10 @@ export interface ILogEntryOverrides {
   [key: string]: string | number | boolean | null | undefined | ILogEntryPayload | unknown;
 }
 
+interface IIndexedActivityRecord extends IActivityRecord {
+  [key: string]: string | number | null | undefined;
+}
+
 // Counter for deterministic IDs in tests
 let requestIdCounter = 1;
 
@@ -445,7 +449,7 @@ class MockDatabaseService implements IDatabaseService, IJournalService {
   getDistinctValues(column: string): Promise<string[]> {
     const values = new Set<string>();
     for (const a of this._activityRecords) {
-      const val = (a as any)[column];
+      const val = (a as IIndexedActivityRecord)[column];
       if (val) values.add(String(val));
     }
     return Promise.resolve([...values]);
@@ -488,6 +492,28 @@ export function createMockDatabaseService(activityRecords: IActivityRecord[] = [
   return new MockDatabaseService(activityRecords);
 }
 
+function createMockRequestMetadata(overrides: Partial<IRequest> = {}): IRequest {
+  return {
+    trace_id: overrides.trace_id ?? "req-test",
+    filename: overrides.filename ?? "request-test.md",
+    path: overrides.path ?? "request-test.md",
+    status: overrides.status ?? RequestStatus.PENDING,
+    priority: overrides.priority ?? RequestPriority.NORMAL,
+    agent: overrides.agent ?? "default",
+    created: overrides.created ?? new Date().toISOString(),
+    created_by: overrides.created_by ?? "test-user",
+    source: overrides.source ?? "cli",
+    subject: overrides.subject ?? "Test request",
+  };
+}
+
+function createMockRequestShowResult(overrides?: Partial<IRequestShowResult>): IRequestShowResult {
+  return {
+    metadata: overrides?.metadata ?? createMockRequestMetadata(),
+    content: overrides?.content ?? "",
+  };
+}
+
 export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverrides> = []) {
   const activityRecords: IActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
@@ -502,20 +528,22 @@ export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverri
   }));
 
   const db = createMockDatabaseService(activityRecords);
-  const monitorView = new MonitorView(db as any);
-  // For testing, set the monitor view's internal logs as parsed ILogEntry[]
-  // @ts-ignore: private access
-  monitorView["logs"] = activityRecords.map((log) => ({
-    id: log.id,
-    trace_id: log.trace_id,
-    actor: log.actor,
-    agent_id: log.agent_id,
-    action_type: log.action_type,
-    target: log.target,
-    payload: JSON.parse(log.payload),
-    timestamp: log.timestamp,
-    count: log.count,
-  }));
+  const monitorView = new MonitorView(db);
+  Reflect.set(
+    monitorView,
+    "logs",
+    activityRecords.map((log) => ({
+      id: log.id,
+      trace_id: log.trace_id,
+      actor: log.actor,
+      agent_id: log.agent_id,
+      action_type: log.action_type,
+      target: log.target,
+      payload: JSON.parse(log.payload),
+      timestamp: log.timestamp,
+      count: log.count,
+    })),
+  );
   return { db, monitorView };
 }
 
@@ -679,10 +707,10 @@ export function createLegacyMockRequestService() {
   return {
     list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
-    show: (_id: string) => Promise.resolve({ metadata: {} as any, content: "" }),
+    show: (_id: string) => Promise.resolve(createMockRequestShowResult()),
     getRequestContent: () => Promise.resolve(""),
-    create: () => Promise.resolve({} as any),
-    createRequest: () => Promise.resolve({} as any),
+    create: () => Promise.resolve(createMockRequestMetadata()),
+    createRequest: () => Promise.resolve(createMockRequestMetadata()),
     updateRequestStatus: () => Promise.resolve(true),
   };
 }
@@ -700,7 +728,7 @@ export function createLegacyTuiSessionWithTracking() {
   const mockService = {
     list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
-    show: () => Promise.resolve({ metadata: {} as any, content: "" }),
+    show: () => Promise.resolve(createMockRequestShowResult()),
     getRequestContent: (_id: string) => {
       viewCalled = true;
       return Promise.resolve("content");
@@ -729,7 +757,7 @@ export function createLegacyTuiSessionWithLongTraceId() {
   const mockService = {
     listRequests: () => Promise.resolve([]),
     list: () => Promise.resolve([]),
-    show: () => Promise.resolve({ metadata: {} as any, content: "" }),
+    show: () => Promise.resolve(createMockRequestShowResult()),
     getRequestContent: () => Promise.resolve(""),
     create: () =>
       Promise.resolve({

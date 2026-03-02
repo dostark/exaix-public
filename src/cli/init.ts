@@ -47,10 +47,12 @@ import {
   SkillsAdapter,
 } from "../services/adapters/mod.ts";
 
-export interface ServiceContext extends ICliApplicationContext {
+export interface IServiceContext extends ICliApplicationContext {
   success: boolean;
   error?: string;
 }
+
+export type ServiceContext = IServiceContext;
 
 // Helper to create IDatabaseService-compatible stub
 function createDatabaseStub(): IDatabaseService {
@@ -146,7 +148,7 @@ export async function initializeServices(
     const providerLocal = await ProviderFactory.createByName(cfg, model);
     const displayLogger = new EventLogger({});
     const displayAdapter = new DisplayAdapter(displayLogger);
-    const configAdapter = new ConfigAdapter(cfgService as any);
+    const configAdapter = new ConfigAdapter(cfgService);
 
     const userIdentityGetter = async () => {
       return await Promise.resolve("cli-user");
@@ -219,7 +221,7 @@ export async function initializeServices(
       git: createGitServiceStub(),
       provider: providerLocal,
       display: new DisplayAdapter(displayLocal),
-      config: new ConfigAdapter(new ConfigService() as any),
+      config: new ConfigAdapter(new ConfigService()),
       // Minimal optional adapters can be undefined in fallback
     };
   }

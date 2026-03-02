@@ -42,4 +42,3 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
 ### Step 9.6: Integration with exoctl
 
 1. Implement `exoctl dashboard` (or `exoctl cockpit`) to launch the TUI.
-

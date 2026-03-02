@@ -400,7 +400,23 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
   const mockService = {
     list: () => Promise.resolve([]),
     listRequests: () => Promise.resolve([]),
-    show: () => Promise.resolve({ metadata: {} as any, content: "Content" }),
+    show: () => {
+      const metadata: IRequestMetadata = {
+        trace_id: "req-empty",
+        filename: "request-empty.md",
+        path: "request-empty.md",
+        status: RequestStatus.PENDING,
+        priority: RequestPriority.NORMAL,
+        agent: "default",
+        created: "2025-01-01T10:00:00Z",
+        created_by: "test@example.com",
+        source: "cli",
+      };
+      return Promise.resolve({
+        metadata,
+        content: "Content",
+      });
+    },
     getRequestContent: (_id: string) => Promise.resolve("Content"),
     create: () => Promise.resolve({} as IRequest),
     createRequest: () => Promise.resolve({} as IRequest),

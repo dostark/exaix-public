@@ -38,7 +38,7 @@ The central area displays one view at a time. Each view occupies **100%** of the
 
 A horizontal bar on **line 3** (below breadcrumbs) showing all open tabs:
 
-```text
+`````text
 [File] [Views] [Commands] [Settings] [Help]  |  Agent: Active  🔔 2  💰 $1.24  |  17:30
 Workspace > Requests > REQ-1024
 [ Requests ][ Plans ][ Reviews ][ Agents ][ + Create Request ]
@@ -1252,5 +1252,4 @@ The **`F1`** help overlay provides a context-aware, categorized shortcut referen
 
 - **Sections**: Global, Navigation, Current View, Alt-Key Shortcuts.
 - **Export**: Within the `F1` overlay, pressing **`E`** exports the full keyboard reference to `~/.exoframe/keyboard_reference.md` for offline access or printing.
-
-```
+`````

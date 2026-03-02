@@ -18,6 +18,7 @@ import {
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { LogLevel } from "../../src/shared/enums.ts";
+import type { IPlanDetails } from "../../src/shared/types/plan.ts";
 
 function createDisplay() {
   const calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];
@@ -100,7 +101,7 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
           token_cost_usd: "0.0025",
         },
         content: "C",
-      } as any),
+      } as IPlanDetails),
   };
 
   const context: IPlanActionContext = {

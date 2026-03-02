@@ -406,7 +406,6 @@ While ExoFrame is a horizontal platform, **vertical-specific configurations** ad
 #### Example: Cost-Aware Provider Routing
 
 ```toml
-
 # Enterprise provider policy
 
 default = "claude-3.5-sonnet"
@@ -419,7 +418,6 @@ fallback = ["gpt-4-turbo", "ollama/deepseek"]
 # Cost optimization for bulk operations
 
 # Premium for critical decisions
-
 ```
 
 ---
@@ -804,8 +802,7 @@ Real-time compliance monitoring interface:
 
 # Workflow:
 
-```bash
-
+````bash
 # Morning: Create batch request
 
   --agent senior-coder \
@@ -917,7 +914,7 @@ exoctl review approve deprecated-api-fix
 # Quarterly: Export HIPAA compliance report for auditors
 
   --output q1-2026-hipaa-audit.pdf
-```
+````
 
 **Value:** Automated compliance, auditor-ready reports, peace of mind.
 
@@ -995,7 +992,6 @@ ExoFrame implements **defense in depth** with multiple security layers:
 # Runtime Security:
 
 ```bash
-
 # Agent code attempts:
 
 → PermissionDenied (not in --allow-read list)
@@ -1045,7 +1041,6 @@ Deno.writeFile("../../.ssh/id_rsa")
 # Installation:
 
 ```bash
-
 # Install Deno (if not already installed)
 
 # Clone ExoFrame
@@ -1057,7 +1052,6 @@ cd exoframe
 # Start daemon
 
 # Verify installation
-
 ```
 
 # Requirements:
@@ -1070,7 +1064,6 @@ cd exoframe
 # Local LLM (Optional):
 
 ```bash
-
 # Install Ollama for 100% local operation
 
 # Pull model
@@ -1085,7 +1078,6 @@ exoctl config set llm.model deepseek-coder:33b
 # Shared Server Setup:
 
 ```bash
-
 # Deploy to shared server (Ubuntu 24.04)
 
 # Install as systemd service
@@ -1116,7 +1108,6 @@ exoctl user add bob@example.com --role approver
 # High-Availability Setup:
 
 ```bash
-
 # Load-balanced deployment with Kubernetes
 
 # Configure SSO (example: Okta)
@@ -1247,7 +1238,6 @@ Enterprise customers require third-party security validation. Our certification 
 ### Quick Start: Solo Edition
 
 ```bash
-
 # 1. Install ExoFrame
 
 # 2. Initialize workspace
@@ -1271,7 +1261,6 @@ exoctl journal tail
 # 9. Review review
 
 # 10. Merge changes
-
 ```
 
 # First task complete in ~5 minutes!
@@ -1279,7 +1268,6 @@ exoctl journal tail
 ### Quick Start: Team Edition
 
 ```bash
-
 # 1. Deploy to shared server
 
 curl -fsSL https://exoframe.io/install-team.sh | sh
@@ -1291,7 +1279,6 @@ curl -fsSL https://exoframe.io/install-team.sh | sh
 # 4. Configure MCP server
 
 # 5. Team members connect
-
 ```
 
 ### Migration Paths
@@ -1299,13 +1286,11 @@ curl -fsSL https://exoframe.io/install-team.sh | sh
 # Solo → Team:
 
 ```bash
-
 # Export Solo workspace
 
 # On Team server
 
 # Grant access to team
-
 ```
 
 # Team → Enterprise:
@@ -1612,4 +1597,3 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 - **Returns:** `{ "diff": string, "files_changed": number, "status": string }`
 
 ---
-

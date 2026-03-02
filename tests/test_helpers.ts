@@ -165,14 +165,14 @@ export function createStubGit(): IGitService {
  * Create a stub IDisplayService for tests.
  */
 export function createStubDisplay(db?: IDatabaseService): IDisplayService {
-  const logWithLevel = async (
+  const logWithLevel = (
     action: string,
     target: string | null,
     payload: LogMetadata = {},
     traceId?: string,
   ): Promise<void> => {
     if (!db) {
-      return;
+      return Promise.resolve();
     }
     db.logActivity(
       "system",
@@ -182,9 +182,10 @@ export function createStubDisplay(db?: IDatabaseService): IDisplayService {
       traceId,
       null,
     );
+    return Promise.resolve();
   };
 
-  return {
+  const display: IDisplayService = {
     info: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
       logWithLevel(action, target, payload, traceId),
     warn: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
@@ -195,7 +196,9 @@ export function createStubDisplay(db?: IDatabaseService): IDisplayService {
       logWithLevel(action, target, payload, traceId),
     fatal: (action: string, target: string | null, payload?: LogMetadata, traceId?: string) =>
       logWithLevel(action, target, payload, traceId),
-  } as unknown as IDisplayService;
+  };
+
+  return display;
 }
 
 /**

@@ -625,4 +625,3 @@ Memory Banks will be integrated into the TUI dashboard in a future phase:
 
 - **v2.0.0 (2026-01-04):** Added Global Memory, Learnings, Pending workflow, Embeddings (Phase 12.8-12.11)
 - **v1.0.0 (2026-01-03):** Initial architecture definition (Phase 12.1)
-
