@@ -46,7 +46,6 @@ Allow users to inject skills (e.g., `documentation-driven`, `file-ops`) at:
 
 1. **Request creation** - `exoctl request "..." --skills <skills>`
 
-
 Skills override blueprint constraints via instruction precedence in the LLM prompt.
 
 ---
@@ -769,7 +768,6 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 **Completion Date:** 2026-01-27
 **Total Implementation Time:** ~2 hours
 **Test Coverage:** 10 tests, 100% passing
-
 
 ```
 

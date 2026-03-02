@@ -244,7 +244,6 @@ try {
 
 1. Extract `executeStepWithLogging()` method
 
-
 **Estimated Impact**: Reduce 80 lines → 40 lines (50% reduction)
 
 ---
@@ -300,7 +299,6 @@ Each phase is independently reversible via git revert. Test coverage must be mai
 - jscpd report: [jscpd-report/jscpd-report.json](../../jscpd-report/jscpd-report.json)
 - Previous TUI work: [phase-13-tui-enhancement.md](phase-13-tui-enhancement.md)
 - Testing guidelines: [agents/tests/testing.md](../tests/testing.md)
-
 
 ```
 

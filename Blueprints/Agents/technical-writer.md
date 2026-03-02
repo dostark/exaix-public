@@ -82,7 +82,6 @@ const result = functionName("value", { option: true });
 
 - `ErrorType` - When this happens
 
-
 ### Tutorial Structure
 
 ```markdown
@@ -129,7 +128,6 @@ The user needs API documentation for the user service. I need to:
 1.
 1.
 </thought>
-
 
 <thought>
 The user needs API documentation for the user service. I need to:

@@ -66,7 +66,6 @@ The user needs to design a user management system. I need to:
 
 1.
 
-
 <content>
 {
   "title": "User Management System Architecture",
@@ -106,7 +105,6 @@ This agent is used by:
 - `feature_development.flow.ts` - Architecture design step
 - `documentation.flow.ts` - Architecture documentation step
 - Direct architecture consultation via request
-
 
 ```
 

@@ -22,7 +22,7 @@ Architecture document provides technical implementation details.
 orchestration space focusing on audit trail, compliance, and asynchronous
 workflows—areas largely underserved by current IDE-integrated coding agents.
 
-**Key Findings:**
+# Key Findings:
 
 - **Strong differentiation** in audit trail, compliance, and governance
 - **Untapped enterprise opportunity** in regulated industries
@@ -54,7 +54,7 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 
 ### Document Strengths
 
-**White Paper Strengths:**
+# White Paper Strengths:
 
 - ✅ Clear positioning against IDE agents (Cursor, Copilot, Windsurf)
 - ✅ Strong security narrative with Deno permission model
@@ -62,7 +62,7 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 - ✅ Practical use case examples
 - ✅ Target audience clearly defined
 
-**Architecture Document Strengths:**
+# Architecture Document Strengths:
 
 - ✅ Comprehensive Mermaid diagrams for visualization
 - ✅ Detailed technical implementation
@@ -72,14 +72,14 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 
 ### Areas for Improvement
 
-**White Paper:**
+# White Paper:
 
 - Missing TUI dashboard discussion (Architecture has full section)
 - No mention of Skills Management
 - Provider Strategy not detailed (briefly mentioned)
 - Need to update MCP status from "future" to "implemented"
 
-**Architecture:**
+# Architecture:
 
 - Missing strategic positioning context (complement with White Paper section)
 - No comparison to competitors
@@ -91,37 +91,38 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 
 ### AI Agent Orchestration Market Overview
 
-**Market Size & Growth:**
+# Market Size & Growth:
 
 - **2024:** USD $10.13 billion
 - **2026 Projection:** Strong growth (CAGR 22.1%)
 - **2033 Projection:** USD $61.13 billion
 
-**Key Trends for 2026:**
+# Key Trends for 2026:
 
 1. **Shift from Experimental to Production**
    - 2026 is the "inflection year" for practical, scaled AI agent deployment
    - Enterprises moving beyond pilots to production systems
    - Focus shifting from "what AI can do" to "can we trust it"
 
-2. **Governance & Compliance Explosion**
+1.
    - Gartner: >40% of agentic AI projects will be canceled by end of 2027 due to
-     **inadequate governance**
-   - EU AI Act, NIST AI Framework, ISO/IEC 42001:2023 driving requirements
+
+# inadequate governance
+
    - Audit trails becoming **non-negotiable** for enterprises
 
-3. **Multi-Agent Systems as Default**
+1.
    - Single-agent solutions transitioning to multi-agent orchestration
    - Need for centralized "Agent OS" platforms to coordinate agents
    - Gartner: 70% of multi-agent systems will feature narrowly focused roles by
      2027
 
-4. **Interoperability Standards Emerging**
+1.
    - **Model Context Protocol (MCP)** gaining rapid adoption
    - Agent-to-Agent Protocol (A2A) for multi-agent communication
    - 2026 expected as "pivotal year" for MCP standardization
 
-5. **Humans as "AgentOrchestrators"**
+1.
    - Role shift: developers → "agent bosses"
    - Focus on guiding and collaborating with multi-agent systems
    - Strategic decision-making over line-by-line coding
@@ -136,7 +137,7 @@ workflows—areas largely underserved by current IDE-integrated coding agents.
 | **Cursor**             | Agent mode, multi-file changes, demonstrated building full browser autonomously | Superior codebase indexing | Complex multi-file projects                     | Sequential edits only, high RAM usage        |
 | **Windsurf (Cascade)** | Proactive suggestions, real-time collaboration                                  | Project-wide understanding | Enterprise teams, full-stack workflows          | Real-time interaction required               |
 
-**Common Limitations:**
+# Common Limitations:
 
 - ❌ No comprehensive audit trails
 - ❌ Require constant human attention (not asynchronous)
@@ -154,7 +155,7 @@ FluxForce
 - **Target:** Large enterprises, complex workflows
 - **Gap:** Most lack comprehensive audit trails and compliance features
 
-**ExoFrame's Positioning:**
+# ExoFrame's Positioning:
 
 - Sits between IDE agents and full enterprise platforms
 - Targets solo developers, technical power users, system architects
@@ -166,20 +167,20 @@ FluxForce
 
 ### Current Value Proposition (from White Paper)
 
-**Core Value:**
+# Core Value:
 
 > "Auditable Agent Orchestration Platform for asynchronous workflows with
 > explicit human approval gates"
 
-**Key Differentiators:**
+# Key Differentiators:
 
 1. **Audit Trail & Traceability** - Full trace_id linking across requests →
    plans → commits
-2. **Asynchronous Workflows** - Daemon-based, no constant supervision required
-3. **Explicit Human Approval Gates** - Plans and changesets require approval
-4. **Multi-Project Context** - Portal system for cross-repo awareness
-5. **Data Sovereignty** - 100% local-first with Ollama support
-6. **Security** - Deno permission system enforces OS-level boundaries
+1.
+1.
+1.
+1.
+1.
 
 ### Value Proposition Strength Assessment
 
@@ -208,7 +209,7 @@ FluxForce
 **Gap:** White Paper targets "Solo Developers, Technical Power Users" but
 strongest value props are **enterprise compliance/governance**
 
-**Market Reality:**
+# Market Reality:
 
 - Enterprises desperately need audit trails and governance (Gartner: 40% failure
   rate)
@@ -216,7 +217,7 @@ strongest value props are **enterprise compliance/governance**
   adopters
 - Solo developers care less about compliance than enterprises
 
-**Recommendation:**
+# Recommendation:
 
 - **Reposition for dual audience:** Solo developers AND small-to-medium
   regulated teams
@@ -228,32 +229,31 @@ strongest value props are **enterprise compliance/governance**
 **Gap:** White Paper compares to IDE agents but doesn't address **enterprise
 orchestration platforms**
 
-**Missing Comparisons:**
+# Missing Comparisons:
 
 - vs. LangChain/LlamaIndex (developer-focused orchestration)
 - vs. SuperAGI/FluxForce (enterprise orchestration)
 - vs. workflow automation tools (Temporal, Airflow + AI)
 
-**Recommendation:**
+# Recommendation:
 
 - Add competitive matrix showing ExoFrame vs. 3 categories:
   1. IDE Agents (Cursor, Copilot) - "not a replacement"
-  2. Developer Orchestration (LangChain) - "more opinionated,
+  1.
      compliance-focused"
-  3. Enterprise Platforms (SuperAGI) - "simpler, developer-first, audit-native"
+  1.
 
 #### 3. MCP Value Underemphasized
 
-**Gap:** MCP mentioned as "future enhancement" but it's a **major 2026 trend**
-and already implemented
+# Gap:** MCP mentioned as "future enhancement" but it's a **major 2026 trend
 
-**Market Reality:**
+# Market Reality:
 
 - MCP described as "USB-C port for AI" - becoming standard
 - 2026 is "pivotal year" for MCP adoption
 - MCP enables agent interoperability (key enterprise requirement)
 
-**Recommendation:**
+# Recommendation:
 
 - **Elevate MCP** to tier-1 differentiator
 - Highlight: "MCP-native from day one - connect to any MCP-compatible tool"
@@ -266,13 +266,13 @@ and already implemented
 **Gap:** Security and audit are mentioned but not positioned as **governance
 platform**
 
-**Market Opportunity:**
+# Market Opportunity:
 
 - Enterprises need "Agent Governance" platforms
 - FrameworksMust track "what AI did and why" for compliance
 - AI Bill of Materials (AI-BOM) becoming requirement (like software BOM)
 
-**Recommendation:**
+# Recommendation:
 
 - Rebrand/reframe as: **"Governance-First Agent Orchestration"**
 - Add governance dashboard concept to TUI
@@ -284,13 +284,13 @@ platform**
 **Gap:** No explicit mention of regulatory frameworks (EU AI Act, HIPAA, SOX,
 etc.)
 
-**Market Reality:**
+# Market Reality:
 
 - EU AI Act enforcement beginning 2026
 - Healthcare (HIPAA), Finance (SOX), Manufacturing need compliance
 - "Audit Trail" != "Compliance-Ready"
 
-**Recommendation:**
+# Recommendation:
 
 - Add compliance mapping: Activity Journal → specific regulations
 - Create "Compliance Configuration Profiles"
@@ -306,14 +306,14 @@ etc.)
 **Current Messaging:** "Drop a request, go to lunch" **Problem:** Sounds like
 "slow" rather than "efficient"
 
-**Better Positioning:**
+# Better Positioning:
 
 - **"Overnight CI/CD for AI"** - runs while you sleep
 - **"Batch Processing for Code Changes"** - tackle 10 issues asynchronously
 - **"Agent Task Queue"** - systematic, prioritized execution
 - Use case: "Review 50 deprecated API usage → submit 50 PRs overnight"
 
-**Recommendation:**
+# Recommendation:
 
 - Reframe async as **efficiency multiplier**, not waiting
 - Add specific async use cases (batch refactoring, overnight repo analysis)
@@ -323,18 +323,18 @@ etc.)
 
 **Gap:** No mention of developer onboarding, learning curve, or tooling
 
-**Competitor Strength:**
+# Competitor Strength:
 
 - Cursor/Windsurf: "Chat with your IDE" - zero learning curve
 - LangChain: Extensive documentation, tutorials, community
 
-**ExoFrame Reality:**
+# ExoFrame Reality:
 
 - File-based API is unfamiliar
 - TOML blueprints require learning
 - No visual workflow builder
 
-**Recommendation:**
+# Recommendation:
 
 - Add "Developer Experience" section to White Paper
 - Create "5-Minute Quick Start" guide
@@ -346,13 +346,13 @@ etc.)
 **Gap:** Skills service exists (Architecture doc) but not mentioned in
 positioning
 
-**Opportunity:**
+# Opportunity:
 
 - "Reusable Agent Workflows" - make agents extensible
 - "Org-Wide Best Practices" - share proven workflows
 - "Template Library" - accelerate adoption
 
-**Recommendation:**
+# Recommendation:
 
 - Add Skills to value proposition
 - Position as "Agent Workflow Library"
@@ -387,17 +387,17 @@ positioning
 - ✅ Testing Strategy updated with edition-specific test scope
 - ✅ Developer Setup updated with submodule workflow
 
-**4. Build Competitive Positioning Matrix (Priority: MEDIUM)**
+# 4. Build Competitive Positioning Matrix (Priority: MEDIUM)
 
 - Create 3-axis comparison:
   1. ExoFrame vs. IDE Agents
-  2. ExoFrame vs. Developer Orchestration (LangChain)
-  3. ExoFrame vs. Enterprise Platforms (SuperAGI)
+  1.
+  1.
 - Publish as website comparison page
 
 ### Feature Development Priorities (2026 Roadmap)
 
-**1. Governance Dashboard (Priority: HIGH)**
+# 1. Governance Dashboard (Priority: HIGH)
 
 - Add compliance metrics to TUI Dashboard
 - "Governance View" showing:
@@ -407,28 +407,28 @@ positioning
   - Audit log export status
 - Target: Compliance officers, security teams
 
-**2. Compliance Export Tool (Priority: HIGH)**
+# 2. Compliance Export Tool (Priority: HIGH)
 
 - Generate PDF/CSV audit reports
 - Configurable retention policies
 - Regulatory framework templates (HIPAA, SOX, EU AI Act)
 - Automated compliance reporting
 
-**3. Blueprint Marketplace (Priority: MEDIUM)**
+# 3. Blueprint Marketplace (Priority: MEDIUM)
 
 - Curated agent templates
 - Community-contributed blueprints
 - Verified blueprints (security-audited)
 - Skills library integration
 
-**4. Workflow Analytics (Priority: MEDIUM)**
+# 4. Workflow Analytics (Priority: MEDIUM)
 
 - Agent performance metrics
 - Plan success/failure rates
 - Common failure patterns
 - Cost tracking per agent/request
 
-**5. Optional Web UI (Priority: LOW)**
+# 5. Optional Web UI (Priority: LOW)
 
 - Keep CLI as primary interface
 - Add optional web dashboard for:
@@ -439,14 +439,14 @@ positioning
 
 ### Marketing & Positioning Refinements
 
-**New Tagline Options:**
+# New Tagline Options:
 
 - Current: "Auditable Agent Orchestration Platform"
 - **Recommended:** "The Governance-First AI Agent Operating System"
 - **Alternative:** "Enterprise-Ready AI Agent Orchestration with Built-In
   Compliance"
 
-**Revised Elevator Pitch:**
+# Revised Elevator Pitch:
 
 > ExoFrame is the governance-first AI agent platform for teams that need audit
 > trails, compliance, and control. Unlike IDE coding assistants that provide
@@ -455,7 +455,7 @@ positioning
 > logging. Built on Deno for security, MCP-native for interoperability, and
 > local-first for data sovereignty.
 
-**Target Audience Expansion:**
+# Target Audience Expansion:
 
 | Current               | Recommended Addition          |
 | --------------------- | ----------------------------- |
@@ -466,7 +466,7 @@ positioning
 | _Not mentioned_       | **Compliance Officers** (NEW) |
 | _Not mentioned_       | **Regulated SMBs** (NEW)      |
 
-**Use Case Expansion:**
+# Use Case Expansion:
 
 | Existing Use Cases         | New Use Cases (Recommended)                          |
 | -------------------------- | ---------------------------------------------------- |
@@ -485,7 +485,7 @@ positioning
 
 ### ExoFrame vs. Market Segments
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │ AI Agent Orchestration Market Positioning Map (2026)             │
 ├─────────────────────────────────────────────────────────────────┤
@@ -518,10 +518,9 @@ positioning
 │         Low ←─────── Governance/Compliance ─────→ High         │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
-```
+```text
 
-**Key Insight:** ExoFrame occupies the **"Governance + Compliance" quadrant**
-with moderate complexity—a largely **uncontested space** in 2026.
+# Key Insight:** ExoFrame occupies the **"Governance + Compliance" quadrant
 
 ---
 
@@ -529,7 +528,7 @@ with moderate complexity—a largely **uncontested space** in 2026.
 
 ### Market Risks
 
-**1. IDE Agents Adding Audit Features**
+# 1. IDE Agents Adding Audit Features
 
 - **Risk:** GitHub Copilot or Cursor add audit trails
 - **Likelihood:** Medium (2-3 years)
@@ -537,21 +536,21 @@ with moderate complexity—a largely **uncontested space** in 2026.
   automated reporting)
 - **ExoFrame Advantage:** Purpose-built for governance vs. bolted-on features
 
-**2. Enterprise Platforms Going Downmarket**
+# 2. Enterprise Platforms Going Downmarket
 
 - **Risk:** SuperAGI or FluxForce target SMBs
 - **Likelihood:** Low (1-2 years)
 - **Mitigation:** Stay simpler, developer-friendly, lower price point
 - **ExoFrame Advantage:** Faster to deploy, less complexity
 
-**3. MCP Adoption Slower Than Expected**
+# 3. MCP Adoption Slower Than Expected
 
 - **Risk:** MCP doesn't become standard
 - **Likelihood:** Low (major backing from Anthropic, OpenAI, Microsoft)
 - **Mitigation:** MCP is additive, not core dependency
 - **ExoFrame Advantage:** Already file-based, MCP is enhancement
 
-**4. Compliance Requirements Don't Materialize**
+# 4. Compliance Requirements Don't Materialize
 
 - **Risk:** AI governance regulations delayed
 - **Likelihood:** Very Low (EU AI Act already active)
@@ -561,14 +560,14 @@ with moderate complexity—a largely **uncontested space** in 2026.
 
 ### Technical Risks
 
-**1. Deno Adoption Uncertainty**
+# 1. Deno Adoption Uncertainty
 
 - **Risk:** Deno doesn't gain mainstream traction
 - **Current Status:** Deno 2.0 released, growing but still niche
 - **Mitigation:** Security model is differentiation, not dependency
 - **Recommendation:** Emphasize security features over "Deno-ness"
 
-**2. File-Based API Learning Curve**
+# 2. File-Based API Learning Curve
 
 - **Risk:** Users find file-based interaction unfamiliar
 - **Feedback Needed:** User testing results
@@ -585,11 +584,11 @@ with moderate complexity—a largely **uncontested space** in 2026.
 with only minor version/date discrepancies and MCP status mismatch. No
 fundamental contradictions found.
 
-**Required Updates:**
+# Required Updates:
 
 1. Sync White Paper MCP status ("future" → "implemented")
-2. Add TUI Dashboard section to White Paper
-3. Align version dates or clarify versioning strategy
+1.
+1.
 
 ### Market Positioning Verdict
 
@@ -597,14 +596,14 @@ fundamental contradictions found.
 value proposition but is **underselling its enterprise compliance value** and
 missing key positioning opportunities.
 
-**Core Strengths:**
+# Core Strengths:
 
 - ✅ Unique audit trail + governance focus (largely uncontested)
 - ✅ Perfect timing with 2026 compliance explosion
 - ✅ MCP-native aligns with industry standardization
 - ✅ Clear differentiation from IDE agents
 
-**Critical Gaps:**
+# Critical Gaps:
 
 - ⚠️ Enterprise positioning weak (targeting solo devs, should target compliance
   teams)
@@ -614,27 +613,27 @@ missing key positioning opportunities.
 
 ### Strategic Priorities (2026)
 
-**Q1 2026 - Positioning & Messaging:**
+# Q1 2026 - Positioning & Messaging:
 
 1. Reposition for **dual audience** (developers + compliance/DevSecOps teams)
-2. Elevate **MCP integration** to primary differentiator
-3. Create **enterprise positioning** document with regulatory framework mapping
-4. Build **competitive matrix** (vs. IDE agents, dev tools, enterprise
+1.
+1.
+1.
    platforms)
 
-**Q2-Q3 2026 - Feature Development:**
+# Q2-Q3 2026 - Feature Development:
 
 1. Add **Governance Dashboard** to TUI
-2. Build **Compliance Export** tool (PDF/CSV audit reports)
-3. Create **Blueprint Marketplace** for reusable workflows
-4. Implement **Workflow Analytics** (agent performance, cost tracking)
+1.
+1.
+1.
 
-**Q4 2026 - Market Expansion:**
+# Q4 2026 - Market Expansion:
 
 1. Launch **"Enterprise Edition"** positioning
-2. Target **regulated industries** (healthcare, finance, government)
-3. Build **case studies** with early adopters in compliance space
-4. Consider optional **Web UI** for non-technical approvers
+1.
+1.
+1.
 
 ### The Bottom Line
 
@@ -662,3 +661,5 @@ multi-agent coordination) strongly favor ExoFrame's positioning.
 
 **Verdict: PROCEED with recommended positioning refinements and feature
 priorities.**
+
+```

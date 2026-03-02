@@ -308,7 +308,6 @@ You MUST follow Test-Driven Development:
 - One logical assertion per test
 - Test behavior, not implementation details
 
-
 ### MemoryBankService Extension
 
 ```typescript
@@ -1615,7 +1614,6 @@ export const SkillSchema = z.object({
 
 export type Skill = z.infer<typeof SkillSchema>;
 ```text
-
 
 ```
 

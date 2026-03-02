@@ -7,12 +7,12 @@ The new ExoFrame TUI provides a high-efficiency transition from a simple CLI to 
 ## Core Design Principles
 
 1. **Tab-Based Layout**: Each view opens as a full-screen tab occupying the entire main area. A Tab Switch Bar provides instant access to all open views.
-2. **Fixed Navigation Elements**: Consistent top-level menu and bottom-level control bars.
-3. **Adaptive UI**: Graceful wrapping of menus and control bars for varying terminal widths. Minimum terminal size: **80×24**.
-4. **Split-View Detail**: Entities with detail views can be explored via an inline horizontal or vertical split within the current tab.
-5. **Borderless Content**: No vertical frame borders around the main content area — only a vertical dotted line (`┊`) appears as a scroll indicator when content overflows.
-6. **Deep Traceability**: First-class support for navigating the lifecycle of a request (Request → Plans → Reviews).
-7. **Functional Completeness**: Modernized implementation of all existing features from the legacy TUI, prioritized for efficiency and F-key interaction.
+
+1.
+1.
+1.
+1.
+1.
 
 ---
 
@@ -38,13 +38,13 @@ The central area displays one view at a time. Each view occupies **100%** of the
 
 A horizontal bar on **line 3** (below breadcrumbs) showing all open tabs:
 
-```
+```text
 [File] [Views] [Commands] [Settings] [Help]  |  Agent: Active  🔔 2  💰 $1.24  |  17:30
 Workspace > Requests > REQ-1024
 [ Requests ][ Plans ][ Reviews ][ Agents ][ + Create Request ]
 ──────────────────────────────────────────────────────────────────────────────────
 (main content area — current tab occupies full width, no left/right borders)
-```
+```text
 
 - **Tab bar background**: The entire Tab Switch Bar row uses a **distinct background color** — darker than the main content area and different from the top menu bar (e.g., `\e[48;5;235m` on dark theme). This creates a clear three-layer visual hierarchy: top bar → tab bar → content.
 - **Active tab**: **Cyan background** + White Bold text.
@@ -98,16 +98,16 @@ A narrow area (1–2 rows) between the main content area and the Bottom Control 
 - **Text**: **Black Bold** on the amber background for maximum contrast.
 - **Layout**: Prompt text on the left, action buttons on the right.
 
-```
+```text
 Delete REQ-1024 "Implement dark mode"?                          [Y] Yes  [N] No
-```
+```text
 
 Two-row example (with context):
 
-```
+```text
 Approve plan plan-87a3 for execution? This will start the agent workflow.
 Estimated cost: ~$0.45                                          [Y] Yes  [N] No
-```
+```text
 
 - **Keyboard**: `Y` or `Enter` confirms, `N` or `ESC` cancels. No mouse interaction needed.
 - **Auto-dismiss**: The bar disappears immediately after the user responds.
@@ -146,10 +146,10 @@ A functional bar mapped to F-keys and common actions.
   - **F-key label format**: Key name in **Bold** + label in Normal, separated by a space: **`F5`** `Create`.
   - **Disabled actions**: Actions not available in the current context render in **Dark Grey** (`\e[90m`) — visible but not interactive.
 
-```
+```text
 F1 Help  F2 Menu  F3 View  F4 Edit  F5 Create  F6 Approve       F8 Delete  F10 Quit
 Alt+V Split  Alt+L Links  Alt+G Logs  Ctrl+T New Tab  Ctrl+P Palette  Ctrl+R Refresh
-```
+```text
 
 ---
 
@@ -165,31 +165,31 @@ Each view is shown in its most common layout configuration. Views with Master-De
 ![Request Manager — Full-Screen Tab](gallery/request_manager_single.png)
 <!-- slide -->
 ![Request Manager — Master-Detail (Horizontal)](gallery/request_manager_detail.png)
-```
+```text
 
 ### Plan Reviewer
 
 ```carousel
 ![Plan Reviewer — Master-Detail (Vertical)](gallery/plan_reviewer_detail.png)
-```
+```text
 
 ### Review Manager
 
 ```carousel
 ![Review Manager — Master-Detail with Diff](gallery/review_manager_view.png)
-```
+```text
 
 ### Flow Orchestration
 
 ```carousel
 ![Flow Orchestration — Master-Detail with Dependency Graph](gallery/flow_orchestration_view.png)
-```
+```text
 
 ### Blueprint Manager
 
 ```carousel
 ![Blueprint Manager — Master-Detail with TOML Definition](gallery/blueprint_manager_view.png)
-```
+```text
 
 #### Blueprint Entity Browser
 
@@ -212,7 +212,7 @@ The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with thre
 
 When creating a request via **`F5`** in Request Manager, a **new tab** opens with the create form:
 
-```
+```text
 Description: [________________________]
 Agent:       [senior-coder   ▼ Browse]
 Priority:    [normal ▼]
@@ -227,7 +227,7 @@ Skills:      [+ Add from Browser]
 Tools:       [+ Add from Browser]
 
              [F5 Submit]   [ESC Cancel]
-```
+```text
 
 - **Agent field**: Type-ahead with `▼` dropdown listing all blueprints. `Browse` button opens the Entity Browser Agents tab.
 - **Skills field**: Accumulated list. `+ Add` opens the Entity Browser Skills tab. `[×]` removes.
@@ -238,13 +238,13 @@ Tools:       [+ Add from Browser]
 
 ```carousel
 ![Agent Status — Full-Screen Tab](gallery/agent_status_view.png)
-```
+```text
 
 ### Daemon Control
 
 ```carousel
 ![Daemon Control — Status + Real-Time Logs](gallery/daemon_control_view.png)
-```
+```text
 
 ### Interaction Features
 
@@ -261,7 +261,7 @@ Tools:       [+ Add from Browser]
 ![Settings View — Master-Detail Config Tree](gallery/settings_view.png)
 <!-- slide -->
 ![Portal Manager — Health & Integrity Dashboard](gallery/portal_manager_view.png)
-````
+````text
 
 ### History & Audit
 
@@ -271,7 +271,7 @@ Tools:       [+ Add from Browser]
 ![Activity Journal — Audit Log & Payload Viewer](gallery/activity_journal_view.png)
 <!-- slide -->
 ![Git Browser — Branch Management & History](gallery/git_browser_view.png)
-```
+```text
 
 ### Intelligence & Observability
 
@@ -279,9 +279,9 @@ Tools:       [+ Add from Browser]
 ![Memory View — Pending Proposals & Global Patterns](gallery/memory_view.png)
 <!-- slide -->
 ![Monitor View — Real-Time Log Streaming](gallery/monitor_view.png)
-```
+```text
 
-```
+```text
 ---
 
 ## Specialized Detail Viewers
@@ -306,7 +306,7 @@ When `F3` (View) or `F11` (Toggle Split) is pressed on an entity, the Detail sec
 ![Request Detail Viewer — Structured Sections with Lifecycle Pipeline](gallery/request_detail_viewer.png)
 
 Displayed in the Detail section when viewing a request from Request Manager.
-```
+```text
 
 ═══ REQUEST ══════════════════════════════════════
 Trace ID: 3f8a1c2d-7e4b-... [click to copy]
@@ -341,7 +341,7 @@ Total: 4,650 tokens 💰 $0.45
 Request → ● Plan (PLAN-042) → ○ Review → ○ Done
 [→ View Plan]
 
-```
+```text
 **Inline actions**: Bracketed `[→ View ...]` links are clickable / navigable with `Enter`. The lifecycle bar shows the request's position in the Request → Plan → Review pipeline.
 
 ### Plan Detail Viewer
@@ -349,7 +349,7 @@ Request → ● Plan (PLAN-042) → ○ Review → ○ Done
 ![Plan Detail Viewer — Collapsible Steps with Actions](gallery/plan_detail_viewer.png)
 
 Displayed when viewing a plan from Plan Reviewer. Supports both execution plans (with steps) and specialized analysis reports.
-```
+```text
 
 ═══ PLAN ═════════════════════════════════════════
 Plan ID: PLAN-042
@@ -367,7 +367,7 @@ Dependencies: none
 Actions:
 
 1. write_file src/config/theme.ts
-2. write_file src/config/colors.ts
+
    Rollback: Delete created files
 
 [▶] Step 2: Implement toggle component
@@ -380,9 +380,9 @@ Actions:
 ○ Not yet reviewed
 Actions: [F5 Approve] [F6 Reject] [F4 Revise]
 
-```
+```text
 **Specialized Reports** — When the plan contains `analysis`, `security`, `qa`, or `performance` fields, additional sections render:
-```
+```text
 
 ═══ SECURITY ANALYSIS ════════════════════════════
 Executive Summary: No critical vulnerabilities found.
@@ -405,13 +405,13 @@ Unit 12 12 11 1
 Integration 4 4 4 0
 Coverage: ████████░░ 82%
 
-```
+```text
 ### Review Detail Viewer
 
 ![Review Detail Viewer — Changes Summary + Syntax-Highlighted Diff](gallery/review_detail_viewer.png)
 
 Displayed when viewing a review from Review Manager. Shows structured diff with syntax highlighting.
-```
+```text
 
 ═══ REVIEW ═══════════════════════════════════════
 Branch: feat/dark-mode-3f8a1c2d
@@ -449,7 +449,7 @@ c5dae3d Implement toggle component 17:39
 ═══ ACTIONS ══════════════════════════════════════
 [F5 Approve (Merge)] [F6 Reject (Delete Branch)]
 
-```
+```text
 **Diff navigation**: `[← Prev] [Next →]` buttons (or `Alt+←` / `Alt+→`) cycle through changed files. Syntax highlighting uses language-aware coloring (TypeScript, CSS, etc.).
 
 ### Agent Detail Viewer
@@ -457,7 +457,7 @@ c5dae3d Implement toggle component 17:39
 ![Agent Detail Viewer — Configuration, Task, Cost, Activity](gallery/agent_detail_viewer.png)
 
 Displayed when viewing an agent from Agent Status.
-```
+```text
 
 ═══ AGENT ════════════════════════════════════════
 Agent ID: senior-coder
@@ -496,7 +496,7 @@ Reviews: 2 (2 approved)
 17:35 plan.created PLAN-042
 17:30 request.assigned REQ-1024
 
-```
+```text
 ### Viewer Features (All Types)
 
 - **Collapsible Sections**: Click `[▼]` / `[▶]` or press `Enter` on a section header to expand/collapse. All sections default to expanded except long lists (>5 items).
@@ -551,7 +551,7 @@ The TUI uses a minimal set of box-drawing characters. **No vertical lines** are 
 The main content area has **no surrounding frame**. Content spans edge-to-edge.
 
 #### Full-Screen Tab (Default)
-```
+```text
 
 [ Requests ][ Plans ][ Reviews ][ Agents ]
 ──────────────────────────────────────────
@@ -562,7 +562,8 @@ REQ-1023 ✅ Approved Fix login bug
 REQ-1022 ❌ Rejected Update docs
 42% ┊
 
-```
+```text
+
 - **No left/right borders**: Content extends to terminal edges with 1-char padding.
 - **Top separator**: A thin `─` line separates the Tab Switch Bar from content.
 - **Scroll indicator**: Dotted `┊` on the right edge when content overflows vertically, with `NN%` badge in the top-right.
@@ -571,7 +572,7 @@ REQ-1022 ❌ Rejected Update docs
 #### Split-View (Horizontal)
 
 When Master-Detail is active with horizontal split:
-```
+```text
 
 [ Requests ][ Plans ][ Reviews ]
 ──────────────────────────────────────────
@@ -585,7 +586,8 @@ Status: ● PENDING
 ═══ ASSIGNMENT ═══
 Agent: default [→ View Agent]
 
-```
+```text
+
 - **Separator**: Dotted `┈` line spanning full width.
 - **Active section**: The section with focus shows its header/content at normal brightness.
 - **Inactive section**: Slightly dimmed (~20% less brightness).
@@ -593,7 +595,7 @@ Agent: default [→ View Agent]
 #### Split-View (Vertical)
 
 When Master-Detail is active with vertical split:
-```
+```text
 
 [ Requests ][ Plans ][ Reviews ]
 ──────────────────────────────────────────
@@ -603,7 +605,8 @@ REQ-1022 ❌ Rejected│ Status: ● PEND
 │ ═══ ASSIGNMENT
 │ Agent: default
 
-```
+```text
+
 - **Separator**: Thin solid `│` vertical line (distinct from dotted `┊` scroll indicator).
 - **Width split**: 50/50 ratio.
 - **Focus indicator**: Same dimming rules as horizontal split.
@@ -651,7 +654,7 @@ Since no vertical pipe separators (`│`) are used, columns are visually separat
 #### Inline Actions Column
 
 Every entity list table includes a **rightmost Actions column** displaying compact icon buttons for context-sensitive operations. Each icon corresponds to an F-key action. Icons are **colored when valid** and **Dark Grey (`\e[90m`) when not applicable** for the item's current state.
-```
+```text
 
 ID Status Priority Subject Actions
 ────────────────────────────────────────────────────────────────────────
@@ -659,7 +662,7 @@ REQ-1024 ⏳ Pending High Implement dark mode 👁 ✏ ✓ ✗ 🗑
 REQ-1023 ✅ Approved Medium Fix login bug 👁 ✏ ✓ ✗ 🗑
 REQ-1022 ❌ Rejected Low Update docs 👁 ✏ ✓ ✗ 🗑
 
-```
+```text
 In the example above, for `REQ-1023` (Approved): `✓` (Approve) would be grayed out since already approved, while `👁` (View), `✏` (Edit), `✗` (Reject), and `🗑` (Delete) remain active.
 
 ##### Action Icons by View
@@ -714,19 +717,20 @@ Buttons in the bottom bar, detail viewer, and modals follow this format:
 | **Destructive action**       | Red text                          | `[ Delete ]`      |
 
 #### Text Input Fields
-```
+```text
 
 Label: [value________________] (unfocused)
 Label: [value________________] (focused: cyan border + cursor)
 
-```
+```text
+
 - **Unfocused**: Single-line border, grey.
 - **Focused**: Single-line border, **Bright Cyan** + blinking cursor `▌`.
 - **Invalid/Error**: **Red** border + error text below in Red Italic.
 - **Placeholder**: Dim Grey italic text when empty.
 
 #### Dropdown Menus
-```
+```text
 
 Agent: [senior-coder ▼]
 ┌─────────────────┐
@@ -736,7 +740,8 @@ Agent: [senior-coder ▼]
 │ security-bot │
 └─────────────────┘
 
-```
+```text
+
 - **Closed**: Value + `▼` chevron in single-line box.
 - **Open**: Single-line dropdown overlaid below, selected item has **Cyan background**.
 - **Max visible items**: 8 (scrollbar appears if more).
@@ -744,7 +749,7 @@ Agent: [senior-coder ▼]
 ### Modal & Overlay Rendering
 
 Modals and overlays float above the main content.
-```
+```text
 
 ┌──────────── Title ────────────┐
 │ │ ← 1-char padding inside
@@ -753,7 +758,8 @@ Modals and overlays float above the main content.
 │ [Action 1] [Action 2] │ ← buttons right-aligned
 └───────────────────────────────┘
 
-```
+```text
+
 - **Border**: Single-line box, **White** foreground.
 - **Background**: Solid fill, slightly lighter than main background (e.g., `#001133` on navy).
 - **Dimming**: Content behind the modal is rendered at **50% brightness**.
@@ -765,7 +771,7 @@ Modals and overlays float above the main content.
 #### Vertical Scroll — Right-Edge Indicator + Percentage
 
 When a tab or section has vertically overflowing content, a dashed line (`┊`) appears on the right edge to signal scrollability. A percentage badge shows position:
-```
+```text
 
 [ Requests ][ Plans ][ Reviews ] 42%
 ──────────────────────────────────────────────────────────────────────────
@@ -774,7 +780,8 @@ REQ-1023 ✅ Approved Medium ┊
 REQ-1022 ❌ Rejected Low ┊
 REQ-1021 ⏳ Pending Critical ┊
 
-```
+```text
+
 - **Right edge indicator**: A dashed `┊` appears on the rightmost column when content overflows vertically. Hidden when all content fits.
 - **Indicator color**: **Cyan** when the section has focus, **Grey** otherwise.
 - **Percentage badge**: `NN%` shown in the top-right corner of the content area (0% = top, 100% = bottom).
@@ -784,11 +791,12 @@ REQ-1021 ⏳ Pending Critical ┊
 #### Horizontal Overflow — Angle Indicators
 
 When content is wider than the visible area (e.g., wide diffs, long table rows), angle indicators signal hidden content:
-```
+```text
 
 ◄ REQ-1024 ⏳ Pending Implement dark mode with full theme support... ►
 
-```
+```text
+
 - **`◄` (left edge)**: Shown when content extends beyond the left side (user has scrolled right).
 - **`►` (right edge)**: Shown when content extends beyond the right side.
 - **Both**: When content overflows in both directions, both indicators appear.
@@ -908,7 +916,6 @@ A dedicated, full TUI view for browsing and editing the `exo.config.toml` config
 The Settings View uses the **Master-Detail** layout:
 
 - **Master (left/top)**: A **collapsible tree** of config sections and their keys:
-```
 
 ▼ system
 log_level: INFO
@@ -924,7 +931,8 @@ timeout_sec: 120
 ▶ git
 ▶ tools
 
-```
+```text
+
 - **Detail (right/bottom)**: Shows the selected option's full metadata — current value, default value, type, allowed range/choices, and description.
 
 ### Editing Options
@@ -940,11 +948,11 @@ timeout_sec: 120
 ### Save & Reload Flow
 
 1. **Modified Indicator**: Changed values show a `*` marker next to the key name. The title bar shows `[Modified]` when unsaved changes exist.
-2. **Validate**: **`F7`** runs Zod schema validation on all current values. Displays ✅ or ❌ with per-field error messages.
-3. **Save**: **`F5`** writes changes to `exo.config.toml`. If validation fails, the save is blocked with an error overlay listing invalid fields.
-4. **Daemon Reload**: After a successful save, a confirmation dialog asks: _"Configuration saved. Reload daemon to apply changes? [Y/N]"_. Pressing **`Y`** sends a reload signal to the running daemon. Pressing **`N`** saves without reloading (changes apply on next daemon start).
-5. **Discard**: **`ESC`** from the Settings View prompts _"Discard unsaved changes? [Y/N]"_ if modifications exist.
-6. **Reset**: **`F8`** on a single option resets it to its schema default value.
+
+1.
+1.
+1.
+1.
 
 ---
 
@@ -1066,11 +1074,11 @@ The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each sub
 The new TUI modernizes all capabilities detailed in the [ExoFrame User Guide](../ExoFrame_User_Guide.md):
 
 1. **Global View Management**: Replaces the old View Picker (`p`) with a structured `[Views]` top menu and Tab Switch Bar.
-2. **Audit & Traceability**: Breadcrumbs and tab headers always display the active **Trace ID**, linking Requests, Plans, and Reviews visually.
-3. **Advanced Filtering**: Monitor, Memory, Journal, and Archive views utilize context-aware `F7` and `F9` keys.
-4. **Accessibility Core**: High Contrast and Screen Reader modes are core settings, managed via the `[Settings]` dropdown menu.
-5. **Cost Visibility**: Token usage and cost tracking are surfaced in the Top Bar summary and within Request/Agent detail views.
-6. **Full CLI Parity**: Every `exoctl` subcommand is accessible from the TUI — request creation, plan revision, portal verification, archive browsing, git browsing, journal querying, and memory management across all 5 sub-domains.
+
+1.
+1.
+1.
+1.
 
 ---
 
@@ -1142,7 +1150,7 @@ The following components support the Linked Detail Mode (Master top/left, Detail
 Each view receives data through **injected service interfaces**, maintaining separation between UI and business logic.
 
 ### Service Adapter Pattern
-```
+```text
 
 ┌─────────────┐ ┌──────────────────┐ ┌─────────────────┐
 │ TUI View │────▶│ Service Interface │────▶│ CLI Commands / │
@@ -1150,7 +1158,8 @@ Each view receives data through **injected service interfaces**, maintaining sep
 │ │◀────│ IPlanService) │◀────│ (SQLite/PG) │
 └─────────────┘ └──────────────────┘ └─────────────────┘
 
-````
+````text
+
 - Views never call CLI commands directly; they use **typed adapters** (e.g., `RequestCommandsServiceAdapter`).
 - Adapters translate between the CLI layer and the view's expected `IRequest`, `IPlan`, `IReview` interfaces.
 
@@ -1159,8 +1168,8 @@ Each view receives data through **injected service interfaces**, maintaining sep
 The **Lifecycle Explorer** (`Alt+L`) resolves linked entities by querying the **Activity Journal** (SQLite) using an indexed `trace_id` lookup:
 
 1. Query `SELECT * FROM activity WHERE trace_id = ?` to find all events.
-2. Group results by `event_type` prefix (`request.*`, `plan.*`, `review.*`).
-3. Present grouped entities in the overlay with their current status.
+
+1.
 
 ### Log Correlation
 
@@ -1203,7 +1212,7 @@ The TUI persists configuration to `~/.exoframe/tui_layout.json`:
     "main": ["trace-id-abc", "trace-id-def"]
   }
 }
-````
+````text
 
 - **Migration**: If `version` is missing or `"1.1"`, the loader adds default values for new fields and writes `"2.0"`.
 - State is saved on exit and restored on launch.
@@ -1243,3 +1252,5 @@ The **`F1`** help overlay provides a context-aware, categorized shortcut referen
 
 - **Sections**: Global, Navigation, Current View, Alt-Key Shortcuts.
 - **Export**: Within the `F1` overlay, pressing **`E`** exports the full keyboard reference to `~/.exoframe/keyboard_reference.md` for offline access or printing.
+
+```

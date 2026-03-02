@@ -56,7 +56,6 @@ Plan JSON does not match required schema
 - steps.1.dependencies.0: Expected number, received string
 - steps.2.dependencies.0: Expected number, received string
 
-
 ## Expected Behavior
 
 - Plan step `dependencies` should accept strings (e.g., "Step 1" or a short label) rather than forcing numeric identifiers for all agents and flows.
@@ -138,7 +137,6 @@ None currently known.
 ## Priority Justification
 
 High priority because plan generation is rejected for read-only agents (blocking workflow), and token usage visibility is required for auditability and cost tracking.
-
 
 ```
 

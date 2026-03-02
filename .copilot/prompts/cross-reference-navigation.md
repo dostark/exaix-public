@@ -72,7 +72,6 @@ Then design security tests covering:
 - Absolute path restrictions
 - Cross-portal access attempts
 
-
 ---
 
 ### Fix TypeScript Errors
@@ -91,7 +90,6 @@ Read the errors, understand the patterns from `source/exoframe.md`, then fix fol
 - Service Pattern if it's a service
 - Proper error handling
 - Type safety throughout
-
 
 ---
 

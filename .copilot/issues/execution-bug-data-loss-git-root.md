@@ -121,7 +121,6 @@ The primary objective is to enforce strict repository isolation and eliminate de
 
 1. [x] **Refactor `PlanExecutor`**: Update `src/services/plan_executor.ts` to make `repoPath` a required constructor argument. Remove any defaults to `config.system.root`.
 
-
 ### Phase 2: Git Service Guards
 
 1. [x] **Command Whitelisting/Blacklisting**: Add a validation layer in `GitService.runGitCommand` (`src/services/git_service.ts`):

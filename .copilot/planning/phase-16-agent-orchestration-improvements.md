@@ -48,7 +48,6 @@ self-correction, and output quality.
 
 1. **pipeline-agent.md.template** - Systematic 5-step processing
 
-
 ---
 
 ## Identified Weaknesses
@@ -592,15 +591,12 @@ Issues:
 - [Issue 1]
 - [Issue 2]
 
-
 - [Suggestion 1]
-
 
 <content>
 [Your response to the user]
 </content>
 ```text
-
 
 ```
 

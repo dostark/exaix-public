@@ -113,7 +113,6 @@ Description of what this function does.
 
 - `ErrorType`: When this error occurs
 
-
 ## 2. Document-First API Design
 
 Define your API contract before implementation:
@@ -214,7 +213,6 @@ Domain Events → Event Handlers
 - Easy to reconstruct state at any point
 - Supports complex workflows
 
-
 ## 5. Keep Docs Updated
 
 Documentation debt is technical debt:
@@ -241,7 +239,6 @@ Documentation debt is technical debt:
 1.
 1.
 1.
-
 
 ```
 

@@ -64,7 +64,6 @@ If the `File List` is truncated or you need to see deeper into a directory:
 
 1. Use `list_directory` to explore the actual structure.
 
-
 ### Stating Limitations
 
 If you cannot find a file you expect to exist (e.g., a config file), state this in your `<thought>` section and make it a step in your plan to locate or create it, rather than assuming it is there.

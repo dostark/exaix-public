@@ -940,7 +940,6 @@ $ exoctl plan approve <plan-id>
 
 # 3. Wait for execution
 
-
 # 4. Verify changeset created
 
 ✅ changeset-uuid  TestApp  feat/hello-world-abc  pending
@@ -960,7 +959,6 @@ Created By: senior-coder
 +export function helloWorld() {
 
 +  return "Hello, World!";
-
 
 # 7. Check Activity Journal
 
@@ -1568,7 +1566,6 @@ This agent specializes in comprehensive code review across multiple dimensions:
 - Legacy code assessment
 - Refactoring recommendations
 
-
 #### 2. **Feature Development Agent** (`Blueprints/Agents/examples/feature-developer.md`)
 
 **Pattern:** Implementation-focused agent with full development capabilities
@@ -1612,7 +1609,6 @@ This agent handles complete feature development lifecycles:
 - Database schema changes
 - Integration with third-party services
 
-
 #### 3. **API Documentation Agent** (`Blueprints/Agents/examples/api-documenter.md`)
 
 **Pattern:** Documentation-focused agent with analysis and writing capabilities
@@ -1654,7 +1650,6 @@ This agent specializes in creating and maintaining API documentation:
 - SDK documentation
 - API changelog creation
 - Developer portal content
-
 
 #### 4. **Security Audit Agent** (`Blueprints/Agents/examples/security-auditor.md`)
 
@@ -1698,7 +1693,6 @@ This agent performs comprehensive security assessments:
 - Data protection compliance checks
 - Incident response analysis
 
-
 #### 5. **Research Synthesis Agent** (`Blueprints/Agents/examples/research-synthesizer.md`)
 
 **Pattern:** Analysis-focused agent with research and synthesis capabilities
@@ -1740,7 +1734,6 @@ This agent specializes in research analysis and synthesis:
 - Technical feasibility studies
 - Competitive analysis
 - Trend forecasting
-
 
 # Agent Template Patterns:
 
@@ -1817,7 +1810,6 @@ This agent is optimized for collaborative workflows and multi-agent coordination
 1.
 
 ---
-
 
 ```
 

@@ -21,10 +21,10 @@ The system evaluates providers based on multiple factors:
 Providers are filtered and ranked using this optimized pipeline:
 
 1. **Capabilities Filter** (Fastest) - Required features
-2. **Cost Preference Filter** - Free/paid preferences
-3. **Budget Filter** (Async) - Daily spending limits
-4. **Health Filter** (Cached) - Provider availability
-5. **Task Match Sorting** - Complexity optimization
+
+1.
+1.
+1.
 
 ## Configuration
 
@@ -232,12 +232,12 @@ log_level = "debug"
 ## Best Practices
 
 1. **Start Simple**: Begin with basic cost preferences
-2. **Monitor Usage**: Track costs and performance metrics
-3. **Configure Fallbacks**: Always define fallback chains
-4. **Set Budgets**: Use realistic daily limits
-5. **Test Configurations**: Validate with different task types
-6. **Monitor Health**: Keep health checks enabled
-7. **Update Regularly**: Review provider performance quarterly
+
+1.
+1.
+1.
+1.
+1.
 
 ## API Reference
 
@@ -258,3 +258,4 @@ interface SelectionCriteria {
 - `selectProvider(criteria)` - Select based on criteria
 - `selectProviderForTask(config, taskType)` - Config-driven selection
 - `getSelectionMetrics()` - Get performance metrics</content>
+

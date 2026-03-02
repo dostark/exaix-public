@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS activity (
   timestamp DATETIME DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_activity_agent ON activity(agent_id);  -- NEW
-```
+```text
 
 ### 2. DatabaseService Update
 
@@ -44,9 +44,9 @@ logActivity(
   traceId?: string,
   agentId?: string | null,  // NEW parameter
 )
-```
+```text
 
-**Performance Optimization: Batched Log Queue**
+# Performance Optimization: Batched Log Queue
 
 Activity logging is now non-blocking with automatic batching:
 
@@ -56,7 +56,7 @@ Activity logging is now non-blocking with automatic batching:
 - **Graceful Shutdown**: `close()` method flushes remaining logs synchronously
 - **Error Handling**: Failed batches don't crash system, rollback attempted
 
-**Implementation Details:**
+# Implementation Details:
 
 ```typescript
 interface LogEntry {
@@ -99,9 +99,9 @@ class DatabaseService {
     });
   }
 }
-```
+```text
 
-**Benefits:**
+# Benefits:
 
 - ✅ **Zero blocking**: Operations return immediately, writes happen asynchronously
 - ✅ **Higher throughput**: Batch transactions ~10-50x faster than individual INSERTs
@@ -157,7 +157,7 @@ Implemented decorator utility for automatic activity logging with:
 - Argument and result sanitization (removes sensitive data, limits size)
 - Graceful error handling (logs to stderr, doesn't fail operations)
 
-**Usage Example:**
+# Usage Example:
 
 ```typescript
 export class ExecutionLoop {
@@ -187,7 +187,7 @@ export class ExecutionLoop {
     return await toolRegistry.execute(toolName, params);
   }
 }
-```
+```text
 
 ### 5. Configuration Update
 
@@ -200,14 +200,14 @@ export class ExecutionLoop {
   "experimentalDecorators": true,
   "emitDecoratorMetadata": true
 }
-```
+```text
 
 **Note:** These options are marked as deprecated in favor of Stage 3 decorators, but remain functional. Future work:
 migrate to modern decorator syntax when stable.
 
 ## Activity Table Structure
 
-```
+```text
 ┌────────────┬──────────┬─────────┬──────────────┬──────────────┬────────┬─────────┬───────────┐
 │ id         │ trace_id │ actor   │ agent_id     │ action_type  │ target │ payload │ timestamp │
 ├────────────┼──────────┼─────────┼──────────────┼──────────────┼────────┼─────────┼───────────┤
@@ -215,20 +215,20 @@ migrate to modern decorator syntax when stable.
 │ uuid       │ uuid     │ human   │ NULL         │ plan.approved│ req-id │ JSON    │ ISO 8601  │
 │ uuid       │ uuid     │ system  │ NULL         │ context.load │ file   │ JSON    │ ISO 8601  │
 └────────────┴──────────┴─────────┴──────────────┴──────────────┴────────┴─────────┴───────────┘
-```
+```text
 
 ## Query Examples
 
-**Get all activity for a specific agent:**
+# Get all activity for a specific agent:
 
 ```sql
 SELECT action_type, target, timestamp
 FROM activity
 WHERE agent_id = 'senior-coder'
 ORDER BY timestamp DESC;
-```
+```text
 
-**Calculate agent success rate:**
+# Calculate agent success rate:
 
 ```sql
 SELECT
@@ -237,9 +237,9 @@ SELECT
 FROM activity
 WHERE actor = 'agent' AND agent_id IS NOT NULL
 GROUP BY agent_id;
-```
+```text
 
-**Trace complete workflow (request → plan → execution):**
+# Trace complete workflow (request → plan → execution):
 
 ```sql
 SELECT
@@ -251,7 +251,7 @@ SELECT
 FROM activity
 WHERE trace_id = '550e8400-e29b-41d4-a716-446655440000'
 ORDER BY timestamp;
-```
+```text
 
 ## Migration Path
 
@@ -265,7 +265,7 @@ cp .exo/journal.db .exo/journal.db.backup
 
 # Re-run migration (will add new column)
 deno task migrate
-```
+```text
 
 The migration is idempotent and will add the `agent_id` column if it doesn't exist.
 
@@ -275,7 +275,7 @@ Simply run:
 
 ```bash
 deno task setup
-```
+```text
 
 This will create the database with the updated schema.
 
@@ -291,16 +291,16 @@ deno task test
 deno test --allow-all tests/plan_writer_test.ts
 deno test --allow-all tests/context_loader_test.ts
 deno test --allow-all tests/setup_db_test.ts
-```
+```text
 
 ## Next Steps
 
 1. **Implement Decorator Usage:** Update existing services (AgentRunner, ToolRegistry, GitService) to use `@LogActivity`
    decorator
-2. **Add Agent ID to Blueprints:** Extend Blueprint interface to include agent identifier
-3. **Human Action Logging:** Create CLI commands or file watcher hooks to log human review actions
+1.
+1.
    (approve/reject/revise)
-4. **Analytics Dashboard (Optional):** Build Obsidian dashboard with Dataview queries showing agent performance metrics (for users who enable Obsidian integration)
+1.
 
 ## Documentation Updates
 
@@ -318,13 +318,15 @@ code.
 **Significantly Improved.** Changes made:
 
 1. **Added one column and one index**: Query performance improves for agent-specific queries
-2. **Batched writes**: 10-50x faster than individual INSERTs due to transaction batching
-3. **Non-blocking**: Zero blocking on critical paths (file watching, agent execution)
-4. **WAL mode**: Concurrent reads during writes, no reader blocking
+1.
+1.
+1.
 
-**Benchmark Estimates:**
+# Benchmark Estimates:
 
 - Individual INSERT: ~1-5ms per log (blocking)
 - Batched INSERT (100 entries): ~10-50ms total = 0.1-0.5ms per log (non-blocking)
 - Throughput improvement: **10-50x faster**
 - Latency improvement: **Operations return immediately (0ms)**
+
+```

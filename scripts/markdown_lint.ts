@@ -77,7 +77,7 @@ function parseArgs(args: string[]): { options: LintOptions; paths: string[] } {
 
 function printHelp(): void {
   console.log(
-    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD010, MD011, MD029, MD032, MD036, MD040, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
+    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD012, MD022, MD025, MD029, MD032, MD036, MD040, MD041, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
       DEFAULT_ROOTS.join(", ")
     }`,
   );
@@ -296,15 +296,14 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
 
     const trimmedTrailing = line.replace(/[ \t]+$/g, "");
 
-    if (!inFence) {
-      if (trimmedTrailing === "") {
-        blankRun++;
-        // Collapse runs of blank lines to at most 2 (outside fences only).
-        if (blankRun <= 2) out.push("");
-        continue;
-      }
-      blankRun = 0;
+    if (trimmedTrailing === "") {
+      blankRun++;
+      // MD012: collapse runs of blank lines to at most 1 globally.
+      if (blankRun <= 1) out.push("");
+      continue;
     }
+
+    blankRun = 0;
 
     out.push(trimmedTrailing);
   }
@@ -377,6 +376,25 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
     }
 
     text = newLines.join("\n");
+  }
+
+  // Fix MD025: multiple top-level headings by demoting H1 to H2
+  const md025Fixes = findings.filter((f) => f.rule === "MD025/single-title/single-h1");
+  if (md025Fixes.length > 0) {
+    const lines = splitLines(text);
+    const targetLines = new Set(md025Fixes.map((f) => f.line));
+
+    for (const lineNo of targetLines) {
+      const idx = lineNo - 1;
+      if (idx < 0 || idx >= lines.length) continue;
+      const line = lines[idx];
+      if (/^#\s+/.test(line)) {
+        lines[idx] = line.replace(/^#\s+/, "## ");
+        changed = true;
+      }
+    }
+
+    text = lines.join("\n");
   }
 
   // Fix MD060: table column style
@@ -511,8 +529,10 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
     text = newLines.join("\n");
   }
 
-  // Fix MD010/MD011: heading blank lines
-  const headingFixes = findings.filter(f => f.rule === "MD010" || f.rule === "MD011");
+  // Fix MD022: heading blank lines
+  const headingFixes = findings.filter((f) =>
+    f.rule === "MD022/blanks-around-headings" || f.rule === "MD010" || f.rule === "MD011"
+  );
   if (headingFixes.length > 0) {
     const lines = splitLines(text);
     const newLines: string[] = [];
@@ -522,7 +542,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
       const isHeading = /^#{1,6} /.test(line);
 
       if (isHeading) {
-        // MD010: Add blank line before heading if missing
+        // MD022: Add blank line before heading if missing
         if (i > 0 && lines[i - 1].trim() !== "") {
           newLines.push("");
           changed = true;
@@ -532,7 +552,7 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
       newLines.push(line);
 
       if (isHeading) {
-        // MD011: Add blank line after heading if missing
+        // MD022: Add blank line after heading if missing
         if (i + 1 < lines.length && lines[i + 1].trim() !== "") {
           newLines.push("");
           changed = true;
@@ -542,6 +562,25 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
     }
 
     text = newLines.join("\n");
+  }
+
+  // Fix MD041: first line in file should be a top-level heading
+  const md041Fixes = findings.filter((f) => f.rule === "MD041/first-line-heading/first-line-h1");
+  if (md041Fixes.length > 0) {
+    const lines = splitLines(text);
+    const targetLines = new Set(md041Fixes.map((f) => f.line));
+
+    for (const lineNo of targetLines) {
+      const idx = lineNo - 1;
+      if (idx < 0 || idx >= lines.length) continue;
+      const line = lines[idx];
+      if (/^#{2,6}\s+/.test(line)) {
+        lines[idx] = line.replace(/^#{2,6}\s+/, "# ");
+        changed = true;
+      }
+    }
+
+    text = lines.join("\n");
   }
 
   return { fixed: text, changed };
@@ -559,9 +598,29 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
 
   const lineIsInFence: boolean[] = new Array(lines.length).fill(false);
 
+  let hasFrontMatterTitle = false;
+  let frontMatterEndLine = -1;
+  if (lines.length > 0 && lines[0].trim() === "---") {
+    for (let i = 1; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      if (trimmed === "---" || trimmed === "...") {
+        frontMatterEndLine = i;
+        break;
+      }
+      if (/^title\s*:/i.test(lines[i])) {
+        hasFrontMatterTitle = true;
+      }
+    }
+  }
+
+  let topLevelHeadingCount = 0;
+
   // MD051: link fragments should resolve to known heading/html anchors.
   const headingIdUsed = new Map<string, number>();
   const knownFragments = new Set<string>();
+
+  // MD012: no multiple consecutive blank lines (outside fenced code blocks).
+  let blankRunOutsideFence = 0;
 
   // MD007: track unordered list indentation depth.
   const ulIndentStack: number[] = [];
@@ -572,6 +631,10 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
   for (let idx = 0; idx < lines.length; idx++) {
     const lineNo = idx + 1;
     const line = lines[idx];
+    const isSyntheticTerminalBlank =
+      idx === lines.length - 1 &&
+      line === "" &&
+      normalized.endsWith("\n");
 
     lineIsInFence[idx] = inFence;
 
@@ -622,6 +685,22 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             severity: options.strict ? "error" : "warn",
             message: "Emphasis style [Expected: asterisk; Actual: underscore]",
           });
+        }
+
+        const headingLevel = headingMatch.groups.hashes.length;
+        const isAfterFrontMatter = frontMatterEndLine === -1 || idx > frontMatterEndLine;
+        if (isAfterFrontMatter && headingLevel === 1) {
+          topLevelHeadingCount++;
+          const invalidH1 = hasFrontMatterTitle || topLevelHeadingCount > 1;
+          if (invalidH1) {
+            findings.push({
+              filePath,
+              line: lineNo,
+              rule: "MD025/single-title/single-h1",
+              severity: options.strict ? "error" : "warn",
+              message: "Multiple top-level headings in the same document",
+            });
+          }
         }
       }
 
@@ -716,6 +795,23 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       }
     }
 
+    if (isSyntheticTerminalBlank) {
+      blankRunOutsideFence = 0;
+    } else if (line.trim() === "") {
+      blankRunOutsideFence++;
+      if (blankRunOutsideFence > 1) {
+        findings.push({
+          filePath,
+          line: lineNo,
+          rule: "MD012/no-multiple-blanks",
+          severity: options.strict ? "error" : "warn",
+          message: "Multiple consecutive blank lines",
+        });
+      }
+    } else {
+      blankRunOutsideFence = 0;
+    }
+
     // MD001: trailing whitespace (fixable)
     if (/[ \t]+$/.test(line)) {
       findings.push({
@@ -738,7 +834,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       });
     }
 
-    // MD010/MD011 (light): headings should be surrounded by blank lines (warn by default)
+    // MD022: headings should be surrounded by blank lines (warn by default)
     if (!inFence && /^#{1,6} /.test(line)) {
       const prev = idx > 0 ? lines[idx - 1] : "";
       const next = idx + 1 < lines.length ? lines[idx + 1] : "";
@@ -747,7 +843,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         findings.push({
           filePath,
           line: lineNo,
-          rule: "MD010",
+          rule: "MD022/blanks-around-headings",
           severity: options.strict ? "error" : "warn",
           message: "Heading should be preceded by a blank line",
         });
@@ -757,7 +853,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         findings.push({
           filePath,
           line: lineNo,
-          rule: "MD011",
+          rule: "MD022/blanks-around-headings",
           severity: options.strict ? "error" : "warn",
           message: "Heading should be followed by a blank line",
         });
@@ -816,6 +912,31 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           });
         }
       }
+    }
+  }
+
+  // MD041/first-line-heading: require first non-blank line after frontmatter to be H1,
+  // unless frontmatter already provides a title.
+  if (!hasFrontMatterTitle) {
+    const startIdx = frontMatterEndLine >= 0 ? frontMatterEndLine + 1 : 0;
+    for (let idx = startIdx; idx < lines.length; idx++) {
+      if (lineIsInFence[idx]) continue;
+      const trimmed = lines[idx].trim();
+      if (trimmed.length === 0) continue;
+      if (/^<!--.*-->$/.test(trimmed)) continue;
+
+      const headingMatch = /^(#{1,6})\s+/.exec(lines[idx]);
+      const isH1 = headingMatch?.[1].length === 1;
+      if (!isH1) {
+        findings.push({
+          filePath,
+          line: idx + 1,
+          rule: "MD041/first-line-heading/first-line-h1",
+          severity: options.strict ? "error" : "warn",
+          message: "First line in a file should be a top-level heading",
+        });
+      }
+      break;
     }
   }
 
@@ -1092,8 +1213,11 @@ async function main() {
         const fixableFindings = findings.filter(f =>
           f.rule === "MD032/blanks-around-lists" ||
           f.rule === "MD029/ol-prefix" ||
+          f.rule === "MD022/blanks-around-headings" ||
+          f.rule === "MD025/single-title/single-h1" ||
           f.rule === "MD060/table-column-style" ||
           f.rule === "MD040/fenced-code-language" ||
+          f.rule === "MD041/first-line-heading/first-line-h1" ||
           f.rule === "MD004" ||
           f.rule === "MD036/no-emphasis-as-heading" ||
           f.rule === "MD049/emphasis-style" ||

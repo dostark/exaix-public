@@ -60,6 +60,5 @@ error: Unknown option "--diff". Did you mean option "--help"?
 
 ---
 
-
 ```
 

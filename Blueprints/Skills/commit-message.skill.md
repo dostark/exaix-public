@@ -90,7 +90,6 @@ References:
 
 - <issue/plan step/breaking change note>
 
-
 When committing from CLI, avoid chained `-m` usage. Prefer one multiline message:
 
 ```bash
@@ -234,12 +233,3 @@ Use consistent scopes across your project:
 - **husky**: Git hooks for validation
 - **standard-version**: Automatic versioning and changelog
 - **semantic-release**: Automated releases based on commits
-
-## Why Conventional Commits?
-
-1. **Automated changelogs** from commit history
-
-1.
-1.
-1.
-

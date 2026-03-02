@@ -101,6 +101,5 @@ Your JSON will be validated against the schema. Common errors to avoid:
 - Dependencies referencing non-existent steps
 - Malformed JSON syntax (missing quotes, trailing commas)
 
-
 ```
 

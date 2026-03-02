@@ -19,12 +19,12 @@ This roadmap outlines the phased implementation of ExoFrame 2.0, transitioning f
 
 ExoFrame 2.0 uses a **multi-repository submodule architecture** to enforce true source code separation between open-source and proprietary components.
 
-```
+```text
 exoframe/                          (composition repo - private)
   ├── core/                        (submodule → github.com/exoframe/exoframe-core, public, MIT)
   ├── team/                        (submodule → github.com/exoframe/exoframe-team, private)
   └── enterprise/                  (submodule → github.com/exoframe/exoframe-enterprise, private)
-```
+```text
 
 | Repository            | Visibility  | License                | Contents                                            |
 | --------------------- | ----------- | ---------------------- | --------------------------------------------------- |
@@ -203,7 +203,7 @@ jobs:
       - checkout: exoframe-enterprise (private, requires token)
       - run: deno task build --edition=enterprise
       - artifact: exoframe-enterprise-$VERSION
-```
+```text
 
 ---
 
@@ -242,3 +242,5 @@ Each phase will have a dedicated planning document created before phase start:
 ---
 
 _This roadmap is a living document. Phase-specific planning documents will be created before each phase begins._
+
+```

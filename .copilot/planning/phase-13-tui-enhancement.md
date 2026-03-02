@@ -1097,6 +1097,5 @@ Create `docs/TUI_Keyboard_Reference.md`:
 - [Markdown Renderer](../src/tui/utils/markdown_renderer.ts)
 - [Layout Manager](../src/tui/utils/layout_manager.ts)
 
-
 ```
 

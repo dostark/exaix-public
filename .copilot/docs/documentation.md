@@ -30,7 +30,6 @@ topics: ["docs", "process", "publishing"]
 
 1. Install Copilot (or open Copilot Labs) in your VS Code.
 
-
 ```bash
 # returns JSON with short_summary and snippet for the best doc matching the query
 deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agent copilot

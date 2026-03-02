@@ -130,6 +130,5 @@ function calculateTotal(items: Item[]): number {
 1.
 ```text
 
-
 ```
 

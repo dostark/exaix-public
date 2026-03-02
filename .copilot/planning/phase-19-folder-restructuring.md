@@ -1677,7 +1677,6 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 
 1. Completed all planned integration phases.
 
-
 ## Backward Compatibility Strategy
 
 ### Symlink Bridge
@@ -1754,7 +1753,6 @@ exoctl migrate folders --rollback   # Restore if needed
 - [ExoFrame Architecture](../../docs/ExoFrame_Architecture.md)
 - [Phase 17: Skills Architecture](./phase-17-skills-architecture.md)
 - [Phase 18: Blueprint Modernization](./phase-18-blueprint-modernization.md)
-
 
 ```
 

@@ -649,11 +649,6 @@ The TUI is now fully decoupled and ready for extraction into a separate reposito
 
 ### Manual Verification
 
-1. Run `exoctl tui` and navigate through all views: Request Manager, Plan Reviewer, Portal Manager, Memory View, Agent Status, Monitor, Daemon Control, Structured Logs, Skills Manager.
-
-1.
-1.
-
+Run `exoctl tui` and navigate through all views: Request Manager, Plan Reviewer, Portal Manager, Memory View, Agent Status, Monitor, Daemon Control, Structured Logs, Skills Manager.
 
 ```
-

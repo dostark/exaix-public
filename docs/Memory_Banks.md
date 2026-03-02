@@ -499,15 +499,15 @@ The migration script (`scripts/migrate_to_memory_banks.ts`):
    - Create `Memory/Execution/{trace-id}/` structure
    - Write `summary.md`, `context.json`, `changes.diff`
 
-2. **Scan Knowledge/Portals/**
+1.
    - Copy portal context cards to `Memory/Projects/{portal}/overview.md`
    - Create empty `patterns.md`, `decisions.md`, `references.md`
 
-3. **Archive Original**
+1.
    - Rename `Knowledge/` → `Knowledge.backup-{timestamp}/`
    - Preserve for rollback
 
-4. **Generate Indices**
+1.
    - Scan all Memory/ files
    - Build `Index/*.json` for fast search
 
@@ -625,3 +625,4 @@ Memory Banks will be integrated into the TUI dashboard in a future phase:
 
 - **v2.0.0 (2026-01-04):** Added Global Memory, Learnings, Pending workflow, Embeddings (Phase 12.8-12.11)
 - **v1.0.0 (2026-01-03):** Initial architecture definition (Phase 12.1)
+

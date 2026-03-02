@@ -59,7 +59,7 @@ cat > deno.json <<'EOF'
 EOF
 ```
 
-2. Initialize git and make initial commit
+1.
 
 ```bash
 git init -b main
@@ -160,12 +160,12 @@ cat > deno.json <<'EOF'
 EOF
 ```
 
-2. Create `import_map.json` (optional, but referenced above):
+1.
 
 ```bash
 ```
 
-3. Create a minimal `exo.config.toml` (edit as needed):
+1.
 
 ```bash
 cat > exo.config.toml <<'EOF'
@@ -180,14 +180,14 @@ system = "./System"
 EOF
 ```
 
-4. Create the required folder tree:
+1.
 
 ```bash
 mkdir -p src scripts templates tests migrations System Blueprints/Agents Blueprints/Flows
 touch tests/.gitkeep migrations/.gitkeep Blueprints/Agents/.gitkeep Blueprints/Flows/.gitkeep
 ```
 
-5. Add a minimal `src/main.ts` to allow `deno task cache` to succeed and provide a simple daemon entrypoint:
+1.
 
 ```bash
 mkdir -p src
@@ -252,7 +252,7 @@ gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_
 - Use a self-hosted Git server or GitLab; the local steps are identical. Replace `gh` commands with your Git host's API
   or UI steps.
 
-**Notes:**
+# Notes:
 
 - Do not commit secrets (API keys) to the repository. Use `exoctl secret set` and exclude key files via `.gitignore`.
 - If you want automated repo creation as part of `scripts/bootstrap`, add an interactive flag so creators can choose web
@@ -277,7 +277,7 @@ Minimal next steps after repository creation (creator-only, do these once):
 cp exo.config.sample.toml exo.config.toml 2>/dev/null || true
 ```
 
-2. (Optional) Push an initial protected branch policy and enable CI (see Implementation Plan for details). Example quick
+1.
    commands:
 
 ```bash
@@ -288,7 +288,7 @@ git push -u origin main
 gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}' || true
 ```
 
-3. Do not add secrets to the repository. Store API keys using the OS keyring and the engine CLI (`exoctl secret set`).
+1.
    See the Implementation Plan for secure developer guidance.
 
 If you want, add a reference to this repository-build doc in the repo root (e.g., `REPOSITORY_BUILD.md`) and link it
@@ -296,4 +296,5 @@ from `README.md` so new contributors follow the canonical onboarding flow.
 
 ---
 
-_End of Repository Build_
+# End of Repository Build
+

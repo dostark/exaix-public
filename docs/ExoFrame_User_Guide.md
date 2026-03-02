@@ -328,9 +328,9 @@ exoctl memory rebuild-index
 When an agent execution completes, ExoFrame automatically extracts learnings:
 
 1. **Extract**: Insights from `lessons_learned` and execution patterns
-2. **Propose**: Create pending proposal in `Memory/Pending/`
-3. **Review**: User reviews via `exoctl memory pending list`
-4. **Approve/Reject**: Merge to memory or discard with reason
+
+1.
+1.
 
 This ensures quality control over what enters the knowledge base.
 
@@ -898,11 +898,11 @@ For worktree executions, ExoFrame also writes a discoverability pointer at `Memo
 **What happens when adding a portal:**
 
 1. Creates symlink: `~/ExoFrame/Portals/<alias>` → `<target-path>`
-2. Generates context card: `~/ExoFrame/Portals/<alias>.md`
-3. Updates `exo.config.toml` with portal configuration (optional per-portal keys: `default_branch` and `execution_strategy`)
-4. Validates Deno permissions for new path
-5. Restarts daemon if running (or prompts for manual restart)
-6. Logs action to Activity Journal
+
+1.
+1.
+1.
+1.
 
 **Portal verification checks:**
 
@@ -1935,9 +1935,9 @@ Portals enable agents to work directly in external project repositories (e.g., `
 When you submit a request targeting a portal:
 
 1. **Execution Environment**: Agent runs in portal workspace (e.g., `~/git/MyProject`)
-2. **Git Operations**: Branches and commits created in portal's repository
-3. **File Access**: Agent can read/write portal files directly
-4. **Reviews**: Track actual code changes in portal repository
+
+1.
+1.
 
 #### Cleanup & lifecycle notes
 
@@ -2086,9 +2086,9 @@ The Reflexion pattern enables agents to critique and improve their own outputs i
 #### How It Works
 
 1. Agent generates initial response
-2. Agent self-critiques using structured criteria (accuracy, completeness, quality, safety)
-3. If issues found, agent refines output
-4. Process repeats until quality threshold met or max iterations reached
+
+1.
+1.
 
 #### Configuration
 
@@ -2162,10 +2162,10 @@ Session Memory automatically provides relevant context from past interactions to
 #### How It Works
 
 1. **Request received**: User submits a request
-2. **Memory lookup**: System searches for relevant past interactions
-3. **Context injection**: Top-K memories added to agent prompt
-4. **Execution**: Agent has historical context
-5. **Learning capture**: New insights saved post-execution
+
+1.
+1.
+1.
 
 #### Configuration
 
@@ -2244,9 +2244,9 @@ Agent outputs are validated against JSON schemas with automatic repair.
 #### Validation Process
 
 1. **Extract JSON**: Parse JSON from agent response
-2. **Schema validation**: Check against PlanSchema
-3. **Auto-repair**: Attempt to fix common issues
-4. **Detailed errors**: Report specific validation failures
+
+1.
+1.
 
 #### Auto-Repair Capabilities
 
@@ -2307,36 +2307,36 @@ See `Blueprints/Agents/templates/README.md` for detailed template documentation.
 If agent responses are slow:
 
 1. **Check reflexion settings**: Reduce `max_reflexion_iterations`
-2. **Reduce memory context**: Lower `topK` or `maxContextLength`
-3. **Use faster model**: Switch to smaller/faster model variant
-4. **Disable optional features**: Turn off reflexion or memory for speed
+
+1.
+1.
 
 #### Low Confidence Outputs
 
 If agents consistently produce low-confidence outputs:
 
 1. **Check prompt clarity**: Ensure request is specific
-2. **Provide more context**: Add relevant files to portal
-3. **Use specialist agent**: Match agent expertise to task
-4. **Enable session memory**: Historical context helps
+
+1.
+1.
 
 #### Retry Exhaustion
 
 If agents fail after max retries:
 
 1. **Check service status**: Provider may be down
-2. **Verify credentials**: API keys may be expired
-3. **Check rate limits**: You may be hitting quotas
-4. **Increase delays**: Raise `initialDelay` or `maxDelay`
+
+1.
+1.
 
 #### Memory Not Found
 
 If relevant memories aren't being injected:
 
 1. **Check threshold**: Lower `threshold` value (e.g., 0.1)
-2. **Rebuild index**: `exoctl memory rebuild-index`
-3. **Add learnings**: Approve pending learnings
-4. **Check scope**: Ensure learnings are in correct project/global scope
+
+1.
+1.
 
 ---
 
@@ -2382,8 +2382,8 @@ enable_sse = false
 **Best Practices:**
 
 1. **Never modify `src/shared/constants.ts` directly** - All magic values are defined in `exo.config.toml`
-2. **Use `exo.config.sample.toml` as reference** - Contains documented examples for all settings
-3. **Validate after changes** - Run `exoctl daemon restart` to ensure config is valid
+
+1.
 
 ### 5.3 Environment Variable Reference
 
@@ -2443,15 +2443,15 @@ exoctl daemon start
 If you see warnings like "Invalid EXO_LLM_TIMEOUT_MS: must be ≥ 1000", check:
 
 1. **Value is within valid range** (timeout: 1000-300000ms)
-2. **No typos in variable name** (case-sensitive)
-3. **Provider name is valid** (`mock`, `ollama`, `anthropic`, `openai`, `google`)
-4. **URL is well-formed** (must include protocol: `http://` or `https://`)
+
+1.
+1.
 
 **Environment variables not taking effect:**
 
 1. **Restart the daemon** after setting env vars: `exoctl daemon restart`
-2. **Check the daemon logs** to see which values were loaded: `exoctl daemon logs`
-3. **Verify the variable is set** in the daemon's environment: `env | grep EXO_LLM`
+
+1.
 
 For more details, see `templates/exo.config.sample.toml` and [Technical Specification](./dev/ExoFrame_Technical_Spec.md).
 
@@ -2516,8 +2516,8 @@ ExoFrame is built with a "Safety First" architecture, focusing on local executio
 ### 9.2 Best Practices
 
 1. **Review Plans:** Always inspect the diffs in the TUI (`exoctl plan show`) before approving.
-2. **Audit Logs:** Use `exoctl journal` to audit agent activity.
-3. **Keep Keys Private:** Never commit your `.env` or `exo.config.toml` if it contains secrets (though it shouldn't).
+
+1.
 
 ---
 
@@ -2808,9 +2808,9 @@ ExoFrame provides comprehensive cost tracking and budget management for AI provi
 Cost tracking operates at multiple levels:
 
 1. **Per-Request Tracking**: Each agent execution logs token usage and estimated cost
-2. **Daily Budget Enforcement**: Prevents exceeding your daily spending limit
-3. **Provider-Specific Rates**: Different rates for different models and providers
-4. **Historical Reporting**: Query past usage and costs via Activity Journal
+
+1.
+1.
 
 ### 11.2 Configuration
 
@@ -2832,8 +2832,8 @@ openai_gpt4 = 0.00003               # $30 per million tokens
 Before each agent execution, ExoFrame checks:
 
 1. **Daily Budget**: Current day's spending vs `max_daily_cost_usd`
-2. **Estimated Cost**: Predicted cost for the current request
-3. **Provider Limits**: Any provider-specific restrictions
+
+1.
 
 If a request would exceed your budget, it's rejected with a clear error message.
 
@@ -2875,3 +2875,4 @@ Cost tracking supports all major AI providers:
 ---
 
 ### End of User Guide
+

@@ -36,7 +36,6 @@ Key patterns:
 - Verify coverage with `deno test --coverage`
 - Clean up test resources in finally blocks
 
-
 **Example interaction:**
 
 User: "Add error handling for missing config files in ConfigLoader"
@@ -367,7 +366,6 @@ new Deno.Command("deno", { args: ["test"] }).output();
 - Example prompt: "Inspect test patterns and suggest TDD tests for module X using `initTestDbService()` and provide failing assertions."
 - Example prompt: "Refactor PlanWriter to extract validation logic. Show tests proving behavior is unchanged."
 - Example prompt: "Debug why async test is flaking. Propose a test that reproduces the race condition."
-
 
 ```
 

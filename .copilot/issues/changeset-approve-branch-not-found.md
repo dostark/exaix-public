@@ -94,6 +94,5 @@ High priority because changeset approval is core functionality for the agent wor
 
 - **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.
 
-
 ```
 

@@ -397,7 +397,6 @@ The mock embeddings use SHA-256-based deterministic vectors (64-dim). For produc
 
 1. Generate OpenAI embeddings: `deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai`
 
-
 ## Example: Multi-Step Task with RAG
 
 ```typescript
@@ -422,7 +421,6 @@ Task: Propose 3 security tests for PathResolver that check:
 - Path traversal attacks (../)
 - Symlink escape attempts
 - Absolute path handling
-
 
 // 4. Call Claude API with context
 const response = await claude.complete(systemPrompt, userMessage);
@@ -606,7 +604,6 @@ Use `manage_todo_list` to track progress:
 - Mark tasks in-progress before starting
 - Complete immediately after finishing each step
 - Provide status updates between major operations
-
 
 **Efficient context gathering**:
 
@@ -1059,7 +1056,6 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 - Add a cross-reference row/topic for “self-improvement loop”.
 - Add a prompts README entry for the new template.
 - Add `tests/agents/self_improvement_process_test.ts` mirroring the Claude/OpenAI/Google enhancement test style.
-
 
 ```
 

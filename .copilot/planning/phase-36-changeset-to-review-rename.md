@@ -583,7 +583,6 @@ exoctl review list --status pending | grep artifact
 
 - run: exoctl review approve $REVIEW_ID
 
-
 ---
 
 ## Risks and Mitigations
@@ -712,7 +711,6 @@ exoctl review list --status pending | grep artifact
 - [Phase 30: CLI Flow Request](./.copilot/planning/phase-30-cli-flow-request.md)
 - [ExoFrame User Guide](../../docs/ExoFrame_User_Guide.md)
 - [ExoFrame Technical Spec](../../docs/dev/ExoFrame_Technical_Spec.md)
-
 
 ```
 

@@ -36,7 +36,6 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 - docs/dev/ExoFrame_Architecture.md
 + ARCHITECTURE.md
 
-
 ### 2. Architecture Document Grounding
 
 The `ARCHITECTURE.md` will be updated to include source paths.

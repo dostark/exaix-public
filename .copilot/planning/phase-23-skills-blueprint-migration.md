@@ -273,29 +273,23 @@ Blueprints/
 
 # Verify directory structure
 
-
 # Should show skills in Blueprints/Skills/
 
 # Test skill loading
-
 
 # Should load skills from new location
 
 # Test agent references
 
-
 # Should resolve skill references correctly
 
 # Test flow execution
-
 
 # Should execute flows with skill dependencies
 
 # Verify no old references
 
-
 # Should return no results
-
 
 ---
 
@@ -363,7 +357,6 @@ Moving core skills from `Memory/Skills/core/` to `Blueprints/Skills/` aligns wit
 - **Memory/**: Learned and adapted knowledge from actual usage
 
 This change improves code organization, reduces confusion, and makes the relationship between blueprints and their referenced skills more obvious. The migration is straightforward with clear success criteria and comprehensive testing requirements.
-
 
 ```
 

@@ -806,12 +806,12 @@ exoctl plan list
    - Blueprint file exists for the specified agent
    - No errors in daemon logs
 
-2. **Request marked as failed** - Check daemon logs for:
+1.
    - Blueprint not found errors
    - LLM provider errors
    - File system permission issues
 
-3. **MockLLMProvider logs "No exact recording found"** - This is expected and normal behavior. The provider automatically falls back to default pattern matching and generates a valid plan.
+1.
 
 ### Pass Criteria
 
@@ -2578,8 +2578,8 @@ This is a test skill for verifying Skills Management functionality.
 ## Steps
 
 1. Verify skill structure
-2. Test skill loading
-3. Validate skill metadata
+1.
+1.
 EOF
 
 # Step 2: List available skills
@@ -4105,44 +4105,44 @@ exoctl git log $PORTAL_FLOW_ID
 **Priority 1 (Critical Path - High Risk):**
 
 1. MT-01: Fresh Installation
-2. MT-02: Daemon Startup
-3. MT-04: Create Request
-4. MT-05: Plan Generation (Mock LLM)
-5. MT-06: Plan Approval
-6. MT-08: Plan Execution & Review Management
-7. MT-09: Portal Management
-8. MT-10: Daemon Crash Recovery
-9. MT-13: Database Corruption Recovery
-10. MT-18: Multi-Agent Flow Execution
-11. MT-20: TUI Dashboard Launch
-12. MT-22: TUI Plan Reviewer View
-13. MT-27: Advanced Security Testing
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Priority 2 (Medium Risk):**
-14. MT-03: Blueprint Management
-15. MT-07: Plan Rejection
-16. MT-11: Real LLM Integration
-17. MT-12: Invalid Request Handling
-18. MT-14: Concurrent Request Processing
-19. MT-15: File Watcher Reliability
-20. MT-16: LLM Provider Selection
-21. MT-17: Memory Banks Integration
-22. MT-21: TUI Monitor View
-23. MT-23: TUI Portal Manager View
-24. MT-24: TUI Daemon Control View
-25. MT-25: TUI Request Manager View
-26. MT-28: Provider Strategy and Fallback
-27. MT-29: Git Operations and Traceability
-28. MT-30: CLI Flow Request Support
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
+1.
 
 **Priority 3 (Low Risk):**
-29. MT-19: Skills Management
-30. MT-26: Activity Journal Queries
+1.
+1.
 
 ### Issues Found
 
 1. [Issue description + steps to reproduce]
-2. ...
+1.
 
 ### Verdict
 
@@ -4159,3 +4159,4 @@ exoctl git log $PORTAL_FLOW_ID
 ---
 
 ## End of Manual Test Scenarios
+

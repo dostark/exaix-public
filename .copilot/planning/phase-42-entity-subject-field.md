@@ -210,7 +210,6 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 
 1. User creates request:
 
-
 1.
    agentSubject = validateSubject(response.subject)
    if (agentSubject) {

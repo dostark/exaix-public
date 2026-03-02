@@ -1447,6 +1447,5 @@ exoctl memory demote learning-002 --to my-app
 exoctl memory rebuild-index
 ```text
 
-
 ```
 

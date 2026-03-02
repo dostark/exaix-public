@@ -20,7 +20,7 @@ This document contains realistic validation requests for each agent blueprint in
    exoctl daemon restart
    ```
 
-2. **Enable paid LLMs for validation runs** (set in the same shell before starting the daemon):
+1.
 
    ```bash
    export EXO_TEST_ENABLE_PAID_LLM=1
@@ -54,9 +54,9 @@ This document contains realistic validation requests for each agent blueprint in
 Each request follows this structure:
 
 1. **Agent**: Blueprint name and purpose
-2. **Request**: Realistic user query
-3. **Expected Output**: Key elements that should be present
-4. **Validation Steps**: Specific checks to perform
+
+1.
+1.
 
 ## Validation Requests
 
@@ -74,12 +74,13 @@ exoctl request --portal portal-exoframe --agent code-analyst "Analyze the CLI co
 
 ```text
 Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand:
+
 - Command hierarchy and organization
 - Common patterns across command implementations
 - Error handling consistency
 - CLI argument validation approaches
 - Opportunities for command consolidation or refactoring
-Provide specific recommendations for improving the CLI architecture.
+
 ```
 
 **Expected Output**:
@@ -93,11 +94,11 @@ Provide specific recommendations for improving the CLI architecture.
 **Validation Steps**:
 
 1. Verify JSON output validates against PlanSchema
-2. Check that analysis includes actual file counts from the CLI modules
-3. Confirm recommendations are specific to ExoFrame's CLI structure
-4. Validate that module dependencies reflect actual command relationships
-5. Ensure recommendations are actionable and codebase-specific
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -118,12 +119,12 @@ exoctl request --portal portal-exoframe --agent performance-engineer "Analyze th
 
 ```text
 Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify:
+
 - Connection pool sizing and utilization patterns
 - Query execution bottlenecks in the request processing pipeline
 - Memory usage in database result caching
 - Scalability limitations under concurrent agent executions
 - Specific optimization recommendations for the SQLite/PostgreSQL implementations
-```
 
 **Expected Output**:
 
@@ -136,11 +137,11 @@ Analyze the performance characteristics of ExoFrame's database connection poolin
 **Validation Steps**:
 
 1. Verify JSON output contains performance-specific metrics
-2. Check that recommendations include actual code locations from database services
-3. Validate that performance analysis reflects real ExoFrame database operations
-4. Confirm optimization suggestions are technically sound for the architecture
-5. Ensure scalability recommendations are appropriate for multi-edition support
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -161,11 +162,12 @@ exoctl request --portal portal-exoframe --agent product-manager "We need to impl
 
 ```text
 We need to implement a real-time agent monitoring dashboard in the TUI. As a product manager, analyze this requirement and create:
+
 - Detailed user stories with acceptance criteria for monitoring active agents, request queues, and system health
 - Technical requirements considering the existing TUI architecture in src/tui/
 - Success metrics for the dashboard feature (response time, user satisfaction, error detection)
 - Potential risks and dependencies with the daemon and database services
-Structure this as a complete requirements specification for the Team+ edition feature.
+
 ```
 
 **Expected Output**:
@@ -179,11 +181,11 @@ Structure this as a complete requirements specification for the Team+ edition fe
 **Validation Steps**:
 
 1. Verify user stories follow standard format (As a/I want/So that)
-2. Check acceptance criteria are testable and specific to TUI monitoring
-3. Validate technical requirements reflect actual TUI architecture
-4. Confirm success metrics are measurable for dashboard performance
-5. Ensure risk assessment covers daemon and database integration challenges
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -204,12 +206,13 @@ exoctl request --portal portal-exoframe --agent qa-engineer "Create a comprehens
 
 ```text
 Create a comprehensive testing strategy for ExoFrame's portal permission system. Include:
+
 - Unit test cases for portal access validation in src/services/portal_permissions.ts
 - Integration tests for cross-portal file operations and security boundaries
 - Edge cases for symlinked directories, permission escalation, and concurrent access
 - Test data requirements for different portal configurations
 - Automation recommendations for CI/CD pipeline integration
-Provide specific test cases that validate the security boundaries between portals and the main workspace.
+
 ```
 
 **Expected Output**:
@@ -223,11 +226,11 @@ Provide specific test cases that validate the security boundaries between portal
 **Validation Steps**:
 
 1. Verify test cases cover actual portal permission functionality
-2. Check that integration tests reflect real cross-portal operations
-3. Validate edge cases address actual security scenarios in ExoFrame
-4. Confirm test data requirements are realistic for portal configurations
-5. Ensure automation recommendations are practical for the CI/CD setup
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -248,12 +251,13 @@ exoctl request --portal portal-exoframe --agent quality-judge "Evaluate the qual
 
 ```text
 Evaluate the quality of the security implementation in ExoFrame's context loader. Assess:
+
 - Code correctness in src/services/context_loader.ts for portal access validation
 - Security boundary enforcement between workspace and portals
 - Input sanitization and path traversal protection
 - Error handling for unauthorized access attempts
 - Code maintainability and adherence to security best practices
-Provide a detailed quality assessment with specific findings and recommendations for the security-critical context loading functionality.
+
 ```
 
 **Expected Output**:
@@ -267,11 +271,11 @@ Provide a detailed quality assessment with specific findings and recommendations
 **Validation Steps**:
 
 1. Verify evaluation criteria match the actual codebase quality
-2. Check that code locations are accurate and specific
-3. Validate severity assessments are appropriate
-4. Confirm recommendations address real issues
-5. Ensure confidence scores reflect evaluation accuracy
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -292,12 +296,13 @@ exoctl request --portal portal-exoframe --agent security-expert "Perform a secur
 
 ```text
 Perform a security audit of ExoFrame's AI provider API key management system. Identify:
+
 - Key storage security in src/ai/provider_api_key.ts and configuration files
 - Encryption practices for sensitive provider credentials
 - Access control for API keys across different editions (Solo/Team/Enterprise)
 - Key rotation and expiration handling
 - Compliance with security best practices for credential management
-Provide specific remediation steps with code examples for securing the multi-provider API key infrastructure.
+
 ```
 
 **Expected Output**:
@@ -311,11 +316,11 @@ Provide specific remediation steps with code examples for securing the multi-pro
 **Validation Steps**:
 
 1. Verify vulnerabilities identified are actual security issues
-2. Check that code locations are accurate
-3. Validate severity levels are appropriate for the findings
-4. Confirm remediation examples are correct and secure
-5. Ensure compliance assessment reflects industry standards
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -336,12 +341,13 @@ exoctl request --portal portal-exoframe --agent senior-coder "Implement a new CL
 
 ```text
 Implement a new CLI command for memory bank management in ExoFrame. Plan the implementation including:
+
 - New command structure in src/cli/commands/memory_commands.ts for listing, searching, and managing memory banks
 - Integration with existing memory services (src/services/memory_bank.ts, memory_embedding.ts)
 - Database schema changes for memory metadata storage
 - Input validation and security measures for memory operations
 - Error handling strategy and user feedback mechanisms
-Provide a complete implementation plan with specific code changes for the memory management CLI feature.
+
 ```
 
 **Expected Output**:
@@ -355,11 +361,11 @@ Provide a complete implementation plan with specific code changes for the memory
 **Validation Steps**:
 
 1. Verify implementation steps are technically sound
-2. Check that file paths and code locations are accurate
-3. Validate dependencies and success criteria are realistic
-4. Confirm rollback procedures are appropriate
-5. Ensure testing approach covers the implementation
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -380,12 +386,13 @@ exoctl request --portal portal-exoframe --agent software-architect "Design the a
 
 ```text
 Design the architecture for MCP (Model Context Protocol) server support in ExoFrame. Consider:
+
 - Server implementation structure in src/mcp/ for exposing ExoFrame as MCP server
 - Integration with existing agent execution pipeline and tool registry
 - Authentication and authorization for external MCP clients
 - Resource and tool discovery mechanisms for ExoFrame capabilities
 - Performance and security requirements for the Team+ edition MCP server
-Provide a complete architectural design with implementation phases for MCP server integration.
+
 ```
 
 **Expected Output**:
@@ -399,11 +406,11 @@ Provide a complete architectural design with implementation phases for MCP serve
 **Validation Steps**:
 
 1. Verify architectural decisions align with system constraints
-2. Check component responsibilities are clearly defined
-3. Validate database design supports the requirements
-4. Confirm API design follows RESTful principles
-5. Ensure scalability considerations are appropriate
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -424,13 +431,14 @@ exoctl request --portal portal-exoframe --agent technical-writer "Create compreh
 
 ```text
 Create comprehensive API documentation for ExoFrame's flow engine. Include:
+
 - Complete API reference for flow definition, execution, and management in src/flows/
 - Request/response formats with examples for flow_runner.ts and flow_loader.ts
 - Authentication requirements and flow execution permissions
 - Error handling documentation for flow validation and execution failures
 - Code examples in TypeScript for creating custom flows
 - Integration guides for multi-agent workflow orchestration
-Ensure the documentation covers both programmatic and CLI usage patterns for the flow system.
+
 ```
 
 **Expected Output**:
@@ -444,11 +452,11 @@ Ensure the documentation covers both programmatic and CLI usage patterns for the
 **Validation Steps**:
 
 1. Verify documentation plan covers all actual API endpoints
-2. Check that examples match real API behavior
-3. Validate error documentation is comprehensive
-4. Confirm integration examples are functional
-5. Ensure documentation structure is developer-friendly
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -469,12 +477,13 @@ exoctl request --portal portal-exoframe --agent test-engineer "Implement compreh
 
 ```text
 Implement comprehensive tests for ExoFrame's review registry system. Create:
+
 - Unit tests for review tracking and validation in src/services/review_registry.ts
 - Integration tests for git review operations and workspace synchronization
 - End-to-end tests for complete review lifecycle (creation, approval, execution)
 - Mock data and test fixtures for different review scenarios
 - Test automation setup for CI/CD validation of review integrity
-Provide specific test implementations that ensure the reliability of the git-based change tracking system.
+
 ```
 
 **Expected Output**:
@@ -488,11 +497,11 @@ Provide specific test implementations that ensure the reliability of the git-bas
 **Validation Steps**:
 
 1. Verify test cases cover actual code functionality
-2. Check that test implementations are executable
-3. Validate mock data reflects real scenarios
-4. Confirm CI/CD integration is properly configured
-5. Ensure test coverage meets quality standards
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -513,13 +522,14 @@ exoctl request --portal portal-exoframe --agent api-documenter "Generate compreh
 
 ```text
 Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document:
+
 - Complete TOML schema specification for agent definitions in Blueprints/Agents/
 - All supported blueprint fields, types, and validation rules
 - Model configuration options for different AI providers (Claude, GPT, Ollama, Gemini)
 - Capability definitions and tool access permissions
 - Example blueprints for each agent type with detailed field explanations
 - Migration guides for updating blueprints between versions
-Base the documentation on the actual blueprint loader implementation in src/services/blueprint_loader.ts.
+
 ```
 
 **Expected Output**:
@@ -533,11 +543,11 @@ Base the documentation on the actual blueprint loader implementation in src/serv
 **Validation Steps**:
 
 1. Verify documentation covers all actual API endpoints
-2. Check that examples match real API behavior
-3. Validate error documentation is comprehensive
-4. Confirm integration examples are functional
-5. Ensure documentation follows API standards
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -558,13 +568,14 @@ exoctl request --portal portal-exoframe --agent code-reviewer "Perform a compreh
 
 ```text
 Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate:
+
 - Code quality and correctness in src/services/plan_executor.ts and related execution logic
 - Security validation of plan execution and tool invocation
 - Error handling for malformed plans and execution failures
 - Performance optimization opportunities in the execution pipeline
 - Maintainability concerns with the multi-step plan processing
 - Testing coverage and quality for the core execution engine
-Provide specific recommendations for improving the reliability and security of the plan execution system.
+
 ```
 
 **Expected Output**:
@@ -579,11 +590,11 @@ Provide specific recommendations for improving the reliability and security of t
 **Validation Steps**:
 
 1. Verify review findings reflect actual code issues
-2. Check that recommendations are specific and actionable
-3. Validate security assessments are accurate
-4. Confirm performance suggestions are relevant
-5. Ensure maintainability feedback is constructive
-6. **Common validation steps:**
+
+1.
+1.
+1.
+1.
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
    - Check for any reviews created: `exoctl review list --recent 1`
@@ -595,25 +606,25 @@ Provide specific recommendations for improving the reliability and security of t
 ### Pre-Request Setup
 
 1. Ensure portal is properly mapped to `~/git/ExoFrame`
-2. Verify workspace is deployed at `~/ExoFrame`
-3. Confirm all dependencies are installed
-4. Validate LLM provider connectivity
+
+1.
+1.
 
 ### Request Execution
 
 1. Submit each numbered request to the appropriate agent
-2. Capture the complete response (thought + content)
-3. Parse and validate JSON output against PlanSchema
-4. Execute validation steps in order
-5. Document any failures or issues found
+
+1.
+1.
+1.
 
 ### Post-Validation Actions
 
 1. Record validation results for each request
-2. Identify any JSON format issues
-3. Note functional gaps or incorrect responses
-4. Update agent blueprints if issues are found
-5. Re-validate corrected implementations
+
+1.
+1.
+1.
 
 ### Success Criteria
 
@@ -632,3 +643,4 @@ If validation reveals issues, document them with:
 - Expected vs actual behavior
 - Recommended fixes
 - Re-validation requirements
+

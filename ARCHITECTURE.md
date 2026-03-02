@@ -1510,12 +1510,12 @@ graph TB
 ### Data Flow
 
 1.  **Request Enhancement**: Session Memory injects relevant context from past interactions
-2.  **Agent Execution**: Agent Runner processes request with enhanced context
-3.  **Self-Critique** (optional): Reflexive Agent refines output iteratively
-4.  **Validation**: Output Validator checks against schema, repairs if needed
-5.  **Retry** (on failure): Retry Policy handles transient errors with backoff
-6.  **Confidence**: Confidence Scorer assesses output quality
-7.  **Human Review**: Low-confidence outputs flagged for review
+
+1.
+1.
+1.
+1.
+1.
 
 ### Configuration
 
@@ -1645,12 +1645,12 @@ step:
 ### Flow Control Data Flow
 
 1.  **Step Input**: Flow step receives input with current context
-2.  **Condition Evaluation**: ConditionEvaluator checks branch/gate conditions
-3.  **Gate Assessment**: GateEvaluator validates quality criteria
-4.  **LLM Judgment** (optional): JudgeEvaluator provides AI-based assessment
-5.  **Criteria Check**: EvaluationCriteria validates against standards
-6.  **Feedback Loop** (on failure): Iterates with feedback until criteria met
-7.  **Step Output**: Produces output for next flow step
+
+1.
+1.
+1.
+1.
+1.
 
 ---
 
@@ -1741,3 +1741,4 @@ This section provides explicit grounding for core infrastructure modules and hel
 - **[Technical Spec](ExoFrame_Technical_Spec.md)** - Deep technical details
 - **[White Paper](ExoFrame_White_paper.md)** - Vision and philosophy
 - **[Building with AI Agents](Building_with_AI_Agents.md)** - Development patterns
+

@@ -319,3 +319,4 @@ location changes.
 > protection, file locking, or error classification belong in other guides
 > (e.g. `.copilot/source/exoframe.md`) and **are not** repeated here unless they
 > directly impact the way code is written.
+

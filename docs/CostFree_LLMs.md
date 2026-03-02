@@ -27,7 +27,7 @@ You can override selection with environment variables or by passing options dire
 - `EXO_TEST_ENABLE_PAID_LLM=1` — **explicit opt-in** to allow contacting real, potentially paid LLM endpoints. Only set this when you intentionally want to run live calls (e.g., local manual test).
 - `EXO_TEST_OPENAI_API_KEY` — API key used by the `OpenAIShim` when contacting OpenAI-compatible endpoints.
 
-**Retry & Test-model configuration**
+# Retry & Test-model configuration
 
 - **Retry Settings**: Retry settings are now configured via `exo.config.toml` (see `[ai.retry.openai]`), not environment variables.
 - `EXO_TEST_LLM_MODEL` — _(optional)_ Default model used when running live LLM tests. **Default:** `gpt-5-mini`. You can also set this to any OpenAI-style model id that your key can access (e.g., `gpt-3.5-turbo`, `gpt-4o`, or `gpt-4.1`).
@@ -37,7 +37,7 @@ Notes:
 - CI systems should _not_ set `EXO_TEST_ENABLE_PAID_LLM`. When `CI` is set and `EXO_TEST_ENABLE_PAID_LLM !== '1'`, the `ModelFactory` will return a `MockProvider` for cost-friendly aliases.
 - The retry settings in `exo.config.toml` are respected by all providers.
 
-**Example: run manual tests with overrides**
+# Example: run manual tests with overrides
 
 ```bash
 export EXO_TEST_ENABLE_PAID_LLM=1
@@ -60,13 +60,13 @@ export EXO_TEST_ENABLE_PAID_LLM=1
 export EXO_TEST_OPENAI_API_KEY="sk-..."
 ```
 
-2. Run the single test directly (it will still be ignored by default; you can remove `ignore: true` or run specific file):
+1.
 
 ```bash
 deno test tests/integration/llm_free_provider_test.ts --allow-env --allow-net --allow-read
 ```
 
-3. If `EXO_TEST_ENABLE_PAID_LLM` is not set to `1`, or the API key is missing, the test will log a message and skip.
+1.
 
 ## Backwards Compatibility
 
@@ -81,3 +81,4 @@ deno test tests/integration/llm_free_provider_test.ts --allow-env --allow-net --
 ## Contact
 
 If you need help configuring provider options or adding support for additional low-cost aliases, open an issue or reach out in the repository thread.
+

@@ -259,13 +259,13 @@ Add to `exo.config.toml`:
 high_contrast = false
 screen_reader = false
 theme = "dark"  # "dark", "light", or "system"
-```
+```text
 
 ---
 
 ## Quick Reference Card
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                  ExoFrame TUI Quick Reference               │
 ├─────────────────────────────────────────────────────────────┤
@@ -282,7 +282,7 @@ theme = "dark"  # "dark", "light", or "system"
 │  A = Approve all     │  b = Bookmark       │  r = Restart   │
 │  c = Comment         │  e = Export         │  l = Logs      │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ---
 
@@ -291,3 +291,5 @@ theme = "dark"  # "dark", "light", or "system"
 - [ExoFrame User Guide](./ExoFrame_User_Guide.md) - Complete user documentation
 - [ExoFrame Architecture](./ExoFrame_Architecture.md) - Technical architecture details
 - [Implementation Plan](./ExoFrame_Implementation_Plan.md) - Development roadmap
+
+```

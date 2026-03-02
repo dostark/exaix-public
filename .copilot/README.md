@@ -195,7 +195,6 @@ Key points
 - Follow TDD workflow: tests first, implementation second
 - Clean up resources in finally blocks
 
-
 #### Canonical Prompt (Required)
 
 Example system prompt showing ideal usage:
@@ -215,7 +214,6 @@ Examples
 - Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
 - Example prompt: "Propose 3 failing unit tests showing how ConfigLoader handles malformed TOML."
 
-
 #### Do / Don't (Recommended)
 
 Guidance on safe/unsafe patterns:
@@ -226,7 +224,6 @@ Do / Don't
 - ✅ Do follow TDD and verify Success Criteria
 - ✅ Do add module-level documentation
 - ❌ Don't proceed without Implementation Plan step
-
 
 ### 4. Regenerate Manifest
 
@@ -337,7 +334,6 @@ Canonical prompt (short):
 Examples
 
 - Example prompt: "Write security tests for PathResolver that check ../ handling and symlink resolution."
-
 
 ```bash
 deno run --allow-read --allow-write scripts/build_agents_index.ts
@@ -489,4 +485,3 @@ EOF
 - **Labels**: Tag by type, component, and impact
 
 **See [issues/README.md](issues/README.md) for complete guidelines, templates, and best practices.**
-

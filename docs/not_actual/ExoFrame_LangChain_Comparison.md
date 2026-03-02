@@ -40,14 +40,13 @@ ExoFrame Flows are implementation independent of the execution engine. They are 
 ### Strengths
 
 1. **Auditability**: A security auditor can read `src/flows/flow_runner.ts` (approx. 300 LOC) and understand exactly how code executes.
-2. **Type Safety**: The entire flow structure is Zod-validated at load time.
-3. **Deno Alignment**: Designed for Deno's security model (Sandboxed vs Hybrid).
-4. **Zero "Magic"**: No "PromptTemplates" hiding the actual string being sent to the LLM.
+
+1.
+1.
 
 ### Weaknesses
 
 1. **Smaller Ecosystem**: No pre-built integrations for 500+ vector stores (we must build what we need).
-2. **Manual Wiring**: You must define `dependsOn` explicitly (though this is arguably a feature).
 
 ## 4. Deep Dive: LangChain / LangGraph
 
@@ -61,29 +60,29 @@ LangChain is a framework for chaining LLM components. It abstracts the "boring" 
 ### Strengths
 
 1. **Velocity**: Rapid prototyping with pre-built chains (e.g., "SQLDatabaseChain").
-2. **Integrations**: Massive library of community connectors.
-3. **Community**: Standard pattern for many Python/Node developers.
+
+1.
 
 ### Weaknesses
 
 1. **Abstraction Leakage**: When a chain fails, debugging the internal state of a compiled Runnable is notoriously difficult.
-2. **Versioning Instability**: The API surface area changes frequently.
-3. **Token Overhead**: Default prompts often waste tokens on verbose instructions.
-4. **Security Opacity**: Hard to guarantee what a generic `ToolsAgent` is doing under the hood regarding file access.
+
+1.
+1.
 
 ## 5. The "Switch" Analysis
 
 ### Cost to Switch
 
 1. **Refactor**: Rewrite `FlowRunner`, `DependencyResolver`, and all `Blueprints/Flows`.
-2. **Dependency Hell**: Integrating LangChain (npm) into Deno often requires polyfills or compatibility layers (Node compat mode), breaking the "Pure Deno" strictness.
-3. **Security Regression**: We lose the granular control over exactly which bytes are sent to the model and which files are touched, as we delegate that to library code.
+
+1.
 
 ### Benefit of Switching
 
 1. **Pre-made Agents**: We gain access to "out of the box" ReAct agents.
    - _Counter-point_: ExoFrame's `AgentExecutor` (Step 6.4) already implements this more securely with native MCP support.
-2. **Vector Store integrations**: Easier RAG setup.
+1.
    - _Counter-point_: We only need strict RAG over the local codebase, which is better served by a custom `grep`/`embedding` tool optimized for the local FS (e.g. `fast-embed` or simple cosine similarity).
 
 ## 6. Conclusion
@@ -100,4 +99,4 @@ We will continue to treat the "Flow" as a static, serializable, and auditable de
 ### Action Items
 
 1. **Reinforce**: Add this decision to `docs/Building_with_AI_Agents.md` to prevent future "Framework Envy".
-2. **Expand**: Continue improving `defineFlow` type helpers to rival LangChain's DX without its runtime weight.
+

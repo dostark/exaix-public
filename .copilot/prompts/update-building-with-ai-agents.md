@@ -178,7 +178,6 @@ the agents/ system to guide that enhancement. Peak irony.
 - 8 copy-paste prompt templates
 - Cross-reference map for navigation
 
-
 ## Technical Details with Code**
 
 **The Rebuild Workflow**:
@@ -201,7 +200,6 @@ Treating documentation like code revolutionized quality:
 - Automated testing (12 tests for content structure)
 - CI gates (can't merge broken docs)
 
-
 ### ❌ Don't
 
 **Dry, Technical Documentation Style**:
@@ -214,7 +212,6 @@ The agents/ folder was updated with the following improvements:
 - Added claude.md version 0.2
 - Created claude-rag.md with RAG workflow
 - Added 8 prompt templates
-
 
 **Missing Context or "Why"**:
 

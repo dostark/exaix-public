@@ -233,6 +233,5 @@ grep -l "labels:.*daemon" .copilot/issues/*.md
 
 **Remember**: Good issue documentation saves debugging time and helps future contributors understand the problem context.
 
-
 ````
 

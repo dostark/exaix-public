@@ -44,10 +44,10 @@ ExoFrame follows a **test pyramid** approach:
 ### Key Principles
 
 1. **Deterministic by default** — Tests use mock LLM, not real APIs
-2. **Isolated** — Each test creates/destroys its own environment
-3. **Fast** — Full suite completes in under 2 minutes
-4. **CI-first** — All automated tests run on every PR
-5. **Edition-aware** — Tests validate feature gating across Solo/Team/Enterprise
+
+1.
+1.
+1.
 
 ---
 
@@ -1104,10 +1104,10 @@ Every identified risk maps to at least one automated test:
 ### 8.1 Adding New Tests
 
 1. Create test file in appropriate directory (`tests/<category>/`)
-2. Follow naming convention: `<feature>_test.ts`
-3. Use `TestEnvironment` for integration tests
-4. Use `MockLLMProvider` for any LLM interactions
-5. Add to CI workflow if new category
+
+1.
+1.
+1.
 
 ### 7.2 Updating Fixtures
 
@@ -1159,12 +1159,12 @@ To reach our coverage targets, we follow a phased approach focusing on critical 
    - **Focus:** Security validation, error handling, and data integrity.
    - **Actions:** Add comprehensive tests for invalid inputs, file system errors, and transaction rollbacks.
 
-2. **Core Services** (Medium Priority)
+1.
    - **Modules:** `services/watcher.ts`, `services/context_loader.ts`, `services/agent_runner.ts`
    - **Focus:** Stability, resource management, and error recovery.
    - **Actions:** Test edge cases like disk full, network timeouts, and concurrent modifications.
 
-3. **CLI & Tools** (Lower Priority)
+1.
    - **Modules:** `cli/*`, `services/git_service.ts`
    - **Focus:** User interaction and external tool integration.
    - **Actions:** Verify signal handling and git operation failures.
@@ -1174,16 +1174,16 @@ To reach our coverage targets, we follow a phased approach focusing on critical 
 When adding new features or refactoring:
 
 1. **TDD Approach:** Write tests before implementation.
-2. **Gap Analysis:** Run coverage to identify uncovered branches.
-3. **Edge Cases:** Explicitly test error paths (network fail, permission denied).
-4. **Verification:** Ensure new code meets the 80% line coverage target.
+
+1.
+1.
 
 ### 9.4 Testing Best Practices
 
 1. **Test One Behavior Per Test:** Keep tests focused and atomic.
-2. **Descriptive Names:** Use names like `should reject path traversal with ../` instead of `should work`.
-3. **Mock External Dependencies:** Isolate unit tests from file system and network using mocks.
-4. **Test Error Paths:** Most bugs hide in error handling logic. Verify that exceptions are caught and handled gracefully.
+
+1.
+1.
 
 ### 9.5 Tools & Reports
 
@@ -1236,30 +1236,30 @@ To enable the automated CI/CD pipeline on a GitHub repository, follow these step
 ### 10.1 Repository Permissions
 
 1. Navigate to **Settings > Actions > General**.
-2. Under **Actions permissions**, select **"Allow all actions and reusable workflows"**.
-3. Under **Workflow permissions**, select **"Read and write permissions"**. This is required for the release pipeline to create tags and upload binary artifacts.
-4. Click **Save**.
+
+1.
+1.
 
 ### 10.2 Branch Protection Rules
 
 To ensure high code quality, protect the `main` branch:
 
 1. Navigate to **Settings > Branches**.
-2. Click **Add branch protection rule**.
-3. Set **Branch name pattern** to `main`.
-4. Enable **"Require a pull request before merging"**.
-5. Enable **"Require status checks to pass before merging"**.
-6. Search for and add the following status checks:
+
+1.
+1.
+1.
+1.
    - `PR Validation (ubuntu-latest)`
    - `PR Validation (macos-latest)`
    - `PR Validation (windows-latest)`
-7. Click **Create**.
+1.
 
 ### 10.3 Automated Releases
 
 1. To trigger a production build, create a new Release via the GitHub UI (**Releases > Draft a new release**).
-2. Creating and publishing the release will trigger the `release-pipeline.yml`.
-3. The workflow will automatically compile binaries for all 4 target platforms and attach them as assets to the release.
+
+1.
 
 ### 10.4 Local Developer Sync
 
@@ -1272,3 +1272,4 @@ deno task hooks:install
 ---
 
 ## End of Testing and CI Strategy
+

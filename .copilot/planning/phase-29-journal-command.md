@@ -140,4 +140,3 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 - [x] Manual verification via `exoctl dashboard`.
 - [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.
-

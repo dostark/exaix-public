@@ -42,7 +42,6 @@ Top 5 matches for "test database setup":
 1. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
 1. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
 
-
 ### Automatic Context Injection
 
 Use the `inject_agent_context.ts` script to retrieve relevant context:

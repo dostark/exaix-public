@@ -19,9 +19,9 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
 ### Rationale:
 
 1. **Developer Workflow**: Developers spend most of their time in the terminal. A TUI provides a "cockpit" that feels native to the existing `exoctl` workflow.
-2. **Interactivity**: Unlike Obsidian/Dataview (which is read-only and optional), a TUI can provide interactive plan approval, log streaming, and portal management without leaving the shell.
-3. **No External Dependencies**: Does not require users to install or configure Obsidian to get a high-level view of the system.
-4. **Performance**: TUIs are extremely fast and lightweight, fitting the "Iron Skeleton" philosophy of ExoFrame.
+
+1.
+1.
 
 ### Future Path:
 
@@ -33,7 +33,7 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
 ### Step 9.5: TUI Cockpit Foundation
 
 1. **Library Selection**: Use a lightweight TUI library (e.g., `cliffy` or `deno-tui`) to build the dashboard.
-2. **Dashboard Views**:
+
    - **Monitor**: Real-time log streaming from the Activity Journal.
    - **Plan Reviewer**: Interactive diff viewer for pending plans with Approve/Reject buttons.
    - **Portal Manager**: List and status of active portals.
@@ -42,4 +42,4 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
 ### Step 9.6: Integration with exoctl
 
 1. Implement `exoctl dashboard` (or `exoctl cockpit`) to launch the TUI.
-2. Ensure the TUI can run in parallel with the daemon.
+

@@ -103,6 +103,5 @@ Journal shows the following error sequence:
 
 **HIGH** - This breaks the core request → plan → execution workflow. Users cannot process requests in deployed workspaces, making the system unusable for its primary purpose.
 
-
 ```
 

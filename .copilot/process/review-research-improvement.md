@@ -216,7 +216,6 @@ This phase should update:
 - [ ] Each feature has example
 - [ ] CLI documented
 
-
 ### 3.4 Prioritization Matrix
 
 | Priority  | Criteria                                  |
@@ -364,7 +363,6 @@ Before completing the pattern:
 1.
 Commit all artifacts with descriptive commit message."
 ```text
-
 
 ```
 

@@ -38,6 +38,5 @@ Do / Don't
 - ✅ Do provide the full Implementation Plan for context on current progress.
 - ❌ Don't exceed 1M tokens unless performing a repository-wide security or architecture audit.
 
-
 ```
 

@@ -1985,3 +1985,4 @@ export class ExoFrameMCPServer {
 - 🔵 **MCP Server:** Implemented in Team+ editions
 
 ---
+

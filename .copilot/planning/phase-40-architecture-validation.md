@@ -8,9 +8,7 @@ Automate the enforcement of architectural grounding and module header standards 
 
 # Problem:
 
-
 # Solution:
-
 
 1. **Header Check**: Scans every `.ts` file in `src/` to ensure it starts with a standardized `@module` JSDoc header.
 

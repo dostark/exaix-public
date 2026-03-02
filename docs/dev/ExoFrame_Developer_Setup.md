@@ -431,3 +431,4 @@ Notes:
   runtime artifacts (configs, minimal src, scripts) and user data (Memory, .exo/journal.db).
 - Keep migration SQL and schema under `migrations/` or `sql/` in the development repo rather than committing `.db`
   files.
+
