@@ -179,7 +179,7 @@ Deno.test("DatabaseHealthCheck: fails when database query fails", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     // Close the database to simulate failure
-    db.close();
+    await db.close();
     const check = new DatabaseHealthCheck(db);
 
     const result = await check.check();

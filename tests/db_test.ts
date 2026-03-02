@@ -228,7 +228,7 @@ Deno.test("DatabaseService: getRecentActivity returns limited results", async ()
       assertEquals(activity.trace_id, traceId);
     }
 
-    db.close();
+    await db.close();
   } finally {
     await cleanup();
   }
@@ -247,7 +247,7 @@ Deno.test("DatabaseService: getRecentActivity flushes pending logs", async () =>
     const recent = await db.getRecentActivity(10);
     assertEquals(recent.length, 2);
 
-    db.close();
+    await db.close();
   } finally {
     await cleanup();
   }
@@ -368,7 +368,7 @@ Deno.test("DatabaseService: auto-generates trace_id if not provided", async () =
     assertExists(recent[0].trace_id);
     assertEquals(recent[0].trace_id.length, 36); // UUID format
 
-    db.close();
+    await db.close();
   } finally {
     await cleanup();
   }

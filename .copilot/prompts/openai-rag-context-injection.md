@@ -30,4 +30,3 @@ Do / Don't
 - ✅ Do stop and request rebuild if manifest/chunks/embeddings look stale.
 - ✅ Do keep injected context targeted.
 - ❌ Don’t proceed with stale context.
-

@@ -555,7 +555,7 @@ Deno.test("FileWatcher: logs activity with database", async () => {
       `Expected at least 3 watcher activities, got ${watcherActivities.length}`,
     );
 
-    db.close();
+    await db.close();
   } finally {
     await cleanup();
   }

@@ -62,7 +62,7 @@ async function runMigrations() {
     }
     console.log("All migrations up to date.");
   } finally {
-    db.close();
+    await db.close();
   }
 }
 

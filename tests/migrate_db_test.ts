@@ -45,7 +45,7 @@ async function runMigrate(
 }
 
 // Helper to query database using @db/sqlite library
-function queryDb(dbPath: string, sql: string): string {
+async function queryDb(dbPath: string, sql: string): Promise<string> {
   const db = new Database(dbPath);
   try {
     const stmt = db.prepare(sql);
@@ -63,7 +63,7 @@ function queryDb(dbPath: string, sql: string): string {
     }
     return results.join("\n");
   } finally {
-    db.close();
+    await db.close();
   }
 }
 
@@ -125,14 +125,14 @@ Deno.test("migrate_db.ts up creates database and applies migrations", async () =
     assert(await exists(dbPath), "journal.db should be created");
 
     // Verify schema_migrations table has entries
-    const migrations = queryDb(
+    const migrations = await queryDb(
       dbPath,
       "SELECT version FROM schema_migrations;",
     );
     assertStringIncludes(migrations, "001_init.sql");
 
     // Verify activity table was created (from 001_init.sql)
-    const tables = queryDb(
+    const tables = await queryDb(
       dbPath,
       "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;",
     );
@@ -156,7 +156,7 @@ Deno.test("migrate_db.ts up is idempotent", async () => {
 
     // Should not have duplicate migrations
     const dbPath = join(getRuntimeDir(tmp), "journal.db");
-    const count = queryDb(
+    const count = await queryDb(
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );
@@ -180,7 +180,7 @@ Deno.test("migrate_db.ts down reverts last migration", async () => {
 
     // Verify migration was removed from tracking table
     const dbPath = join(getRuntimeDir(tmp), "journal.db");
-    const count = queryDb(
+    const count = await queryDb(
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );
@@ -249,7 +249,7 @@ DROP TABLE IF EXISTS test_order_table;
 
     // Verify all migrations were applied in order
     const dbPath = join(getRuntimeDir(tmp), "journal.db");
-    const migrations = queryDb(
+    const migrations = await queryDb(
       dbPath,
       "SELECT version FROM schema_migrations ORDER BY id;",
     );
@@ -259,7 +259,7 @@ DROP TABLE IF EXISTS test_order_table;
     assertEquals(versions[1], "999_test_order.sql");
 
     // Verify test table was created
-    const tables = queryDb(
+    const tables = await queryDb(
       dbPath,
       "SELECT name FROM sqlite_master WHERE type='table' AND name='test_order_table';",
     );
@@ -295,7 +295,7 @@ DROP TABLE IF EXISTS good_table;
 
     // Verify first migration was applied
     const dbPath = join(getRuntimeDir(tmp), "journal.db");
-    const count = queryDb(
+    const count = await queryDb(
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );

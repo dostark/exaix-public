@@ -101,7 +101,7 @@ async function main() {
       }
     }
   } finally {
-    db.close();
+    await db.close();
   }
 }
 

@@ -30,4 +30,3 @@ Do / Don't
 - ✅ Do include cleanup/teardown patterns from retrieved docs.
 - ❌ Don’t implement before tests.
 ```
-
