@@ -9,8 +9,6 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
-import { FlowLoader } from "../../src/flows/flow_loader.ts";
-import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";
 import { copySync, ensureDirSync } from "@std/fs";
 
@@ -153,10 +151,37 @@ export default defineFlow({
 });
 `;
     await Deno.writeTextFile(`${flowDir}/valid-cli-flow.flow.ts`, validFlow);
-    const loader = new FlowLoader(flowDir);
-    const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
-    const result = await validator.validateFlow("valid-cli-flow");
-    assertEquals(result.valid, true);
+    const commands = new FlowCommands(ctx);
+    const output = await captureConsole("log", async () => {
+      await commands.validateFlow("valid-cli-flow");
+    });
+    assertStringIncludes(output, "is valid");
+  });
+});
+
+Deno.test("FlowCommands: validateFlowWithoutService fallback works", async () => {
+  const ctx = await createMockContext();
+  // Ensure flowValidator is missing
+  ctx.flowValidator = undefined;
+
+  await withFlowsDir(ctx, async (flowDir) => {
+    seedFlowModuleSupportFiles(ctx, flowDir);
+    const validFlow = `
+import { defineFlow } from "./define_flow.ts";
+export default defineFlow({
+  id: "fallback-flow",
+  name: "Fallback Flow",
+  description: "Test fallback validation",
+  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
+  output: { from: "s1", format: "markdown" },
+});
+`;
+    await Deno.writeTextFile(join(flowDir, "fallback-flow.flow.ts"), validFlow);
+    const commands = new FlowCommands(ctx);
+    const output = await captureConsole("log", async () => {
+      await commands.validateFlow("fallback-flow");
+    });
+    assertStringIncludes(output, "is valid");
   });
 });
 

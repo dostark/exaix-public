@@ -42,7 +42,7 @@ Deno.test("RequestService.create: creates a request file with correct frontmatte
     assertEquals(metadata.subject, "Build the login page");
 
     // Verify the file was actually written
-    const content = await Deno.readTextFile(metadata.path);
+    const content = await Deno.readTextFile(metadata.path!);
     assertEquals(content.includes("trace_id:"), true);
     assertEquals(content.includes("Build the login page"), true);
   } finally {
@@ -104,7 +104,7 @@ Deno.test("RequestService.create: subject_is_fallback when no explicit subject",
     const service = createTestRequestService(tempDir);
     const metadata = await service.create("Test description");
 
-    const content = await Deno.readTextFile(metadata.path);
+    const content = await Deno.readTextFile(metadata.path!);
     assertEquals(content.includes("subject_is_fallback: true"), true);
   } finally {
     await Deno.remove(tempDir, { recursive: true }).catch(() => {});

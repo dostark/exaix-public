@@ -35,48 +35,28 @@ export interface IGitTestContext {
 export async function setupGitRepo(path: string, options: { initialCommit?: boolean; branch?: string } = {}) {
   const { initialCommit = false, branch = "master" } = options;
 
-  // Save current directory and change to target to avoid cwd resolution issues
-  let originalCwd: string;
-  try {
-    originalCwd = Deno.cwd();
-  } catch {
-    // If cwd doesn't exist, use /tmp as fallback
-    originalCwd = "/tmp";
+  const commands = [
+    ["init", "-b", branch],
+    ["config", "user.name", "Test User"],
+    ["config", "user.email", "test@example.com"],
+  ];
+
+  for (const args of commands) {
+    await new Deno.Command(PortalOperation.GIT, {
+      args,
+      cwd: path,
+      stdout: "null",
+      stderr: "null",
+    }).output();
   }
 
-  try {
-    // Change to target directory to ensure git commands work
-    Deno.chdir(path);
-
-    const commands = [
-      ["init", "-b", branch],
-      ["config", "user.name", "Test User"],
-      ["config", "user.email", "test@example.com"],
-    ];
-
-    for (const args of commands) {
-      await new Deno.Command(PortalOperation.GIT, {
-        args,
-        stdout: "null",
-        stderr: "null",
-      }).output();
-    }
-
-    if (initialCommit) {
-      await new Deno.Command(PortalOperation.GIT, {
-        args: ["commit", "--allow-empty", "-m", "Initial commit"],
-        stdout: "null",
-        stderr: "null",
-      }).output();
-    }
-  } finally {
-    // Restore original directory, but handle case where it might have been deleted
-    try {
-      Deno.chdir(originalCwd);
-    } catch {
-      // If original cwd was deleted, change to /tmp
-      Deno.chdir("/tmp");
-    }
+  if (initialCommit) {
+    await new Deno.Command(PortalOperation.GIT, {
+      args: ["commit", "--allow-empty", "-m", "Initial commit"],
+      cwd: path,
+      stdout: "null",
+      stderr: "null",
+    }).output();
   }
 }
 

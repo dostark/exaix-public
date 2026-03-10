@@ -1,0 +1,48 @@
+/**
+ * @module LoggingDecoratorUnitTest
+ * @path tests/services/decorators/logging_unit_test.ts
+ * @description Unit tests for LogMethod decorator.
+ */
+
+import { assertEquals, assertRejects } from "@std/assert";
+import { LogMethod } from "../../../src/services/decorators/logging.ts";
+import { EventLogger } from "../../../src/services/event_logger.ts";
+
+Deno.test("LogMethod (standard decorator): handles errors and custom action", async () => {
+  const logCalls: Array<{ level: string; msg: string; payload: any }> = [];
+  const mockLogger = {
+    info: (msg: string, _action: string, payload: any) =>
+      Promise.resolve(logCalls.push({ level: "info", msg, payload })),
+    error: (msg: string, _action: string, payload: any) =>
+      Promise.resolve(logCalls.push({ level: "error", msg, payload })),
+    debug: (msg: string, _action: string, payload: any) =>
+      Promise.resolve(logCalls.push({ level: "debug", msg, payload })),
+  } as unknown as EventLogger;
+
+  class TestClass {
+    @LogMethod(mockLogger, "custom.action")
+    async failingMethod(arg: string) {
+      return await Promise.reject(new Error(`failing: ${arg}`));
+    }
+
+    async namedMethod() {
+      return await Promise.resolve("ok");
+    }
+  }
+
+  const obj = new TestClass();
+
+  // Test custom action and error logging
+  await assertRejects(() => obj.failingMethod("foo"), Error, "failing: foo");
+
+  const startCall = logCalls.find((c) => c.msg === "custom.action" && c.payload.args);
+  const failCall = logCalls.find((c) => c.msg === "custom.action" && c.level === "error");
+
+  assertEquals(!!startCall, true);
+  assertEquals(failCall?.payload.error, "failing: foo");
+
+  // Test default action name and success logging
+  await obj.namedMethod();
+  const successCall = logCalls.find((c) => c.msg === "TestClass.namedMethod" && c.level === "info");
+  assertEquals(!!successCall, true);
+});

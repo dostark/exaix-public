@@ -349,3 +349,82 @@ path = "read.txt"
     await cleanup();
   }
 });
+
+Deno.test("PlanExecutor: handles execution without git", async () => {
+  const { tempDir: _tempDir, repoDir, db, cleanup, config } = await createGitTestContext("plan-exec-no-git-");
+  try {
+    const mockResponse =
+      `\`\`\`toml\n[[actions]]\ntool = "write_file"\n[actions.params]\npath = "no-git.txt"\ncontent = "No Git"\n\`\`\``;
+    const mockProvider = new MockProvider(mockResponse);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir, { enableGit: false });
+
+    const context: IPlanContext = {
+      trace_id: "trace-no-git",
+      request_id: "req-no-git",
+      agent: "test-agent",
+      frontmatter: {},
+      steps: [{ number: 1, title: "No Git", content: "No Git" }],
+    };
+
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
+    assertEquals(result.lastCommitSha, null);
+
+    const content = await Deno.readTextFile(join(repoDir, "no-git.txt"));
+    assertEquals(content, "No Git");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("PlanExecutor: handles portal context in frontmatter", async () => {
+  const { tempDir: _tempDir, repoDir, db, cleanup, config } = await createGitTestContext("plan-exec-portal-");
+  try {
+    const portalDir = join(_tempDir, "TargetPortal");
+    await Deno.mkdir(portalDir, { recursive: true });
+
+    // Update config to include portal
+    config.portals = [{ alias: "MyPortal", target_path: portalDir }];
+
+    const mockResponse =
+      `\`\`\`toml\n[[actions]]\ntool = "write_file"\n[actions.params]\npath = "portal-file.txt"\ncontent = "In Portal"\n\`\`\``;
+    const mockProvider = new MockProvider(mockResponse);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir, { enableGit: false });
+
+    const context: IPlanContext = {
+      trace_id: "trace-portal",
+      request_id: "req-portal",
+      agent: "test-agent",
+      frontmatter: { portal: "MyPortal" },
+      steps: [{ number: 1, title: "Portal Step", content: "Write in portal" }],
+    };
+
+    await executor.execute(join(_tempDir, "plan.md"), context);
+
+    const content = await Deno.readTextFile(join(portalDir, "portal-file.txt"));
+    assertEquals(content, "In Portal");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("PlanExecutor: generates execution report", async () => {
+  const { tempDir: _tempDir, repoDir, db, cleanup, config } = await createGitTestContext("plan-exec-report-");
+  try {
+    const mockResponse = "This is a report analysis.";
+    const mockProvider = new MockProvider(mockResponse);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir, { generateReport: true, enableGit: false });
+
+    const context: IPlanContext = {
+      trace_id: "trace-report",
+      request_id: "req-report",
+      agent: "test-agent",
+      frontmatter: {},
+      steps: [], // No steps will trigger report even if generateReport is false, but we set it true
+    };
+
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
+    assertEquals(result.report, "This is a report analysis.");
+  } finally {
+    await cleanup();
+  }
+});

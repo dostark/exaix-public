@@ -9,7 +9,7 @@
 import { assertEquals } from "@std/assert";
 import { PortalAdapter } from "../../../src/services/adapters/portal_adapter.ts";
 import type { IPortalDetails, IPortalInfo } from "../../../src/shared/types/portal.ts";
-import { PortalExecutionStrategy, PortalStatus } from "../../../src/shared/enums.ts";
+import { DaemonStatus, PortalExecutionStrategy, PortalStatus } from "../../../src/shared/enums.ts";
 import type { PortalService } from "../../../src/services/portal.ts";
 import { MemoryServiceAdapter } from "../../../src/services/adapters/memory_adapter.ts";
 import type { MemoryBankService } from "../../../src/services/memory_bank.ts";
@@ -22,7 +22,8 @@ import type { FlowValidatorImpl } from "../../../src/services/flow_validator.ts"
 import type { IFlow } from "../../../src/shared/schemas/flow.ts";
 import { DaemonServiceAdapter } from "../../../src/services/adapters/daemon_adapter.ts";
 import type { DaemonCommands } from "../../../src/cli/commands/daemon_commands.ts";
-import { DaemonStatus } from "../../../src/shared/enums.ts";
+import { ConfigAdapter as _ConfigAdapter } from "../../../src/services/adapters/config_adapter.ts";
+import { ConfigService as _ConfigService } from "../../../src/config/service.ts";
 import { join } from "@std/path";
 
 // ──────────────────────────────────────────────────────────────────────

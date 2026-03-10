@@ -20,7 +20,8 @@ import { PortalOperation } from "../../src/shared/enums.ts";
 import { createTestConfig } from "../ai/helpers/test_config.ts";
 import { MemoryOperation } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
-import { AgentExecutor, type IBlueprint } from "../../src/services/agent_executor.ts";
+import { AgentExecutionError, AgentExecutor, type IBlueprint } from "../../src/services/agent_executor.ts";
+import { stub } from "@std/testing/mock";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -1201,6 +1202,662 @@ DROP TABLE sensitive_data;
       assertStringIncludes(prompt, "You are a helpful assistant.");
       // Verify potentially dangerous content is sanitized
       assertFalse(prompt.includes("IGNORE SYSTEM PROMPT"));
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: withExecutionContext manages directory lifecycle",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      const originalDir = Deno.cwd();
+      const targetDir = testDir;
+
+      const mockContext: any = {
+        workingDirectory: targetDir,
+      };
+
+      await executor.withExecutionContext(mockContext, () => {
+        assertEquals(Deno.cwd(), targetDir);
+      });
+
+      assertEquals(Deno.cwd(), originalDir);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: auditAndRevertChanges performs atomic rollback",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create an unauthorized file
+      const unauthorizedFile = join(portalDir, "unauthorized-atomic.txt");
+      await Deno.writeTextFile(unauthorizedFile, "Hacker was here");
+
+      // Audit and revert
+      const result = await executor.auditAndRevertChanges(portalDir, ["README.md"]);
+
+      assertEquals(result.reverted.length, 1);
+      assertStringIncludes(result.reverted[0], "unauthorized-atomic.txt");
+
+      // Verify file is gone
+      let exists = true;
+      try {
+        await Deno.stat(unauthorizedFile);
+      } catch {
+        exists = false;
+      }
+      assertEquals(exists, false);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: getLatestCommitSha returns current HEAD",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      const sha = await executor.getLatestCommitSha(portalDir);
+      assert(sha.length === 40, "SHA should be 40 characters");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: getChangedFiles returns list of modifications",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      await Deno.writeTextFile(join(portalDir, "README.md"), "New content");
+      const changed = await executor.getChangedFiles(portalDir);
+
+      assert(changed.includes("README.md"));
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: checkToolCallLimit validates threshold",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      assertEquals(executor.checkToolCallLimit(10, 5), true);
+      assertEquals(executor.checkToolCallLimit(3, 5), false);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: buildSubprocessPermissions handles various security modes",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
+
+      const portalPath = "/fake/portal";
+
+      // Sandboxed
+      const sandboxed = executor.buildSubprocessPermissions(SecurityMode.SANDBOXED, portalPath);
+      assert(sandboxed.includes("--allow-read=NONE"));
+      assert(sandboxed.includes("--allow-write=NONE"));
+      assert(sandboxed.includes("--allow-net"));
+
+      // Hybrid
+      const hybrid = executor.buildSubprocessPermissions(SecurityMode.HYBRID, portalPath);
+      assert(hybrid.includes(`--allow-read=${portalPath}`));
+      assert(hybrid.includes("--allow-write=NONE"));
+      assert(hybrid.includes("--allow-net"));
+
+      // Note: Open mode is not explicitly handled in buildSubprocessPermissions yet,
+      // it would probably use default Deno permissions or another set.
+    } finally {
+      await cleanup();
+    }
+  },
+});
+
+Deno.test({
+  name: "AgentExecutor: validateFilePath prevents path traversal and injection",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
+
+      // We need a real path for isPathWithinPortal
+      const realPortalPath = await Deno.realPath(portalDir);
+
+      // Valid path
+      assertEquals(executor.validateFilePath("test.txt", realPortalPath), "test.txt");
+      assertEquals(executor.validateFilePath("subdir/test.txt", realPortalPath), "subdir/test.txt");
+
+      // Path traversal
+      assertEquals(executor.validateFilePath("../outside.txt", realPortalPath), null);
+      assertEquals(executor.validateFilePath("subdir/../../outside.txt", realPortalPath), null);
+
+      // Injection characters
+      assertEquals(executor.validateFilePath("test.txt; rm -rf", realPortalPath), null);
+      assertEquals(executor.validateFilePath("test.txt & whoami", realPortalPath), null);
+      assertEquals(executor.validateFilePath("test.txt\n", realPortalPath), null);
+
+      // Absolute paths
+      assertEquals(executor.validateFilePath("/etc/passwd", realPortalPath), null);
+      assertEquals(executor.validateFilePath("C:\\Windows", realPortalPath), null);
+
+      // Hidden files
+      assertEquals(executor.validateFilePath(".hidden", realPortalPath), null);
+      assertEquals(executor.validateFilePath("subdir/.hidden", realPortalPath), null);
+    } finally {
+      await cleanup();
+    }
+  },
+});
+
+Deno.test({
+  name: "AgentExecutor: requiresGitTracking correctly identifies write capabilities",
+  fn: () => {
+    const { db, logger, pathResolver, permissions } = getServices();
+    const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
+
+    const writeBlueprint: any = { capabilities: ["git_commit", "write_file"] };
+    const readBlueprint: any = { capabilities: ["file_read", "terminal_read"] };
+
+    assertEquals(executor.requiresGitTracking(writeBlueprint), true);
+    assertEquals(executor.requiresGitTracking(readBlueprint), false);
+    assertEquals(executor.isReadOnlyAgent(readBlueprint), true);
+    assertEquals(executor.isReadOnlyAgent(writeBlueprint), false);
+  },
+});
+
+Deno.test({
+  name: "AgentExecutor: loadBlueprint handles YAML and Schema errors",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
+
+      // 1. Invalid YAML
+      const badYamlPath = join(testConfig.paths.blueprints, "Agents", "bad-yaml.md");
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), { recursive: true });
+      await Deno.writeTextFile(badYamlPath, "---\nname: [unclosed bracket\n---\nPrompt");
+
+      const error = await assertRejects(
+        () => executor.loadBlueprint("bad-yaml"),
+        SafeError,
+      );
+      assert(["YAML_PARSE_ERROR", "BLUEPRINT_LOAD_ERROR"].includes((error as SafeError).errorCode));
+
+      // 2. Invalid Schema (extra fields)
+      const badSchemaPath = join(testConfig.paths.blueprints, "Agents", "bad-schema.md");
+      await Deno.writeTextFile(badSchemaPath, "---\nname: test\nmodel: gpt\nprovider: mock\nextra: field\n---\nPrompt");
+
+      const error2 = await assertRejects(
+        () => executor.loadBlueprint("bad-schema"),
+        SafeError,
+      );
+      assertEquals((error2 as SafeError).errorCode, "INVALID_BLUEPRINT_SCHEMA");
+
+      // 3. Missing frontmatter
+      const noFrontmatterPath = join(testConfig.paths.blueprints, "Agents", "no-fm.md");
+      await Deno.writeTextFile(noFrontmatterPath, "Just content");
+
+      const error3 = await assertRejects(
+        () => executor.loadBlueprint("no-fm"),
+        SafeError,
+      );
+      assertEquals((error3 as SafeError).errorCode, "INVALID_BLUEPRINT_FORMAT");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: buildExecutionPrompt handles portal context",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
+
+      const blueprint: any = {
+        systemPrompt: "You are an agent.",
+        capabilities: [],
+      };
+      const context: any = {
+        trace_id: "t1",
+        request_id: "r1",
+        request: "Do stuff",
+        plan: "My plan",
+      };
+      const options: any = {
+        portal: "P1",
+        security_mode: SecurityMode.HYBRID,
+        agent_id: "agent1",
+      };
+
+      // Set execution context to enable portal context block
+      executor.setExecutionContext({
+        workingDirectory: testDir,
+        portalTarget: portalDir,
+        allowedPaths: [portalDir],
+      } as any);
+
+      const prompt = executor.buildExecutionPrompt(blueprint, context, options);
+      assertStringIncludes(prompt, "Portal Alias: P1");
+      assertStringIncludes(prompt, "--- BEGIN USER INPUT ---");
+      assertStringIncludes(prompt, "Do stuff");
+      assertStringIncludes(prompt, "My plan");
+
+      executor.clearExecutionContext();
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: executeStep with provider parses JSON response",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+
+      const mockResult = {
+        branch: "feat/provider-test",
+        commit_sha: "1234567890123456789012345678901234567890",
+        files_changed: ["src/provider.ts"],
+        description: "Tested via provider",
+        tool_calls: 3,
+        execution_time_ms: 100,
+      };
+
+      const mockProvider: any = {
+        id: "mock",
+        generate: () => `Here is the result \`\`\`json\n${JSON.stringify(mockResult)}\n\`\`\``,
+      };
+
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+        mockProvider,
+      );
+
+      // Create blueprint file
+      const blueprintPath = join(
+        testConfig.paths.blueprints,
+        "Agents",
+        "test-agent.md",
+      );
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), {
+        recursive: true,
+      });
+      await Deno.writeTextFile(
+        blueprintPath,
+        "---\nmodel: gpt\nprovider: mock\ncapabilities: []\n---\nPrompt",
+      );
+
+      const context: any = {
+        trace_id: "7e5c81f3-4236-461d-adcb-bf5741a2c0c7",
+        request_id: "r-prov",
+        request: "Work",
+        plan: "Plan",
+        portal: "TestPortal",
+      };
+      const options: any = {
+        portal: "TestPortal",
+        agent_id: "test-agent",
+        security_mode: SecurityMode.HYBRID,
+      };
+
+      const result = await executor.executeStep(context, options);
+
+      assertEquals(result.branch, mockResult.branch);
+      assertEquals(result.commit_sha, mockResult.commit_sha);
+      assertEquals(result.files_changed, mockResult.files_changed);
+      assertEquals(result.tool_calls, mockResult.tool_calls);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutionError instantiates correctly with and without cause",
+  fn: () => {
+    const error1 = new AgentExecutionError("Test error");
+    assertEquals(error1.message, "Test error");
+    assertEquals(error1.type, "agent_error");
+    assertEquals(error1.name, "AgentExecutionError");
+    assertEquals(error1.cause, undefined);
+
+    const cause = new Error("Root cause");
+    const error2 = new AgentExecutionError("Test error 2", "custom_type", cause);
+    assertEquals(error2.message, "Test error 2");
+    assertEquals(error2.type, "custom_type");
+    assertEquals(error2.name, "AgentExecutionError");
+    assertEquals(error2.cause, cause);
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: execution context methods and state management",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    try {
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      const fakeContext: any = {
+        workingDirectory: Deno.cwd(),
+        gitRepository: "/fake/repo",
+        allowedPaths: ["/fake/path"],
+      };
+
+      // Test basic context setting
+      executor.setExecutionContext(fakeContext);
+      assertEquals(executor.getExecutionContext(), fakeContext);
+      assertEquals(executor.getGitRepository(), "/fake/repo");
+      assertEquals(executor.getAllowedPaths(), ["/fake/path"]);
+
+      // Test clearing context
+      executor.clearExecutionContext();
+      assertEquals(executor.getExecutionContext(), undefined);
+      assertEquals(executor.getGitRepository(), undefined);
+      assertEquals(executor.getAllowedPaths(), undefined);
+
+      // Test withExecutionContext directory handling
+      await executor.withExecutionContext({ ...fakeContext, workingDirectory: "/tmp" }, () => {
+        assertEquals(executor.getGitRepository(), "/fake/repo");
+      });
+      // Should restore original directory
+      assertEquals(executor.getExecutionContext(), undefined);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: executeStep without provider uses fallback result",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    try {
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      ); // No provider passed
+
+      const blueprintPath = join(testConfig.paths.blueprints, "Agents", "test-agent.md");
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), { recursive: true });
+      await Deno.writeTextFile(blueprintPath, "---\nmodel: gpt\nprovider: mock\ncapabilities: []\n---\nPrompt");
+
+      const context: any = {
+        trace_id: "6e5c81f3-4236-461d-adcb-bf5741a2c0c7",
+        request_id: "r-prov",
+        request: "Work",
+        plan: "Plan",
+        portal: "TestPortal",
+      };
+
+      const options: any = {
+        portal: "TestPortal",
+        agent_id: "test-agent",
+        security_mode: SecurityMode.HYBRID,
+      };
+
+      const result = await executor.executeStep(context, options);
+      assertStringIncludes(result.branch, "feat/r-prov");
+      assertEquals(result.files_changed.length, 0);
+      assertEquals(result.tool_calls, 0);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: loadBlueprint throws BLUEPRINT_ACCESS_DENIED when permission denied",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    const readTextFileStub = stub(Deno, "readTextFile", () => {
+      throw new Deno.errors.PermissionDenied("Access denier mock");
+    });
+
+    try {
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      const error = await assertRejects(
+        () => executor.loadBlueprint("test-agent"),
+        SafeError,
+      );
+      assertEquals((error as SafeError).errorCode, "BLUEPRINT_ACCESS_DENIED");
+    } finally {
+      readTextFileStub.restore();
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: executeStep logs and reports error when provider.generate throws",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    const mockProvider: any = {
+      id: "mock-error",
+      generate: () => {
+        throw new Error("Provider synthetic failure");
+      },
+    };
+
+    try {
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions, mockProvider);
+
+      const blueprintPath = join(testConfig.paths.blueprints, "Agents", "test-agent.md");
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), { recursive: true });
+      await Deno.writeTextFile(blueprintPath, "---\nmodel: mock\nprovider: mock\ncapabilities: []\n---\nPrompt");
+
+      const context: any = {
+        trace_id: "9e5c81f3-4236-461d-adcb-bf5741a2c0c7",
+        request_id: "r1",
+        request: "Q",
+        plan: "P",
+        portal: "TestPortal",
+      };
+      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+
+      await assertRejects(
+        () => executor.executeStep(context, options),
+        Error,
+        "Provider synthetic failure",
+      );
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: executeStep parses agent response without JSON blocks securely",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    // Provide a response with just plain text, no {} at all
+    const mockProvider: any = {
+      id: "mock-plaintext",
+      generate: () => "I did absolutely nothing. No json.",
+    };
+
+    try {
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions, mockProvider);
+
+      const blueprintPath = join(testConfig.paths.blueprints, "Agents", "test-agent.md");
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), { recursive: true });
+      await Deno.writeTextFile(blueprintPath, "---\nmodel: mock\nprovider: mock\ncapabilities: []\n---\nPrompt");
+
+      const context: any = {
+        trace_id: "ae5c81f3-4236-461d-adcb-bf5741a2c0c7",
+        request_id: "r2",
+        request: "Q",
+        plan: "P",
+        portal: "TestPortal",
+      };
+      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+
+      const result = await executor.executeStep(context, options);
+      // Validates fallback object
+      assertStringIncludes(result.branch, "feat/r2-ae5c81f3");
+      assertEquals(result.files_changed.length, 0);
+      assertEquals(result.commit_sha, "0000000000000000000000000000000000000000");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: executeStep handles invalid JSON in provider response by falling back",
+  fn: async () => {
+    await setup();
+    const { db, logger, pathResolver, permissions } = getServices();
+    // Provide a JSON-like response but invalid formatting
+    const mockProvider: any = {
+      id: "mock-badjson",
+      generate: () => `\`\`\`json\n{ "branch": "test", "missing_quotes: true }\n\`\`\``,
+    };
+
+    try {
+      const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions, mockProvider);
+
+      const blueprintPath = join(testConfig.paths.blueprints, "Agents", "test-agent.md");
+      await Deno.mkdir(join(testConfig.paths.blueprints, "Agents"), { recursive: true });
+      await Deno.writeTextFile(blueprintPath, "---\nmodel: mock\nprovider: mock\ncapabilities: []\n---\nPrompt");
+
+      const context: any = {
+        trace_id: "ce5c81f3-4236-461d-adcb-bf5741a2c0c7",
+        request_id: "r3",
+        request: "Q",
+        plan: "P",
+        portal: "TestPortal",
+      };
+      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+
+      const result = await executor.executeStep(context, options);
+      // Validates parse fail fallback
+      assertStringIncludes(result.branch, "feat/r3-ce5c81f3");
+      assertEquals(result.files_changed.length, 0);
     } finally {
       await cleanup();
     }
