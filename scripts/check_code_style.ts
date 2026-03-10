@@ -393,7 +393,7 @@ async function checkFile(path: string) {
     path.includes("/src/cli/handlers/") ||
     path.includes("/src/cli/formatters/") ||
     path.includes("/src/cli/command_builders/");
-  const isCliFile = path.includes("/src/cli/");
+  const isCliFile = path.includes("/src/cli/") || path.includes("/tests/cli/");
   const tuiSegments = path.split("/src/tui/")[1]?.split("/").filter(Boolean) || [];
   const tuiDepth = tuiSegments.length - 1;
 
