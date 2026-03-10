@@ -1,4 +1,10 @@
+/**
+ * @module GitCreateBranchToolTest
+ * @path tests/mcp/handlers/git_create_branch_tool_test.ts
+ * @description Unit tests for the GitCreateBranchTool MCP tool.
+ */
 import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
+import type { MCPToolResponse } from "../../../src/shared/schemas/mcp.ts";
 import { GitCreateBranchTool } from "../../../src/mcp/handlers/git_create_branch_tool.ts";
 import { initToolPermissionTest } from "../helpers/test_setup.ts";
 import { PortalOperation } from "../../../src/shared/enums.ts";
@@ -25,8 +31,9 @@ Deno.test("GitCreateBranchTool: creates branch successfully", async () => {
       agent_id: "test-agent",
     });
 
-    assertEquals(!!(result as any).isError, false);
-    assertStringIncludes((result.content[0] as any).text, "created and checked out successfully");
+    const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
+    assertEquals(res.isError, undefined);
+    assertStringIncludes(res.content[0].text, "created and checked out successfully");
   } finally {
     await env.cleanup();
   }

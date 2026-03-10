@@ -4,65 +4,82 @@
  * @description Unit tests for defineFlow utility.
  */
 
-import { assertEquals, assertRejects } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
+function cast<T = any>(obj: unknown): T {
+  return obj as T;
+}
+
 Deno.test("defineFlow: validation of required fields", () => {
-  // @ts-ignore: testing invalid input
-  assertRejects(
-    () => Promise.resolve(defineFlow({ id: "", name: "n", description: "d", steps: [], output: { from: "s" } })),
-    Error,
-    "Flow ID cannot be empty",
-  );
-  // @ts-ignore: testing invalid input
-  assertRejects(
-    () => Promise.resolve(defineFlow({ id: "id", name: "", description: "d", steps: [], output: { from: "s" } })),
-    Error,
-    "Flow name cannot be empty",
-  );
-  // @ts-ignore: testing invalid input
-  assertRejects(
-    () => Promise.resolve(defineFlow({ id: "id", name: "n", description: "", steps: [], output: { from: "s" } })),
-    Error,
-    "Flow description cannot be empty",
-  );
-  // @ts-ignore: testing invalid input
-  assertRejects(
-    () => Promise.resolve(defineFlow({ id: "id", name: "n", description: "d", steps: [], output: { from: "s" } })),
-    Error,
-    "Flow must have at least one step",
-  );
+  let thrown = false;
+  try {
+    defineFlow(cast({ id: "", name: "n", description: "d", steps: [], output: { from: "s" } }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Flow ID cannot be empty");
+  }
+  assertEquals(thrown, true);
+
+  thrown = false;
+  try {
+    defineFlow(cast({ id: "id", name: "", description: "d", steps: [], output: { from: "s" } }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Flow name cannot be empty");
+  }
+  assertEquals(thrown, true);
+
+  thrown = false;
+  try {
+    defineFlow(cast({ id: "id", name: "n", description: "", steps: [], output: { from: "s" } }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Flow description cannot be empty");
+  }
+  assertEquals(thrown, true);
+
+  thrown = false;
+  try {
+    defineFlow(cast({ id: "id", name: "n", description: "d", steps: [], output: { from: "s" } }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Flow must have at least one step");
+  }
+  assertEquals(thrown, true);
 });
 
 Deno.test("defineFlow: validates step IDs and names", () => {
-  assertRejects(
-    () =>
-      Promise.resolve(defineFlow({
-        id: "f",
-        name: "n",
-        description: "d",
-        // @ts-ignore: testing partial step
-        steps: [{}],
-        output: { from: "s" },
-      })),
-    Error,
-    "Step ID cannot be empty",
-  );
+  let thrown = false;
+  try {
+    defineFlow(cast({
+      id: "f",
+      name: "n",
+      description: "d",
+      steps: [{}],
+      output: { from: "s" },
+    }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Step ID cannot be empty");
+  }
+  assertEquals(thrown, true);
 
-  assertRejects(
-    () =>
-      Promise.resolve(defineFlow({
-        id: "f",
-        name: "n",
-        description: "d",
-        // @ts-ignore: testing partial step
-        steps: [{ id: "s1" }],
-        output: { from: "s" },
-      })),
-    Error,
-    "Step name cannot be empty",
-  );
+  thrown = false;
+  try {
+    defineFlow(cast({
+      id: "f",
+      name: "n",
+      description: "d",
+      steps: [{ id: "s1" }],
+      output: { from: "s" },
+    }));
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Step name cannot be empty");
+  }
+  assertEquals(thrown, true);
 });
 
 Deno.test("defineFlow: applies sensible defaults", () => {

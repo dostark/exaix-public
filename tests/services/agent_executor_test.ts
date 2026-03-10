@@ -21,6 +21,7 @@ import { createTestConfig } from "../ai/helpers/test_config.ts";
 import { MemoryOperation } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 import { AgentExecutionError, AgentExecutor, type IBlueprint } from "../../src/services/agent_executor.ts";
+import type { IWorkspaceExecutionContext } from "../../src/services/workspace_execution_context.ts";
 import { stub } from "@std/testing/mock";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
@@ -1512,11 +1513,14 @@ Deno.test({
       };
 
       // Set execution context to enable portal context block
-      executor.setExecutionContext({
+      const execContext: IWorkspaceExecutionContext = {
         workingDirectory: testDir,
         portalTarget: portalDir,
         allowedPaths: [portalDir],
-      } as any);
+        gitRepository: "",
+        reviewRepo: "",
+      };
+      executor.setExecutionContext(execContext);
 
       const prompt = executor.buildExecutionPrompt(blueprint, context, options);
       assertStringIncludes(prompt, "Portal Alias: P1");

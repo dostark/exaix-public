@@ -24,7 +24,7 @@ Deno.test("GoogleProvider: generate calls correct endpoint and extracts text con
     },
   };
 
-  const { spy: fetchSpy, restore } = spyFetch(new Response(JSON.stringify(mockResponse), { status: 200 }));
+  const { spy: fetchSpy, restore } = spyFetch(mockResponse);
 
   try {
     const result = await provider.generate("Hi Gemini");
@@ -46,7 +46,7 @@ Deno.test("GoogleProvider: generate passes generation binary options to API", as
     candidates: [{ content: { parts: [{ text: "ok" }] } }],
   };
 
-  const { spy: fetchSpy, restore } = spyFetch(new Response(JSON.stringify(mockResponse), { status: 200 }));
+  const { spy: fetchSpy, restore } = spyFetch(mockResponse);
 
   try {
     await provider.generate("Hi", {

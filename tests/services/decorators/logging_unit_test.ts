@@ -8,16 +8,21 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { LogMethod } from "../../../src/services/decorators/logging.ts";
 import { EventLogger } from "../../../src/services/event_logger.ts";
 
+interface MockPayload {
+  args?: unknown;
+  error?: unknown;
+}
+
 Deno.test("LogMethod (standard decorator): handles errors and custom action", async () => {
-  const logCalls: Array<{ level: string; msg: string; payload: any }> = [];
-  const mockLogger = {
-    info: (msg: string, _action: string, payload: any) =>
-      Promise.resolve(logCalls.push({ level: "info", msg, payload })),
-    error: (msg: string, _action: string, payload: any) =>
-      Promise.resolve(logCalls.push({ level: "error", msg, payload })),
-    debug: (msg: string, _action: string, payload: any) =>
-      Promise.resolve(logCalls.push({ level: "debug", msg, payload })),
-  } as unknown as EventLogger;
+  const logCalls: Array<{ level: string; msg: string; payload: MockPayload }> = [];
+  const mockLogger: EventLogger = Object.assign(Object.create(EventLogger.prototype), {
+    info: (msg: string, _action: string, payload: unknown) =>
+      Promise.resolve(logCalls.push({ level: "info", msg, payload: payload as MockPayload })),
+    error: (msg: string, _action: string, payload: unknown) =>
+      Promise.resolve(logCalls.push({ level: "error", msg, payload: payload as MockPayload })),
+    debug: (msg: string, _action: string, payload: unknown) =>
+      Promise.resolve(logCalls.push({ level: "debug", msg, payload: payload as MockPayload })),
+  });
 
   class TestClass {
     @LogMethod(mockLogger, "custom.action")
@@ -25,6 +30,7 @@ Deno.test("LogMethod (standard decorator): handles errors and custom action", as
       return await Promise.reject(new Error(`failing: ${arg}`));
     }
 
+    @LogMethod(mockLogger)
     async namedMethod() {
       return await Promise.resolve("ok");
     }

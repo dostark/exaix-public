@@ -16,10 +16,7 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
   let tempDir: string;
   let portalDir: string;
   let workspaceDir: string;
-  let originalCwd: string;
-
   beforeEach(async () => {
-    originalCwd = Deno.cwd();
     tempDir = await Deno.makeTempDir({ prefix: "exo_test_agent_exec_" });
     portalDir = join(tempDir, "portal");
     workspaceDir = join(tempDir, "workspace");
@@ -32,13 +29,6 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
   });
 
   afterEach(async () => {
-    // Restore original working directory
-    try {
-      Deno.chdir(originalCwd);
-    } catch (_error) {
-      // Ignore if original directory doesn't exist
-    }
-
     try {
       await Deno.remove(tempDir, { recursive: true });
     } catch (_error) {
@@ -84,21 +74,13 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
 
       const context = WorkspaceExecutionContextBuilder.forPortal(portal);
 
-      // Simulate what AgentExecutor should do
-      Deno.chdir(context.workingDirectory);
-
-      const currentDir = Deno.cwd();
-      assertEquals(currentDir, portalDir);
+      assertEquals(context.workingDirectory, portalDir);
     });
 
     it("changes to workspace working directory", () => {
       const context = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
-      // Simulate what AgentExecutor should do
-      Deno.chdir(context.workingDirectory);
-
-      const currentDir = Deno.cwd();
-      assertEquals(currentDir, workspaceDir);
+      assertEquals(context.workingDirectory, workspaceDir);
     });
 
     it("isolated working directories for different portals", async () => {
@@ -120,13 +102,8 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
       const context1 = WorkspaceExecutionContextBuilder.forPortal(portal1);
       const context2 = WorkspaceExecutionContextBuilder.forPortal(portal2);
 
-      // Changing to portal1 directory
-      Deno.chdir(context1.workingDirectory);
-      assertEquals(Deno.cwd(), portal1Dir);
-
-      // Changing to portal2 directory should not affect portal1
-      Deno.chdir(context2.workingDirectory);
-      assertEquals(Deno.cwd(), portal2Dir);
+      assertEquals(context1.workingDirectory, portal1Dir);
+      assertEquals(context2.workingDirectory, portal2Dir);
     });
   });
 
@@ -216,10 +193,9 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
         target_path: portalDir,
       };
 
-      const context = WorkspaceExecutionContextBuilder.forPortal(portal);
+      WorkspaceExecutionContextBuilder.forPortal(portal);
 
-      // Change to portal directory
-      Deno.chdir(context.workingDirectory);
+      // Simulate agent creating a file
 
       // Simulate agent creating a file
       const testFile = join(portalDir, "src", "test.ts");
@@ -235,10 +211,9 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
     });
 
     it("workspace execution creates files in workspace directory", async () => {
-      const context = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
+      WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
-      // Change to workspace directory
-      Deno.chdir(context.workingDirectory);
+      // Simulate agent creating a file
 
       // Simulate agent creating a file
       const testFile = join(workspaceDir, "src", "test.ts");
@@ -261,15 +236,13 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
         target_path: portalDir,
       };
 
-      const portalContext = WorkspaceExecutionContextBuilder.forPortal(portal);
-      const workspaceContext = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
+      WorkspaceExecutionContextBuilder.forPortal(portal);
+      WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
       // Create file in portal
-      Deno.chdir(portalContext.workingDirectory);
       await Deno.writeTextFile(join(portalDir, "src", "portal.ts"), "// Portal file");
 
       // Create file in workspace
-      Deno.chdir(workspaceContext.workingDirectory);
       await Deno.writeTextFile(join(workspaceDir, "src", "workspace.ts"), "// Workspace file");
 
       // Verify isolation - each directory has only its own file
@@ -298,15 +271,13 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
         target_path: portal2Dir,
       };
 
-      const context1 = WorkspaceExecutionContextBuilder.forPortal(portal1);
-      const context2 = WorkspaceExecutionContextBuilder.forPortal(portal2);
+      WorkspaceExecutionContextBuilder.forPortal(portal1);
+      WorkspaceExecutionContextBuilder.forPortal(portal2);
 
       // Execute in portal1
-      Deno.chdir(context1.workingDirectory);
       await Deno.writeTextFile(join(portal1Dir, "src", "file1.ts"), "// File 1");
 
       // Execute in portal2
-      Deno.chdir(context2.workingDirectory);
       await Deno.writeTextFile(join(portal2Dir, "src", "file2.ts"), "// File 2");
 
       // Verify files are in correct portals

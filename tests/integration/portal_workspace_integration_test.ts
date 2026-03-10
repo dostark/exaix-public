@@ -30,7 +30,6 @@ async function setupTestPortal(alias = "test-portal"): Promise<TestPortalSetup> 
 
   // Create portal directory with git repo
   await ensureDir(portalPath);
-  await Deno.chdir(portalPath);
 
   // Initialize git repo in portal
   const gitInit = new Deno.Command("git", {

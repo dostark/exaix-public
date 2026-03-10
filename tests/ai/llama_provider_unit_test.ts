@@ -4,17 +4,20 @@
  * @description Unit tests for Llama LLM provider.
  */
 
-import { assertEquals, assertRejects } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
 import { spyFetch } from "./helpers/provider_test_helper.ts";
 
 Deno.test("LlamaProvider: constructor validates model name", () => {
   // Should throw for unsupported models
-  assertRejects(
-    () => Promise.resolve(new LlamaProvider({ model: "gpt-4" })),
-    Error,
-    "Unsupported model",
-  );
+  let thrown = false;
+  try {
+    new LlamaProvider({ model: "gpt-4" });
+  } catch (err) {
+    thrown = true;
+    assertEquals((err as Error).message, "Unsupported model");
+  }
+  assertEquals(thrown, true);
 
   // Should accept llama and codellama models
   new LlamaProvider({ model: "llama3:latest" });
@@ -28,7 +31,7 @@ Deno.test("LlamaProvider: generate handles JSON extraction from response", async
     response: 'Sure! Here\'s the result: ```json\n{"id": "test"}\n```',
   };
 
-  const { spy: _fetchSpy, restore } = spyFetch(new Response(JSON.stringify(mockResponse), { status: 200 }));
+  const { spy: _fetchSpy, restore } = spyFetch(mockResponse);
 
   try {
     const result = await provider.generate("Hi");
@@ -45,7 +48,7 @@ Deno.test("LlamaProvider: generate handles raw response backup", async () => {
     response: "This is not JSON at all.",
   };
 
-  const { spy: _fetchSpy, restore } = spyFetch(new Response(JSON.stringify(mockResponse), { status: 200 }));
+  const { spy: _fetchSpy, restore } = spyFetch(mockResponse);
 
   try {
     const result = await provider.generate("Hi");
@@ -62,7 +65,7 @@ Deno.test("LlamaProvider: generate handles partial JSON object extraction", asyn
     response: 'Here is your JSON object: {"key": "value"}. Hope it helps!',
   };
 
-  const { spy: _fetchSpy, restore } = spyFetch(new Response(JSON.stringify(mockResponse), { status: 200 }));
+  const { spy: _fetchSpy, restore } = spyFetch(mockResponse);
 
   try {
     const result = await provider.generate("Hi");

@@ -35,6 +35,19 @@ export interface IGitTestContext {
 export async function setupGitRepo(path: string, options: { initialCommit?: boolean; branch?: string } = {}) {
   const { initialCommit = false, branch = "master" } = options;
 
+  // Verify directory exists before running git commands
+  try {
+    const stat = await Deno.stat(path);
+    if (!stat.isDirectory) {
+      throw new Error(`Path is not a directory: ${path}`);
+    }
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      throw new Error(`Directory does not exist: ${path}`);
+    }
+    throw err;
+  }
+
   const commands = [
     ["init", "-b", branch],
     ["config", "user.name", "Test User"],
@@ -49,7 +62,6 @@ export async function setupGitRepo(path: string, options: { initialCommit?: bool
       stderr: "null",
     }).output();
   }
-
   if (initialCommit) {
     await new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "--allow-empty", "-m", "Initial commit"],

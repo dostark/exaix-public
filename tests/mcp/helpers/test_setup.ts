@@ -74,7 +74,8 @@ async function initTestEnv(options: IPortalTestOptions & { prefix?: string }) {
   await ensureDir(portalPath);
 
   if (initGit) {
-    await setupGitRepo(portalPath);
+    const resolvedPortalPath = await Deno.realPath(portalPath);
+    await setupGitRepo(resolvedPortalPath);
   }
 
   if (createFiles) {

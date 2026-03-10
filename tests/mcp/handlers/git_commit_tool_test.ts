@@ -1,4 +1,10 @@
+/**
+ * @module GitCommitToolTest
+ * @path tests/mcp/handlers/git_commit_tool_test.ts
+ * @description Unit tests for the GitCommitTool MCP tool.
+ */
 import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
+import type { MCPToolResponse } from "../../../src/shared/schemas/mcp.ts";
 import { GitCommitTool } from "../../../src/mcp/handlers/git_commit_tool.ts";
 import { initToolPermissionTest } from "../helpers/test_setup.ts";
 import { PortalOperation } from "../../../src/shared/enums.ts";
@@ -28,8 +34,9 @@ Deno.test("GitCommitTool: commits changes successfully", async () => {
       agent_id: "test-agent",
     });
 
-    assertEquals(!!(result as any).isError, false);
-    assertStringIncludes((result.content[0] as any).text, "Test commit message");
+    const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
+    assertEquals(res.isError, undefined);
+    assertStringIncludes(res.content[0].text, "Test commit message");
   } finally {
     await env.cleanup();
   }
@@ -61,8 +68,9 @@ Deno.test("GitCommitTool: commits specific files successfully", async () => {
       agent_id: "test-agent",
     });
 
-    assertEquals(!!(result as any).isError, false);
-    assertStringIncludes((result.content[0] as any).text, "Test commit message");
+    const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
+    assertEquals(res.isError, undefined);
+    assertStringIncludes(res.content[0].text, "Test commit message");
   } finally {
     await env.cleanup();
   }
