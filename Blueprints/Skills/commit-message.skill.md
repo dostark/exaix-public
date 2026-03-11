@@ -32,6 +32,7 @@ constraints:
   - "Reference issues when applicable"
   - "For non-trivial commits, use structured body sections: Context, Changes, Validation, References"
   - "Do not chain multiple -m flags; use one multiline commit message"
+  - "NEVER use --no-verify; all pre-commit hooks must pass before committing"
 
 output_requirements:
   - "Type prefix (feat, fix, docs, etc.)"

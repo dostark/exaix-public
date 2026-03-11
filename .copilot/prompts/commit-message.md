@@ -36,6 +36,7 @@ Do / Don't
 - ❌ Don't forget to list breaking changes if any
 - ❌ Don't use vague summaries like "updated files" or "WIP"
 - ❌ Don't chain multiple `-m` flags to assemble commit bodies
+- ❌ Don't use --no-verify; all pre-commit hooks MUST pass before any commit
 
 Recommended detailed format:
 `<type>(<scope>): <summary>`
