@@ -77,7 +77,7 @@ function parseArgs(args: string[]): { options: LintOptions; paths: string[] } {
 
 function printHelp(): void {
   console.log(
-    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD012, MD022, MD025, MD029, MD032, MD036, MD040, MD041, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
+    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD012, MD022, MD025, MD029, MD031, MD032, MD036, MD040, MD041, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
       DEFAULT_ROOTS.join(", ")
     }`,
   );
@@ -296,9 +296,16 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
 
     const trimmedTrailing = line.replace(/[ \t]+$/g, "");
 
+    // Inside fenced code blocks, preserve content as-is (only trim trailing ws).
+    if (inFence) {
+      out.push(trimmedTrailing);
+      blankRun = 0;
+      continue;
+    }
+
     if (trimmedTrailing === "") {
       blankRun++;
-      // MD012: collapse runs of blank lines to at most 1 globally.
+      // MD012: collapse runs of blank lines to at most 1 (outside fences only).
       if (blankRun <= 1) out.push("");
       continue;
     }
@@ -311,7 +318,7 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
   text = out.join("\n");
 
   // Ensure exactly one newline at EOF.
-  text = text.replace(/\n*$/g, "\n");
+  text = text.replace(/\n*$/, "\n");
 
   return { fixed: text, changed: text !== original };
 }
@@ -533,6 +540,49 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
     text = newLines.join("\n");
   }
 
+  // Fix MD031: blanks around fences
+  const md031Fixes = findings.filter((f) => f.rule === "MD031/blanks-around-fences");
+  if (md031Fixes.length > 0) {
+    const lines = splitLines(text);
+    const newLines: string[] = [];
+
+    let inFenceLocal = false;
+    let fenceLocal: Fence | null = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const fStart = parseFenceStart(line);
+
+      if (fStart && !inFenceLocal) {
+        // Opening fence: ensure blank line before if previous is non-blank.
+        if (i > 0 && lines[i - 1].trim() !== "") {
+          newLines.push("");
+          changed = true;
+        }
+        inFenceLocal = true;
+        fenceLocal = fStart;
+        newLines.push(line);
+        continue;
+      }
+
+      if (fStart && inFenceLocal && fenceLocal && isFenceClose(line, fenceLocal)) {
+        // Closing fence: push it, then ensure blank line after if next is non-blank.
+        inFenceLocal = false;
+        fenceLocal = null;
+        newLines.push(line);
+        if (i + 1 < lines.length && lines[i + 1].trim() !== "") {
+          newLines.push("");
+          changed = true;
+        }
+        continue;
+      }
+
+      newLines.push(line);
+    }
+
+    text = newLines.join("\n");
+  }
+
   // Fix MD022: heading blank lines
   const headingFixes = findings.filter((f) =>
     f.rule === "MD022/blanks-around-headings" || f.rule === "MD010" || f.rule === "MD011"
@@ -648,6 +698,21 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         fence = fenceStart;
         fenceStartLine = lineNo;
 
+        // MD031/blanks-around-fences: opening fence should be preceded by a blank line.
+        if (idx > 0 && lines[idx - 1].trim() !== "") {
+          // Exception: don't flag if the preceding line is the frontmatter closing ---.
+          const isFrontMatterClose = frontMatterEndLine >= 0 && idx - 1 === frontMatterEndLine;
+          if (!isFrontMatterClose) {
+            findings.push({
+              filePath,
+              line: lineNo,
+              rule: "MD031/blanks-around-fences",
+              severity: options.strict ? "error" : "warn",
+              message: "Fenced code blocks should be surrounded by blank lines",
+            });
+          }
+        }
+
         // MD040/fenced-code-language: require language on opening fence.
         const trimmed = line.trimStart();
         const fenceToken = `${fenceStart.char}`.repeat(fenceStart.length);
@@ -665,6 +730,23 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         inFence = false;
         fence = null;
         fenceStartLine = 0;
+
+        // MD031/blanks-around-fences: closing fence should be followed by a blank line.
+        const nextIdx = idx + 1;
+        if (nextIdx < lines.length && lines[nextIdx].trim() !== "") {
+          // Ignore synthetic terminal blank.
+          const isSyntheticTerminal = nextIdx === lines.length - 1 &&
+            lines[nextIdx] === "" && normalized.endsWith("\n");
+          if (!isSyntheticTerminal) {
+            findings.push({
+              filePath,
+              line: lineNo,
+              rule: "MD031/blanks-around-fences",
+              severity: options.strict ? "error" : "warn",
+              message: "Fenced code blocks should be surrounded by blank lines",
+            });
+          }
+        }
       }
     }
 
@@ -798,7 +880,10 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       }
     }
 
-    if (isSyntheticTerminalBlank) {
+    if (inFence) {
+      // Inside fenced code blocks, reset blank-line tracking (MD012 doesn't apply).
+      blankRunOutsideFence = 0;
+    } else if (isSyntheticTerminalBlank) {
       blankRunOutsideFence = 0;
     } else if (line.trim() === "") {
       blankRunOutsideFence++;
@@ -1218,6 +1303,7 @@ async function main() {
           f.rule === "MD029/ol-prefix" ||
           f.rule === "MD022/blanks-around-headings" ||
           f.rule === "MD025/single-title/single-h1" ||
+          f.rule === "MD031/blanks-around-fences" ||
           f.rule === "MD060/table-column-style" ||
           f.rule === "MD040/fenced-code-language" ||
           f.rule === "MD041/first-line-heading/first-line-h1" ||

@@ -1,4 +1,4 @@
-# Self-improvement loop for `.copilot/` instructions
+## Self-improvement loop for `.copilot/` instructions
 
 Key points
 

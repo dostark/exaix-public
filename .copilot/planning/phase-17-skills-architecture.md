@@ -1616,4 +1616,3 @@ export type Skill = z.infer<typeof SkillSchema>;
 ```text
 
 ```
-

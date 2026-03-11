@@ -17,7 +17,7 @@ topics:
 estimated_effort: 60-80 hours
 ---
 
-# Phase 22: Architecture & Quality Improvement
+## Phase 22: Architecture & Quality Improvement
 
 > [!NOTE]
 > **Status: Integrated**
@@ -29,11 +29,11 @@ Extended systematic analysis of ExoFrame's `src/` directory identified **16 addi
 
 ### Overall Assessment
 
-# Status**: 🔴 **REQUIRES IMMEDIATE ACTION
+## Status**: 🔴 **REQUIRES IMMEDIATE ACTION
 
 **Code Quality Impact**: **-1 grade** (Total: D+)
 
-# Reliability Risk**: **HIGH
+## Reliability Risk**: **HIGH
 
 ### Key Metrics (Additional Issues)
 
@@ -84,7 +84,7 @@ Extended systematic analysis of ExoFrame's `src/` directory identified **16 addi
 
 ### Issue #1: Blocking Git Operations Without Timeouts
 
-# Priority**: P0 🔴 **CRITICAL
+## Priority**: P0 🔴 **CRITICAL
 
 **File**: `src/services/agent_executor.ts`
 **Lines**: 250-400 (auditGitChanges, revertUnauthorizedChanges methods)
@@ -127,28 +127,28 @@ See `src/services/agent_executor.ts` for implementation details.
 
 #### Proposed Solution
 
-# Step 1: Add Timeout and AbortSignal Infrastructure
+## Step 1: Add Timeout and AbortSignal Infrastructure
 
 Create a new utility module for safe subprocess execution:
 
-# Step 2: Refactor Git Operations with Safe Execution
+## Step 2: Refactor Git Operations with Safe Execution
 
 #### Implementation Plan
 
-# Phase 1: Infrastructure (2 hours)
+## Phase 1: Infrastructure (2 hours)
 
 - [x] Create `src/utils/subprocess.ts` with SafeSubprocess class
 - [x] Add comprehensive error types and logging
 - [x] Write unit tests for subprocess utility
 
-# Phase 2: AgentExecutor Refactor (4 hours)
+## Phase 2: AgentExecutor Refactor (4 hours)
 
 - [x] Replace `auditGitChanges()` with timeout-protected version
 - [x] Replace `revertUnauthorizedChanges()` with concurrent batching
 - [x] Add proper error handling and logging
 - [x] Update method signatures if needed
 
-# Phase 3: Integration Testing (2 hours)
+## Phase 3: Integration Testing (2 hours)
 
 - [x] Test timeout behavior with slow git commands
 - [x] Test concurrent file processing limits
@@ -183,7 +183,7 @@ See `tests/git_security_regression_test.ts` for verification details.
 
 ### Issue #2: Path Resolution Security Vulnerabilities
 
-# Priority**: P0 🔴 **CRITICAL
+## Priority**: P0 🔴 **CRITICAL
 
 **File**: `src/services/tool_registry.ts`
 **Lines**: 360-390 (resolvePath method)
@@ -233,31 +233,31 @@ See `src/services/tool_registry.ts` for implementation details.
 
 #### Proposed Solution
 
-# Step 1: Create Secure Path Resolution Utility
+## Step 1: Create Secure Path Resolution Utility
 
 **File**: `src/utils/path_security.ts` (NEW)
 
-# Step 2: Refactor Tool Registry Path Resolution
+## Step 2: Refactor Tool Registry Path Resolution
 
 **File**: `src/services/tool_registry.ts` (Lines 360-390 - REPLACE)
 
 #### Implementation Plan
 
-# Phase 1: Security Infrastructure (3 hours)
+## Phase 1: Security Infrastructure (3 hours)
 
 - [x] Create `src/utils/path_security.ts` with comprehensive path validation
 - [x] Add path traversal detection and prevention
 - [x] Implement secure root validation logic
 - [x] Write comprehensive unit tests for security scenarios
 
-# Phase 2: Tool Registry Integration (2 hours)
+## Phase 2: Tool Registry Integration (2 hours)
 
 - [x] Replace vulnerable `resolvePath()` method
 - [x] Add security event logging
 - [x] Update error handling to prevent information leakage
 - [x] Test with various path traversal attack vectors
 
-# Phase 3: Security Testing (1 hour)
+## Phase 3: Security Testing (1 hour)
 
 - [x] Test path traversal attempts: `../../../etc/passwd`
 - [x] Test symlink attacks and absolute path bypasses
@@ -291,7 +291,7 @@ See `tests/services/tool_registry_test.ts` for verification details.
 
 ### Issue #3: Synchronous Blocking Delays in Database Operations
 
-# Priority**: P0 🔴 **CRITICAL
+## Priority**: P0 🔴 **CRITICAL
 
 **File**: `src/services/db.ts`
 **Lines**: 200-308 (retryTransaction method)
@@ -323,23 +323,23 @@ Database retry logic uses synchronous `setTimeout` delays that block the event l
 
 #### Proposed Solution
 
-# Step 1: Implement Non-Blocking Retry Logic
+## Step 1: Implement Non-Blocking Retry Logic
 
 #### Implementation Plan
 
-# Phase 1: Replace Blocking Delays (1 hour)
+## Phase 1: Replace Blocking Delays (1 hour)
 
 - [x] Replace `setTimeout` blocking pattern with non-blocking alternative
 - [x] Add jitter to prevent thundering herd problems
 - [x] Cap maximum delay to prevent excessive waits
 
-# Phase 2: Add Retry Options (2 hours)
+## Phase 2: Add Retry Options (2 hours)
 
 - [x] Create `RetryOptions` interface for configurable retry behavior
 - [x] Update all `retryTransaction` calls to use new options
 - [x] Add comprehensive logging for retry attempts
 
-# Phase 3: Testing (1 hour)
+## Phase 3: Testing (1 hour)
 
 - [x] Test concurrent transaction handling
 - [x] Verify non-blocking behavior under load
@@ -371,7 +371,7 @@ See `tests/services/db_test.ts` for verification details.
 
 **Status**: ✅ **COMPLETED** (Non-blocking delays implemented, comprehensive test coverage added, all 30 tests passing)
 
-# Priority**: P1 🟠 **HIGH
+## Priority**: P1 🟠 **HIGH
 
 **Lines**: 180-230 (readFileWhenStable method)
 **Estimated Effort**: 3 hours
@@ -428,7 +428,7 @@ See `src/services/watcher.ts` for implementation details.
 
 **Status**: ✅ **COMPLETED** (Race condition prevention implemented with queued processing, comprehensive test coverage added, all 33 tests passing)
 
-# Priority**: P1 🟠 **HIGH
+## Priority**: P1 🟠 **HIGH
 
 **Lines**: 130-150 (debounceFile method)
 **Estimated Effort**: 4 hours
@@ -485,7 +485,7 @@ See `src/services/watcher.ts` for implementation details.
 
 ### Issue #6: Missing Error Boundaries in Flow Execution
 
-# Priority**: P1 🟠 **HIGH
+## Priority**: P1 🟠 **HIGH
 
 **Lines**: 200-250 (wave execution)
 **Estimated Effort**: 5 hours
@@ -521,7 +521,7 @@ See `src/flows/flow_runner.ts` for implementation details.
 
 ### Issue #7: Inadequate Error Handling in MCP Server
 
-# Priority**: P1 🟠 **HIGH
+## Priority**: P1 🟠 **HIGH
 
 **File**: `src/mcp/server.ts`
 **Lines**: 300-350 (handleToolsCall method)
@@ -553,7 +553,7 @@ See `src/mcp/server.ts` for implementation details.
 
 ### Issue #8: Git Service Without Proper Error Recovery
 
-# Priority**: P1 🟠 **HIGH
+## Priority**: P1 🟠 **HIGH
 
 **File**: `src/services/git_service.ts`
 **Lines**: 300-365 (runGitCommand method)
@@ -595,7 +595,7 @@ See `src/services/git_service.ts` for implementation details.
 
 ### Issue #9: Memory Bank File-Based Storage Limitations
 
-# Priority**: P2 🟡 **MEDIUM
+## Priority**: P2 🟡 **MEDIUM
 
 **File**: `src/services/memory_bank.ts`
 **Lines**: 100-200 (file operations)
@@ -643,32 +643,32 @@ See `src/services/memory_bank.ts` for implementation details.
 
 #### Proposed Solution
 
-# Step 1: Implement File Locking Mechanism
+## Step 1: Implement File Locking Mechanism
 
 **File**: `src/services/memory_bank.ts` (ADD)
 
 See `src/services/memory_bank.ts` for implementation details.
 
-# Step 2: Add Concurrent Operation Protection
+## Step 2: Add Concurrent Operation Protection
 
 **File**: `src/services/memory_bank.ts` (MODIFY)
 
 #### Implementation Plan
 
-# Phase 1: Core Infrastructure (2 hours)
+## Phase 1: Core Infrastructure (2 hours)
 
 - [x] Implement `withFileLock()` method with proper error handling
 - [x] Add lock file cleanup on process exit
 - [x] Test basic locking functionality
 
-# Phase 2: Protect Critical Operations (3 hours)
+## Phase 2: Protect Critical Operations (3 hours)
 
 - [x] Add locking to `createProjectMemory()` and `updateProjectMemory()`
 - [x] Add locking to `addGlobalLearning()` and `promoteLearning()`
 - [x] Add locking to `createExecutionRecord()`
 - [x] Add locking to `rebuildIndices()` operations
 
-# Phase 3: Testing & Validation (1 hour)
+## Phase 3: Testing & Validation (1 hour)
 
 - [x] Write comprehensive concurrency tests
 - [x] Test lock timeout behavior
@@ -1269,4 +1269,3 @@ These 16 additional issues represent significant improvements to ExoFrame's reli
 **Business Impact**: High (improves system availability and security)
 
 ```
-

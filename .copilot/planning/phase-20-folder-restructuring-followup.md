@@ -171,4 +171,3 @@ Update planning and user documentation to reflect the actionable changes.
 | README.md                    |      ✔️      | Copy to root                                           |
 | Blueprints/ (all content)    |      ✔️      | Copy all files and subfolders                          |
 | docs/ (top-level files only) |      ✔️      | Copy only files directly in docs/, not from subfolders |
-

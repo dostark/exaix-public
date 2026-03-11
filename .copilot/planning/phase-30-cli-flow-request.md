@@ -267,4 +267,3 @@ exoctl request show abc123
 - `tests/cli/exoctl_coverage_test.ts` - Integration tests (new CLI flow option test added, timeout protection added)
 - `tests/cli/exoctl_all_test.ts` - Additional CLI tests (timeout protection added)
 - `.copilot/planning/phase-30-cli-flow-request.md` - Planning document updates</content>
-

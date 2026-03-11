@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["repo-overview", "testing", "flows", "obsidian"]
 ---
 
-# ExoFrame — Copilot quick reference
+## ExoFrame — Copilot quick reference
 
 Purpose
 
@@ -44,4 +44,3 @@ Do / Don't
 Quick verification
 
 - Provide a 1–2 line `short_summary` to insert into small prompts.
-

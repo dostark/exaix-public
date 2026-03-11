@@ -447,4 +447,3 @@ Add integration tests mirroring the new workflow:
 
 - Review approval currently relies on default branch heuristics and requires being checked out on that branch.
 - Branch deletion helper has hard-coded `master` fallback; this should be revisited in the worktree migration.
-

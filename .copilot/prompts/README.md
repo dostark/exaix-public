@@ -297,4 +297,3 @@ These prompts ARE the agents/ documentation system in action. They demonstrate:
 - How to maintain consistency (Implementation Plan)
 
 The prompts themselves follow the patterns they teach. Use them as templates, adapt them to your needs, and contribute improvements back to this folder.
-

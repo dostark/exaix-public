@@ -155,4 +155,3 @@ Refer to `CONTRIBUTING.md` (Section 1.5 Strict Type Safety) and `README.md` for 
 
 - Verify successful compilation with `strict: true`.
 - Spot check critical flows (Plan Execution, TUI rendering) to ensure runtime behavior matches types.
-

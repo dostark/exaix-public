@@ -29,4 +29,3 @@ Do / Don't
 - ❌ Don't implement without tests first
 - ❌ Don't skip context injection for complex components
 ```
-

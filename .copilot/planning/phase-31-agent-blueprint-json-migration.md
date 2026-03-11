@@ -55,7 +55,7 @@ Blueprints/Agents/
 └── templates/*.md - ✅ COMPLETED
 ```
 
-# Total Files**: ✅ **24 agent blueprints successfully migrated
+## Total Files**: ✅ **24 agent blueprints successfully migrated
 
 ### Files to Update
 
@@ -123,7 +123,7 @@ All agents will use the standardized `PlanSchema` defined in the [Agent Content 
 }
 ```
 
-# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.
+## See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.
 
 ### Response Format Migration
 
@@ -162,7 +162,7 @@ Analysis and reasoning...
 </content>
 ```
 
-# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.
+## See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.
 
 ### Zod Validation Integration
 
@@ -465,7 +465,6 @@ Phase 31 represents a critical infrastructure improvement that will:
 1.
 1.
 
-# The migration follows proven patterns from successful senior-coder and default agent implementations, ensuring a smooth transition to structured JSON output across all agent blueprints.
+## The migration follows proven patterns from successful senior-coder and default agent implementations, ensuring a smooth transition to structured JSON output across all agent blueprints.
 
-# Status: ✅ MIGRATION COMPLETED - All 24 agent blueprints successfully migrated to JSON format with PlanSchema validation. ⚠️ VALIDATION PENDING - Runtime testing required before full completion.
-
+## Status: ✅ MIGRATION COMPLETED - All 24 agent blueprints successfully migrated to JSON format with PlanSchema validation. ⚠️ VALIDATION PENDING - Runtime testing required before full completion.

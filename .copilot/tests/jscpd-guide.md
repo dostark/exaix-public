@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["refactoring", "quality", "tools", "jscpd"]
 ---
 
-# jscpd Code Duplication Detection Guide
+## jscpd Code Duplication Detection Guide
 
 ## Quick Start
 
@@ -209,4 +209,3 @@ See [phase-14-code-deduplication.md](../planning/phase-14-code-deduplication.md)
 - [Phase 14 Refactoring Plan](../planning/phase-14-code-deduplication.md)
 
 ```
-

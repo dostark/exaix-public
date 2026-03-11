@@ -15,7 +15,7 @@ topics:
 estimated_effort: 4-6 hours
 ---
 
-# Phase 23: Skills & Blueprint Migration
+## Phase 23: Skills & Blueprint Migration
 
 > [!NOTE]
 > **Status: Integrated**
@@ -23,7 +23,7 @@ estimated_effort: 4-6 hours
 
 **Created:** 2026-01-09
 
-# Status:** 📋 **PLANNED
+## Status:** 📋 **PLANNED
 
 **Estimated Duration:** 4-6 hours
 **Parent Phase:** [Phase 22: Architecture & Quality](./phase-22-architecture-and-quality-improvement.md)
@@ -359,4 +359,3 @@ Moving core skills from `Memory/Skills/core/` to `Blueprints/Skills/` aligns wit
 This change improves code organization, reduces confusion, and makes the relationship between blueprints and their referenced skills more obvious. The migration is straightforward with clear success criteria and comprehensive testing requirements.
 
 ```
-

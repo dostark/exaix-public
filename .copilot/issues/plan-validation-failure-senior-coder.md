@@ -91,4 +91,3 @@ Changes made:
 1.
    - `tests/plan_validation_repro_test.ts`: Verifies that plans containing `create_directory` now pass validation.
    - `tests/services/tool_registry_test.ts`: Verifies the runtime functionality of the `create_directory` tool.
-

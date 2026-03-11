@@ -1,14 +1,14 @@
 # Phase 42: Automated Architecture Validation [COMPLETED]
 
-# Status: COMPLETED (2026-02-17)
+## Status: COMPLETED (2026-02-17)
 
 Automate the enforcement of architectural grounding and module header standards to prevent documentation rot and ensure all code remains discoverable via `ARCHITECTURE.md`.
 
 ## Executive Summary
 
-# Problem:
+## Problem:
 
-# Solution:
+## Solution:
 
 1. **Header Check**: Scans every `.ts` file in `src/` to ensure it starts with a standardized `@module` JSDoc header.
 
@@ -70,4 +70,3 @@ Add a step to run the architecture validation.
 
 - Move a file and verify the script detects the broken link in `ARCHITECTURE.md` or headers.
 - Remove a header from a file and verify it's flagged.
-

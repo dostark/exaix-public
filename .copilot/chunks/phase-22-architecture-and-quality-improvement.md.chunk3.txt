@@ -19,7 +19,7 @@
 
 ### Issue #1: Blocking Git Operations Without Timeouts
 
-# Priority**: P0 🔴 **CRITICAL
+## Priority**: P0 🔴 **CRITICAL
 
 **File**: `src/services/agent_executor.ts`
 **Lines**: 250-400 (auditGitChanges, revertUnauthorizedChanges methods)

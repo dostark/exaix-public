@@ -287,4 +287,3 @@ A good Building_with_AI_Agents.md update includes:
 - [implementation-plan-driven.md](implementation-plan-driven.md) — Working from Implementation Plan
 - [commit-message.md](commit-message.md) — Creating detailed commits
 - [Building_with_AI_Agents.md](../../docs/Building_with_AI_Agents.md) — The actual document
-

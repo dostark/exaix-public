@@ -27,4 +27,3 @@ User reports that after approving a plan, `exoctl changeset list` returns 0 chan
 1. Check `src/services/agent_executor.ts` (or `PlanExecutor`) to see where changesets are created.
 
 1.
-

@@ -1,4 +1,4 @@
-# Critical Data Loss: Git Repository Scope Mismatch in Runtime Root
+## Critical Data Loss: Git Repository Scope Mismatch in Runtime Root
 
 ## Problem
 

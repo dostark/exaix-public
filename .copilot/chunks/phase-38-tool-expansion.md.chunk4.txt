@@ -13,3 +13,9 @@
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
+
+- **Status:** Run `git status --porcelain`. Parse into:
+
+```json
+  { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
+  ```

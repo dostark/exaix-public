@@ -30,4 +30,3 @@ topics: ["openai", "debugging", "prompts", "diff-first"]
 - ✅ Do add a regression test when possible.
 - ✅ Do keep diffs minimal and file-scoped.
 - ❌ Don’t guess without reproducing.
-

@@ -1,0 +1,41 @@
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     SPECIFICATION PHASE                                 │
+│                                                                         │
+│  Request (.md)                                                          │
+│    → RequestQualityGate.assess()           Is this specific enough?     │
+│    → [if not] Q&A Loop                     Iterative refinement         │
+│        ├── Planning agent asks questions   (goal/scope/constraint/etc.) │
+│        ├── User answers                                                 │
+│        ├── Agent synthesizes IRequestSpecification                      │
+│        ├── Quality re-assessment                                        │
+│        └── Repeat until satisfied                                       │
+│    → RequestAnalyzer.analyze()             Extract structured intent    │
+│    → IRequestSpecification + IRequestAnalysis = THE SPECIFICATION       │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                     KNOWLEDGE PHASE                                     │
+│                                                                         │
+│  PortalKnowledgeService                                                 │
+│    → Architecture overview, key files, conventions, dependencies        │
+│    → Feeds into: Q&A questions, auto-enrichment, agent context          │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                     EXECUTION PHASE                                     │
+│                                                                         │
+│  AgentRunner.run()                                                      │
+│    → Agent executes with specification + portal knowledge as context    │
+│    → ReflexiveAgent critiques against specification goals               │
+│    → ConfidenceScorer assesses goal alignment                           │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│                     EVALUATION PHASE                                    │
+│                                                                         │
+│  GateEvaluator / JudgeEvaluator                                        │
+│    → GOAL_ALIGNMENT criterion: does output satisfy spec goals?          │
+│    → TASK_FULFILLMENT criterion: are all requirements addressed?        │
+│    → REQUEST_UNDERSTANDING criterion: does output match intent?         │
+│    → Generic criteria: code correctness, security, style (unchanged)    │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```text

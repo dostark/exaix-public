@@ -1,4 +1,4 @@
-## Phase 3: The Brain (Intelligence & Agency) ✅ COMPLETED
+# Phase 3: The Brain (Intelligence & Agency) ✅ COMPLETED
 
 **Goal:** Connect LLMs, inject memory, and generate plans.
 
@@ -27,7 +27,7 @@ export interface IModelProvider {
 }
 ```
 
-# Implementation Checklist:
+## Implementation Checklist:
 
 1. Create `src/ai/providers.ts` defining `IModelProvider`.
 
@@ -75,7 +75,7 @@ console.log(result.thought); // "Analyzing request..."
 console.log(result.content); // "Here is the plan..."
 ```
 
-# Implementation Checklist:
+## Implementation Checklist:
 
 1. Define `Blueprint` interface (initially just `systemPrompt`).
 
@@ -202,25 +202,25 @@ class ContextLoader {
 
 #### Truncation Strategies
 
-# 1. `smallest-first` (Default)
+## 1. `smallest-first` (Default)
 
 - Load smallest files first to maximize coverage
 - Best for: Getting breadth across many files
 - Example: Loading 10 small config files + 2 medium source files vs. 1 huge legacy file
 
-# 2. `drop-largest`
+## 2. `drop-largest`
 
 - Skip files that don't fit, starting with largest
 - Best for: Ensuring all critical small files are included
 - Example: Skip 100KB README but include all 5KB source files
 
-# 3. `drop-oldest`
+## 3. `drop-oldest`
 
 - Skip files by modification time (oldest first)
 - Best for: Prioritizing recent changes
 - Example: Skip year-old docs in favor of this week's code changes
 
-# 4. `truncate-each`
+## 4. `truncate-each`
 
 - Truncate individual files to fit within remaining budget
 - Best for: Ensuring every file gets at least some representation
@@ -241,26 +241,26 @@ class ContextLoader {
 
 #### Error Handling
 
-# Missing Files:
+## Missing Files:
 
 - Log warning but continue loading other files
 - Include placeholder in warnings
 - Don't fail entire context load
 
-# Permission Errors:
+## Permission Errors:
 
 - Catch `PermissionDenied` errors
 - Log to Activity Journal
 - Skip file and continue
 
-# Malformed Paths:
+## Malformed Paths:
 
 - Validate paths before attempting to read
 - Use `PathResolver` from Step 2.3 for security
 
 #### Success Criteria
 
-# Test 1: Token Limit Enforcement
+## Test 1: Token Limit Enforcement
 
 ```typescript
 // Test: Link 10 massive files (total 500k tokens), budget 100k tokens
@@ -285,7 +285,7 @@ assertEquals(result.warnings.length > 0, true); // Generated warnings
 assertEquals(result.skippedFiles.length > 0, true); // Some files skipped
 ```
 
-# Test 2: Warning Block Generation
+## Test 2: Warning Block Generation
 
 ```typescript
 // Verify warning appears in agent's prompt
@@ -294,7 +294,7 @@ assertStringIncludes(result.content, "Token Budget: 80000");
 assertStringIncludes(result.content, "Skipped");
 ```
 
-# Test 3: Agent Receives Warning
+## Test 3: Agent Receives Warning
 
 ```typescript
 // Verify agent can reference the warning
@@ -314,7 +314,7 @@ assertStringIncludes(
 );
 ```
 
-# Test 4: Local Agent (No Limits)
+## Test 4: Local Agent (No Limits)
 
 ```typescript
 const localLoader = new ContextLoader({
@@ -331,7 +331,7 @@ assertEquals(result.skippedFiles.length, 0);
 assertEquals(result.warnings.length, 0);
 ```
 
-# Test 5: Truncation Strategies
+## Test 5: Truncation Strategies
 
 ```typescript
 // Test each strategy produces different ordering
@@ -355,7 +355,7 @@ for (const strategy of strategies) {
 
 #### Integration Notes
 
-# With AgentRunner (Step 3.2):
+## With AgentRunner (Step 3.2):
 
 The `ContextLoader` enriches the `ParsedRequest.context` field before passing to `AgentRunner`:
 
@@ -379,13 +379,14 @@ const runner = new AgentRunner(modelProvider);
 const result = await runner.run(blueprint, request);
 ```
 
-# Activity Journal Logging:
+## Activity Journal Logging:
 
 **Requirement:** All context loading operations must be logged to the Activity Journal for audit trail and debugging.
 
-# Events to Log:
+## Events to Log:
 
 1. **context.loaded** - Successful context loading operation
+
    ```sql
    INSERT INTO activity (action_type, entity_type, entity_id, actor, trace_id, metadata)
    VALUES (
@@ -406,6 +407,7 @@ const result = await runner.run(blueprint, request);
    ```
 
 1.
+
    ```sql
    INSERT INTO activity (action_type, entity_type, entity_id, actor, trace_id, metadata)
    VALUES (
@@ -421,7 +423,7 @@ const result = await runner.run(blueprint, request);
    );
    ```
 
-# Implementation Requirements:
+## Implementation Requirements:
 
 - Add `traceId` and `requestId` optional fields to `ContextConfig`
 - Call `logContextLoad()` after successful context assembly
@@ -429,7 +431,7 @@ const result = await runner.run(blueprint, request);
 - Log events should be async and non-blocking (don't fail if logging fails)
 - Include relevant metadata for debugging (token counts, file counts, strategy used)
 
-# Test Coverage:
+## Test Coverage:
 
 ```typescript
 // tests/reporter/mission_reporter_test.ts
@@ -454,7 +456,7 @@ Deno.test("MissionReporter: formats report with valid TOML frontmatter", async (
 });
 ```
 
-# Success Criteria:
+## Success Criteria:
 
 1. ✅ After successful execution, report created in `/Knowledge/Reports/`
 
@@ -467,7 +469,7 @@ Deno.test("MissionReporter: formats report with valid TOML frontmatter", async (
 1.
 1.
 
-# Acceptance Criteria (Manual Testing):
+## Acceptance Criteria (Manual Testing):
 
 ```bash
 # 1. Create request and approve
@@ -499,4 +501,3 @@ plan.executed
 ```
 
 ---
-

@@ -1,4 +1,4 @@
-# jscpd Code Duplication Detection Guide
+## jscpd Code Duplication Detection Guide
 
 ## Quick Start
 

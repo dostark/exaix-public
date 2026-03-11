@@ -7,7 +7,7 @@ updated: 2026-01-22
 labels: [bug, cli, changeset]
 ---
 
-# Changeset approve fails to find branches in portal repositories
+## Changeset approve fails to find branches in portal repositories
 
 ## Problem
 
@@ -95,4 +95,3 @@ High priority because changeset approval is core functionality for the agent wor
 - **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.
 
 ```
-

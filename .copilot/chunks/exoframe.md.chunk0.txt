@@ -1,4 +1,4 @@
-# ExoFrame — Copilot quick reference
+## ExoFrame — Copilot quick reference
 
 Purpose
 

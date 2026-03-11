@@ -19,6 +19,7 @@ In this specific reported instance, the user requested an audit document, but th
    ```bash
    exoctl request --agent security-expert --portal <portal> "Perform a security audit... Do not make any changes... Your goal is to create only readable audit document..."
    ```
+
 1.
 1.
 
@@ -51,6 +52,7 @@ The issue is caused by the interaction between the Planner's interpretation of "
      await Deno.writeTextFile(testFile, ...);
    }
    ```
+
 1.
 
 ## Recommendation
@@ -60,4 +62,3 @@ This is indeed a bug in the agent's behavior. The `security-expert` agent (and t
 ### Proposed Fix
 
 Update the Planner System Prompt to explicitly allow/encourage `write_file` operations for non-code artifacts (reports, documentation, audits) even when code modifications are restricted.
-

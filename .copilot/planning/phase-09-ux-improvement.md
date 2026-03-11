@@ -1,4 +1,4 @@
-## Phase 9: UX Improvements & UI Evaluation 🏗️ IN PROGRESS
+# Phase 9: UX Improvements & UI Evaluation 🏗️ IN PROGRESS
 
 **Goal:** Reduce friction in the ExoFrame workflow while evaluating whether a dedicated UI is needed beyond Obsidian.
 
@@ -565,4 +565,3 @@ Implement the Request Manager view to list all requests, view request details, c
 - [x] Manual and automated tests for all dashboard features pass
 
 ---
-

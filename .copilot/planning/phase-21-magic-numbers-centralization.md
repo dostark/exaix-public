@@ -458,4 +458,3 @@ Existing installations that rely on hard-coded behavior continue to work because
 Users can now add new configuration keys to `exo.config.toml` or use environment overrides (where applicable) without modifying code.
 
 ---
-

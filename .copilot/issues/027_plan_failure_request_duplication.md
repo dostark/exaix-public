@@ -41,6 +41,7 @@ When an AI plan execution fails, the `ExecutionLoop` incorrectly moves the plan 
 ### Root Cause Analysis
 
 1. **`src/services/execution_loop.ts`**:
+
    ```typescript
    private async handleFailure(planPath: string, ...) {
      const requestsDir = join(this.config.system.root, this.config.paths.workspace, "Requests");
@@ -49,6 +50,7 @@ When an AI plan execution fails, the `ExecutionLoop` incorrectly moves the plan 
      await Deno.remove(planPath);
    }
    ```
+
    The failure handler should move the file to `Workspace/Rejected` or keep it in a terminal state within `Workspace/Active` or `Workspace/Archive`.
 
 1.
@@ -74,4 +76,3 @@ When an AI plan execution fails, the `ExecutionLoop` incorrectly moves the plan 
 - `src/services/request_processor.ts` (Portal grounding logic)
 - `src/cli/handlers/request_list_handler.ts` (Request listing logic)
 - `src/services/plan_executor.ts` (Execution path management)
-

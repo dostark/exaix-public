@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["long-context", "reasoning", "gemini", "context-saturation"]
 ---
 
-# Gemini Long-Context Reasoning Guide
+## Gemini Long-Context Reasoning Guide
 
 Key points
 
@@ -39,4 +39,3 @@ Do / Don't
 - ❌ Don't exceed 1M tokens unless performing a repository-wide security or architecture audit.
 
 ```
-

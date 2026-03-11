@@ -11,7 +11,8 @@
 
 - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
 1.
-   ```json
+
+```json
    [
      { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
    ]

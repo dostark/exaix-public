@@ -1,4 +1,4 @@
-# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.
+## See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation, field requirements, and examples.
 
 ### Response Format Migration
 
@@ -37,6 +37,6 @@ Analysis and reasoning...
 </content>
 ```
 
-# See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.
+## See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.
 
 ### Zod Validation Integration

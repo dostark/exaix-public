@@ -30,4 +30,3 @@ topics: ["openai", "quickstart", "rag", "diff-first", "prompts"]
 - ✅ Do cite docs used by path (e.g., agents/tests/testing.md).
 - ✅ Do propose minimal diffs and separate by file.
 - ❌ Don’t write long prose; keep it patch-oriented.
-

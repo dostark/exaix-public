@@ -69,6 +69,7 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 
    - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
 1.
+
    ```json
    [
      { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
@@ -118,9 +119,11 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 **Implementation Logic:**
 
 - **Status:** Run `git status --porcelain`. Parse into:
+
   ```json
   { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
   ```
+
 - **Branch:** `git branch --show-current`.
 - **Diff Summary:** `git diff --stat`.
 
@@ -225,4 +228,3 @@ Create `tests/scenarios/refactoring*scenario*test.ts`:
 - [x] `tests/tools/deno*task*test.ts`: Verifies task execution.
 - [x] `tests/tools/patch*file*test.ts`: Verifies patching logic and error handling.
 - [x] `tests/tools/e2e*tool*test.ts`: Verifies full multi-tool workflow (git -> fix -> refactor).
-

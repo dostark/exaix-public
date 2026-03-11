@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["self-improvement", "instruction-adequacy", "agents", "maintenance", "rag"]
 ---
 
-# Self-improvement loop for `.copilot/` instructions
+## Self-improvement loop for `.copilot/` instructions
 
 Key points
 
@@ -107,4 +107,3 @@ Examples
 ## Related Documents
 
 - [Review-Research-Improvement Pattern](./review-research-improvement.md) - For architectural reviews and improvement planning (larger scope than instruction gaps)
-

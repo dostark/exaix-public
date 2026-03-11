@@ -57,4 +57,3 @@ You are working on ExoFrame.
 
 - Example usage
   - “Use this template. My task is: add a new CLI command that writes to Workspace/Active. I’m using OpenAI. Ensure agents/ has sufficient guidance; if not, patch it (minimal) and rebuild/validate before coding.”
-

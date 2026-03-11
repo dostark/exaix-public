@@ -50,4 +50,3 @@ topics: ["code-review", "quality-assurance", "best-practices"]
 
 - All tests pass
 - Linting clean
-

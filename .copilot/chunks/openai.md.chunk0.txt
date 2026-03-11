@@ -1,4 +1,4 @@
-# OpenAI provider adaptation notes
+## OpenAI provider adaptation notes
 
 ```text
 Key points

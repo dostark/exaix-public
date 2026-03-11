@@ -6,7 +6,7 @@ created: 2026-01-23
 labels: [bug, cli, changeset, ux]
 ---
 
-# Issue: `--diff` option is not implemented for `exoctl changeset show`
+## Issue: `--diff` option is not implemented for `exoctl changeset show`
 
 ## Problem
 
@@ -61,4 +61,3 @@ error: Unknown option "--diff". Did you mean option "--help"?
 ---
 
 ```
-

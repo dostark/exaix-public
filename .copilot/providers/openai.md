@@ -7,7 +7,7 @@ version: "0.2"
 topics: ["provider-adaptations", "prompts", "rag", "tooling", "thinking-protocol"]
 ---
 
-# OpenAI provider adaptation notes
+## OpenAI provider adaptation notes
 
 ```text
 Key points
@@ -85,4 +85,3 @@ Token guidance
 Maintenance
 - After updating this doc: rebuild manifest, regenerate chunks/embeddings (mock or openai), then run `validate_agents_docs.ts`.
 ```
-

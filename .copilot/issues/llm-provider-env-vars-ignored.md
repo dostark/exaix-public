@@ -128,4 +128,3 @@ The fix successfully implements environment variable overrides for LLM provider 
 - Google provider successfully makes API calls and returns responses
 - Fallback logic works when environment provider is not available
 - **Safety:** Paid providers blocked in test/CI without explicit opt-in via `EXO_TEST_ENABLE_PAID_LLM=1`
-

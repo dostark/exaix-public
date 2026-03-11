@@ -146,4 +146,3 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 - [x] Documentation for IDE integration
 - [x] Example configurations repository
 - [x] User Guide updated with MCP section
-

@@ -7,7 +7,7 @@ version: "1.0"
 topics: ["architecture-review", "improvement-planning", "patterns", "refactoring", "quality"]
 ---
 
-# Review-Research-Improvement Pattern
+## Review-Research-Improvement Pattern
 
 A structured methodology for evaluating ExoFrame subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.
 
@@ -365,4 +365,3 @@ Commit all artifacts with descriptive commit message."
 ```text
 
 ```
-

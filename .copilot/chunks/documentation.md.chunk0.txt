@@ -1,4 +1,4 @@
-# ExoFrame Documentation Development Guidelines (migrated)
+## ExoFrame Documentation Development Guidelines (migrated)
 
 ## 1. Directory Structure & Role
 

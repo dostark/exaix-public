@@ -84,4 +84,3 @@ Medium priority - affects user experience for reviewing rejected plans, but has 
 - **Fix**: Updated `show()` method to search multiple directories (Plans, Rejected, Active, Archive) in order of likelihood
 - **Commit**: a6692a4
 - **Verified**: Added test case and all existing tests pass
-

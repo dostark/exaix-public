@@ -1,4 +1,4 @@
-## Phase 6: Plan Execution via MCP ✅ COMPLETED
+# Phase 6: Plan Execution via MCP ✅ COMPLETED
 
 **Goal:** Enable end-to-end plan execution using Model Context Protocol (MCP) for secure agent-tool communication.
 
@@ -11,7 +11,7 @@
 - **Action:** Implement file watcher for System/Active/ directory to detect approved plans and parse plan structure
 - **Location:** `src/services/plan_executor.ts`, `src/services/plan_parser.ts`
 
-# Plan Detection Flow:
+## Plan Detection Flow:
 
 1. FileWatcher monitors `System/Active/` for `_plan.md` files
 
@@ -20,7 +20,7 @@
 1.
 1.
 
-# Plan Structure Validation:
+## Plan Structure Validation:
 
 - ✓ YAML frontmatter with required fields
 - ✓ Status must be "approved"
@@ -28,7 +28,7 @@
 - ✓ Non-empty step titles
 - ✓ Valid step content
 
-# Activity Journal Events:
+## Activity Journal Events:
 
 | Event                         | Payload                           | Description                        |
 | :---------------------------- | :-------------------------------- | :--------------------------------- |
@@ -38,7 +38,7 @@
 | `plan.missing_required_field` | `{field, value}`                  | Required field missing/invalid     |
 | `plan.parsing_failed`         | `{error, content}`                | Step parsing failed                |
 
-# Success Criteria:
+## Success Criteria:
 
 - [x] FileWatcher detects new plan files in System/Active/
 - [x] YAML frontmatter parsing extracts trace_id and metadata
@@ -48,7 +48,7 @@
 - [x] Error handling provides clear messages for invalid plans
 - [x] Plan parsing is resilient to format variations
 
-# Planned Tests:
+## Planned Tests:
 
 - [x] `tests/services/plan_executor_test.ts`: Unit tests for plan detection
 - [x] `tests/services/plan_parser_test.ts`: Unit tests for plan parsing logic
@@ -74,7 +74,7 @@
   - 82759ab - Phase 5 Resources (portal:// URIs, resource discovery) (53 tests)
   - 461ca83 - Phase 5 Prompts (execute_plan, create_changeset templates) (71 tests)
 
-# Problem Statement:
+## Problem Statement:
 
 LLM agents need a standardized, secure interface to interact with ExoFrame and portal repositories. Direct file system access or response parsing approaches are:
 
@@ -82,11 +82,11 @@ LLM agents need a standardized, secure interface to interact with ExoFrame and p
 - Insecure (agents could bypass ExoFrame controls)
 - Non-standard (proprietary interfaces)
 
-# The Solution: ExoFrame as MCP Server
+## The Solution: ExoFrame as MCP Server
 
 Implement an MCP (Model Context Protocol) server that exposes tools, resources, and prompts to LLM agents:
 
-# Architecture:
+## Architecture:
 
 │ ExoFrame MCP Server │
 ├─────────────────────────────────────────────┤
@@ -100,7 +100,7 @@ Implement an MCP (Model Context Protocol) server that exposes tools, resources, 
 │ Transport: stdio or SSE (HTTP) │
 └─────────────────────────────────────────────┘
 
-# MCP Tools Specification:
+## MCP Tools Specification:
 
 ```typescript
 // read_file - Read a file from portal
@@ -1812,4 +1812,3 @@ This agent is optimized for collaborative workflows and multi-agent coordination
 ---
 
 ```
-

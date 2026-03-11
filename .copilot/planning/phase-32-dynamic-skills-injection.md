@@ -770,4 +770,3 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 **Test Coverage:** 10 tests, 100% passing
 
 ```
-

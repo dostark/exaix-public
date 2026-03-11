@@ -98,4 +98,3 @@ None currently known. Plan remains in limbo state.
 ## Priority Justification
 
 High priority - breaks the ability to clean up completed plans, potentially leading to accumulation of stale plan records and confusing UI state.
-

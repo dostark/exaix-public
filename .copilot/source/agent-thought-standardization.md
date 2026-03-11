@@ -160,4 +160,3 @@ Risk: Performance impact from excessive logging. Mitigation: Use async logging a
 - ❌ **Don't** skip sections unless truly not applicable
 - ❌ **Don't** use generic placeholders
 - ❌ **Don't** make sections too verbose (>500 words total)
-

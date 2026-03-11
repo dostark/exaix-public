@@ -7,7 +7,7 @@ resolved: 2026-02-17
 labels: [bug, git, data-loss, core]
 ---
 
-# Critical Data Loss: Git Repository Scope Mismatch in Runtime Root
+## Critical Data Loss: Git Repository Scope Mismatch in Runtime Root
 
 ## Problem
 
@@ -167,4 +167,3 @@ The primary objective is to enforce strict repository isolation and eliminate de
 ## Priority Justification
 
 **Critical.** Resolved. The patch eliminates a catastrophic data loss risk and ensures that ExoFrame's runtime environment remains secure and stable during automated plan execution. Detailed reproduction and root cause analysis are preserved for historical audit.
-

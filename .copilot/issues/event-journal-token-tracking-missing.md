@@ -99,4 +99,3 @@ High priority because token usage and cost tracking is a core declared feature o
 **Commit**: Token usage with costs now logged as "llm.usage" events in the activity journal at info level.
 
 **Verified**: Code compiles successfully and maintains backward compatibility. Regression test added in `tests/token_usage_tracking_regression_test.ts`.
-

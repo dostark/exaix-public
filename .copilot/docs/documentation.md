@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["docs", "process", "publishing"]
 ---
 
-# ExoFrame Documentation Development Guidelines (migrated)
+## ExoFrame Documentation Development Guidelines (migrated)
 
 ## 1. Directory Structure & Role
 
@@ -119,4 +119,3 @@ Maintain a standard Terminology Reference and link to it from major documents. U
 Use relative paths for internal links and include file paths when referencing code. Keep documentation changes minimal and tied to Implementation Plan steps.
 
 ---
-

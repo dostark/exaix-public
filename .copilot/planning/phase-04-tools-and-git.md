@@ -1,4 +1,4 @@
-## Phase 4: The Hands (Tools & Git) ✅ COMPLETED
+# Phase 4: The Hands (Tools & Git) ✅ COMPLETED
 
 **Goal:** Agents execute actions securely and robustly.
 
@@ -272,4 +272,3 @@ PermissionDenied: write access to /etc/passwd is not allowed at PathResolver.val
 ---
 
 ```
-

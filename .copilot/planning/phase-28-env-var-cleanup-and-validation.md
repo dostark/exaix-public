@@ -96,6 +96,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Steps:**
 
 1. **Create `src/config/env_schema.ts`:**
+
    ```typescript
    import { z } from "zod";
    import { ProviderTypeSchema } from "./ai_config.ts";
@@ -895,4 +896,3 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 - Remaining work: Phase 8 comprehensive documentation updates
 
 ```
-

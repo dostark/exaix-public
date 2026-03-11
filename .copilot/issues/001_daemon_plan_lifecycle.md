@@ -70,4 +70,3 @@ The `ExecutionLoop` service (`src/services/execution_loop.ts`) already implement
 - Refactored `src/main.ts` to delegate plan execution to `ExecutionLoop`, which handles lifecycle correctly.
 - Fixed a bug in `ExecutionLoop` status update logic (was not handling quoted statuses or `approved` status).
 - Verified with `tests/repro_zombie_plan_lifecycle.ts`.
-

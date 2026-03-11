@@ -142,4 +142,3 @@ Medium priority - this is a UX improvement that would significantly help users n
 **Testing:** Added comprehensive regression test that verifies plan list and show commands include complete request context information.
 
 ```
-

@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["rag", "embeddings", "context-injection", "semantic-search", "provider-adaptations"]
 ---
 
-# OpenAI RAG Usage Guide
+## OpenAI RAG Usage Guide
 
 Key points
 
@@ -94,4 +94,3 @@ deno run --allow-read scripts/validate_agents_docs.ts
 - ✅ Do cite the agent docs you used (paths) to reinforce the habit.
 - ✅ Do keep injected context small and relevant.
 - ❌ Don’t proceed if the manifest/chunks look stale; rebuild first.
-

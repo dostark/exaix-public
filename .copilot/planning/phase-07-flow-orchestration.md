@@ -1,4 +1,4 @@
-## Phase 7: Flow Orchestration (Multi-Agent Coordination) ✅ COMPLETED
+# Phase 7: Flow Orchestration (Multi-Agent Coordination) ✅ COMPLETED
 
 > **Status:** ✅ COMPLETED
 > **Prerequisites:** Phases 1–6 (Core system validated via Testing & QA)
@@ -8,7 +8,7 @@
 
 Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.
 
-# Use Cases:
+## Use Cases:
 
 | Flow Pattern       | Example                                       | Execution Model          |
 | ------------------ | --------------------------------------------- | ------------------------ |
@@ -1022,4 +1022,3 @@ flows/examples/
 ---
 
 ```
-

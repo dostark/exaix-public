@@ -1,4 +1,4 @@
-# Issues Folder Guidelines
+## Issues Folder Guidelines
 
 This folder contains structured issue reports for ExoFrame bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.
 

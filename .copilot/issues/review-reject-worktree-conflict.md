@@ -90,4 +90,3 @@ Medium priority - affects review rejection workflow when portals are involved, b
   - `should handle branch checked out in main working tree when rejecting` - verifies checkout handling
 - **Commit**: [5fdb639] fix: correct execution folder location to use Memory/Execution/
 - **Verified**: All tests pass, including new regression tests for worktree conflict handling
-

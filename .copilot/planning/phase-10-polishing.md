@@ -1,4 +1,4 @@
-## Phase 10: Polishing
+# Phase 10: Polishing
 
 > **Status:** 🔲 PLANNED\
 > **Prerequisites:** Phases 1–9 (All core features implemented)\
@@ -196,6 +196,7 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 
 - **Action**: Standardize the output of the build process. Compilation is optional and triggered via `--compile`.
 - **Artifact Layout**:
+
   ```text
   dist/bin/
   ├── exoframe-x86_64-unknown-linux-gnu
@@ -1058,4 +1059,3 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 - Add `tests/agents/self_improvement_process_test.ts` mirroring the Claude/OpenAI/Google enhancement test style.
 
 ```
-

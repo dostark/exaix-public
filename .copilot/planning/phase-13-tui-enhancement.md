@@ -1098,4 +1098,3 @@ Create `docs/TUI_Keyboard_Reference.md`:
 - [Layout Manager](../src/tui/utils/layout_manager.ts)
 
 ```
-

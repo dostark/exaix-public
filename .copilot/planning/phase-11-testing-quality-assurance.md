@@ -1,4 +1,4 @@
-## Phase 11: Testing & Quality Assurance
+# Phase 11: Testing & Quality Assurance
 
 > **Status:** 🏗️ IN PROGRESS (Steps 11.1-11.9 ✅ COMPLETED)\
 > **Prerequisites:** Phases 1–10 (Runtime, Events, Intelligence, Tools, Obsidian, Portal, Flows, LLM Providers, UX, Polishing)\
@@ -46,4 +46,3 @@ Tests for lease acquisition/release are in `tests/execution_loop_test.ts`.
       [ ] All tests run automatically on PR in CI/CD
 
 ---
-

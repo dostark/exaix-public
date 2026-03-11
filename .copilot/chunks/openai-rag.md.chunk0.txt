@@ -1,4 +1,4 @@
-# OpenAI RAG Usage Guide
+## OpenAI RAG Usage Guide
 
 Key points
 

@@ -1,4 +1,4 @@
-# Gemini Long-Context Reasoning Guide
+## Gemini Long-Context Reasoning Guide
 
 Key points
 

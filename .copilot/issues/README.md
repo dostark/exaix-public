@@ -4,7 +4,7 @@ version: "1.0"
 topics: ["issues", "bug-tracking", "documentation"]
 ---
 
-# Issues Folder Guidelines
+## Issues Folder Guidelines
 
 This folder contains structured issue reports for ExoFrame bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.
 
@@ -234,4 +234,3 @@ grep -l "labels:.*daemon" .copilot/issues/*.md
 **Remember**: Good issue documentation saves debugging time and helps future contributors understand the problem context.
 
 ````
-

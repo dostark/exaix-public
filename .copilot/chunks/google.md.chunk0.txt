@@ -1,4 +1,4 @@
-# Google Gemini Provider Adaptation Guide
+## Google Gemini Provider Adaptation Guide
 
 Key points
 

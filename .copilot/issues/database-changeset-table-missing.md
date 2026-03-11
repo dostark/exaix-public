@@ -102,4 +102,3 @@ High priority - blocks plan execution functionality, which is core to the system
 - Table schema correct: ✅
 - Plan approval creates changeset records: ✅
 - No "no such table: changesets" errors: ✅
-

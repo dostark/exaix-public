@@ -375,4 +375,3 @@ bin/agent-context "write security tests"
 - `scripts/inspect_embeddings.ts` — Embedding inspection tool
 - `scripts/inject_agent_context.ts` — Context injection script
 - `scripts/build_agents_embeddings.ts` — Embedding generation
-

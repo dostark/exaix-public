@@ -301,4 +301,3 @@ Each phase is independently reversible via git revert. Test coverage must be mai
 - Testing guidelines: [agents/tests/testing.md](../tests/testing.md)
 
 ```
-

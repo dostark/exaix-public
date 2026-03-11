@@ -139,4 +139,3 @@ None currently known.
 High priority because plan generation is rejected for read-only agents (blocking workflow), and token usage visibility is required for auditability and cost tracking.
 
 ```
-

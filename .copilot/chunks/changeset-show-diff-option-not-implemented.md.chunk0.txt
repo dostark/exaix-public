@@ -1,4 +1,4 @@
-# Issue: `--diff` option is not implemented for `exoctl changeset show`
+## Issue: `--diff` option is not implemented for `exoctl changeset show`
 
 ## Problem
 

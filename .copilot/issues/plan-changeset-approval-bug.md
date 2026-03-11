@@ -95,4 +95,3 @@ Root causes identified and resolved:
 - All existing tests pass
 - Manual testing confirms `exoctl changeset list` now shows changesets from portal repositories
 - Plan approval and archiving now uses correct configured paths
-
