@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-11T09:45:33.403Z",
+  "generated_at": "2026-03-11T14:55:59.866Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1029,6 +1029,31 @@
       ],
       "chunks": [
         ".copilot/chunks/summary.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/process/specification-driven-development.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Specification-Driven Development in ExoFrame",
+      "short_summary": "Analysis of how ExoFrame's request-clarification-planning-execution pipeline implements Specification-Driven Development (SDD) principles for AI agent orchestration.",
+      "version": "1.0",
+      "topics": [
+        "methodology",
+        "sdd",
+        "quality",
+        "request-processing",
+        "architecture"
+      ],
+      "chunks": [
+        ".copilot/chunks/specification-driven-development.md.chunk0.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk1.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk2.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk3.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk4.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk5.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk6.txt",
+        ".copilot/chunks/specification-driven-development.md.chunk7.txt"
       ]
     },
     {
