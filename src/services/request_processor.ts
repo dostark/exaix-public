@@ -298,7 +298,7 @@ export class RequestProcessor {
     analysis?: IRequestAnalysis,
   ): Promise<string | null> {
     if (kind === "flow") {
-      return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger);
+      return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis);
     }
 
     return this.processAgentRequest(frontmatter, body, filePath, requestId, traceId, traceLogger, analysis);
@@ -310,6 +310,7 @@ export class RequestProcessor {
     requestId: string,
     traceId: string,
     traceLogger: EventLogger,
+    analysis?: IRequestAnalysis,
   ): Promise<string | null> {
     if (this.flowValidator) {
       const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
@@ -352,6 +353,7 @@ export class RequestProcessor {
       model: frontmatter.model,
       portal: frontmatter.portal,
       targetBranch: frontmatter.target_branch,
+      requestAnalysis: analysis,
     };
 
     return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger, {

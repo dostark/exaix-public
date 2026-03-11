@@ -16,6 +16,8 @@ import type {
   RequestSource,
 } from "../types/request.ts";
 
+import { IRequestAnalysis } from "../schemas/request_analysis.ts";
+
 export interface IRequestService {
   /**
    * Create a new request with the given description.
@@ -58,4 +60,9 @@ export interface IRequestService {
    * Update the status of a request.
    */
   updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
+
+  /**
+   * Get the analysis for a specific request.
+   */
+  getAnalysis(requestId: string): Promise<IRequestAnalysis | null>;
 }

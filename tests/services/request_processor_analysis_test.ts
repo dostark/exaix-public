@@ -420,7 +420,8 @@ Deno.test("[RequestProcessor] skips analysis if request status is already PLANNE
 
     await processor.process(filePath);
 
-    assertEquals(analysisCalls, 0, "Analyzer should not be called for skipped requests");  } finally {
+    assertEquals(analysisCalls, 0, "Analyzer should not be called for skipped requests");
+  } finally {
     await env.cleanup();
   }
 });

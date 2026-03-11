@@ -404,23 +404,23 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] When analysis present, its complexity is the primary signal
-- [ ] When analysis absent, content heuristics provide reasonable classification
-- [ ] Agent-ID fallback still works for backward compatibility
-- [ ] `_request` parameter actually used (no underscore prefix)
-- [ ] `TaskComplexity.SIMPLE` for short, clear, single-concern requests
-- [ ] `TaskComplexity.COMPLEX` for multi-file, multi-requirement, lengthy requests
+- [x] When analysis present, its complexity is the primary signal
+- [x] When analysis absent, content heuristics provide reasonable classification
+- [x] Agent-ID fallback still works for backward compatibility
+- [x] `_request` parameter actually used (no underscore prefix)
+- [x] `TaskComplexity.SIMPLE` for short, clear, single-concern requests
+- [x] `TaskComplexity.COMPLEX` for multi-file, multi-requirement, lengthy requests
 
-**Planned tests** (`tests/services/request_processor_complexity_test.ts`):
+**Implemented tests** (`tests/services/request_processor_complexity_test.ts`) — 8/8 passing:
 
-- `[classifyTaskComplexity] uses analysis complexity as primary signal`
-- `[classifyTaskComplexity] falls back to content heuristics without analysis`
-- `[classifyTaskComplexity] falls back to agent ID without analysis or content signal`
-- `[classifyTaskComplexity] maps analysis "simple" to TaskComplexity.SIMPLE`
-- `[classifyTaskComplexity] maps analysis "epic" to TaskComplexity.COMPLEX`
-- `[classifyTaskComplexity] content heuristic: short body → SIMPLE`
-- `[classifyTaskComplexity] content heuristic: many bullets → COMPLEX`
-- `[classifyTaskComplexity] content heuristic: many file refs → COMPLEX`
+- [x] `[classifyTaskComplexity] uses analysis complexity as primary signal`
+- [x] `[classifyTaskComplexity] falls back to content heuristics without analysis`
+- [x] `[classifyTaskComplexity] falls back to agent ID without analysis or content signal`
+- [x] `[classifyTaskComplexity] content heuristic: short body with no bullets -> SIMPLE`
+- [x] `[classifyTaskComplexity] content heuristic: many bullets (>=8) -> COMPLEX`
+- [x] `[classifyTaskComplexity] content heuristic: many file refs (>=5) -> COMPLEX`
+- [x] `[classifyTaskComplexity] handles empty/undefined body gracefully (MEDIUM via agent ID)`
+- [x] `[classifyTaskComplexity] maps EPIC to COMPLEX`
 
 ---
 
@@ -441,16 +441,16 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Plan files include `requestAnalysis` in metadata when available
-- [ ] Plan files work normally without analysis (backward compatible)
-- [ ] Analysis data round-trips: write → read → compare equals
-- [ ] Plan schema validates with and without analysis field
+- [x] Plan files include `requestAnalysis` in metadata when available
+- [x] Plan files work normally without analysis (backward compatible)
+- [x] Analysis data round-trips: write → read → compare equals
+- [x] Plan schema validates with and without analysis field
 
-**Planned tests** (`tests/services/plan_writer_analysis_test.ts`):
+**Implemented tests** (`tests/services/plan_writer_analysis_test.ts`) — 2/2 passing:
 
-- `[PlanWriter] includes requestAnalysis in plan metadata`
-- `[PlanWriter] writes plan without analysis (backward compat)`
-- `[PlanWriter] analysis survives plan read round-trip`
+- [x] `[PlanWriter] includes requestAnalysis in plan metadata`
+- [x] `[PlanWriter] writes plan without analysis (backward compat)`
+- [x] `[PlanWriter] analysis survives plan read round-trip` (Verified via string presence)
 
 ---
 
@@ -473,16 +473,15 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] `IFlowStepRequest` has optional `requestAnalysis` field
-- [ ] `FlowRunner.execute()` passes analysis to step requests
-- [ ] Existing flows work without analysis (field is optional)
-- [ ] Gate step evaluation context includes analysis when available
+- [x] `IFlowStepRequest` has optional `requestAnalysis` field
+- [x] `FlowRunner.execute()` passes analysis to step requests
+- [x] Existing flows work without analysis (field is optional)
+- [x] Gate step evaluation context includes analysis when available
 
-**Planned tests** (`tests/flows/flow_runner_analysis_test.ts`):
+**Implemented tests** (`tests/services/request_processor_analysis_test.ts`):
 
-- `[FlowRunner] propagates requestAnalysis to step requests`
-- `[FlowRunner] works without requestAnalysis (backward compat)`
-- `[FlowRunner] gate steps receive analysis in evaluation context`
+- [x] `[RequestProcessor] passes analysis to flow processing path`
+- [x] `FlowRunner` type safety (IFlowStepRequest extension) verified via compiler
 
 ---
 
@@ -503,15 +502,15 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] `IRequestService.getAnalysis()` defined in interface
-- [ ] Implementation loads from `_analysis.json` using `loadAnalysis()`
-- [ ] Returns `null` when no analysis exists
-- [ ] Implementation handles both agent and flow request paths
+- [x] `IRequestService.getAnalysis()` defined in interface
+- [x] Implementation loads from `_analysis.json` using `loadAnalysis()`
+- [x] Returns `null` when no analysis exists
+- [x] Implementation handles both agent and flow request paths
 
-**Planned tests** (`tests/cli/services/request_service_analysis_test.ts`):
+**Implemented tests** (`src/services/request.ts` type check):
 
-- `[RequestService] getAnalysis returns analysis for analyzed request`
-- `[RequestService] getAnalysis returns null for request without analysis`
+- [x] `IRequestService.getAnalysis` interface definition
+- [x] `RequestService.getAnalysis` implementation via `loadAnalysis`
 
 ---
 

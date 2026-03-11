@@ -42,6 +42,7 @@ import {
 } from "../shared/types/request.ts";
 import { IRequestService } from "../shared/interfaces/i_request_service.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "./helpers/constants.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 /**
  * View state interface
@@ -222,9 +223,18 @@ export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
  */
 export class MinimalRequestServiceMock implements IRequestService {
   constructor(private requests: IRequest[] = []) {}
-  listRequests = (_status?: RequestStatusType, _includeArchived?: boolean) => Promise.resolve(this.requests);
-  getRequestContent = (_: string) => Promise.resolve("");
-  createRequest = (_: string, __?: IRequestOptions) => Promise.resolve({} as IRequest);
+  listRequests(_status?: RequestStatusType, _includeArchived?: boolean): Promise<IRequest[]> {
+    return Promise.resolve(this.requests);
+  }
+  getRequestContent(_: string): Promise<string> {
+    return Promise.resolve("");
+  }
+  getAnalysis(_: string): Promise<IRequestAnalysis | null> {
+    return Promise.resolve(null);
+  }
+  createRequest(_: string, __?: IRequestOptions): Promise<IRequest> {
+    return Promise.resolve({} as IRequest);
+  }
   updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
     return Promise.resolve(true);
   }
@@ -547,8 +557,16 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     try {
       const content = await this.service.getRequestContent(requestId);
       const request = this.requests.find((r) => r.trace_id === requestId);
+      let analysis: IRequestAnalysis | null = null;
 
-      this.state.detailContent = this.formatDetailContent(request, content);
+      try {
+        analysis = await this.service.getAnalysis(requestId);
+      } catch (e) {
+        // Silently fail if analysis is missing
+        console.warn(`Could not load analysis for ${requestId}: ${e}`);
+      }
+
+      this.state.detailContent = this.formatDetailContent(request, content, analysis);
       this.state.showDetail = true;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -556,8 +574,12 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     }
   }
 
-  private formatDetailContent(request: IRequest | undefined, content: string): string {
-    return RequestFormatter.formatDetailContent(request, content);
+  private formatDetailContent(
+    request: IRequest | undefined,
+    content: string,
+    analysis: IRequestAnalysis | null,
+  ): string {
+    return RequestFormatter.formatDetailContent(request, content, analysis);
   }
 
   renderDetail(): string {
@@ -1098,6 +1120,10 @@ export class RequestManagerView implements IRequestService {
 
   getRequestContent(requestId: string): Promise<string> {
     return this.service.getRequestContent(requestId);
+  }
+
+  getAnalysis(requestId: string): Promise<IRequestAnalysis | null> {
+    return this.service.getAnalysis(requestId);
   }
 
   createRequest(description: string, options?: IRequestOptions): Promise<IRequest> {

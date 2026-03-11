@@ -15,6 +15,7 @@ import {
   TUI_MSG_PRESS_QUIT,
 } from "../helpers/constants.ts";
 import { IRequest } from "../../shared/types/request.ts";
+import { IRequestAnalysis, RequestAnalysisComplexity } from "../../shared/schemas/request_analysis.ts";
 
 /**
  * Formatter for Request Manager View
@@ -105,6 +106,66 @@ export class RequestFormatter {
   }
 
   /**
+   * Format analysis section
+   */
+  static formatAnalysisSection(analysis: IRequestAnalysis | null): string[] {
+    if (!analysis) return [];
+
+    const _complexityColors: Record<RequestAnalysisComplexity, string> = {
+      [RequestAnalysisComplexity.SIMPLE]: "green",
+      [RequestAnalysisComplexity.MEDIUM]: "yellow",
+      [RequestAnalysisComplexity.COMPLEX]: "red",
+      [RequestAnalysisComplexity.EPIC]: "magenta",
+    };
+
+    const lines: string[] = [
+      `╠═════════[ REQUEST ANALYSIS ]══════════════════════════════════╣`,
+    ];
+
+    // Complexity and actionability
+    const comp = analysis.complexity || "unknown";
+    const score = analysis.actionabilityScore || 0;
+    const barWidth = 10;
+    const filled = Math.round((score / 100) * barWidth);
+    const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
+
+    lines.push(`║ Complexity:   ${comp.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`);
+    lines.push(`║ Actionability: ${bar} ${score}/100`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+
+    // Goals summary
+    if (analysis.goals && analysis.goals.length > 0) {
+      lines.push(`║ Goals:        ${analysis.goals.length} total`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+      for (const goal of analysis.goals.slice(0, 3)) {
+        const marker = goal.explicit ? "[E]" : "[I]";
+        const text = goal.description.slice(0, TUI_LAYOUT_MEDIUM_WIDTH - 15);
+        lines.push(`║   ${marker} ${text.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 12)} ║`);
+      }
+    }
+
+    // Requirements/Ambiguities
+    const reqCount = analysis.requirements?.length || 0;
+    const ambCount = analysis.ambiguities?.length || 0;
+    lines.push(`║ Requirements: ${reqCount} | Ambiguities: ${ambCount}`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
+
+    if (ambCount > 0 && analysis.ambiguities) {
+      const topAmb = analysis.ambiguities[0];
+      const ambText = (typeof topAmb === "string" ? topAmb : topAmb.description).slice(
+        0,
+        TUI_LAYOUT_MEDIUM_WIDTH - 15,
+      );
+      lines.push(`║   Top Ambiguity: ${ambText.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 18)} ║`);
+    }
+
+    // Referenced files
+    if (analysis.referencedFiles && analysis.referencedFiles.length > 0) {
+      const filesStr = analysis.referencedFiles.join(", ").slice(0, TUI_LAYOUT_MEDIUM_WIDTH - 15);
+      lines.push(`║ Files:        ${filesStr.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 14)} ║`);
+    }
+
+    return lines;
+  }
+
+  /**
    * Format content section
    */
   static formatContentSection(content: string): string[] {
@@ -125,17 +186,29 @@ export class RequestFormatter {
   /**
    * Format complete request detail content
    */
-  static formatDetailContent(request: IRequest | undefined, content: string): string {
+  static formatDetailContent(
+    request: IRequest | undefined,
+    content: string,
+    analysis: IRequestAnalysis | null = null,
+  ): string {
     if (!request) return content;
 
     const lines: string[] = [
       ...this.formatRequestMetadata(request),
       ...this.formatSkillsSection(request),
+    ];
+
+    // Analysis section (Phase 45.13)
+    if (analysis) {
+      lines.push(...this.formatAnalysisSection(analysis));
+    }
+
+    lines.push(
       ...this.formatContentSection(content),
       `╚══════════════════════════════════════════════════════════════╝`,
       "",
       TUI_MSG_PRESS_QUIT,
-    ];
+    );
 
     return lines.join("\n");
   }

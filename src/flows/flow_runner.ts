@@ -14,11 +14,17 @@ import { ConditionEvaluator } from "./condition_evaluator.ts";
 import { appendToRequest, extractSection, mergeAsContext, passthrough, templateFill } from "./transforms.ts";
 import { jsonExtract, JSONValue } from "../shared/types/json.ts";
 import type { IDatabaseService } from "../services/db.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 export interface IFlowRunner {
   execute(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: {
+      userPrompt: string;
+      traceId?: string;
+      requestId?: string;
+      requestAnalysis?: IRequestAnalysis;
+    },
   ): Promise<IFlowResult>;
 }
 
@@ -92,6 +98,8 @@ export interface IFlowStepRequest {
   requestId?: string;
   /** Skills to apply for this step execution (Phase 17) */
   skills?: string[];
+  /** Structured request analysis from Step 11 */
+  requestAnalysis?: IRequestAnalysis;
 }
 
 /**
@@ -208,7 +216,12 @@ export class FlowRunner implements IFlowRunner {
    */
   async execute(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: {
+      userPrompt: string;
+      traceId?: string;
+      requestId?: string;
+      requestAnalysis?: IRequestAnalysis;
+    },
   ): Promise<IFlowResult> {
     const flowRunId = crypto.randomUUID();
     const startedAt = new Date();

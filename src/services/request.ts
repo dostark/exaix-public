@@ -21,7 +21,9 @@ import {
 } from "../shared/types/request.ts";
 import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
-import type { JSONValue } from "../shared/types/json.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
+import { loadAnalysis } from "./request_analysis/mod.ts";
+import { JSONValue } from "../shared/types/json.ts";
 
 export class RequestService {
   private requestsDir: string;
@@ -231,6 +233,13 @@ export class RequestService {
     } catch {
       return false;
     }
+  }
+
+  async getAnalysis(requestId: string): Promise<IRequestAnalysis | null> {
+    const filename = await this.findFilename(requestId);
+    if (!filename) return null;
+    const path = join(this.requestsDir, filename);
+    return loadAnalysis(path);
   }
 
   private toRequestEntry(fm: Record<string, string>, filename: string, path: string): IRequestEntry {
