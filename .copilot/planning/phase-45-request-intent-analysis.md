@@ -537,17 +537,18 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Detail panel shows analysis section when analysis data exists
-- [ ] Detail panel renders correctly without analysis data (graceful absence)
-- [ ] Complexity displayed as colored badge (simple=green, medium=yellow, complex=red, epic=magenta)
-- [ ] Actionability score displayed as visual bar (e.g., `████████░░ 80/100`)
-- [ ] Goals listed with `[E]` (explicit) or `[I]` (inferred) markers
-- [ ] Ambiguities shown with count and highest-impact summary
+- [x] Detail panel shows analysis section when analysis data exists
+- [x] Detail panel renders correctly without analysis data (graceful absence)
+- [x] Complexity displayed as colored badge (simple=green, medium=yellow, complex=red, epic=magenta)
+- [x] Actionability score displayed as visual bar (e.g., `████████░░ 80/100`)
+- [x] Goals listed with `[E]` (explicit) or `[I]` (inferred) markers
+- [x] Ambiguities shown with count and highest-impact summary
 
-**Planned tests** (`tests/tui/request_manager_analysis_test.ts`):
+**Implemented tests** (`tests/tui/request_manager_analysis_tui_test.ts`) — 3/3 passing:
 
-- `[RequestManagerView] displays analysis section in detail view`
-- `[RequestManagerView] renders detail without analysis gracefully`
+- [x] `RequestManagerTuiSession - Detail View includes Analysis section`
+- [x] `RequestFormatter.formatAnalysisSection - formats analysis correctly`
+- [x] `RequestFormatter.formatAnalysisSection - handles empty analysis`
 - `[RequestManagerView] formats complexity badge with correct color`
 - `[RequestManagerView] formats actionability score bar`
 - `[RequestManagerView] lists goals with explicit/inferred markers`
