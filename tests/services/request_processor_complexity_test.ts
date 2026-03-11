@@ -1,0 +1,261 @@
+/**
+ * @module RequestProcessorComplexityTest
+ * @path tests/services/request_processor_complexity_test.ts
+ * @description Verifies that RequestProcessor's classifyTaskComplexity method
+ * uses structured analysis (Phase 45), content heuristics, and agent-ID fallbacks
+ * correctly to categorize task complexity.
+ * @related-files [src/services/request_processor.ts, src/shared/schemas/request_analysis.ts, src/shared/enums.ts]
+ */
+
+import { assertEquals } from "@std/assert";
+import { RequestProcessor } from "../../src/services/request_processor.ts";
+import { buildParsedRequest } from "../../src/services/request_common.ts";
+import { TaskComplexity } from "../../src/shared/enums.ts";
+import {
+  AnalyzerMode,
+  type IRequestAnalysis,
+  RequestAnalysisComplexity,
+  RequestTaskType,
+} from "../../src/shared/schemas/request_analysis.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
+import { initTestDbService } from "../helpers/db.ts";
+import type { IBlueprint, IParsedRequest } from "../../src/services/agent_runner.ts";
+import type { IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
+
+/**
+ * Interface representing the private method for testing.
+ */
+interface IRequestProcessorTest {
+  classifyTaskComplexity(
+    blueprint: IBlueprint,
+    request: IParsedRequest,
+    analysis?: IRequestAnalysis,
+  ): TaskComplexity;
+}
+
+/**
+ * Accessor type to avoid prohibited Record types.
+ */
+type ProcessorAccessor = { [K in keyof IRequestProcessorTest]: IRequestProcessorTest[K] };
+
+/**
+ * Helper to call the private classifyTaskComplexity method without forbidden casts.
+ */
+function callClassifyTaskComplexity(
+  processor: RequestProcessor,
+  blueprint: IBlueprint,
+  request: IParsedRequest,
+  analysis?: IRequestAnalysis,
+): TaskComplexity {
+  // Accessing private method via bracket notation on the instance directly.
+  const accessor = (processor as object) as ProcessorAccessor;
+  return accessor["classifyTaskComplexity"](blueprint, request, analysis);
+}
+
+/**
+ * Helper to create a minimal valid IRequestAnalysis for testing.
+ */
+function createTestAnalysis(complexity: RequestAnalysisComplexity): IRequestAnalysis {
+  return {
+    goals: [],
+    requirements: [],
+    constraints: [],
+    acceptanceCriteria: [],
+    ambiguities: [],
+    actionabilityScore: 100,
+    complexity,
+    taskType: RequestTaskType.UNKNOWN,
+    tags: [],
+    referencedFiles: [],
+    metadata: {
+      analyzedAt: new Date().toISOString(),
+      durationMs: 0,
+      mode: AnalyzerMode.HEURISTIC,
+    },
+  };
+}
+
+Deno.test("[classifyTaskComplexity] uses analysis complexity as primary signal", async () => {
+  const { db, config, cleanup } = await initTestDbService();
+  try {
+    const processor = new RequestProcessor(config, db, {
+      workspacePath: "",
+      requestsDir: "",
+      blueprintsPath: "",
+      includeReasoning: false,
+    });
+
+    const blueprint: IBlueprint = {
+      agentId: "generic-agent",
+      systemPrompt: "test",
+    };
+    const frontmatter: IRequestFrontmatter = {
+      trace_id: "t1",
+      created: new Date().toISOString(),
+      status: RequestStatus.PENDING,
+      priority: "normal",
+      source: "cli",
+      created_by: "user",
+    };
+    const request = buildParsedRequest(
+      "body",
+      frontmatter,
+      "req-1",
+      "trace-1",
+    ) as IParsedRequest;
+
+    // Simple analysis
+    const simpleAnalysis = createTestAnalysis(RequestAnalysisComplexity.SIMPLE);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, request, simpleAnalysis),
+      TaskComplexity.SIMPLE,
+    );
+
+    // Complex analysis
+    const complexAnalysis = createTestAnalysis(RequestAnalysisComplexity.COMPLEX);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, request, complexAnalysis),
+      TaskComplexity.COMPLEX,
+    );
+
+    // Epic analysis (maps to COMPLEX)
+    const epicAnalysis = createTestAnalysis(RequestAnalysisComplexity.EPIC);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, request, epicAnalysis),
+      TaskComplexity.COMPLEX,
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("[classifyTaskComplexity] falls back to content heuristics without analysis", async () => {
+  const { db, config, cleanup } = await initTestDbService();
+  try {
+    const processor = new RequestProcessor(config, db, {
+      workspacePath: "",
+      requestsDir: "",
+      blueprintsPath: "",
+      includeReasoning: false,
+    });
+
+    const blueprint: IBlueprint = {
+      agentId: "generic-agent",
+      systemPrompt: "test",
+    };
+
+    const frontmatter: IRequestFrontmatter = {
+      trace_id: "t1",
+      created: new Date().toISOString(),
+      status: RequestStatus.PENDING,
+      priority: "normal",
+      source: "cli",
+      created_by: "user",
+    };
+
+    // Short body -> SIMPLE
+    const shortRequest = buildParsedRequest(
+      "Fix typo.",
+      frontmatter,
+      "req-1",
+      "trace-1",
+    ) as IParsedRequest;
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, shortRequest),
+      TaskComplexity.SIMPLE,
+    );
+
+    // Long body with many bullets -> COMPLEX
+    const longBody =
+      "Implement feature:\n- Requirement 1\n- Requirement 2\n- Requirement 3\n- Requirement 4\n- Requirement 5\n- Requirement 6\n- Requirement 7\n- Requirement 8\n- Requirement 9\n- Requirement 10\n- Requirement 11";
+    const longRequest = buildParsedRequest(
+      longBody,
+      { ...frontmatter, trace_id: "t2" },
+      "req-2",
+      "trace-2",
+    ) as IParsedRequest;
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, longRequest),
+      TaskComplexity.COMPLEX,
+    );
+
+    // Body with many file refs -> COMPLEX
+    const fileRefBody = "Update src/a.ts, src/b.ts, src/c.ts, src/d.ts, src/e.ts, src/f.ts";
+    const fileRefRequest = buildParsedRequest(
+      fileRefBody,
+      { ...frontmatter, trace_id: "t3" },
+      "req-3",
+      "trace-3",
+    ) as IParsedRequest;
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, fileRefRequest),
+      TaskComplexity.COMPLEX,
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or content signal", async () => {
+  const { db, config, cleanup } = await initTestDbService();
+  try {
+    const processor = new RequestProcessor(config, db, {
+      workspacePath: "",
+      requestsDir: "",
+      blueprintsPath: "",
+      includeReasoning: false,
+    });
+
+    const frontmatter: IRequestFrontmatter = {
+      trace_id: "t1",
+      created: new Date().toISOString(),
+      status: RequestStatus.PENDING,
+      priority: "normal",
+      source: "cli",
+      created_by: "user",
+    };
+
+    const request = buildParsedRequest(
+      "Standard request body of medium length that doesn't trigger heuristics.",
+      frontmatter,
+      "req-1",
+      "trace-1",
+    ) as IParsedRequest;
+
+    const baseBlueprint: IBlueprint = {
+      systemPrompt: "test",
+    };
+
+    // Coder agent -> COMPLEX
+    assertEquals(
+      callClassifyTaskComplexity(
+        processor,
+        { ...baseBlueprint, agentId: "expert-coder" },
+        request,
+      ),
+      TaskComplexity.COMPLEX,
+    );
+
+    // Analyzer agent -> SIMPLE
+    assertEquals(
+      callClassifyTaskComplexity(
+        processor,
+        { ...baseBlueprint, agentId: "log-analyzer" },
+        request,
+      ),
+      TaskComplexity.SIMPLE,
+    );
+
+    // Generic agent -> MEDIUM
+    assertEquals(
+      callClassifyTaskComplexity(
+        processor,
+        { ...baseBlueprint, agentId: "helper" },
+        request,
+      ),
+      TaskComplexity.MEDIUM,
+    );
+  } finally {
+    await cleanup();
+  }
+});

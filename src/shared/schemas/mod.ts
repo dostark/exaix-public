@@ -17,6 +17,7 @@ export * from "./mcp.ts";
 export * from "./memory_bank.ts";
 export * from "./plan_schema.ts";
 export * from "./request.ts";
+export * from "./request_analysis.ts";
 export * from "./review.ts";
 export * from "./schema_describer.ts";
 export * as InputValidationSchemas from "./input_validation.ts";

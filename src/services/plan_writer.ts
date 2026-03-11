@@ -19,6 +19,7 @@ import { PlanStatus } from "../shared/status/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { IServiceContext } from "./common/types.ts";
 import { JSONValue } from "../shared/types/json.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 export interface IRequestMetadata {
   requestId: string;
@@ -32,6 +33,7 @@ export interface IRequestMetadata {
   targetBranch?: string;
   subject?: string;
   subjectIsFallback?: boolean;
+  requestAnalysis?: IRequestAnalysis;
 }
 
 export interface IPlanWriterConfig {
@@ -272,6 +274,10 @@ export class PlanWriter {
 
     if (metadata.subject) {
       lines.push(`subject: "${metadata.subject}"`);
+    }
+
+    if (metadata.requestAnalysis) {
+      lines.push(`request_analysis: ${JSON.stringify(metadata.requestAnalysis)}`);
     }
 
     if (tokenSummary) {

@@ -1,3 +1,6 @@
+Recommended detailed format:
+`<type>(<scope>): <summary>`
+
 `Context:`
 - One short paragraph describing why this change is needed.
 

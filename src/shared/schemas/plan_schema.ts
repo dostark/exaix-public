@@ -46,8 +46,8 @@ export const PlanFrontmatterSchema = z.object({
   rejected_at: z.string().optional(),
   rejection_reason: z.string().optional(),
   reviewed_by: z.string().optional(),
-  reviewed_at: z.string().optional(),
   skills: z.string().optional(),
+  request_analysis: z.record(z.any()).optional(),
   subject: z.string().optional(),
 }).passthrough();
 

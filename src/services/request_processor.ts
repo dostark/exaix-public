@@ -13,7 +13,7 @@ import { IModelProvider } from "../ai/types.ts";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../shared/schemas/config.ts";
 import { AgentRunner, type IAgentExecutionResult, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
-import { buildParsedRequest } from "./request_common.ts";
+import { applyAnalysisToRequest, buildParsedRequest } from "./request_common.ts";
 import { BlueprintLoader, type ILoadedBlueprint } from "./blueprint_loader.ts";
 import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
@@ -37,6 +37,9 @@ import { IRequestFrontmatter, ParsedRequestFile } from "./request_processing/typ
 import type { LogMetadata } from "../shared/types/json.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { IServiceContext } from "./common/types.ts";
+import { RequestAnalyzer, saveAnalysis } from "./request_analysis/mod.ts";
+import { type IRequestAnalysis, RequestAnalysisComplexity } from "../shared/schemas/request_analysis.ts";
+import type { IRequestAnalyzerService } from "../shared/interfaces/i_request_analyzer_service.ts";
 
 export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
@@ -46,6 +49,7 @@ export interface IRequestProcessingContext extends IServiceContext {
   traceLogger: EventLogger;
   requestId: string;
   requestKind: "flow" | "agent";
+  analysis?: IRequestAnalysis;
 }
 
 export interface IRequestProcessorConfig {
@@ -69,6 +73,7 @@ export class RequestProcessor {
   private readonly ioBreaker: CircuitBreaker;
   private readonly requestParser: RequestParser;
   private readonly statusManager: StatusManager;
+  private readonly analyzer: IRequestAnalyzerService;
 
   constructor(
     private readonly config: Config,
@@ -76,6 +81,7 @@ export class RequestProcessor {
     private readonly processorConfig: IRequestProcessorConfig,
     private readonly testProvider?: IModelProvider,
     costTracker?: CostTracker,
+    testAnalyzer?: IRequestAnalyzerService,
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
@@ -111,6 +117,7 @@ export class RequestProcessor {
     // Initialize extracted components
     this.requestParser = new RequestParser(this.logger);
     this.statusManager = new StatusManager(this.logger);
+    this.analyzer = testAnalyzer ?? new RequestAnalyzer({ mode: "heuristic" });
   }
 
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
@@ -149,6 +156,16 @@ export class RequestProcessor {
 
     const pipeline = this.createRequestProcessingPipeline();
 
+    // Run analysis before pipeline so both agent and flow paths benefit
+    const analysis = await this.analyzer.analyze(body, {
+      agentId: frontmatter.agent ?? frontmatter.flow,
+      priority: frontmatter.priority,
+    }).catch(() => undefined);
+
+    if (analysis) {
+      await saveAnalysis(filePath, analysis).catch(() => {});
+    }
+
     const context: IRequestProcessingContext = {
       filePath,
       parsed,
@@ -157,6 +174,7 @@ export class RequestProcessor {
       traceLogger,
       requestId,
       requestKind,
+      analysis,
     };
 
     try {
@@ -169,6 +187,7 @@ export class RequestProcessor {
           requestId,
           traceId,
           traceLogger,
+          context.analysis,
         );
       });
 
@@ -276,12 +295,13 @@ export class RequestProcessor {
     requestId: string,
     traceId: string,
     traceLogger: EventLogger,
+    analysis?: IRequestAnalysis,
   ): Promise<string | null> {
     if (kind === "flow") {
       return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger);
     }
 
-    return this.processAgentRequest(frontmatter, body, filePath, requestId, traceId, traceLogger);
+    return this.processAgentRequest(frontmatter, body, filePath, requestId, traceId, traceLogger, analysis);
   }
 
   private async processFlowRequest(
@@ -346,6 +366,7 @@ export class RequestProcessor {
     requestId: string,
     traceId: string,
     traceLogger: EventLogger,
+    analysis?: IRequestAnalysis,
   ): Promise<string | null> {
     const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
@@ -368,12 +389,15 @@ export class RequestProcessor {
     const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
     const request: IParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as IParsedRequest;
+    if (analysis) {
+      applyAnalysisToRequest(request, analysis);
+    }
     const portalContext = await this.buildPortalContext(frontmatter.portal, traceLogger);
     if (portalContext) {
       request.context[PORTAL_CONTEXT_KEY] = portalContext;
     }
 
-    const taskComplexity = this.classifyTaskComplexity(blueprint, request);
+    const taskComplexity = this.classifyTaskComplexity(blueprint, request, analysis);
     let selectedProvider: IModelProvider;
 
     if (this.testProvider) {
@@ -427,6 +451,7 @@ export class RequestProcessor {
       targetBranch: frontmatter.target_branch,
       subject: frontmatter.subject,
       subjectIsFallback: frontmatter.subject_is_fallback,
+      requestAnalysis: analysis,
     };
 
     let result = await agentRunner.run(blueprint, request);
@@ -661,10 +686,47 @@ Raw Details: ${args.rawDetails}
     return planResult.planPath;
   }
 
-  private classifyTaskComplexity(blueprint: IBlueprint, _request: IParsedRequest): TaskComplexity {
-    const agentId = blueprint.agentId || "";
-    if (agentId.includes("analyzer") || agentId.includes("summarizer")) return TaskComplexity.SIMPLE;
-    if (agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")) {
+  private classifyTaskComplexity(
+    blueprint: IBlueprint,
+    request: IParsedRequest,
+    analysis?: IRequestAnalysis,
+  ): TaskComplexity {
+    if (analysis?.complexity) {
+      return this.mapAnalysisComplexity(analysis.complexity);
+    }
+
+    const bodySignals = this.checkContentHeuristics(request.userPrompt);
+    if (bodySignals) return bodySignals;
+
+    return this.classifyByAgentId(blueprint.agentId);
+  }
+
+  private mapAnalysisComplexity(complexity: RequestAnalysisComplexity): TaskComplexity {
+    switch (complexity) {
+      case RequestAnalysisComplexity.SIMPLE:
+        return TaskComplexity.SIMPLE;
+      case RequestAnalysisComplexity.MEDIUM:
+        return TaskComplexity.MEDIUM;
+      case RequestAnalysisComplexity.COMPLEX:
+      case RequestAnalysisComplexity.EPIC:
+        return TaskComplexity.COMPLEX;
+    }
+  }
+
+  private checkContentHeuristics(body?: string): TaskComplexity | null {
+    if (!body) return null;
+    const fileRefs = body.match(/(\/[\w.-]+|[a-z0-9_]+\.(ts|js|md|json|py|go|rs|c|cpp|h))/gi);
+    if (fileRefs && fileRefs.length >= 5) return TaskComplexity.COMPLEX;
+    const bulletPoints = (body.match(/\n\s*[-*]\s+/g) || []).length;
+    if (bulletPoints >= 8) return TaskComplexity.COMPLEX;
+    if (body.length < 50 && !body.includes("\n-")) return TaskComplexity.SIMPLE;
+    return null;
+  }
+
+  private classifyByAgentId(agentId?: string): TaskComplexity {
+    const id = agentId || "";
+    if (id.includes("analyzer") || id.includes("summarizer")) return TaskComplexity.SIMPLE;
+    if (id.includes("coder") || id.includes("planner") || id.includes("architect")) {
       return TaskComplexity.COMPLEX;
     }
     return TaskComplexity.MEDIUM;

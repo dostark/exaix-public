@@ -5,12 +5,13 @@
  * and building parsed request objects.
  * @architectural-layer Services
  * @dependencies [Blueprint, Path]
- * @related-files [src/services/request_processor.ts, src/services/agent_runner.ts]
+ * @related-files [src/services/request_processor.ts, src/services/agent_runner.ts, src/shared/schemas/request_analysis.ts]
  */
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import type { IBlueprint, IParsedRequest } from "./agent_runner.ts";
 import type { IRequestFrontmatter } from "./request_processing/types.ts";
+import type { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 /** Load an agent blueprint file from a blueprints directory. */
 export async function loadBlueprint(blueprintsPath: string, agentId: string): Promise<IBlueprint | null> {
@@ -63,4 +64,19 @@ export function buildParsedRequest(
     traceId,
     skills,
   };
+}
+
+/**
+ * Enrich an IParsedRequest with structured analysis output.
+ * Populates `taskType`, `tags`, and `filePaths` from the analysis so downstream
+ * services (e.g. skill matching) can use structured intent data.
+ */
+export function applyAnalysisToRequest(
+  request: IParsedRequest,
+  analysis: IRequestAnalysis,
+): void {
+  request.taskType = analysis.taskType;
+  request.tags = analysis.tags;
+  request.filePaths = analysis.referencedFiles;
+  request.context.analysis = analysis;
 }

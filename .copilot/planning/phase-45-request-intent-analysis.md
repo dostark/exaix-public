@@ -1,6 +1,6 @@
 # Phase 45: Request Intent Analysis & Pre-Processing
 
-## Status: PLANNING
+## Status: IN PROGRESS
 
 Introduce a `RequestAnalyzer` service that extracts structured intent, requirements, and constraints from raw request text before agent execution — closing the largest gap in ExoFrame's quality pipeline.
 
@@ -91,22 +91,35 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] `RequestAnalysisSchema.safeParse(validData)` returns `{ success: true }`
-- [ ] `RequestAnalysisSchema.safeParse(invalidData)` returns `{ success: false }` with meaningful errors
-- [ ] All sub-schemas (`RequestGoalSchema`, `RequirementSchema`, `AmbiguitySchema`) parseable independently
-- [ ] Schema re-exported through `src/shared/schemas/mod.ts` barrel
-- [ ] No lint or type errors
+- [x] `RequestAnalysisSchema.safeParse(validData)` returns `{ success: true }`
+- [x] `RequestAnalysisSchema.safeParse(invalidData)` returns `{ success: false }` with meaningful errors
+- [x] All sub-schemas (`RequestGoalSchema`, `RequirementSchema`, `AmbiguitySchema`) parseable independently
+- [x] Schema re-exported through `src/shared/schemas/mod.ts` barrel
+- [x] No lint or type errors
 
-**Planned tests** (`tests/shared/schemas/request_analysis_test.ts`):
+**Implemented tests** (`tests/schemas/request_analysis_test.ts`) — 21/21 passing:
 
-- `[RequestAnalysisSchema] validates complete valid analysis`
-- `[RequestAnalysisSchema] rejects missing required fields`
-- `[RequestAnalysisSchema] validates actionabilityScore range 0-100`
-- `[RequestAnalysisSchema] validates complexity enum values`
-- `[RequestGoalSchema] validates explicit/inferred goals`
-- `[RequirementSchema] validates confidence range 0.0-1.0`
-- `[AmbiguitySchema] validates impact enum values`
-- `[RequestAnalysisSchema] validates metadata fields`
+- [x] `[RequestAnalysisSchema] validates complete valid analysis`
+- [x] `[RequestAnalysisSchema] rejects missing required fields`
+- [x] `[RequestAnalysisSchema] validates actionabilityScore range 0-100`
+- [x] `[RequestAnalysisSchema] validates all complexity enum values`
+- [x] `[RequestAnalysisSchema] rejects invalid complexity value`
+- [x] `[RequestAnalysisSchema] validates all taskType enum values`
+- [x] `[RequestAnalysisSchema] rejects actionabilityScore out of range`
+- [x] `[RequestAnalysisSchema] allows empty arrays for optional list fields`
+- [x] `[RequestAnalysisSchema] validates metadata fields`
+- [x] `[RequestAnalysisSchema] validates all analyzer mode values`
+- [x] `[RequestGoalSchema] validates explicit goal`
+- [x] `[RequestGoalSchema] validates inferred goal (explicit: false)`
+- [x] `[RequestGoalSchema] rejects missing description`
+- [x] `[RequestGoalSchema] rejects invalid priority (zero)`
+- [x] `[RequirementSchema] validates confidence range 0.0–1.0`
+- [x] `[RequirementSchema] rejects confidence above 1.0`
+- [x] `[RequirementSchema] rejects confidence below 0.0`
+- [x] `[RequirementSchema] rejects missing description`
+- [x] `[AmbiguitySchema] validates all impact enum values`
+- [x] `[AmbiguitySchema] rejects invalid impact value`
+- [x] `[AmbiguitySchema] rejects missing impact`
 
 ---
 
@@ -128,11 +141,11 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Interface exported through barrel `src/shared/interfaces/mod.ts`
-- [ ] Interface depends only on types from `src/shared/schemas/` (no concrete service imports)
-- [ ] TypeScript compiles with `deno check`
+- [x] Interface exported through barrel `src/shared/interfaces/mod.ts`
+- [x] Interface depends only on types from `src/shared/schemas/` (no concrete service imports)
+- [x] TypeScript compiles with `deno check`
 
-**Planned tests:** None (interface-only; validated by type system at compile time).
+**Planned tests:** None (interface-only; validated by type system at compile time). ✅ (`deno check` passes)
 
 ---
 
@@ -153,26 +166,34 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Detects file paths like `src/services/foo.ts`, `tests/bar_test.ts`
-- [ ] Extracts keywords from action verbs: implement, fix, refactor, add, remove, test, document
-- [ ] Classifies complexity: simple (short, ≤2 bullets, ≤1 file), medium (default), complex (>10 bullets, >5 files, >3000 chars), epic (multi-phase keywords)
-- [ ] Detects ambiguity signals: question marks in body, hedging ("maybe", "possibly"), vague pronouns ("it should", "make that work")
-- [ ] Task type from verbs: feature/bugfix/refactor/test/docs/analysis
-- [ ] Zero external dependencies (can run in sandboxed mode)
-- [ ] Completes in <5ms for typical requests
+- [x] Detects file paths like `src/services/foo.ts`, `tests/bar_test.ts`
+- [x] Extracts keywords from action verbs: implement, fix, refactor, add, remove, test, document
+- [x] Classifies complexity: simple (short, ≤2 bullets, ≤1 file), medium (default), complex (>10 bullets, >5 files, >3000 chars), epic (multi-phase keywords)
+- [x] Detects ambiguity signals: question marks in body, hedging ("maybe", "possibly"), vague pronouns ("it should", "make that work")
+- [x] Task type from verbs: feature/bugfix/refactor/test/docs/analysis
+- [x] Zero external dependencies (can run in sandboxed mode)
+- [x] Completes in <5ms for typical requests
 
-**Planned tests** (`tests/services/request_analysis/heuristic_analyzer_test.ts`):
+**Implemented tests** (`tests/services/request_analysis/heuristic_analyzer_test.ts`) — 18/18 passing:
 
-- `[HeuristicAnalyzer] detects file references in request text`
-- `[HeuristicAnalyzer] extracts action verbs as keywords`
-- `[HeuristicAnalyzer] classifies simple single-line request`
-- `[HeuristicAnalyzer] classifies complex multi-requirement request`
-- `[HeuristicAnalyzer] classifies epic multi-phase request`
-- `[HeuristicAnalyzer] detects ambiguity signals in vague requests`
-- `[HeuristicAnalyzer] detects no ambiguity in well-specified requests`
-- `[HeuristicAnalyzer] classifies task type from action verbs`
-- `[HeuristicAnalyzer] handles empty request text gracefully`
-- `[HeuristicAnalyzer] handles Unicode and special characters`
+- [x] `[HeuristicAnalyzer] detects file references in request text`
+- [x] `[HeuristicAnalyzer] detects unquoted file paths with extensions`
+- [x] `[HeuristicAnalyzer] returns empty referencedFiles when none present`
+- [x] `[HeuristicAnalyzer] extracts action verbs as tags`
+- [x] `[HeuristicAnalyzer] classifies simple single-line request`
+- [x] `[HeuristicAnalyzer] classifies medium multi-step request (default)`
+- [x] `[HeuristicAnalyzer] classifies complex multi-requirement request`
+- [x] `[HeuristicAnalyzer] classifies epic multi-phase request`
+- [x] `[HeuristicAnalyzer] detects ambiguity signals in vague requests`
+- [x] `[HeuristicAnalyzer] detects question marks as ambiguity signals`
+- [x] `[HeuristicAnalyzer] detects no ambiguity in well-specified requests`
+- [x] `[HeuristicAnalyzer] classifies task type from 'fix' verb as bugfix`
+- [x] `[HeuristicAnalyzer] classifies task type from 'refactor' verb`
+- [x] `[HeuristicAnalyzer] classifies task type from 'add tests' as test`
+- [x] `[HeuristicAnalyzer] classifies task type from 'document' as docs`
+- [x] `[HeuristicAnalyzer] classifies task type from 'implement' as feature`
+- [x] `[HeuristicAnalyzer] handles empty request text gracefully`
+- [x] `[HeuristicAnalyzer] handles Unicode and special characters`
 
 ---
 
@@ -194,22 +215,24 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Calls `provider.generate()` with structured analysis prompt
-- [ ] Validates LLM response against `RequestAnalysisSchema` via `OutputValidator`
-- [ ] Returns successfully parsed `IRequestAnalysis` on valid LLM output
-- [ ] Returns a safe fallback (minimal analysis) when LLM output fails validation
-- [ ] Prompt includes all schema fields with clear instructions
-- [ ] LLM call uses reasonable token budget (`max_tokens`, `temperature: 0`)
+- [x] Calls `provider.generate()` with structured analysis prompt
+- [x] Validates LLM response against `RequestAnalysisSchema` via `OutputValidator`
+- [x] Returns successfully parsed `IRequestAnalysis` on valid LLM output
+- [x] Returns a safe fallback (minimal analysis) when LLM output fails validation
+- [x] Prompt includes all schema fields with clear instructions
+- [x] LLM call uses reasonable token budget (`max_tokens`, `temperature: 0`)
 
-**Planned tests** (`tests/services/request_analysis/llm_analyzer_test.ts`):
+**Implemented tests** (`tests/services/request_analysis/llm_analyzer_test.ts`) — 9/9 passing:
 
-- `[LlmAnalyzer] parses valid LLM JSON response into IRequestAnalysis`
-- `[LlmAnalyzer] handles LLM returning invalid JSON gracefully`
-- `[LlmAnalyzer] handles LLM returning partial fields`
-- `[LlmAnalyzer] passes request text in prompt`
-- `[LlmAnalyzer] passes optional context in prompt when provided`
-- `[LlmAnalyzer] uses OutputValidator for schema validation`
-- `[LlmAnalyzer] returns fallback analysis on validation failure`
+- [x] `[LlmAnalyzer] parses valid LLM JSON response into IRequestAnalysis`
+- [x] `[LlmAnalyzer] handles LLM returning invalid JSON gracefully`
+- [x] `[LlmAnalyzer] handles LLM returning partial fields`
+- [x] `[LlmAnalyzer] passes request text in prompt`
+- [x] `[LlmAnalyzer] passes optional context in prompt when provided`
+- [x] `[LlmAnalyzer] uses OutputValidator for schema validation`
+- [x] `[LlmAnalyzer] returns fallback analysis on validation failure`
+- [x] `[LlmAnalyzer] populates metadata.durationMs`
+- [x] `[LlmAnalyzer] includes high-impact ambiguity in prompt for ambiguous requests`
 
 ---
 
@@ -234,25 +257,27 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] `mode: "heuristic"` — calls only `analyzeHeuristic()`, never touches LLM
-- [ ] `mode: "llm"` — calls `LlmAnalyzer`, augments with heuristic for file references
-- [ ] `mode: "hybrid"` — heuristic first, LLM only when `actionabilityScore < actionabilityThreshold`
-- [ ] Logs `request.analyzed` activity to journal when `db` is provided
-- [ ] Populates `metadata.durationMs` accurately
-- [ ] Implements `IRequestAnalyzerService` interface contract
-- [ ] Exported through `src/services/request_analysis/mod.ts` barrel
+- [x] `mode: "heuristic"` — calls only `analyzeHeuristic()`, never touches LLM
+- [x] `mode: "llm"` — calls `LlmAnalyzer`, augments with heuristic for file references
+- [x] `mode: "hybrid"` — heuristic first, LLM only when `actionabilityScore < actionabilityThreshold`
+- [x] Logs `request.analyzed` activity to journal when `db` is provided
+- [x] Populates `metadata.durationMs` accurately
+- [x] Implements `IRequestAnalyzerService` interface contract
+- [x] Exported through `src/services/request_analysis/mod.ts` barrel
 
-**Planned tests** (`tests/services/request_analysis/request_analyzer_test.ts`):
+**Implemented tests** (`tests/services/request_analysis/request_analyzer_test.ts`) — 11/11 passing:
 
-- `[RequestAnalyzer] analyzes in heuristic mode without provider`
-- `[RequestAnalyzer] analyzes in LLM mode with mock provider`
-- `[RequestAnalyzer] hybrid mode skips LLM for high-actionability requests`
-- `[RequestAnalyzer] hybrid mode calls LLM for low-actionability requests`
-- `[RequestAnalyzer] merges heuristic file refs into LLM results`
-- `[RequestAnalyzer] records durationMs in metadata`
-- `[RequestAnalyzer] logs activity to database when db provided`
-- `[RequestAnalyzer] works without db (no logging, no error)`
-- `[RequestAnalyzer] handles LLM failure gracefully in hybrid mode (falls back to heuristic)`
+- [x] `[RequestAnalyzer] analyzes in heuristic mode without provider`
+- [x] `[RequestAnalyzer] heuristic mode never calls provider`
+- [x] `[RequestAnalyzer] analyzes in LLM mode with mock provider`
+- [x] `[RequestAnalyzer] hybrid mode skips LLM for high-actionability requests`
+- [x] `[RequestAnalyzer] hybrid mode calls LLM for low-actionability requests`
+- [x] `[RequestAnalyzer] records durationMs in metadata`
+- [x] `[RequestAnalyzer] populates analyzedAt timestamp`
+- [x] `[RequestAnalyzer] logs activity to database when db provided`
+- [x] `[RequestAnalyzer] works without db (no logging, no error)`
+- [x] `[RequestAnalyzer] merges heuristic file refs into LLM results`
+- [x] `[RequestAnalyzer] handles LLM failure gracefully in hybrid mode (falls back to heuristic)`
 
 ---
 
@@ -273,11 +298,11 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] All heuristic thresholds/word-lists referenced from constants, not inline
-- [ ] Constants grouped under `// === Request Analysis ===` section header
-- [ ] No duplicate constant definitions
+- [x] All heuristic thresholds/word-lists referenced from constants, not inline
+- [x] Constants grouped under `// === Request Analysis ===` section header
+- [x] No duplicate constant definitions
 
-**Planned tests:** None (constants are validated through usage in Step 3/4/5 tests).
+**Planned tests:** None (constants are validated through usage in Step 3/4/5 tests). ✅
 
 ---
 
@@ -299,18 +324,21 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Writes `_analysis.json` atomically (temp file + rename)
-- [ ] Loads and validates against schema on read
-- [ ] Returns `null` for missing or invalid `_analysis.json`
-- [ ] Derives correct path: `Workspace/Requests/req.md` → `Workspace/Requests/req_analysis.json`
+- [x] Writes `_analysis.json` atomically (temp file + rename)
+- [x] Loads and validates against schema on read
+- [x] Returns `null` for missing or invalid `_analysis.json`
+- [x] Derives correct path: `Workspace/Requests/req.md` → `Workspace/Requests/req_analysis.json`
 
-**Planned tests** (`tests/services/request_analysis/analysis_persistence_test.ts`):
+**Implemented tests** (`tests/services/request_analysis/analysis_persistence_test.ts`) — 8/8 passing:
 
-- `[AnalysisPersistence] saves analysis as JSON sibling file`
-- `[AnalysisPersistence] loads previously saved analysis`
-- `[AnalysisPersistence] returns null for missing analysis file`
-- `[AnalysisPersistence] returns null for corrupted analysis file`
-- `[AnalysisPersistence] uses atomic write (temp + rename)`
+- [x] `[AnalysisPersistence] derives correct _analysis.json path from .md path`
+- [x] `[AnalysisPersistence] saves analysis as JSON sibling file`
+- [x] `[AnalysisPersistence] loads previously saved analysis`
+- [x] `[AnalysisPersistence] analysis data round-trips without loss`
+- [x] `[AnalysisPersistence] returns null for missing analysis file`
+- [x] `[AnalysisPersistence] returns null for corrupted analysis file`
+- [x] `[AnalysisPersistence] returns null for JSON not matching schema`
+- [x] `[AnalysisPersistence] uses atomic write (temp file then rename)`
 
 ---
 
@@ -335,24 +363,27 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [ ] Analysis runs for every request (both agent and flow kinds)
-- [ ] `IParsedRequest.taskType` populated from `analysis.taskType`
-- [ ] `IParsedRequest.tags` populated from `analysis.tags`
-- [ ] `IParsedRequest.filePaths` populated from `analysis.referencedFiles`
-- [ ] `IRequestProcessingContext` carries `analysis` field
-- [ ] Analysis saved as `_analysis.json` alongside request file
-- [ ] Pipeline still works when analyzer returns minimal/fallback analysis
-- [ ] No breaking changes to existing request processing
+- [x] Analysis runs for every request (both agent and flow kinds)
+- [x] `IParsedRequest.taskType` populated from `analysis.taskType`
+- [x] `IParsedRequest.tags` populated from `analysis.tags`
+- [x] `IParsedRequest.filePaths` populated from `analysis.referencedFiles`
+- [x] `IRequestProcessingContext` carries `analysis` field
+- [x] Analysis saved as `_analysis.json` alongside request file
+- [x] Pipeline still works when analyzer returns minimal/fallback analysis
+- [x] No breaking changes to existing request processing
 
-**Planned tests** (`tests/services/request_processor_analysis_test.ts`):
+**Implemented tests** (`tests/services/request_processor_analysis_test.ts`) — 10/10 passing:
 
-- `[RequestProcessor] runs analysis before agent execution`
-- `[RequestProcessor] populates IParsedRequest.taskType from analysis`
-- `[RequestProcessor] populates IParsedRequest.tags from analysis`
-- `[RequestProcessor] populates IParsedRequest.filePaths from analysis`
-- `[RequestProcessor] persists analysis as _analysis.json`
-- `[RequestProcessor] handles analyzer failure gracefully (continues without analysis)`
-- `[RequestProcessor] passes analysis to flow processing path`
+- [x] `[RequestProcessor] runs analysis before agent execution` (Wiring verification)
+- [x] `[RequestProcessor] populates IParsedRequest.taskType from analysis`
+- [x] `[RequestProcessor] populates IParsedRequest.tags from analysis`
+- [x] `[RequestProcessor] populates IParsedRequest.filePaths from analysis`
+- [x] `[RequestProcessor] populates request.context.analysis for downstream usage` (Context enrichment)
+- [x] `[RequestProcessor] persists analysis as _analysis.json`
+- [x] `[RequestProcessor] handles analyzer failure gracefully (continues without analysis)`
+- [x] `[RequestProcessor] passes analysis to flow processing path`
+- [x] `[RequestProcessor] plan metadata contains request analysis` (Plan integration)
+- [x] `[RequestProcessor] skips analysis if request status is already PLANNED/COMPLETED` (Optimization)
 
 ---
 

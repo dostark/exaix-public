@@ -636,3 +636,99 @@ export const SHARED_DEFAULT_ICONS: Record<string, string> = {
   debug: "🔍",
   fatal: "💀",
 };
+
+// === Request Analysis ===
+
+/** Actionability score below which hybrid mode escalates to LLM analysis. */
+export const DEFAULT_ACTIONABILITY_THRESHOLD = 60;
+
+/** Default analysis mode when not configured. */
+export const DEFAULT_ANALYZER_MODE = "hybrid";
+
+/** Minimum character count for a request to be classified as anything above SIMPLE. */
+export const ANALYSIS_SIMPLE_MAX_CHARS = 200;
+
+/** Bullet / numbered list items above this count → COMPLEX classification. */
+export const ANALYSIS_COMPLEX_BULLET_THRESHOLD = 10;
+
+/** Referenced files above this count → COMPLEX classification. */
+export const ANALYSIS_COMPLEX_FILE_THRESHOLD = 5;
+
+/** Character count above this threshold → COMPLEX classification. */
+export const ANALYSIS_COMPLEX_CHAR_THRESHOLD = 3000;
+
+/** Regex pattern for detecting file path references in request text. */
+export const ANALYSIS_FILE_REF_PATTERN =
+  /(?:^|[\s`'"])([a-zA-Z][a-zA-Z0-9_/-]*\/[a-zA-Z0-9_/.-]+\.[a-z]{1,4})(?=[\s`'",)!]|$)/gm;
+
+/** Keywords indicating a multi-phase / epic request. */
+export const ANALYSIS_EPIC_KEYWORDS: string[] = [
+  "phase 1",
+  "phase 2",
+  "phase 3",
+  "phase 4",
+  "phase 5",
+  "phase one",
+  "phase two",
+  "phase three",
+  "multi-phase",
+  "multi phase",
+  "roadmap",
+];
+
+/** Hedging words that signal ambiguity in the request. */
+export const ANALYSIS_HEDGING_WORDS: string[] = [
+  "maybe",
+  "perhaps",
+  "possibly",
+  "probably",
+  "somehow",
+  "might",
+  "could",
+  "should probably",
+  "not sure",
+  "unclear",
+  "whatever",
+  "something like",
+  "kind of",
+  "sort of",
+  "i think",
+];
+
+/** Action verbs mapped to task type classification. */
+export const ANALYSIS_TASK_TYPE_VERBS: Record<string, string> = {
+  fix: "bugfix",
+  bug: "bugfix",
+  repair: "bugfix",
+  correct: "bugfix",
+  resolve: "bugfix",
+  refactor: "refactor",
+  restructure: "refactor",
+  reorganize: "refactor",
+  rewrite: "refactor",
+  cleanup: "refactor",
+  "clean up": "refactor",
+  test: "test",
+  "add test": "test",
+  "add tests": "test",
+  "write test": "test",
+  "write tests": "test",
+  spec: "test",
+  document: "docs",
+  documentation: "docs",
+  "update doc": "docs",
+  "update docs": "docs",
+  "add doc": "docs",
+  readme: "docs",
+  analyze: "analysis",
+  analyse: "analysis",
+  investigate: "analysis",
+  research: "analysis",
+  audit: "analysis",
+  implement: "feature",
+  add: "feature",
+  create: "feature",
+  build: "feature",
+  introduce: "feature",
+  new: "feature",
+};
