@@ -15,7 +15,6 @@ import {
   approveReviewStatus,
   assertPointerPointsTo,
   createAndRunReviewWorkflow,
-  createReviewRegistry,
   executePlanForReview,
   gitStdout,
   listBranches,
@@ -166,40 +165,19 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
       portals: [{ alias: portalAlias, target_path: portalTargetPath, default_branch: "main" }],
     };
 
-    // Create a request (entry point for trace_id correlation).
-    const { traceId } = await env.createRequest(
-      "Add a hello file in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias },
-    );
-
-    // Must match ReviewCommands naming conventions: feat/(request-[\w]+)-(...)
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    // Plan generation is simulated here for determinism, but the rest is true execution:
-    // approve → execute → commit → review registry entry.
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/hello.ts",
-            content: `export function hello(): string {\n  return \"Hello from portal\";\n}\n`,
-          },
-        },
-      ],
-    });
-
-    const activePlanPath = await env.approvePlan(planPath);
-
     const portalBranchesBefore = await listBranches(portalTargetPath);
     const workspaceBranchesBefore = await env.getGitBranches();
 
-    const { reviewRegistry } = createReviewRegistry(env);
-
-    const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
+    const { traceId, requestId, result, reviewRegistry } = await createAndRunReviewWorkflow(
+      env,
+      config,
+      {
+        portalAlias,
+        description: "Add a hello file in the portal repo",
+        writePath: "src/hello.ts",
+        writeContent: `export function hello(): string {\n  return "Hello from portal";\n}\n`,
+      },
+    );
 
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
@@ -612,33 +590,17 @@ Deno.test("[e2e] Portal review stores base_branch for CLI validation", async () 
       portals: [{ alias: portalAlias, target_path: portalTargetPath, default_branch: "main" }],
     };
 
-    const { traceId } = await env.createRequest(
-      "Add a hello file in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias },
+    const { traceId, requestId, result, reviewRegistry } = await createAndRunReviewWorkflow(
+      env,
+      config,
+      {
+        portalAlias,
+        description: "Add a hello file in the portal repo",
+        writePath: "src/hello.ts",
+        writeContent: `export function hello(): string {\n  return "Hello from portal";\n}\n`,
+      },
     );
 
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/hello.ts",
-            content: `export function hello(): string {\n  return "Hello from portal";\n}\n`,
-          },
-        },
-      ],
-    });
-
-    const activePlanPath = await env.approvePlan(planPath);
-
-    const { reviewRegistry } = createReviewRegistry(env);
-
-    const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
     assertEquals(result.success, true);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);

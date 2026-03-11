@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { basename, join } from "@std/path";
+import { join } from "@std/path";
 import { parse } from "@std/yaml";
 
 import { RequestProcessor } from "../src/services/request_processor.ts";
@@ -35,19 +35,52 @@ function parseFrontmatter(content: string): JSONObject {
 // Core Error Handling Tests
 // ============================================================================
 
-Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
+async function setupPlanValidationEnv(requestContentTemplate: string) {
   const testDbResult = await initTestDbService();
   const { tempDir, db, config, cleanup } = testDbResult;
   const costTracker = new CostTracker(db, config);
 
-  try {
-    await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
+  await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
 
-    const traceId = crypto.randomUUID();
-    const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
+  const traceId = crypto.randomUUID();
+  const requestId = `request-${traceId.slice(0, 8)}`;
+  const requestPath = join(getWorkspaceRequestsDir(tempDir), `${requestId}.md`);
 
-    const requestContent = `---
-trace_id: "${traceId}"
+  const requestContent = requestContentTemplate.replace("{traceId}", traceId);
+  await Deno.writeTextFile(requestPath, requestContent);
+
+  const processor = new RequestProcessor(
+    config,
+    db,
+    {
+      workspacePath: join(tempDir, config.paths.workspace),
+      requestsDir: getWorkspaceRequestsDir(tempDir),
+      blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
+      includeReasoning: false,
+    },
+    undefined,
+    costTracker,
+  );
+
+  return {
+    tempDir,
+    processor,
+    requestPath,
+    requestId,
+    traceId,
+    db,
+    config,
+    cleanup: async () => {
+      await costTracker.flush();
+      await cleanup();
+    },
+  };
+}
+
+Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
+  const env = await setupPlanValidationEnv(
+    `---
+trace_id: "{traceId}"
 created: "${new Date().toISOString()}"
 status: pending
 priority: normal
@@ -57,23 +90,10 @@ created_by: "test@example.com"
 ---
 
 Do flow work.
-`;
+`,
+  );
 
-    await Deno.writeTextFile(requestPath, requestContent);
-
-    const processor = new RequestProcessor(
-      config,
-      db,
-      {
-        workspacePath: join(tempDir, config.paths.workspace),
-        requestsDir: getWorkspaceRequestsDir(tempDir),
-        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
-        includeReasoning: false,
-      },
-      undefined,
-      costTracker,
-    );
-
+  try {
     const rejectedRaw = "RAW_PLAN_CONTENT";
 
     const validationError = new PlanValidationError("Invalid plan structure", {
@@ -81,7 +101,7 @@ Do flow work.
       validationErrors: ["Missing required field: steps"],
     });
 
-    Object.defineProperty(processor, "planWriter", {
+    Object.defineProperty(env.processor, "planWriter", {
       value: {
         writePlan: () => {
           throw validationError;
@@ -90,42 +110,31 @@ Do flow work.
       writable: true,
     });
 
-    const result = await processor.process(requestPath);
+    const result = await env.processor.process(env.requestPath);
     assertEquals(result, null);
 
-    const requestId = basename(requestPath, ".md");
-    const rejectedDir = getWorkspaceRejectedDir(tempDir);
-    const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
+    const rejectedDir = getWorkspaceRejectedDir(env.tempDir);
+    const rejectedPath = join(rejectedDir, `${env.requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
     const rejectedFrontmatter = parseFrontmatter(rejectedContent);
     assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
-    assertEquals(rejectedFrontmatter.request_id, requestId);
+    assertEquals(rejectedFrontmatter.request_id, env.requestId);
     assertStringIncludes(rejectedContent, rejectedRaw);
 
-    const updatedRequest = await Deno.readTextFile(requestPath);
+    const updatedRequest = await Deno.readTextFile(env.requestPath);
     const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
     assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
     assertEquals(updatedRequestFrontmatter.error, "Invalid plan structure");
   } finally {
-    await costTracker.flush();
-    await cleanup();
+    await env.cleanup();
   }
 });
 
 Deno.test("Regression: PlanValidationError instanceof detection works reliably", async () => {
-  const testDbResult = await initTestDbService();
-  const { tempDir, db, config, cleanup } = testDbResult;
-  const costTracker = new CostTracker(db, config);
-
-  try {
-    await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
-
-    const traceId = crypto.randomUUID();
-    const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
-
-    const requestContent = `---
-trace_id: "${traceId}"
+  const env = await setupPlanValidationEnv(
+    `---
+trace_id: "{traceId}"
 created: "${new Date().toISOString()}"
 status: pending
 priority: normal
@@ -135,29 +144,16 @@ created_by: "test@example.com"
 ---
 
 Create documentation for the new feature.
-`;
+`,
+  );
 
-    await Deno.writeTextFile(requestPath, requestContent);
-
-    const processor = new RequestProcessor(
-      config,
-      db,
-      {
-        workspacePath: join(tempDir, config.paths.workspace),
-        requestsDir: getWorkspaceRequestsDir(tempDir),
-        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
-        includeReasoning: false,
-      },
-      undefined,
-      costTracker,
-    );
-
+  try {
     const validationError = new PlanValidationError("Invalid JSON structure", {
       rawContent: "INVALID_JSON_CONTENT",
       validationErrors: ["Expected property 'steps'"],
     });
 
-    Object.defineProperty(processor, "planWriter", {
+    Object.defineProperty(env.processor, "planWriter", {
       value: {
         writePlan: () => {
           throw validationError;
@@ -166,21 +162,19 @@ Create documentation for the new feature.
       writable: true,
     });
 
-    const result = await processor.process(requestPath);
+    const result = await env.processor.process(env.requestPath);
     assertEquals(result, null);
 
-    const updatedRequest = await Deno.readTextFile(requestPath);
+    const updatedRequest = await Deno.readTextFile(env.requestPath);
     const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
     assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
     assertEquals(updatedRequestFrontmatter.error, "Invalid JSON structure");
 
-    const requestId = basename(requestPath, ".md");
-    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
+    const rejectedPath = join(getWorkspaceRejectedDir(env.tempDir), `${env.requestId}_rejected.md`);
 
     assertStringIncludes(await Deno.readTextFile(rejectedPath), "INVALID_JSON_CONTENT");
   } finally {
-    await costTracker.flush();
-    await cleanup();
+    await env.cleanup();
   }
 });
 
@@ -189,18 +183,9 @@ Create documentation for the new feature.
 // ============================================================================
 
 Deno.test("Regression: Rejected plans saved with fallback content when raw content unavailable", async () => {
-  const testDbResult = await initTestDbService();
-  const { tempDir, db, config, cleanup } = testDbResult;
-  const costTracker = new CostTracker(db, config);
-
-  try {
-    await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
-
-    const traceId = crypto.randomUUID();
-    const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
-
-    const requestContent = `---
-trace_id: "${traceId}"
+  const env = await setupPlanValidationEnv(
+    `---
+trace_id: "{traceId}"
 created: "${new Date().toISOString()}"
 status: pending
 priority: normal
@@ -208,28 +193,15 @@ agent: technical-writer
 ---
 
 Content here.
-`;
+`,
+  );
 
-    await Deno.writeTextFile(requestPath, requestContent);
-
-    const processor = new RequestProcessor(
-      config,
-      db,
-      {
-        workspacePath: join(tempDir, config.paths.workspace),
-        requestsDir: getWorkspaceRequestsDir(tempDir),
-        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
-        includeReasoning: false,
-      },
-      undefined,
-      costTracker,
-    );
-
+  try {
     const validationError = new PlanValidationError("Schema validation failed", {
       validationErrors: ["Missing required field: title"],
     });
 
-    Object.defineProperty(processor, "planWriter", {
+    Object.defineProperty(env.processor, "planWriter", {
       value: {
         writePlan: () => {
           throw validationError;
@@ -238,56 +210,30 @@ Content here.
       writable: true,
     });
 
-    await processor.process(requestPath);
+    await env.processor.process(env.requestPath);
 
-    const requestId = basename(requestPath, ".md");
-    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
+    const rejectedPath = join(getWorkspaceRejectedDir(env.tempDir), `${env.requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
     assertStringIncludes(rejectedContent, "No raw content available");
   } finally {
-    await costTracker.flush();
-    await cleanup();
+    await env.cleanup();
   }
 });
 
 Deno.test("Regression: End-to-end error handling workflow captures detailed raw content", async () => {
-  const testDbResult = await initTestDbService();
-  const { tempDir, db, config, cleanup } = testDbResult;
-  const costTracker = new CostTracker(db, config);
-
-  try {
-    await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
-
-    const traceId = crypto.randomUUID();
-    const requestId = `request-${traceId.slice(0, 8)}`;
-    const requestPath = join(getWorkspaceRequestsDir(tempDir), `${requestId}.md`);
-
-    await Deno.writeTextFile(
-      requestPath,
-      `---
-trace_id: "${traceId}"
+  const env = await setupPlanValidationEnv(
+    `---
+trace_id: "{traceId}"
 status: pending
 priority: normal
 agent: technical-writer
 ---
 Request info.
 `,
-    );
+  );
 
-    const processor = new RequestProcessor(
-      config,
-      db,
-      {
-        workspacePath: join(tempDir, config.paths.workspace),
-        requestsDir: getWorkspaceRequestsDir(tempDir),
-        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
-        includeReasoning: false,
-      },
-      undefined,
-      costTracker,
-    );
-
+  try {
     const detailedError = new PlanValidationError(
       "Technical writer generated invalid plan JSON",
       {
@@ -298,7 +244,7 @@ Request info.
       },
     );
 
-    Object.defineProperty(processor, "planWriter", {
+    Object.defineProperty(env.processor, "planWriter", {
       value: {
         writePlan: () => {
           throw detailedError;
@@ -307,27 +253,26 @@ Request info.
       writable: true,
     });
 
-    await processor.process(requestPath);
+    await env.processor.process(env.requestPath);
 
-    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
+    const rejectedPath = join(getWorkspaceRejectedDir(env.tempDir), `${env.requestId}_rejected.md`);
     const rejectedContent = await Deno.readTextFile(rejectedPath);
 
     assertStringIncludes(rejectedContent, `{"title": "Invalid Plan", "description": "Missing steps array"}`);
 
     // Verify CLI can display the error
     const context: ICliApplicationContext = {
-      config: createStubConfig(config),
-      db,
+      config: createStubConfig(env.config),
+      db: env.db,
       git: createStubGit(),
       provider: createStubProvider(),
       display: createStubDisplay(),
     };
     const handler = new RequestShowHandler(context);
-    const showResult = await handler.show(requestId);
+    const showResult = await handler.show(env.requestId);
     assertEquals(showResult.metadata.error, "Technical writer generated invalid plan JSON");
   } finally {
-    await costTracker.flush();
-    await cleanup();
+    await env.cleanup();
   }
 });
 
