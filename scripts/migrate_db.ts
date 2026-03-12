@@ -5,6 +5,7 @@
 import { Database } from "@db/sqlite";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { MigrationDirection } from "../src/shared/enums.ts";
 
 const ROOT = Deno.cwd();
 const RUNTIME_DIR = join(ROOT, ".exo");
@@ -15,7 +16,7 @@ async function main() {
   const args = Deno.args;
   const command = args[0];
 
-  if (command !== "up" && command !== "down") {
+  if (command !== MigrationDirection.UP && command !== MigrationDirection.DOWN) {
     console.error("Usage: deno task migrate [up|down]");
     Deno.exit(1);
   }
@@ -49,12 +50,12 @@ async function main() {
     }
     files.sort();
 
-    if (command === "up") {
+    if (command === MigrationDirection.UP) {
       for (const file of files) {
         if (!applied.has(file)) {
           console.log(`Applying migration: ${file}`);
           const content = await Deno.readTextFile(join(MIGRATIONS_DIR, file));
-          const upSql = extractSql(content, "up");
+          const upSql = extractSql(content, MigrationDirection.UP);
 
           db.exec("BEGIN TRANSACTION");
           try {
@@ -77,7 +78,7 @@ async function main() {
         }
       }
       console.log("All migrations up to date.");
-    } else if (command === "down") {
+    } else if (command === MigrationDirection.DOWN) {
       const lastApplied = Array.from(applied).pop();
       if (!lastApplied) {
         console.log("No migrations to revert.");
@@ -86,7 +87,7 @@ async function main() {
 
       console.log(`Reverting migration: ${lastApplied}`);
       const content = await Deno.readTextFile(join(MIGRATIONS_DIR, lastApplied));
-      const downSql = extractSql(content, "down");
+      const downSql = extractSql(content, MigrationDirection.DOWN);
 
       db.exec("BEGIN TRANSACTION");
       try {
@@ -105,7 +106,7 @@ async function main() {
   }
 }
 
-function extractSql(content: string, type: "up" | "down"): string {
+function extractSql(content: string, type: MigrationDirection): string {
   const lines = content.split("\n");
   let sql = "";
   let capturing = false;

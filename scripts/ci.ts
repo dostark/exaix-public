@@ -364,6 +364,143 @@ const allCommand = new Command()
     console.log(`\n🎉 CI Pipeline Completed Successfully in ${Date.now() - start}ms`);
   });
 
+/**
+ * Fix unused named imports identified by `deno lint` (rule: no-unused-vars).
+ *
+ * Strategy:
+ *  1. Run `deno lint --json` across all target paths.
+ *  2. Collect every `no-unused-vars` diagnostic whose message matches
+ *     "`<Name>` is never used" on an import line.
+ *  3. For each affected file, remove the unused name(s) from the import
+ *     statement(s), cleaning up trailing commas and empty braces.
+ *  4. Optionally run `deno fmt` on changed files to normalise spacing.
+ */
+async function fixUnusedImports(paths: string[], fmt: boolean): Promise<boolean> {
+  console.log(`\n⏳ Scanning for unused imports in: ${paths.join(", ")}...`);
+
+  // 1. Run deno lint --json
+  const lintCmd = new Deno.Command("deno", {
+    args: ["lint", "--json", ...paths],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const lintResult = await lintCmd.output();
+  const rawJson = new TextDecoder().decode(lintResult.stdout) ||
+    new TextDecoder().decode(lintResult.stderr);
+
+  interface LintDiagnostic {
+    filename: string;
+    range: { start: { line: number; col: number } };
+    message: string;
+    code: string;
+  }
+  interface LintOutput {
+    diagnostics: LintDiagnostic[];
+  }
+
+  let lintOutput: LintOutput;
+  try {
+    lintOutput = JSON.parse(rawJson) as LintOutput;
+  } catch {
+    console.error("❌ Failed to parse deno lint --json output");
+    return false;
+  }
+
+  // 2. Collect unused names per file (only no-unused-vars on import lines)
+  const unusedByFile = new Map<string, Set<string>>();
+  for (const diag of lintOutput.diagnostics) {
+    if (diag.code !== "no-unused-vars") continue;
+    const match = diag.message.match(/^`([^`]+)` is never used$/);
+    if (!match) continue;
+    const name = match[1];
+    // Normalise the file path (strip file:// prefix if present)
+    const filepath = diag.filename.replace(/^file:\/\//, "");
+    if (!unusedByFile.has(filepath)) unusedByFile.set(filepath, new Set());
+    unusedByFile.get(filepath)!.add(name);
+  }
+
+  if (unusedByFile.size === 0) {
+    console.log("✅ No unused imports found.");
+    return true;
+  }
+
+  console.log(`   Found unused imports in ${unusedByFile.size} file(s).`);
+
+  // 3. Patch each file
+  let fixed = 0;
+  for (const [filepath, names] of unusedByFile) {
+    let source: string;
+    try {
+      source = await Deno.readTextFile(filepath);
+    } catch {
+      console.warn(`   ⚠️  Could not read ${filepath} — skipping`);
+      continue;
+    }
+
+    let modified = source;
+    for (const name of names) {
+      // Only remove the name when it appears inside an import { ... } statement.
+      // We handle three patterns:
+      //   A) `Name,`              (name followed by comma and optional whitespace)
+      //   B) `, Name`             (comma before name)
+      //   C) `{ Name }`           (sole entry — removes entire import statement if
+      //                            nothing else is imported from that module)
+
+      // Pattern A: `Name,` at word boundary (accounts for leading spaces)
+      modified = modified.replace(new RegExp(`\\b${name}\\s*,\\s*`, "g"), "");
+      // Pattern B: `,\\s*Name` at word boundary
+      modified = modified.replace(new RegExp(`,\\s*${name}\\b`, "g"), "");
+    }
+
+    // Clean up empty import braces: `import { } from "...";`
+    modified = modified.replace(/^import\s*\{\s*\}\s*from\s*["'][^"']+["'];?\s*\n?/gm, "");
+
+    if (modified === source) {
+      console.log(`   ⚠️  No textual change in ${filepath} (import may span multiple lines)`);
+      continue;
+    }
+
+    if (isDryRun) {
+      console.log(`   [DRY RUN] Would fix: ${filepath} (remove: ${[...names].join(", ")})`);
+    } else {
+      await Deno.writeTextFile(filepath, modified);
+      console.log(`   ✅ Fixed: ${filepath} (removed: ${[...names].join(", ")})`);
+      fixed++;
+    }
+  }
+
+  // 4. Optionally format changed files
+  if (fmt && fixed > 0 && !isDryRun) {
+    console.log(`\n⏳ Running deno fmt on ${fixed} changed file(s)...`);
+    const changedFiles = [...unusedByFile.keys()];
+    const fmtCmd = new Deno.Command("deno", {
+      args: ["fmt", ...changedFiles],
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    const fmtResult = await fmtCmd.output();
+    if (fmtResult.code !== 0) {
+      console.warn("   ⚠️  deno fmt exited with non-zero code (non-fatal)");
+    }
+  }
+
+  console.log(`\n✅ Fixed unused imports in ${isDryRun ? 0 : fixed} file(s).`);
+  return true;
+}
+
+const fixCommand = new Command()
+  .description("Fix unused named imports reported by deno lint (no-unused-vars)")
+  .option(
+    "--paths <paths:string>",
+    "Comma-separated list of paths to scan (default: src,tests,scripts,Blueprints)",
+    { default: "src,tests,scripts,Blueprints" },
+  )
+  .option("--fmt", "Run deno fmt on changed files after fixing", { default: true })
+  .action(async (options) => {
+    const paths = options.paths.split(",").map((p: string) => p.trim());
+    if (!await fixUnusedImports(paths, options.fmt)) Deno.exit(1);
+  });
+
 await new Command()
   .name("exo-ci")
   .version("0.1.0")
@@ -379,4 +516,5 @@ await new Command()
   .command("coverage", coverageCommand)
   .command("build", buildCommand)
   .command("all", allCommand)
+  .command("fix", fixCommand)
   .parse(Deno.args);

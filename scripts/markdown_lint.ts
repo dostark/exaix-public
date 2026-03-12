@@ -13,8 +13,7 @@
 
 import { walk } from "@std/fs";
 import { extname, join, normalize } from "@std/path";
-
-export type Severity = "error" | "warn";
+import { MarkdownListKind, Severity } from "../src/shared/enums.ts";
 
 export interface IFinding {
   filePath: string;
@@ -176,12 +175,12 @@ function getIndentWidth(line: string): number {
   return (line.match(/^\s*/)?.[0] ?? "").replace(/\t/g, "  ").length;
 }
 
-function parseListMarker(line: string): { kind: "ul" | "ol"; indent: number } | null {
+function parseListMarker(line: string): { kind: MarkdownListKind; indent: number } | null {
   const ul = /^(?<indent>\s*)[-+*]\s+/.exec(line);
-  if (ul?.groups) return { kind: "ul", indent: getIndentWidth(line) };
+  if (ul?.groups) return { kind: MarkdownListKind.UL, indent: getIndentWidth(line) };
 
   const ol = /^(?<indent>\s*)(?<num>\d+)[.)]\s+/.exec(line);
-  if (ol?.groups) return { kind: "ol", indent: getIndentWidth(line) };
+  if (ol?.groups) return { kind: MarkdownListKind.OL, indent: getIndentWidth(line) };
 
   return null;
 }
@@ -707,7 +706,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
               filePath,
               line: lineNo,
               rule: "MD031/blanks-around-fences",
-              severity: options.strict ? "error" : "warn",
+              severity: options.strict ? Severity.ERROR : Severity.WARN,
               message: "Fenced code blocks should be surrounded by blank lines",
             });
           }
@@ -722,7 +721,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD040/fenced-code-language",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: "Fenced code blocks should have a language specified",
           });
         }
@@ -742,7 +741,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
               filePath,
               line: lineNo,
               rule: "MD031/blanks-around-fences",
-              severity: options.strict ? "error" : "warn",
+              severity: options.strict ? Severity.ERROR : Severity.WARN,
               message: "Fenced code blocks should be surrounded by blank lines",
             });
           }
@@ -767,7 +766,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD049/emphasis-style",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: "Emphasis style [Expected: asterisk; Actual: underscore]",
           });
         }
@@ -782,7 +781,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
               filePath,
               line: lineNo,
               rule: "MD025/single-title/single-h1",
-              severity: options.strict ? "error" : "warn",
+              severity: options.strict ? Severity.ERROR : Severity.WARN,
               message: "Multiple top-level headings in the same document",
             });
           }
@@ -805,7 +804,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD036/no-emphasis-as-heading",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: "Emphasis used instead of a heading",
         });
       }
@@ -826,7 +825,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
                 filePath,
                 line: lineNo,
                 rule: "MD007/ul-indent",
-                severity: options.strict ? "error" : "warn",
+                severity: options.strict ? Severity.ERROR : Severity.WARN,
                 message: `Unordered list indentation [Expected: 2; Actual: ${indent}]`,
               });
             }
@@ -859,7 +858,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD032/blanks-around-lists",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: "Lists should be surrounded by blank lines",
           });
         }
@@ -873,7 +872,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD032/blanks-around-lists",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: "Lists should be surrounded by blank lines",
           });
         }
@@ -892,7 +891,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD012/no-multiple-blanks",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: "Multiple consecutive blank lines",
         });
       }
@@ -906,7 +905,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         filePath,
         line: lineNo,
         rule: "MD001",
-        severity: "error",
+        severity: Severity.ERROR,
         message: "Trailing whitespace",
       });
     }
@@ -917,7 +916,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         filePath,
         line: lineNo,
         rule: "MD002",
-        severity: options.strict ? "error" : "warn",
+        severity: options.strict ? Severity.ERROR : Severity.WARN,
         message: "Tab character found (prefer spaces)",
       });
     }
@@ -932,7 +931,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD022/blanks-around-headings",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: "Heading should be preceded by a blank line",
         });
       }
@@ -942,7 +941,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD022/blanks-around-headings",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: "Heading should be followed by a blank line",
         });
       }
@@ -969,7 +968,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD029/ol-prefix",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: `Ordered list item prefix [Expected: 1; Actual: ${actual}; Style: 1/1/1]`,
         });
       }
@@ -995,7 +994,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD051/link-fragments",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: "Link fragments should be valid",
           });
         }
@@ -1020,7 +1019,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: idx + 1,
           rule: "MD041/first-line-heading/first-line-h1",
-          severity: options.strict ? "error" : "warn",
+          severity: options.strict ? Severity.ERROR : Severity.WARN,
           message: "First line in a file should be a top-level heading",
         });
       }
@@ -1224,7 +1223,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: badLineIndex + 1,
             rule: "MD060/table-column-style",
-            severity: options.strict ? "error" : "warn",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
             message: `Table column style [Table pipe does not align with header for style "${best.name}"]`,
           });
         }
@@ -1241,7 +1240,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       filePath,
       line: lines.length,
       rule: "MD003",
-      severity: "error",
+      severity: Severity.ERROR,
       message: "File must end with a newline",
     });
   }
@@ -1252,7 +1251,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       filePath,
       line: fenceStartLine || 1,
       rule: "MD004",
-      severity: "error",
+      severity: Severity.ERROR,
       message: "Unclosed fenced code block",
     });
   }

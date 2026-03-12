@@ -5,6 +5,7 @@
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { Database } from "@db/sqlite";
+import { MigrationDirection } from "../src/shared/enums.ts";
 
 const ROOT = Deno.cwd();
 const RUNTIME_DIR = join(ROOT, ".exo");
@@ -45,7 +46,7 @@ async function runMigrations() {
       if (!applied.has(file)) {
         console.log(`Applying migration: ${file}`);
         const content = await Deno.readTextFile(join(MIGRATIONS_DIR, file));
-        const upSql = extractSql(content, "up");
+        const upSql = extractSql(content, MigrationDirection.UP);
 
         db.exec("BEGIN TRANSACTION");
         try {
@@ -66,7 +67,7 @@ async function runMigrations() {
   }
 }
 
-function extractSql(content: string, type: "up" | "down"): string {
+function extractSql(content: string, type: MigrationDirection): string {
   const lines = content.split("\n");
   let sql = "";
   let capturing = false;
