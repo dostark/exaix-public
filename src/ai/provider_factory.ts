@@ -11,7 +11,6 @@
 import * as DEFAULTS from "../shared/constants.ts";
 import { Config } from "../shared/schemas/config.ts";
 import { AiConfig, getDefaultModels } from "../shared/schemas/ai_config.ts";
-import { MockStrategy, ProviderType } from "../shared/enums.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
 import { InputValidator } from "../shared/schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
@@ -25,7 +24,7 @@ import { OllamaProviderFactory } from "./factories/ollama_factory.ts";
 import { OpenAIProviderFactory } from "./factories/openai_factory.ts";
 import { AbstractKeyBasedProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
-import { PricingTier } from "../shared/enums.ts";
+import { ConfigSource, MockStrategy, PricingTier, ProviderType } from "../shared/enums.ts";
 import { IModelProvider, IProviderInfo, IResolvedProviderOptions } from "./types.ts";
 import { ProviderFactoryError } from "./errors.ts";
 import type { EventLogger } from "../services/event_logger.ts";
@@ -360,12 +359,12 @@ export class ProviderFactory {
   /**
    * Determine the source of configuration
    */
-  private static determineSource(): "env" | "config" | "default" {
+  private static determineSource(): ConfigSource {
     if (this.safeEnvGet("EXO_LLM_PROVIDER")) {
-      return "env";
+      return ConfigSource.ENV;
     }
     // Note: We can't easily tell if config was set, so default to "config" if not env
-    return "config";
+    return ConfigSource.CONFIG;
   }
 
   /**

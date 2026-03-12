@@ -7,6 +7,7 @@
  * @related-files [src/ai/providers.ts]
  */
 
+import { CircuitState } from "../shared/enums.ts";
 import { IModelOptions, IModelProvider } from "./types.ts";
 
 export interface ICircuitBreakerOptions {
@@ -17,8 +18,6 @@ export interface ICircuitBreakerOptions {
   /** Number of consecutive successes needed in half-open state to close circuit */
   halfOpenSuccessThreshold: number;
 }
-
-export type CircuitState = "closed" | "open" | "half-open";
 
 /** Error thrown when circuit is open and calls are rejected */
 export class CircuitOpenError extends Error {
@@ -32,7 +31,7 @@ export class CircuitOpenError extends Error {
  * Circuit breaker implementation for external service resilience
  */
 export class CircuitBreaker {
-  private state: CircuitState = "closed";
+  private state: CircuitState = CircuitState.CLOSED;
   private failureCount = 0;
   private lastFailureTime = 0; // stores monotonic timestamp (performance.now()) when available
   private successCount = 0;
@@ -43,10 +42,10 @@ export class CircuitBreaker {
    * Execute a function with circuit breaker protection
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === "open") {
+    if (this.state === CircuitState.OPEN) {
       const now = typeof performance !== "undefined" ? performance.now() : Date.now();
       if (now - this.lastFailureTime > this.options.resetTimeout) {
-        this.state = "half-open";
+        this.state = CircuitState.HALF_OPEN;
         this.successCount = 0;
       } else {
         throw new CircuitOpenError();
@@ -85,10 +84,10 @@ export class CircuitBreaker {
   }
 
   private onSuccess(): void {
-    if (this.state === "half-open") {
+    if (this.state === CircuitState.HALF_OPEN) {
       this.successCount++;
       if (this.successCount >= this.options.halfOpenSuccessThreshold) {
-        this.state = "closed";
+        this.state = CircuitState.CLOSED;
         this.failureCount = 0;
       }
     } else {
@@ -101,7 +100,7 @@ export class CircuitBreaker {
     this.lastFailureTime = typeof performance !== "undefined" ? performance.now() : Date.now();
 
     if (this.failureCount >= this.options.failureThreshold) {
-      this.state = "open";
+      this.state = CircuitState.OPEN;
     }
   }
 }

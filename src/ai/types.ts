@@ -6,7 +6,7 @@
  * @dependencies [enums, event_logger]
  * @related-files [src/ai/providers.ts, src/ai/provider_registry.ts]
  */
-import { MockStrategy, ProviderType } from "../shared/enums.ts";
+import { ConfigSource, MockStrategy, ProviderType } from "../shared/enums.ts";
 import type { EventLogger } from "../services/event_logger.ts";
 
 /**
@@ -73,5 +73,5 @@ export interface IProviderInfo {
   /** Model name */
   model: string;
   /** Source of configuration */
-  source: "env" | "config" | "default";
+  source: ConfigSource;
 }
