@@ -348,7 +348,7 @@ Deno.test("LayoutManager: resizePane - grow right", () => {
   const manager = setupLayoutManager();
   const panes = createPanes(2);
 
-  manager.resizePane(panes, ResizeDirection.LEFT, ResizeDirection.LEFT, 5);
+  manager.resizePane(panes, ResizeDirection.LEFT, ResizeDirection.RIGHT, 5);
 
   assertEquals(panes[0].width, 45);
   assertEquals(panes[1].x, 45);

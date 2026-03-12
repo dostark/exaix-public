@@ -10,6 +10,8 @@ import { ConfigService } from "../../../src/config/service.ts";
 import { PortalCommands } from "../../../src/cli/commands/portal_commands.ts";
 import { ContextCardGenerator } from "../../../src/services/context_card_generator.ts";
 import { ContextCardAdapter } from "../../../src/services/adapters/context_card_adapter.ts";
+import { RequestService } from "../../../src/services/request.ts";
+import { RequestAdapter } from "../../../src/services/adapters/request_adapter.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";
@@ -160,14 +162,19 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
   const configPath = join(tempDir, "exo.config.toml");
   const configService = new ConfigService(configPath);
   const contextCards = new ContextCardAdapter(new ContextCardGenerator(config));
+  const display = createStubDisplay(db);
+  const requests = new RequestAdapter(
+    new RequestService(config, configService, display, () => Promise.resolve("tester")),
+  );
 
   const context: ICliApplicationContext = {
     config: configService,
     db,
     git: createStubGit(),
     provider: createStubProvider(),
-    display: createStubDisplay(db),
+    display,
     contextCards,
+    requests,
   };
 
   const cleanupAll = async () => {

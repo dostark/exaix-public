@@ -50,8 +50,8 @@ export class RequestShowHandler extends BaseCommand {
     // Extract body (content after YAML frontmatter)
     const body = fullContent.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
 
-    // Get analysis if exists
-    const analysis = await this.requests.getAnalysis(requestId);
+    // Get analysis if exists (requests service may not be available in all contexts)
+    const analysis = this.context.requests ? await this.context.requests.getAnalysis(requestId) : null;
 
     return {
       metadata: this.mapToMetadata(matchingFile, matchingFrontmatter, planTokens),
