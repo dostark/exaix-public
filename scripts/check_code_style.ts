@@ -136,6 +136,16 @@ const rules: Rule[] = [
     severity: "error" as const,
     pathFilter: (path: string) => !path.endsWith("/mod.ts") && !path.endsWith("/index.ts"),
   },
+  {
+    name: "magic-union-type",
+    // Match inline union of string literals: "foo" | "bar"
+    // Use word boundaries and double quotes to identify string literals
+    regex: /"\w+"\s*\|\s*"\w+"/,
+    message:
+      "Avoid magic string unions (e.g., '\"a\" | \"b\"'). Define a TypeScript 'enum' in src/enums.ts or use a shared named union type instead.",
+    severity: "error" as const,
+    pathFilter: (path: string) => !path.includes("/tests/") && !path.endsWith(".test.ts") && !path.endsWith("_test.ts"),
+  },
 ];
 
 let errorCount = 0;

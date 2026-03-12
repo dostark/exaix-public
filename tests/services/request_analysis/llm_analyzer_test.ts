@@ -10,11 +10,8 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../../../src/ai/providers.ts";
 import { createOutputValidator } from "../../../src/services/output_validator.ts";
 import { LlmAnalyzer } from "../../../src/services/request_analysis/llm_analyzer.ts";
-import {
-  AnalyzerMode,
-  RequestAnalysisComplexity,
-  RequestTaskType,
-} from "../../../src/shared/schemas/request_analysis.ts";
+import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../../src/shared/types/request.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -34,7 +31,7 @@ const validAnalysisJson = JSON.stringify({
   metadata: {
     analyzedAt: new Date().toISOString(),
     durationMs: 0,
-    mode: AnalyzerMode.LLM,
+    mode: AnalysisMode.LLM,
   },
 });
 
@@ -52,7 +49,7 @@ Deno.test("[LlmAnalyzer] parses valid LLM JSON response into IRequestAnalysis", 
   assertEquals(result.taskType, RequestTaskType.TEST);
   assertEquals(result.actionabilityScore, 80);
   assertEquals(result.goals.length, 1);
-  assertEquals(result.metadata.mode, AnalyzerMode.LLM);
+  assertEquals(result.metadata.mode, AnalysisMode.LLM);
 });
 
 Deno.test("[LlmAnalyzer] handles LLM returning invalid JSON gracefully", async () => {
@@ -65,7 +62,7 @@ Deno.test("[LlmAnalyzer] handles LLM returning invalid JSON gracefully", async (
 
   assertExists(result);
   assertExists(result.metadata);
-  assertEquals(result.metadata.mode, AnalyzerMode.LLM);
+  assertEquals(result.metadata.mode, AnalysisMode.LLM);
 });
 
 Deno.test("[LlmAnalyzer] handles LLM returning partial fields", async () => {
@@ -83,7 +80,7 @@ Deno.test("[LlmAnalyzer] handles LLM returning partial fields", async () => {
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
-      mode: AnalyzerMode.LLM,
+      mode: AnalysisMode.LLM,
     },
   });
   const provider = new MockProvider(partialJson);
@@ -171,7 +168,7 @@ Deno.test("[LlmAnalyzer] returns fallback analysis on validation failure", async
   assertExists(result.metadata);
   assertExists(result.goals);
   assertExists(result.requirements);
-  assertEquals(result.metadata.mode, AnalyzerMode.LLM);
+  assertEquals(result.metadata.mode, AnalysisMode.LLM);
 });
 
 Deno.test("[LlmAnalyzer] populates metadata.durationMs", async () => {

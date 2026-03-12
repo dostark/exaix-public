@@ -15,11 +15,14 @@ import {
   SqliteJournalMode,
 } from "../../src/shared/enums.ts";
 import {
+  type AnalysisMode as _AnalysisMode,
   type IRequest,
+  type IRequestAnalysis as _IRequestAnalysis,
   type IRequestEntry,
   type IRequestMetadata,
   type IRequestShowResult,
 } from "../../src/shared/types/request.ts";
+import { type IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import {
@@ -129,9 +132,11 @@ function createTestSessionWithMockService(
     create: () => Promise.resolve({} as IRequest),
     createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
+    getAnalysis: () => Promise.resolve(null),
+    analyze: () => Promise.reject(new Error("Not implemented in extended test mock")),
   };
 
-  const view = new RequestManagerView(mockService);
+  const view = new RequestManagerView(mockService as IRequestService);
   const session = view.createTuiSession(requests);
   return session;
 }
@@ -421,9 +426,11 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     create: () => Promise.resolve({} as IRequest),
     createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
+    getAnalysis: () => Promise.resolve(null),
+    analyze: () => Promise.reject(new Error("Not implemented in extended test mock")),
   };
 
-  const view = new RequestManagerView(mockService);
+  const view = new RequestManagerView(mockService as IRequestService);
   const session = view.createTuiSession([requestWithEmptySkills]);
 
   await session.showRequestDetail("req-empty");
@@ -910,6 +917,11 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
     ui: { prompt_preview_length: 0, prompt_preview_extended: 0 },
     cost_tracking: { batch_delay_ms: 0, max_batch_size: 0, rates: {} },
     health: { check_timeout_ms: 0, cache_ttl_ms: 0, memory_warn_percent: 0, memory_critical_percent: 0 },
+    request_analysis: {
+      mode: "hybrid" as const,
+      actionability_threshold: 60,
+      infer_acceptance_criteria: true,
+    },
   };
 
   const dummyContext = {

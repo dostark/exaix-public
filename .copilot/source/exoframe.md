@@ -41,6 +41,7 @@ Examples section
 - `src/parsers/` — File parsers (frontmatter, etc.)
 - `src/schemas/` — Zod validation schemas
 - `src/services/` — Core business logic services
+- `src/services/request_analysis/` — Request intent analysis (Phase 45)
 - `src/main.ts` — Application entry point
 
 ### Module Documentation
@@ -89,6 +90,7 @@ const git = GitService.getInstance();
   - **Hybrid**: Read-only access to specific "Portal" paths.
   - **Note**: Always use `PathResolver` to validate paths before access.
 - **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
+- **Intent Analysis**: Requests can trigger the `RequestAnalyzer` via the `--analyze` flag. This layer extracts goals, constraints, and requirements to a `req_analysis.json` artifact. Use the centralized `AnalysisMode` / `AnalyzerEngine` types from `src/types/request.ts` (Phase 45).
 
 ### Configuration Constants & Magic Numbers
 

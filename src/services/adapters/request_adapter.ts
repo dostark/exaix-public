@@ -8,6 +8,7 @@
  */
 
 import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
+import { type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
 import { type RequestStatusType } from "../../shared/status/request_status.ts";
 import type {
   IRequestEntry,
@@ -56,5 +57,21 @@ export class RequestAdapter implements IRequestService {
       return false;
     }
     return await this.service.updateRequestStatus(requestId, status);
+  }
+
+  async getAnalysis(requestId: string): Promise<IRequestAnalysis | null> {
+    if (typeof this.service.getAnalysis === "function") {
+      return await this.service.getAnalysis(requestId);
+    }
+    // Command implementation
+    const result = await this.service.show(requestId);
+    return result.analysis || null;
+  }
+
+  async analyze(
+    requestId: string,
+    options?: { mode?: "heuristic" | "llm" | "hybrid"; force?: boolean },
+  ): Promise<IRequestAnalysis> {
+    return await this.service.analyze(requestId, options);
   }
 }

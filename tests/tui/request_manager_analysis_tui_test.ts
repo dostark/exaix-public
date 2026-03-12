@@ -9,11 +9,11 @@ import { MinimalRequestServiceMock, RequestManagerTuiSession } from "../../src/t
 import { RequestFormatter } from "../../src/tui/request_manager/formatters.ts";
 import {
   AmbiguityImpact,
-  AnalyzerMode,
   IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { RequestPriority } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 
@@ -34,7 +34,7 @@ Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", as
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 100,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
   };
 
@@ -93,7 +93,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats analysis correctly",
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 50,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
   };
 
@@ -106,6 +106,100 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats analysis correctly",
   assertStringIncludes(output, "Goals:        2 total");
   assertStringIncludes(output, "[E] Goal 1");
   assertStringIncludes(output, "[I] Goal 2");
+});
+
+Deno.test("RequestFormatter.formatAnalysisSection - formats complexity badge with correct color", () => {
+  const analysisSimple: IRequestAnalysis = {
+    complexity: RequestAnalysisComplexity.SIMPLE,
+    actionabilityScore: 100,
+    taskType: RequestTaskType.DOCS,
+    goals: [],
+    requirements: [],
+    ambiguities: [],
+    referencedFiles: [],
+    tags: [],
+    constraints: [],
+    acceptanceCriteria: [],
+    metadata: {
+      analyzedAt: new Date().toISOString(),
+      durationMs: 10,
+      mode: AnalysisMode.HEURISTIC,
+    },
+  };
+
+  const lines = RequestFormatter.formatAnalysisSection(analysisSimple);
+  const output = lines.join("\n");
+  assertStringIncludes(output, "Complexity:   simple");
+
+  const analysisEpic: IRequestAnalysis = {
+    complexity: RequestAnalysisComplexity.EPIC,
+    actionabilityScore: 10,
+    taskType: RequestTaskType.FEATURE,
+    goals: [],
+    requirements: [],
+    ambiguities: [],
+    referencedFiles: [],
+    tags: [],
+    constraints: [],
+    acceptanceCriteria: [],
+    metadata: {
+      analyzedAt: new Date().toISOString(),
+      durationMs: 10,
+      mode: AnalysisMode.HEURISTIC,
+    },
+  };
+
+  const linesEpic = RequestFormatter.formatAnalysisSection(analysisEpic);
+  const outputEpic = linesEpic.join("\n");
+  assertStringIncludes(outputEpic, "Complexity:   epic");
+});
+
+Deno.test("RequestFormatter.formatAnalysisSection - formats actionability score bar", () => {
+  const checkBar = (score: number, expectedBar: string) => {
+    const analysis: IRequestAnalysis = {
+      complexity: RequestAnalysisComplexity.MEDIUM,
+      actionabilityScore: score,
+      taskType: RequestTaskType.FEATURE,
+      goals: [],
+      requirements: [],
+      ambiguities: [],
+      referencedFiles: [],
+      tags: [],
+      constraints: [],
+      acceptanceCriteria: [],
+      metadata: { analyzedAt: new Date().toISOString(), durationMs: 0, mode: AnalysisMode.HEURISTIC },
+    };
+    const lines = RequestFormatter.formatAnalysisSection(analysis);
+    const output = lines.join("\n");
+    assertStringIncludes(output, `Actionability: ${expectedBar} ${score}/100`);
+  };
+
+  checkBar(0, "░░░░░░░░░░");
+  checkBar(50, "█████░░░░░");
+  checkBar(100, "██████████");
+});
+
+Deno.test("RequestFormatter.formatAnalysisSection - shows ambiguity summary", () => {
+  const analysis: IRequestAnalysis = {
+    complexity: RequestAnalysisComplexity.MEDIUM,
+    actionabilityScore: 50,
+    taskType: RequestTaskType.FEATURE,
+    goals: [],
+    requirements: [],
+    ambiguities: [
+      { description: "What is the target platform?", impact: AmbiguityImpact.HIGH },
+    ],
+    referencedFiles: [],
+    tags: [],
+    constraints: [],
+    acceptanceCriteria: [],
+    metadata: { analyzedAt: new Date().toISOString(), durationMs: 0, mode: AnalysisMode.HEURISTIC },
+  };
+
+  const lines = RequestFormatter.formatAnalysisSection(analysis);
+  const output = lines.join("\n");
+  assertStringIncludes(output, "Ambiguities: 1");
+  assertStringIncludes(output, "Top Ambiguity: What is the target platform?");
 });
 
 Deno.test("RequestFormatter.formatAnalysisSection - handles empty analysis", () => {

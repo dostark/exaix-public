@@ -21,6 +21,7 @@ import { DashboardCommands } from "./commands/dashboard_commands.ts";
 import { MemoryCommands } from "./commands/memory_commands.ts";
 import { IJournalCommandOptions, JournalCommands } from "./commands/journal_commands.ts";
 import { PortalExecutionStrategy, PortalStatus } from "../shared/enums.ts";
+import { AnalysisMode } from "../shared/types/request.ts";
 import { IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp_commands.ts";
@@ -30,9 +31,11 @@ import { GitService } from "../services/git_service.ts";
 
 // Extracted action handlers
 import {
+  handleRequestAnalyze,
   handleRequestCreate,
   handleRequestList,
   handleRequestShow,
+  type RequestAnalyzeOptions,
   type RequestCreateOptions,
   type RequestListOptions,
 } from "./command_builders/request_actions.ts";
@@ -254,6 +257,8 @@ export const __test_command = new Command()
       .option("-f, --file <file:string>", "Read description from file")
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
+      .option("--analyze", "Trigger immediate intent analysis for the request")
+      .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm", { default: AnalysisMode.HEURISTIC })
       .action(async (options, description?: string) => {
         await handleRequestCreate({ requestCommands, display }, options as RequestCreateOptions, description);
       })
@@ -280,6 +285,18 @@ export const __test_command = new Command()
           .description("Show request details")
           .action(async (_options: void, ...args: string[]) => {
             await handleRequestShow({ requestCommands, display }, args[0]);
+          }),
+      )
+      .command(
+        "analyze <id:string>",
+        new Command()
+          .description("Trigger intent analysis for an existing request by ID or subject")
+          .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm", {
+            default: AnalysisMode.HEURISTIC,
+          })
+          .option("--json", "Output in JSON format")
+          .action(async (options: any, ...id: any[]) => {
+            await handleRequestAnalyze({ requestCommands, display }, id[0], options as RequestAnalyzeOptions);
           }),
       ),
   )

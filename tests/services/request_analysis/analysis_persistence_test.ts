@@ -9,12 +9,9 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { loadAnalysis, saveAnalysis } from "../../../src/services/request_analysis/analysis_persistence.ts";
-import {
-  AnalyzerMode,
-  RequestAnalysisComplexity,
-  RequestTaskType,
-} from "../../../src/shared/schemas/request_analysis.ts";
+import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
 import type { IRequestAnalysis } from "../../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../../src/shared/types/request.ts";
 
 // ---------------------------------------------------------------------------
 // Fixture
@@ -35,7 +32,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 12,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
     ...overrides,
   };
@@ -96,7 +93,7 @@ Deno.test("[AnalysisPersistence] loads previously saved analysis", async () => {
     assertEquals(loaded!.actionabilityScore, 85);
     assertEquals(loaded!.complexity, RequestAnalysisComplexity.MEDIUM);
     assertEquals(loaded!.goals.length, 1);
-    assertEquals(loaded!.metadata.mode, AnalyzerMode.HEURISTIC);
+    assertEquals(loaded!.metadata.mode, AnalysisMode.HEURISTIC);
   } finally {
     await Deno.remove(dir, { recursive: true });
   }

@@ -10,11 +10,8 @@ import { assertEquals, assertExists } from "@std/assert";
 import { MockProvider } from "../../../src/ai/providers.ts";
 import { createOutputValidator } from "../../../src/services/output_validator.ts";
 import { RequestAnalyzer } from "../../../src/services/request_analysis/request_analyzer.ts";
-import {
-  AnalyzerMode,
-  RequestAnalysisComplexity,
-  RequestTaskType,
-} from "../../../src/shared/schemas/request_analysis.ts";
+import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import type { IDatabaseService } from "../../../src/shared/interfaces/i_database_service.ts";
 
 // ---------------------------------------------------------------------------
@@ -22,7 +19,7 @@ import type { IDatabaseService } from "../../../src/shared/interfaces/i_database
 // ---------------------------------------------------------------------------
 
 function makeValidJson(
-  opts: { score?: number; mode?: AnalyzerMode } = {},
+  opts: { score?: number; mode?: AnalysisMode } = {},
 ) {
   return JSON.stringify({
     goals: [{ description: "goal", explicit: true, priority: 1 }],
@@ -38,7 +35,7 @@ function makeValidJson(
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
-      mode: opts.mode ?? AnalyzerMode.LLM,
+      mode: opts.mode ?? AnalysisMode.LLM,
     },
   });
 }
@@ -48,12 +45,12 @@ function makeValidJson(
 // ---------------------------------------------------------------------------
 
 Deno.test("[RequestAnalyzer] analyzes in heuristic mode without provider", async () => {
-  const analyzer = new RequestAnalyzer({ mode: "heuristic" });
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.HEURISTIC });
 
   const result = await analyzer.analyze("Fix the NullPointerException in OrderService.");
 
   assertExists(result);
-  assertEquals(result.metadata.mode, AnalyzerMode.HEURISTIC);
+  assertEquals(result.metadata.mode, AnalysisMode.HEURISTIC);
   assertEquals(result.taskType, RequestTaskType.BUGFIX);
 });
 
@@ -68,7 +65,7 @@ Deno.test("[RequestAnalyzer] heuristic mode never calls provider", async () => {
     },
   };
   const analyzer = new RequestAnalyzer(
-    { mode: "heuristic" },
+    { mode: AnalysisMode.HEURISTIC },
     trackingProvider,
   );
 
@@ -84,11 +81,11 @@ Deno.test("[RequestAnalyzer] heuristic mode never calls provider", async () => {
 Deno.test("[RequestAnalyzer] analyzes in LLM mode with mock provider", async () => {
   const provider = new MockProvider(makeValidJson());
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new RequestAnalyzer({ mode: "llm" }, provider, validator);
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.LLM }, provider, validator);
 
   const result = await analyzer.analyze("Implement the new cache layer.");
 
-  assertEquals(result.metadata.mode, AnalyzerMode.LLM);
+  assertEquals(result.metadata.mode, AnalysisMode.LLM);
   assertEquals(result.taskType, RequestTaskType.FEATURE);
 });
 
@@ -110,7 +107,7 @@ Deno.test("[RequestAnalyzer] hybrid mode skips LLM for high-actionability reques
     },
   };
   const analyzer = new RequestAnalyzer(
-    { mode: "hybrid", actionabilityThreshold: 20 }, // very low threshold → heuristic almost always wins
+    { mode: AnalysisMode.HYBRID, actionabilityThreshold: 20 }, // very low threshold → heuristic almost always wins
     trackingProvider,
   );
 
@@ -131,7 +128,7 @@ Deno.test("[RequestAnalyzer] hybrid mode calls LLM for low-actionability request
   };
   const validator = createOutputValidator({ autoRepair: false });
   const analyzer = new RequestAnalyzer(
-    { mode: "hybrid", actionabilityThreshold: 100 }, // impossibly high threshold → always escalates
+    { mode: AnalysisMode.HYBRID, actionabilityThreshold: 100 }, // impossibly high threshold → always escalates
     trackingProvider,
     validator,
   );
@@ -146,14 +143,14 @@ Deno.test("[RequestAnalyzer] hybrid mode calls LLM for low-actionability request
 // ---------------------------------------------------------------------------
 
 Deno.test("[RequestAnalyzer] records durationMs in metadata", async () => {
-  const analyzer = new RequestAnalyzer({ mode: "heuristic" });
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.HEURISTIC });
   const result = await analyzer.analyze("Refactor the utils module.");
   assertEquals(typeof result.metadata.durationMs, "number");
   assertEquals(result.metadata.durationMs >= 0, true);
 });
 
 Deno.test("[RequestAnalyzer] populates analyzedAt timestamp", async () => {
-  const analyzer = new RequestAnalyzer({ mode: "heuristic" });
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.HEURISTIC });
   const result = await analyzer.analyze("Add logging to AuthService.");
   assertExists(result.metadata.analyzedAt);
   // Must be parseable as a date
@@ -172,7 +169,7 @@ Deno.test("[RequestAnalyzer] logs activity to database when db provided", async 
     },
   };
   const analyzerWithDb = new RequestAnalyzer(
-    { mode: "heuristic" },
+    { mode: AnalysisMode.HEURISTIC },
     undefined,
     undefined,
     mockDb as IDatabaseService,
@@ -184,7 +181,7 @@ Deno.test("[RequestAnalyzer] logs activity to database when db provided", async 
 });
 
 Deno.test("[RequestAnalyzer] works without db (no logging, no error)", async () => {
-  const analyzer = new RequestAnalyzer({ mode: "heuristic" });
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.HEURISTIC });
   // Should not throw even without a db
   const result = await analyzer.analyze("Update unit tests.");
   assertExists(result);
@@ -209,12 +206,12 @@ Deno.test("[RequestAnalyzer] merges heuristic file refs into LLM results", async
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
-      mode: AnalyzerMode.LLM,
+      mode: AnalysisMode.LLM,
     },
   });
   const provider = new MockProvider(llmJsonNoFiles);
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new RequestAnalyzer({ mode: "llm" }, provider, validator);
+  const analyzer = new RequestAnalyzer({ mode: AnalysisMode.LLM }, provider, validator);
 
   const text = "Implement feature X in src/services/cache_service.ts";
   const result = await analyzer.analyze(text);
@@ -233,7 +230,7 @@ Deno.test("[RequestAnalyzer] handles LLM failure gracefully in hybrid mode (fall
     generate: (_p: string): Promise<string> => Promise.reject(new Error("network error")),
   };
   const analyzer = new RequestAnalyzer(
-    { mode: "hybrid", actionabilityThreshold: 100 }, // would normally escalate
+    { mode: AnalysisMode.HYBRID, actionabilityThreshold: 100 }, // would normally escalate
     failingProvider,
   );
 
@@ -241,5 +238,5 @@ Deno.test("[RequestAnalyzer] handles LLM failure gracefully in hybrid mode (fall
 
   assertExists(result);
   // Should degrade to heuristic result, not throw
-  assertEquals(result.metadata.mode, AnalyzerMode.HEURISTIC);
+  assertEquals(result.metadata.mode, AnalysisMode.HYBRID);
 });

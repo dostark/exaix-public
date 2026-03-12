@@ -117,7 +117,11 @@ export class RequestProcessor {
     // Initialize extracted components
     this.requestParser = new RequestParser(this.logger);
     this.statusManager = new StatusManager(this.logger);
-    this.analyzer = testAnalyzer ?? new RequestAnalyzer({ mode: "heuristic" });
+    this.analyzer = testAnalyzer ?? new RequestAnalyzer({
+      mode: config.request_analysis?.mode ?? "heuristic",
+      actionabilityThreshold: config.request_analysis?.actionability_threshold,
+      inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
+    });
   }
 
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")

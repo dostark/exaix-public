@@ -10,6 +10,7 @@
 import type { RequestCommands } from "../commands/request_commands.ts";
 import { RequestPriority } from "../../shared/enums.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
@@ -31,12 +32,62 @@ export interface RequestCreateOptions {
   subject?: string;
   json?: boolean;
   dryRun?: boolean;
+  analyze?: boolean;
+  engine?: string;
 }
 
 export interface RequestListOptions {
   status?: RequestStatus;
   all?: boolean;
   json?: boolean;
+}
+
+export interface RequestAnalyzeOptions {
+  engine?: string;
+  json?: boolean;
+}
+
+/**
+ * Handle request analyze action
+ */
+export async function handleRequestAnalyze(
+  context: IRequestActionContext,
+  id: string,
+  options: RequestAnalyzeOptions,
+): Promise<void> {
+  const { requestCommands, display } = context;
+
+  try {
+    const mode = options.engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC;
+    const analysis = await requestCommands.analyze(id, mode);
+
+    if (options.json) {
+      console.log(JSON.stringify(analysis, null, 2));
+    } else {
+      const analysisData: JSONObject = {
+        trace_id: id,
+        mode: analysis.metadata.mode,
+        complexity: analysis.complexity,
+        actionability: `${analysis.actionabilityScore}%`,
+        ambiguities: analysis.ambiguities.length,
+        goals: analysis.goals.length,
+        requirements: analysis.requirements.length,
+      };
+
+      display.info("request.analyzed", id, toSafeJson(analysisData) as Record<string, JSONValue>);
+
+      if (analysis.ambiguities.length > 0) {
+        display.info("request.ambiguities", id, {
+          items: analysis.ambiguities.map((a: any) => `[${a.impact}] ${a.description}`),
+        });
+      }
+    }
+  } catch (error) {
+    display.error("cli.error", "request analyze", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    Deno.exit(1);
+  }
 }
 
 /**
@@ -61,6 +112,8 @@ export async function handleRequestCreate(
         flow: options.flow,
         skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
         subject: options.subject,
+        analyze: options.analyze,
+        analysis_engine: options.engine as AnalysisMode,
       });
       printRequestResult(context, result, !!options.json, !!options.dryRun);
       return;
@@ -84,6 +137,8 @@ export async function handleRequestCreate(
       flow: options.flow,
       skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
       subject: options.subject,
+      analyze: options.analyze,
+      analysis_engine: options.engine as AnalysisMode,
     });
 
     if (options.dryRun) {
@@ -187,6 +242,21 @@ export async function handleRequestShow(
     }
 
     display.info("request.show", metadata.trace_id.slice(0, 8), toSafeJson(displayData) as Record<string, JSONValue>);
+
+    const { analysis } = await requestCommands.show(id);
+    if (analysis) {
+      const analysisData: JSONObject = {
+        complexity: analysis.complexity,
+        actionability: `${analysis.actionabilityScore}%`,
+        ambiguity: analysis.ambiguities.length > 0 ? `${analysis.ambiguities.length} items` : "None",
+      };
+      display.info(
+        "request.analysis",
+        metadata.trace_id.slice(0, 8),
+        toSafeJson(analysisData) as Record<string, JSONValue>,
+      );
+    }
+
     display.info("request.content", id, { content });
   } catch (error) {
     display.error("cli.error", "request show", {

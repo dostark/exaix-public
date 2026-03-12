@@ -12,11 +12,13 @@ import type { RequestStatusType } from "../../shared/status/request_status.ts";
 import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
 import { RequestListHandler } from "../handlers/request_list_handler.ts";
 import { RequestShowHandler } from "../handlers/request_show_handler.ts";
-import type {
-  IRequestEntry,
-  IRequestMetadata,
-  IRequestOptions,
-  IRequestShowResult,
+import { IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
+import {
+  AnalysisMode,
+  type IRequestEntry,
+  type IRequestMetadata,
+  type IRequestOptions,
+  type IRequestShowResult,
   RequestSource,
 } from "../../shared/types/request.ts";
 
@@ -36,6 +38,17 @@ export class RequestCommands extends BaseCommand {
     this.createHandler = new RequestCreateHandler(context);
     this.listHandler = new RequestListHandler(context);
     this.showHandler = new RequestShowHandler(context);
+  }
+
+  /**
+   * Run intent analysis for a specific request.
+   * Internal helper for request promotion or manual trigger.
+   */
+  async analyze(
+    idOrFilename: string,
+    mode: AnalysisMode = AnalysisMode.HEURISTIC,
+  ): Promise<IRequestAnalysis> {
+    return await this.showHandler.analyze(idOrFilename, mode);
   }
 
   /**

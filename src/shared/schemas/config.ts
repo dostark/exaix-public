@@ -13,6 +13,7 @@ import { MCPConfigSchema } from "../schemas/mcp.ts";
 import * as DEFAULTS from "../constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
 import { LogLevel, PortalExecutionStrategy, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
+import { AnalysisMode } from "../types/request.ts";
 
 export interface IPortalConfig {
   alias: string;
@@ -274,6 +275,24 @@ export const ConfigSchema = z.object({
     agent_id: z.string().default(DEFAULTS.DEFAULT_MCP_AGENT_ID),
   }).optional().default({
     agent_id: DEFAULTS.DEFAULT_MCP_AGENT_ID,
+  }),
+  /** Request intent analysis configuration (Phase 45) */
+  request_analysis: z.object({
+    /**
+     * Analysis strategy: heuristic, llm, or hybrid.
+     * Default depends on environment (usually hybrid in production).
+     */
+    mode: z.nativeEnum(AnalysisMode).default(AnalysisMode.HYBRID),
+
+    /** Score (0-100) below which hybrid mode escalates to LLM. */
+    actionability_threshold: z.number().int().min(0).max(100).default(60),
+
+    /** Whether to infer acceptance criteria from imperatives. */
+    infer_acceptance_criteria: z.boolean().default(true),
+  }).optional().default({
+    mode: AnalysisMode.HYBRID,
+    actionability_threshold: 60,
+    infer_acceptance_criteria: true,
   }),
   /** Rate limiting configuration for cost exhaustion attack prevention */
   rate_limiting: z.object({

@@ -11,11 +11,11 @@ import { join } from "@std/path";
 import { type IAgentExecutionResult, type IRequestMetadata, PlanWriter } from "../../src/services/plan_writer.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
-  AnalyzerMode,
   type IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 
 function createMockAnalysis(): IRequestAnalysis {
   return {
@@ -32,7 +32,7 @@ function createMockAnalysis(): IRequestAnalysis {
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 42,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
   };
 }

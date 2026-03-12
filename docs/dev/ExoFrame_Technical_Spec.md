@@ -28,6 +28,7 @@
 - **Actor:** Entity performing action (agent name, "system", or "user")
 - **Blueprint:** TOML definition of an agent (model, capabilities, prompt)
 - **Flow:** TypeScript orchestration defining multi-agent workflows
+- **Request Analyzer:** Service for extracting intent, goals, and constraints from requests (Phase 45)
 - **Request Router:** Service that routes requests to appropriate execution engine (agent vs flow)
 - **MCP Client:** 🟢 Connect to external MCP servers (all editions)
 - **MCP Server:** 🔵 Expose ExoFrame as MCP server (Team+ editions)
@@ -760,14 +761,38 @@ await Promise.all([requestWatcher.start(), planWatcher.start()]);
 **Request Processing Flow:**
 
 1. **File Detection:** RequestWatcher detects new `.md` file in `Workspace/Requests/`
-1. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`)
-1. **Routing Decision:**
+2. **Analysis Pre-Processing (Phase 45):** RequestAnalyzer extracts structured intent, goals, constraints, and complexity before routing. Results are saved in `_analysis.json` and added to the processing context.
+3. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`)
+4. **Routing Decision:**
    - If `flow` field present → Route to FlowRunner (multi-agent)
    - If `agent` field present → Route to AgentRunner (single-agent)
    - If neither field → Use default agent from configuration
-1. **Validation:** Validate routing target exists and is properly configured
-1. **Plan Generation:** Generate appropriate execution plan
-1. **Status Update:** Update request status and log to Activity Journal
+5. **Validation:** Validate routing target exists and is properly configured
+6. **Plan Generation:** Generate appropriate execution plan, including analysis metadata from Step 2.
+7. **Status Update:** Update request status and log to Activity Journal
+
+#### 5.8.2.1.1. Request Analysis Layer (Phase 45 ✅ Implemented)
+
+Request Analysis is a mandatory pre-processing step that transforms raw markdown into structured grounding data. It solves the "opaque string" problem by providing a deterministic baseline for success.
+
+**Analysis Strategies:**
+
+- **Heuristic Strategy:** Zero-token, regex-based extraction of file paths, action verbs, and complexity signals.
+- **LLM Strategy:** Semantic extraction of goals, hidden constraints, and ambiguities using a validator-backed JSON schema.
+- **Hybrid Strategy (Default):** Runs heuristics first; if actionability is below a certain threshold, triggers LLM analysis.
+
+**Core Data Output (`IRequestAnalysis`):**
+
+- **Actionability Score (0-100):** Indicates if the request is ready for execution or requires clarification.
+- **Goals & Requirements:** Categorized list of user goals (explicit/inferred) and functional requirements.
+- **Complexity Classification:** Mapping to `SIMPLE`, `MEDIUM`, `COMPLEX`, or `EPIC` based on scope and signals. This directly informs provider selection and model tiering.
+- **Ambiguity Detection:** Identification of underspecified areas with impact-level scoring (Low/Med/High).
+
+**Integration Points:**
+
+- **Persistence:** Analysis stored in `Workspace/Requests/*_analysis.json`.
+- **Plan Metadata:** Embedded in the `requestAnalysis` field of generated plans.
+- **Quality Gates:** Provides the ground truth for future judge-based evaluation (Phase 46).
 
 **Routing Priority (Step 7.6):**
 

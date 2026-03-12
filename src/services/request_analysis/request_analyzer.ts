@@ -24,11 +24,11 @@ import type {
   IRequestAnalyzerService,
 } from "../../shared/interfaces/i_request_analyzer_service.ts";
 import {
-  AnalyzerMode,
   type IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
 import { analyzeHeuristic } from "./heuristic_analyzer.ts";
 import { LlmAnalyzer } from "./llm_analyzer.ts";
 import { DEFAULT_ACTIONABILITY_THRESHOLD } from "../../shared/constants.ts";
@@ -68,6 +68,7 @@ function completeFromHeuristic(
   partial: Partial<IRequestAnalysis>,
   requestText: string,
   durationMs: number,
+  mode: AnalysisMode = AnalysisMode.HEURISTIC,
 ): IRequestAnalysis {
   return {
     goals: partial.goals ?? [],
@@ -84,7 +85,7 @@ function completeFromHeuristic(
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: mode,
     },
   };
 }
@@ -120,10 +121,10 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
 
     let result: IRequestAnalysis;
 
-    if (mode === "heuristic") {
+    if (mode === AnalysisMode.HEURISTIC) {
       const partial = analyzeHeuristic(requestText);
-      result = completeFromHeuristic(partial, requestText, Date.now() - startMs);
-    } else if (mode === "llm") {
+      result = completeFromHeuristic(partial, requestText, Date.now() - startMs, AnalysisMode.HEURISTIC);
+    } else if (mode === AnalysisMode.LLM) {
       result = await this._callLlmWithFallback(requestText, context, startMs);
       // Always merge heuristic file refs into LLM result
       const heuristicPartial = analyzeHeuristic(requestText);
@@ -134,13 +135,13 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
       const hScore = heuristicActionabilityScore(heuristicPartial);
 
       if (hScore >= this.threshold || !this.llmAnalyzer) {
-        result = completeFromHeuristic(heuristicPartial, requestText, Date.now() - startMs);
+        result = completeFromHeuristic(heuristicPartial, requestText, Date.now() - startMs, AnalysisMode.HYBRID);
       } else {
         try {
           const llmResult = await this.llmAnalyzer.analyze(requestText, context);
           result = mergeFileRefs(llmResult, heuristicPartial);
         } catch {
-          result = completeFromHeuristic(heuristicPartial, requestText, Date.now() - startMs);
+          result = completeFromHeuristic(heuristicPartial, requestText, Date.now() - startMs, AnalysisMode.HYBRID);
         }
       }
     }
@@ -179,13 +180,13 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
   ): Promise<IRequestAnalysis> {
     if (!this.llmAnalyzer) {
       const partial = analyzeHeuristic(requestText);
-      return completeFromHeuristic(partial, requestText, Date.now() - startMs);
+      return completeFromHeuristic(partial, requestText, Date.now() - startMs, AnalysisMode.LLM);
     }
     try {
       return await this.llmAnalyzer.analyze(requestText, context);
     } catch {
       const partial = analyzeHeuristic(requestText);
-      return completeFromHeuristic(partial, requestText, Date.now() - startMs);
+      return completeFromHeuristic(partial, requestText, Date.now() - startMs, AnalysisMode.LLM);
     }
   }
 

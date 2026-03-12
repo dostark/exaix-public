@@ -46,15 +46,15 @@ Traditional AI coding assistants (GitHub Copilot, Cursor, Windsurf) excel at rea
 
 1. **Comprehensive Audit Trail** - Every agent action logged with trace IDs linking requests → plans → code changes → commits. The Activity Journal serves as your organization's "AI Bill of Materials."
 
-1.
+2. **Intent Pre-Processing & Analysis** - Every request undergoes structured intent analysis before execution. ExoFrame extracts goals, constraints, and acceptance criteria to ensure the agent's plan is grounded in the user's actual requirements, reducing hallucinations and misalignment.
 
-1.
+3. **Human-in-the-Loop Governance** - No agent executes code without an explicit human approval gate. Plans are presented as clear proposals with diffs and rationales.
 
-1.
+4. **Security-First Runtime** - Built on Deno, ExoFrame uses a capability-based security model. Agents are sandboxed by default and only granted granular access to specific "Portals" (project directories).
 
-1.
+5. **Multi-Model Sovereignty** - Switch seamlessly between local models (Ollama) for privacy and top-tier cloud models (Claude, GPT, Gemini) for complex reasoning. Hybrid mode allows mixing models within a single workflow.
 
-1.
+6. **Declarative Orchestration** - Orchestrate complex multi-agent "Flows" with type-safe TypeScript definitions, moving beyond simple chat interfaces to reliable automated processes.
 
 ### Three-Tier Edition Model
 

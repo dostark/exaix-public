@@ -7,6 +7,8 @@
 
 import { RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import {
+  type AnalysisMode,
+  type IRequestAnalysis,
   type IRequestEntry as IRequest,
   type IRequestMetadata as _IRequestMetadata,
   type IRequestOptions,
@@ -176,6 +178,12 @@ export function createMockRequestService(initial: IRequest[] = []) {
         return Promise.resolve(true);
       }
       return Promise.resolve(false);
+    }
+    getAnalysis(_id: string): Promise<IRequestAnalysis | null> {
+      return Promise.resolve(null);
+    }
+    analyze(_id: string, _options?: { mode?: AnalysisMode; force?: boolean }): Promise<IRequestAnalysis> {
+      return Promise.reject(new Error("Not implemented in mock"));
     }
   }
 
@@ -712,6 +720,8 @@ export function createLegacyMockRequestService() {
     create: () => Promise.resolve(createMockRequestMetadata()),
     createRequest: () => Promise.resolve(createMockRequestMetadata()),
     updateRequestStatus: () => Promise.resolve(true),
+    getAnalysis: () => Promise.resolve(null),
+    analyze: () => Promise.reject(new Error("Not implemented in legacy mock")),
   };
 }
 
@@ -745,6 +755,8 @@ export function createLegacyTuiSessionWithTracking() {
       deleteCalled = true;
       return Promise.resolve(true);
     },
+    getAnalysis: () => Promise.resolve(null),
+    analyze: () => Promise.reject(new Error("Not implemented in legacy mock")),
   };
 
   const requests = sampleTestRequests();
@@ -768,6 +780,8 @@ export function createLegacyTuiSessionWithLongTraceId() {
         trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
       } as Partial<IRequest> as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
+    getAnalysis: () => Promise.resolve(null),
+    analyze: () => Promise.reject(new Error("Not implemented in legacy mock")),
   };
 
   const requests = sampleTestRequests();
@@ -783,6 +797,8 @@ export function createLegacyTuiSessionWithErrors() {
     create: () => Promise.reject(new Error("Create error")),
     createRequest: () => Promise.reject(new Error("Create error")),
     updateRequestStatus: () => Promise.reject(new Error("Delete error")),
+    getAnalysis: () => Promise.reject(new Error("Analysis error")),
+    analyze: () => Promise.reject(new Error("Analysis error")),
   };
 
   const requests = sampleTestRequests();

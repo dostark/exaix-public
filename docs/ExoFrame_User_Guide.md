@@ -32,10 +32,33 @@ ExoFrame is **not** a replacement for IDE-integrated AI assistants (Copilot, Cur
 
 ### 1.2 Key Concepts
 
-- **Request:** What you want the agent to do (markdown file or CLI command)
-- **Plan:** Agent's proposal for how to accomplish the request
-- **Approval:** Human review gate before agent executes
-- **Trace ID:** UUID linking everything together for audit
+- **Request:** What you want the agent to do (markdown file or CLI command).
+- **Request Analysis:** A pre-processing step that extracts structured goals, requirements, and constraints from your request. This helps ensure the agent's plan is grounded in your actual intent.
+- **Actionability Score:** A 0–100 score indicating if your request is ready for execution. A low score (typically <60) means the request is underspecified or ambiguous.
+- **Complexity:** The system classifies a request as `Simple`, `Medium`, `Complex`, or `Epic` to select the most cost-effective and powerful engine for the task.
+- **Plan:** Agent's proposal for how to accomplish the request.
+- **Approval:** Human review gate before agent executes.
+- **Trace ID:** UUID linking everything together for audit.
+
+### 1.2.1 How to Improve Your Actionability Score
+
+The **Actionability Score** is a measure of how "grounded" and "specified" your request is. A higher score leads to more accurate plans and fewer agent errors.
+
+#### Strategies for High-Score Requests
+
+1. **Define Explicit Goals:** Instead of "Fix the bug," use "Fix the null pointer exception in `handler.ts` when the user ID is missing."
+2. **Reference Specific Files:** Use absolute paths or workspace-relative paths (e.g., `src/services/db.ts`). This allows the analyzer to verify the context exists.
+3. **Provide Acceptance Criteria:** Use phrases like "The task is complete when..." or "Must pass all unit tests in `tests/`."
+4. **Specify Constraints:** Mention any library versions, style guides, or performance requirements (e.g., "Must use Deno.test and maintain < 100ms latency").
+5. **Use Markdown Requests:** For complex tasks, create a `.md` file in `Workspace/Active/` with headers for "Goal," "Context," and "Constraints" instead of a one-line CLI string.
+
+#### Resolving Ambiguity
+
+If `exoctl request show` reports an actionability score below 60, look for the **Ambiguities** section in the output. To resolve them:
+
+- **Clarify the Scope:** If the agent is unsure which files to edit, provide the list.
+- **Provide Samples:** If the task involves a new format, include a snippet of the desired output.
+- **Run `exoctl request analyze`:** Use this command to re-run the analysis after you've updated the request description to see if the score improves.
 
 ### 1.3 Quick Request Examples
 
@@ -53,6 +76,9 @@ exoctl request "Update README in the MyProject portal" --portal MyProject
 
 # 4. Use a specific model configuration
 exoctl request "Generate unit tests for src/math.ts" --model fast
+
+# 5. Analyze a request without executing it
+exoctl request analyze "Implement a new authentication flow" --mode hybrid
 ```
 
 ## 2. Installation & Deployment
@@ -605,6 +631,14 @@ exoctl request "Test" --json
 
 # Inject skills to override agent limitations
 exoctl request "Audit and write report" --agent security-expert --skills documentation-driven
+
+# Trigger immediate intent analysis
+exoctl request "Implement a new authentication flow" --analyze --engine llm
+exoctl request "Update documentation" --analyze --engine heuristic
+
+# Analyze an existing request
+exoctl request analyze a1b2c3d4
+exoctl request analyze "Existing Request Subject" --engine llm
 ```
 
 **Options:**
@@ -621,6 +655,8 @@ exoctl request "Audit and write report" --agent security-expert --skills documen
 | `--interactive`   | `-i`  | Interactive mode with prompts                                                    |
 | `--dry-run`       |       | Preview without creating                                                         |
 | `--json`          |       | Machine-readable output                                                          |
+| `--analyze`       |       | Trigger immediate intent analysis (Phase 45)                                     |
+| `--engine`        | `-e`  | Analysis engine: `heuristic` (default), `llm`                                    |
 
 **Example workflow:**
 

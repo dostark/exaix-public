@@ -40,6 +40,7 @@ graph TB
         ReqWatch[Request Watcher<br/>Workspace/Requests]
         PlanWatch[Plan Watcher<br/>Workspace/Active]
         ReqProc[Request Processor]
+        ReqAn[Request Analyzer]
         ReqRouter[Request Router]
         PlanExec[Plan Executor]
         AgentRun[Agent Runner]
@@ -130,12 +131,14 @@ graph TB
     Main --> ReqWatch
     Main --> PlanWatch
     Main --> ReqProc
+    Main --> ReqAn
     Main --> ReqRouter
     Main --> PlanExec
     ReqWatch --> Requests
     PlanWatch --> System
     ReqProc --> InputVal
-    ReqProc --> ReqRouter
+    ReqProc --> ReqAn
+    ReqAn --> ReqRouter
     ReqRouter --> AgentRun
     ReqRouter --> FlowRun
     PlanExec --> AgentRun
@@ -195,7 +198,7 @@ graph TB
 
     class User,Agent actor
     class Exoctl,ReqCmd,PlanCmd,ChangeCmd,GitCmd,DaemonCmd,PortalCmd,BlueprintCmd,DashCmd cli
-    class Main,ReqWatch,PlanWatch,ReqProc,ReqRouter,PlanExec,AgentRun,FlowEng,FlowRun,ExecLoop core
+    class Main,ReqWatch,PlanWatch,ReqProc,ReqAn,ReqRouter,PlanExec,AgentRun,FlowEng,FlowRun,ExecLoop core
     class ConfigSvc,DBSvc,GitSvc,EventLog,ContextLoad,PlanWriter,MissionRpt,PathRes,ToolReg,CtxCard,OutputVal,RetryPol,ReflexAgt,ConfScore,SessMem,ToolRefl service
     class DB,FS,Workspace,Blueprint,Memory,Portals,System storage
     class Factory,Ollama,Claude,GPT,Gemini,Mock ai
@@ -230,6 +233,23 @@ ExoFrame follows a **three-tier edition model** to serve different organizationa
 
 ---
 
+## Request Analysis Layer
+
+The `RequestAnalyzer` performs intent extraction before routing, identifying goals, requirements, constraints, and ambiguities. It classifies complexity and actionability to guide provider selection and execution strategy.
+
+### Analysis Modes
+- **Heuristic**: Fast, local-only extraction using regex and keyword mapping. Identifies file paths, tech stack, and simple complexity.
+- **LLM**: Deep semantic analysis using a language model. Generates structured JSON adhering to `IRequestAnalysis` schema.
+- **Hybrid**: First runs heuristic; escalates to LLM only if actionability score falls below a configured threshold (default: 80).
+
+### Data Flow
+1. **Trigger**: `exoctl request` (via CLI option) or `RequestProcessor` (daemon) detect a new/updated request.
+2. **Execution**: `RequestAnalyzer.analyze()` runs according to the configured mode.
+3. **Persistence**: Results are saved to a sibling `*_analysis.json` file.
+4. **Consumption**: `RequestRouter` and runners pull analysis context to refine planning and tool selection.
+
+---
+
 ## Request Processing Flow
 
 ```mermaid
@@ -239,6 +259,7 @@ sequenceDiagram
     participant I as Workspace/Requests
     participant W as File Watcher
     participant RP as Request Processor
+    participant RA as Request Analyzer
     participant RR as Request Router
     participant FV as Flow Validator
     participant AR as Agent Runner
@@ -257,6 +278,8 @@ sequenceDiagram
     W->>I: Detect new file
     W->>RP: Trigger processing
     RP->>I: Read request.md
+    RP->>RA: Analyze intent (exoctl flag or daemon config)
+    RA->>I: Save request_analysis.json
     RP->>RR: Route request (flow vs agent)
 
     alt Flow Request
@@ -394,6 +417,9 @@ Key modules:
   - Defines the JSON schema for LLM plan output (title/description + numbered steps + optional metadata).
 - `src/schemas/mcp.ts`
   - Defines MCP tool argument schemas and MCP server configuration schema.
+- `src/shared/schemas/request_analysis.ts` (`RequestAnalysisSchema`)
+  - Validates `IRequestAnalysis` objects used for persistence and runtime context.
+  - Enforces field structure for goals, requirements, constraints, and ambiguity analysis.
 
 This layer is what keeps file-driven workflows safe and deterministic: request/plan files may come from humans or LLMs, but the runtime only proceeds when schemas validate.
 
@@ -1285,6 +1311,7 @@ graph LR
         User[User Actions<br/>CLI commands]
         Daemon[Daemon Events<br/>System lifecycle]
         Agent[Agent Actions<br/>Processing]
+        Analyzer[Analyzer Events<br/>Intent extraction]
         Git[Git Operations<br/>Commits]
     end
 
@@ -1310,6 +1337,7 @@ graph LR
     User --> Log
     Daemon --> Info
     Agent --> Warn
+    Analyzer --> Info
     Git --> Error
 
     Log --> Table
@@ -1329,7 +1357,7 @@ graph LR
     classDef db fill:#b2dfdb,stroke:#00695c,stroke-width:2px
     classDef query fill:#fff3e0,stroke:#e65100,stroke-width:2px
 
-    class User,Daemon,Agent,Git source
+    class User,Daemon,Agent,Analyzer,Git source
     class Log,Info,Warn,Error,Child logger
     class Table,Cols db
     class CLI,Trace,Audit query
@@ -1395,6 +1423,7 @@ graph LR
 | **Plan Watcher**         | Detect approved plans                      | `src/services/watcher.ts`                     | 🟢 All   |
 | **Request Processor**    | Parse requests, generate plans             | `src/services/request_processor.ts`           | 🟢 All   |
 | **Request Router**       | Route requests to Agent/Flow runners       | `src/services/request_router.ts`              | 🟢 All   |
+| **Request Analyzer**     | `src/services/request_analysis/`              | Intent, requirements & complexity extraction  | 🟢 All   |
 | **Plan Executor**        | Execute approved plans                     | `src/services/plan_executor.ts`               | 🟢 All   |
 | **Agent Runner**         | Execute agent logic with LLM               | `src/services/agent_runner.ts`                | 🟢 All   |
 | **Flow Runner**          | Execute multi-agent flows                  | `src/flows/flow_runner.ts`                    | 🟢 All   |
@@ -1509,13 +1538,7 @@ graph TB
 
 ### Data Flow
 
-1.  **Request Enhancement**: Session Memory injects relevant context from past interactions
-
-1.
-1.
-1.
-1.
-1.
+1. **Request Enhancement**: Session Memory injects relevant context from past interactions
 
 ### Configuration
 
@@ -1644,13 +1667,7 @@ step:
 
 ### Flow Control Data Flow
 
-1.  **Step Input**: Flow step receives input with current context
-
-1.
-1.
-1.
-1.
-1.
+1. **Step Input**: Flow step receives input with current context
 
 ---
 
@@ -1741,4 +1758,3 @@ This section provides explicit grounding for core infrastructure modules and hel
 - **[Technical Spec](ExoFrame_Technical_Spec.md)** - Deep technical details
 - **[White Paper](ExoFrame_White_paper.md)** - Vision and philosophy
 - **[Building with AI Agents](Building_with_AI_Agents.md)** - Development patterns
-

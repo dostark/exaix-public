@@ -152,6 +152,11 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       memory_warn_percent: 80,
       memory_critical_percent: 95,
     },
+    request_analysis: {
+      mode: "hybrid",
+      actionability_threshold: 60,
+      infer_acceptance_criteria: true,
+    },
   };
 }
 

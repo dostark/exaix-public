@@ -9,13 +9,13 @@ import { assertEquals, assertExists } from "@std/assert";
 import {
   AmbiguityImpact,
   AmbiguitySchema,
-  AnalyzerMode,
   RequestAnalysisComplexity,
   RequestAnalysisSchema,
   RequestGoalSchema,
   RequestTaskType,
   RequirementSchema,
 } from "../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -51,7 +51,7 @@ const validAnalysis = {
   metadata: {
     analyzedAt: new Date().toISOString(),
     durationMs: 42,
-    mode: AnalyzerMode.HEURISTIC,
+    mode: AnalysisMode.HEURISTIC,
   },
 };
 
@@ -209,12 +209,12 @@ Deno.test("[RequestAnalysisSchema] validates metadata fields", () => {
   if (result.success) {
     assertExists(result.data.metadata.analyzedAt);
     assertEquals(typeof result.data.metadata.durationMs, "number");
-    assertEquals(result.data.metadata.mode, AnalyzerMode.HEURISTIC);
+    assertEquals(result.data.metadata.mode, AnalysisMode.HEURISTIC);
   }
 });
 
 Deno.test("[RequestAnalysisSchema] validates all analyzer mode values", () => {
-  for (const mode of Object.values(AnalyzerMode)) {
+  for (const mode of Object.values(AnalysisMode)) {
     const result = RequestAnalysisSchema.safeParse({
       ...validAnalysis,
       metadata: { ...validAnalysis.metadata, mode },

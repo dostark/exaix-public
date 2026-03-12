@@ -232,6 +232,37 @@ describe("RequestCommands", () => {
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "subject: Implement dark mode for all pages");
     });
+
+    it("should trigger analysis when analyze option is enabled", async () => {
+      const result = await requestCommands.create("Test analyzed request", { analyze: true });
+      assertExists(result.trace_id);
+
+      // Verify analysis file created (_analysis.json suffix)
+      if (!result.path) throw new Error("Path should be defined");
+      const analysisFile = result.path.replace(/\.md$/, "_analysis.json");
+      const analysisExists = await exists(analysisFile);
+      assertEquals(analysisExists, true, `Analysis file ${analysisFile} should exist`);
+
+      const analysisRaw = await Deno.readTextFile(analysisFile);
+      const analysis = JSON.parse(analysisRaw);
+      assertEquals(analysis.metadata.mode, "heuristic");
+      assertExists(analysis.complexity);
+      assertExists(analysis.actionabilityScore);
+    });
+
+    it("should support engine override for analysis", async () => {
+      const result = await requestCommands.create("LLM analysis test", {
+        analyze: true,
+        analysis_engine: "llm" as any,
+      });
+
+      if (!result.path) throw new Error("Path should be defined");
+      const analysisFile = result.path.replace(/\.md$/, "_analysis.json");
+      const analysisRaw = await Deno.readTextFile(analysisFile);
+      const analysis = JSON.parse(analysisRaw);
+
+      assertEquals(analysis.metadata.mode, "llm");
+    });
   });
 
   describe("createFromFile", () => {
@@ -394,6 +425,25 @@ describe("RequestCommands", () => {
       // A random non-matching ID should fail with "not found"
       await assertRejects(
         async () => await requestCommands.show("zzzzzzzzz"),
+        Error,
+        "Request not found",
+      );
+    });
+
+    it("should show request by subject match", async () => {
+      await requestCommands.create("Build a search engine", { subject: "Search Project" });
+      await requestCommands.create("Other build task");
+
+      const { metadata } = await requestCommands.show("Search Project");
+      assertEquals(metadata.subject, "Search Project");
+      assertStringIncludes(metadata.trace_id, ""); // Just check it exists
+    });
+
+    it("should throw error for non-matching subject", async () => {
+      await requestCommands.create("Build something", { subject: "Build Something" });
+
+      await assertRejects(
+        async () => await requestCommands.show("NonExistentSubject"),
         Error,
         "Request not found",
       );

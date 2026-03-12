@@ -12,6 +12,7 @@ import { KeyBindingCategory } from "./helpers/keyboard.ts";
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
 import { MessageType, RequestPriority } from "../shared/enums.ts";
+import { AnalysisMode } from "../shared/types/request.ts";
 import { isRequestStatus, RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
 import { createGroupNode, createNode, findNode, flattenTree, type ITreeNode, renderTree } from "./helpers/tree_view.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
@@ -231,6 +232,12 @@ export class MinimalRequestServiceMock implements IRequestService {
   }
   getAnalysis(_: string): Promise<IRequestAnalysis | null> {
     return Promise.resolve(null);
+  }
+  analyze(
+    _: string,
+    _options?: { mode?: AnalysisMode; force?: boolean },
+  ): Promise<IRequestAnalysis> {
+    return Promise.resolve({} as IRequestAnalysis);
   }
   createRequest(_: string, __?: IRequestOptions): Promise<IRequest> {
     return Promise.resolve({} as IRequest);
@@ -1124,6 +1131,13 @@ export class RequestManagerView implements IRequestService {
 
   getAnalysis(requestId: string): Promise<IRequestAnalysis | null> {
     return this.service.getAnalysis(requestId);
+  }
+
+  analyze(
+    requestId: string,
+    options?: { mode?: AnalysisMode; force?: boolean },
+  ): Promise<IRequestAnalysis> {
+    return this.service.analyze(requestId, options);
   }
 
   createRequest(description: string, options?: IRequestOptions): Promise<IRequest> {

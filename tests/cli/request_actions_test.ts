@@ -7,7 +7,11 @@
 
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
-import { handleRequestShow, type IRequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
+import {
+  handleRequestAnalyze,
+  handleRequestShow,
+  type IRequestActionContext,
+} from "../../src/cli/command_builders/request_actions.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { EventLogger, type IEventLoggerConfig } from "../../src/services/event_logger.ts";
 
@@ -88,4 +92,123 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
     throw new Error("calls[0].c is undefined");
   }
   assertEquals(calls[1].a, "request.content");
+});
+
+Deno.test("handleRequestShow: includes analysis when present", async () => {
+  const { display, calls } = createDisplay();
+  const requestCommands = {
+    show: () =>
+      Promise.resolve({
+        metadata: {
+          trace_id: "trace-2",
+          status: "planned",
+          priority: "normal",
+          agent: "agent",
+          created_by: "tester",
+          created: "time",
+        },
+        content: "Hello analysis",
+        analysis: {
+          complexity: "medium",
+          actionabilityScore: 80,
+          ambiguities: [{ description: "A bit vague", impact: "low" }],
+          metadata: { analyzedAt: "now", durationMs: 123, mode: "heuristic" },
+          goals: [],
+          requirements: [],
+          constraints: [],
+          acceptanceCriteria: [],
+          taskType: "feature",
+          tags: [],
+          referencedFiles: [],
+        },
+      }),
+  };
+
+  const context: IRequestActionContext = {
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
+    display,
+  };
+  await handleRequestShow(context, "trace-2");
+
+  // Should have 3 calls: request.show, request.analysis, request.content
+  assertEquals(calls.length, 3);
+  assertEquals(calls[0].a, "request.show");
+  assertEquals(calls[1].a, "request.analysis");
+  if (calls[1].c) {
+    assertEquals(calls[1].c.complexity, "medium");
+    assertEquals(calls[1].c.actionability, "80%");
+    assertEquals(calls[1].c.ambiguity, "1 items");
+  } else {
+    throw new Error("calls[1].c is undefined");
+  }
+  assertEquals(calls[2].a, "request.content");
+});
+
+Deno.test("handleRequestAnalyze: trigger and display analysis", async () => {
+  const { display, calls } = createDisplay();
+  const requestCommands = {
+    analyze: (_id: string, mode: string) =>
+      Promise.resolve({
+        complexity: "complex",
+        actionabilityScore: 42,
+        ambiguities: [{ description: "Confusing", impact: "high" }],
+        goals: [{ description: "Win", priority: 1, explicit: true }],
+        requirements: [{ description: "Fast", confidence: 1 }],
+        metadata: { analyzedAt: "now", durationMs: 500, mode },
+        constraints: [],
+        acceptanceCriteria: [],
+        taskType: "feature",
+        tags: [],
+        referencedFiles: [],
+      }),
+  };
+
+  const context: IRequestActionContext = {
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
+    display,
+  };
+
+  await handleRequestAnalyze(context, "trace-3", { engine: "llm" });
+
+  assertEquals(calls.length, 2);
+  assertEquals(calls[0].a, "request.analyzed");
+  if (calls[0].c) {
+    assertEquals(calls[0].c.mode, "llm");
+    assertEquals(calls[0].c.complexity, "complex");
+    assertEquals(calls[0].c.actionability, "42%");
+  }
+  assertEquals(calls[1].a, "request.ambiguities");
+});
+
+Deno.test("handleRequestAnalyze: default to heuristic", async () => {
+  const { display, calls } = createDisplay();
+  const requestCommands = {
+    analyze: (_id: string, mode: string) =>
+      Promise.resolve({
+        complexity: "simple",
+        actionabilityScore: 100,
+        ambiguities: [],
+        goals: [],
+        requirements: [],
+        metadata: { analyzedAt: "now", durationMs: 10, mode },
+        constraints: [],
+        acceptanceCriteria: [],
+        taskType: "fix",
+        tags: [],
+        referencedFiles: [],
+      }),
+  };
+
+  const context: IRequestActionContext = {
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
+    display,
+  };
+
+  await handleRequestAnalyze(context, "trace-4", {});
+
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0].a, "request.analyzed");
+  if (calls[0].c) {
+    assertEquals(calls[0].c.mode, "heuristic");
+  }
 });

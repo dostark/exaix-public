@@ -32,11 +32,12 @@ export enum RequestAnalysisComplexity {
 }
 
 /**
- * Task type classification derived from action verbs in request text.
+ * Classification of the type of task a request describes.
  */
 export enum RequestTaskType {
-  FEATURE = "feature",
+  FIX = "fix",
   BUGFIX = "bugfix",
+  FEATURE = "feature",
   REFACTOR = "refactor",
   TEST = "test",
   DOCS = "docs",
@@ -56,14 +57,7 @@ export enum AmbiguityImpact {
   HIGH = "high",
 }
 
-/**
- * Which analysis strategy produced this result.
- */
-export enum AnalyzerMode {
-  HEURISTIC = "heuristic",
-  LLM = "llm",
-  HYBRID = "hybrid",
-}
+import { AnalysisMode } from "../types/request.ts";
 
 // ============================================================================
 // Sub-schemas
@@ -122,7 +116,7 @@ export const RequestAnalysisMetadataSchema = z.object({
   /** Wall-clock time taken to produce this analysis, in milliseconds. */
   durationMs: z.number().nonnegative(),
   /** Analysis strategy that produced this result. */
-  mode: z.nativeEnum(AnalyzerMode),
+  mode: z.nativeEnum(AnalysisMode),
 });
 
 export type IRequestAnalysisMetadata = z.infer<typeof RequestAnalysisMetadataSchema>;

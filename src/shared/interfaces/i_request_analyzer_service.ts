@@ -10,6 +10,7 @@
  */
 
 import type { IRequestAnalysis } from "../schemas/request_analysis.ts";
+import { AnalysisMode } from "../types/request.ts";
 
 /**
  * Configuration for the RequestAnalyzer service.
@@ -18,12 +19,12 @@ import type { IRequestAnalysis } from "../schemas/request_analysis.ts";
 export interface IRequestAnalyzerConfig {
   /**
    * Analysis strategy to use.
-   * - `"heuristic"` — fast, zero-cost regex/keyword analysis (default in CI/sandboxed mode)
-   * - `"llm"` — full LLM-powered structured analysis
-   * - `"hybrid"` — heuristic first; escalate to LLM only when actionability is
-   *   below `actionabilityThreshold`
+   * - `AnalysisMode.HEURISTIC` — fast, zero-cost regex/keyword (default in CI/sandboxed mode)
+   * - `AnalysisMode.LLM` — full LLM-powered structured analysis
+   * - `AnalysisMode.HYBRID` — heuristic first; escalate to LLM only when
+   *    actionability is below `actionabilityThreshold`
    */
-  mode: "heuristic" | "llm" | "hybrid";
+  mode: AnalysisMode;
 
   /**
    * Actionability score (0–100) below which hybrid mode escalates to LLM.

@@ -28,6 +28,8 @@ import { JSONValue as _JSONValue } from "../shared/types/json.ts";
 import { type IPortalDetails, type IPortalInfo, type IVerificationResult } from "../shared/types/portal.ts";
 import { type IPlanDetails, type IPlanMetadata } from "../shared/types/plan.ts";
 import {
+  type AnalysisMode,
+  type IRequestAnalysis,
   type IRequestEntry,
   type IRequestMetadata,
   type IRequestOptions,
@@ -331,6 +333,13 @@ export class MockRequestService implements IRequestService {
 
   updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
     return Promise.resolve(true);
+  }
+  getAnalysis(_requestId: string): Promise<IRequestAnalysis | null> {
+    return Promise.resolve(null);
+  }
+
+  analyze(_requestId: string, _options?: { mode?: AnalysisMode; force?: boolean }): Promise<IRequestAnalysis> {
+    return Promise.reject(new Error("Not implemented in mock"));
   }
 }
 

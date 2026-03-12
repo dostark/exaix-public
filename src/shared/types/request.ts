@@ -7,8 +7,21 @@
  * @related-files [src/shared/interfaces/i_request_service.ts]
  */
 
-import type { RequestPriority } from "../enums.ts";
-import type { RequestStatusType } from "../status/request_status.ts";
+import { type RequestStatusType } from "../status/request_status.ts";
+import { type IRequestAnalysis } from "../schemas/request_analysis.ts";
+import { type RequestPriority } from "../enums.ts";
+
+/**
+ * AnalysisMode enum for triggering request analysis.
+ * Exported here to maintain shared type hierarchy.
+ */
+export enum AnalysisMode {
+  HEURISTIC = "heuristic",
+  LLM = "llm",
+  HYBRID = "hybrid",
+}
+
+export type { IRequestAnalysis };
 
 /**
  * Detailed skills information for a request.
@@ -33,6 +46,8 @@ export interface IRequestOptions {
   skills?: string[];
   skipSkills?: string[];
   subject?: string;
+  analyze?: boolean;
+  analysis_engine?: AnalysisMode;
 }
 
 /**
@@ -66,6 +81,7 @@ export interface IRequestMetadata {
   source: RequestSource;
   rejected_path?: string;
   subject?: string;
+  analysis?: IRequestAnalysis;
 }
 
 /**
@@ -86,4 +102,5 @@ export type IRequest = IRequestEntry;
 export interface IRequestShowResult {
   metadata: IRequestEntry;
   content: string;
+  analysis?: IRequestAnalysis;
 }

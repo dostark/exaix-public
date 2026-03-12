@@ -22,6 +22,8 @@ import {
 } from "../../shared/types/request.ts";
 import { resolveSubject } from "../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
+import { RequestAnalyzer } from "../../services/request_analysis/mod.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
   RequestPriority.LOW,
@@ -93,6 +95,22 @@ export class RequestCreateHandler extends BaseCommand {
 
       // Write file
       await Deno.writeTextFile(path, content);
+
+      // Trigger analysis if requested
+      if (options.analyze) {
+        const analyzer = new RequestAnalyzer({
+          mode: options.analysis_engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC,
+        });
+        const analysis = await analyzer.analyze(trimmedDescription, {
+          agentId: agent,
+          priority: priority,
+        });
+        // saveAnalysis is imported in show handler, let's just do it directly here for the new file if needed
+        // but wait, RequestShowHandler uses saveAnalysis(matchingFile, analysis)
+        // Let's import saveAnalysis here too.
+        const { saveAnalysis } = await import("../../services/request_analysis/analysis_persistence.ts");
+        await saveAnalysis(path, analysis);
+      }
 
       // Log activity using DisplayService
       await this.display.info("request.created", path, {

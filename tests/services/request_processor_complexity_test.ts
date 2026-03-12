@@ -12,11 +12,11 @@ import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { buildParsedRequest } from "../../src/services/request_common.ts";
 import { TaskComplexity } from "../../src/shared/enums.ts";
 import {
-  AnalyzerMode,
   type IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { IBlueprint, IParsedRequest } from "../../src/services/agent_runner.ts";
@@ -70,7 +70,7 @@ function createTestAnalysis(complexity: RequestAnalysisComplexity): IRequestAnal
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
   };
 }

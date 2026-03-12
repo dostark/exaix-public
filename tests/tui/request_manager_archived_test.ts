@@ -4,7 +4,7 @@
  * @description Verifies the RequestManagerView TUI component's ability to toggle and display archived requests.
  */
 import { assertEquals } from "@std/assert";
-import { type IRequestOptions } from "../../src/shared/types/request.ts";
+import { type AnalysisMode, type IRequestAnalysis, type IRequestOptions } from "../../src/shared/types/request.ts";
 import { type IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
 import { RequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { IRequest } from "../../src/shared/types/request.ts";
@@ -102,6 +102,14 @@ class MockRequestService implements IRequestService {
 
   updateRequestStatus(_requestId: string, _status: RequestStatusType): Promise<boolean> {
     return Promise.resolve(true);
+  }
+
+  getAnalysis(_requestId: string): Promise<IRequestAnalysis | null> {
+    return Promise.resolve(null);
+  }
+
+  analyze(_requestId: string, _options?: { mode?: AnalysisMode; force?: boolean }): Promise<IRequestAnalysis> {
+    return Promise.reject(new Error("Not implemented in mock"));
   }
 }
 

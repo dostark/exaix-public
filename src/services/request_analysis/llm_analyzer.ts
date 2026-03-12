@@ -13,12 +13,12 @@
 import type { IModelProvider } from "../../ai/types.ts";
 import type { IOutputValidator } from "../output_validator.ts";
 import {
-  AnalyzerMode,
   type IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestAnalysisSchema,
   RequestTaskType,
 } from "../../shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
 import type { IRequestAnalysisContext } from "../../shared/interfaces/i_request_analyzer_service.ts";
 
 // ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ Respond with ONLY a valid JSON object matching this exact structure (no markdown
   "metadata": {
     "analyzedAt": "ISO8601 timestamp",
     "durationMs": 0,
-    "mode": "llm"
+    "mode": "${AnalysisMode.LLM}"
   }
 }
 
@@ -100,7 +100,7 @@ function buildFallback(requestText: string): IRequestAnalysis {
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
-      mode: AnalyzerMode.LLM,
+      mode: AnalysisMode.LLM,
     },
   };
 }
@@ -146,7 +146,7 @@ export class LlmAnalyzer {
           ...result.value.metadata,
           analyzedAt: result.value.metadata.analyzedAt || new Date().toISOString(),
           durationMs,
-          mode: AnalyzerMode.LLM,
+          mode: AnalysisMode.LLM,
         },
       };
     }

@@ -17,11 +17,11 @@ import type {
   IRequestAnalyzerService,
 } from "../../src/shared/interfaces/i_request_analyzer_service.ts";
 import {
-  AnalyzerMode,
   type IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -46,7 +46,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
     metadata: {
       analyzedAt: new Date().toISOString(),
       durationMs: 42,
-      mode: AnalyzerMode.HEURISTIC,
+      mode: AnalysisMode.HEURISTIC,
     },
     ...overrides,
   };

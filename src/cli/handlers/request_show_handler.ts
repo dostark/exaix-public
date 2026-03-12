@@ -10,16 +10,55 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
+import { type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
+import { type IRequestAnalyzerConfig } from "../../shared/interfaces/i_request_analyzer_service.ts";
 import { type IRequestShowResult } from "../../shared/types/request.ts";
 import { coerceRequestStatus } from "../../shared/status/request_status.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
+import { RequestAnalyzer } from "../../services/request_analysis/mod.ts";
+import { loadAnalysis, saveAnalysis } from "../../services/request_analysis/analysis_persistence.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 export class RequestShowHandler extends BaseCommand {
   private workspaceRequestsDir: string;
+  private analyzer?: RequestAnalyzer;
 
   constructor(context: ICommandContext) {
     super(context);
     this.workspaceRequestsDir = getWorkspaceRequestsDir(context);
+  }
+
+  /**
+   * Run analysis on a specific request
+   */
+  async analyze(
+    idOrFilename: string,
+    mode: AnalysisMode = AnalysisMode.HEURISTIC,
+  ): Promise<IRequestAnalysis> {
+    const { matchingFile, matchingFrontmatter } = await this.findMatchingRequestFile(idOrFilename);
+    const _requestId = matchingFile.split("/").pop()?.replace(/\.md$/, "") ?? "";
+
+    // Read body
+    const fullContent = await Deno.readTextFile(matchingFile);
+    const body = fullContent.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
+
+    // Lazy load analyzer
+    if (!this.analyzer) {
+      const analyzerConfig: IRequestAnalyzerConfig = {
+        mode,
+      };
+      this.analyzer = new RequestAnalyzer(analyzerConfig);
+    }
+
+    const analysis = await this.analyzer.analyze(body, {
+      agentId: matchingFrontmatter.agent as string,
+      priority: matchingFrontmatter.priority as string,
+    });
+
+    // Persist
+    await saveAnalysis(matchingFile, analysis);
+
+    return analysis;
   }
 
   async show(idOrFilename: string): Promise<IRequestShowResult> {
@@ -38,9 +77,13 @@ export class RequestShowHandler extends BaseCommand {
     // Extract body (content after YAML frontmatter)
     const body = fullContent.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
 
+    // Get analysis if exists
+    const analysis = await loadAnalysis(matchingFile);
+
     return {
       metadata: this.mapToMetadata(matchingFile, matchingFrontmatter, planTokens),
       content: body,
+      analysis: analysis || undefined,
     };
   }
 
@@ -93,7 +136,12 @@ export class RequestShowHandler extends BaseCommand {
       const frontmatter = this.extractFrontmatter(content);
 
       const nameWithoutExt = entry.name.replace(/\.md$/i, "");
-      if (entry.name === idOrFilename || nameWithoutExt === idOrFilename || frontmatter.trace_id === idOrFilename) {
+      if (
+        entry.name === idOrFilename ||
+        nameWithoutExt === idOrFilename ||
+        frontmatter.trace_id === idOrFilename ||
+        frontmatter.subject === idOrFilename
+      ) {
         return { matchingFile: filePath, matchingFrontmatter: frontmatter };
       }
 

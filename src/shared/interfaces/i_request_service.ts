@@ -17,6 +17,7 @@ import type {
 } from "../types/request.ts";
 
 import { IRequestAnalysis } from "../schemas/request_analysis.ts";
+import { AnalysisMode } from "../types/request.ts";
 
 export interface IRequestService {
   /**
@@ -65,4 +66,9 @@ export interface IRequestService {
    * Get the analysis for a specific request.
    */
   getAnalysis(requestId: string): Promise<IRequestAnalysis | null>;
+
+  /**
+   * Run intent analysis for a specific request.
+   */
+  analyze(requestId: string, options?: { mode?: AnalysisMode; force?: boolean }): Promise<IRequestAnalysis>;
 }
