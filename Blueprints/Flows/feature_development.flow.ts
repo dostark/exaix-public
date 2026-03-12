@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Feature_Development.Flow
  * @path Blueprints/Flows/feature_development.flow.ts
@@ -19,7 +20,7 @@ export default defineFlow({
       agent: "product-manager",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -33,7 +34,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["analyze-requirements"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-requirements",
         transform: "extract-technical-requirements",
       },
@@ -48,7 +49,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["design-architecture"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "design-architecture",
         transform: "extract-implementation-plan",
       },
@@ -64,7 +65,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["implement-feature"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "implement-feature",
         transform: "extract-test-requirements",
       },
@@ -79,7 +80,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["implement-feature", "write-tests"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         transform: "combine-implementation-and-tests",
       },
       retry: {
@@ -93,7 +94,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["code-review"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "code-review",
         transform: "prepare-integration-test",
       },
@@ -105,7 +106,7 @@ export default defineFlow({
   ],
   output: {
     from: ["code-review", "integration-test"],
-    format: "json",
+    format: FlowOutputFormat.JSON,
   },
   settings: {
     maxParallelism: 3,

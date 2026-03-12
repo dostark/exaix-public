@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Documentation.Flow
  * @path Blueprints/Flows/documentation.flow.ts
@@ -19,7 +20,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract-code-files",
       },
       retry: {
@@ -33,7 +34,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["extract-code-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "extract-code-structure",
         transform: "focus-api-elements",
       },
@@ -48,7 +49,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["extract-code-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "extract-code-structure",
         transform: "focus-user-features",
       },
@@ -63,7 +64,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["extract-code-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "extract-code-structure",
         transform: "analyze-architecture",
       },
@@ -78,7 +79,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["generate-api-docs", "generate-user-guide", "generate-architecture-docs"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         transform: "merge-documentation",
       },
       retry: {
@@ -89,7 +90,7 @@ export default defineFlow({
   ],
   output: {
     from: "compile-documentation",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 3,

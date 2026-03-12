@@ -4,8 +4,6 @@
  * @description Module for staged.flow.template.
  */
 
-import { defineFlow } from "../../../src/flows/define_flow.ts";
-
 /**
  * Staged Flow Template
  *
@@ -23,6 +21,9 @@ import { defineFlow } from "../../../src/flows/define_flow.ts";
  * Where each stage may use different agents or processing approaches
  */
 
+import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
+
 export default defineFlow({
   id: "staged-template",
   name: "Staged Flow Template",
@@ -35,7 +36,7 @@ export default defineFlow({
       agent: "planner-agent", // Replace with your agent
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -49,7 +50,7 @@ export default defineFlow({
       agent: "developer-agent", // Replace with your agent
       dependsOn: ["stage-1-planning"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "stage-1-planning",
         transform: "passthrough", // Replace with development transform
       },
@@ -64,7 +65,7 @@ export default defineFlow({
       agent: "tester-agent", // Replace with your agent
       dependsOn: ["stage-2-development"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["stage-1-planning", "stage-2-development"],
         transform: "merge_as_context", // Include planning context
       },
@@ -79,7 +80,7 @@ export default defineFlow({
       agent: "reviewer-agent", // Replace with your agent
       dependsOn: ["stage-3-validation"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["stage-1-planning", "stage-2-development", "stage-3-validation"],
         transform: "merge_as_context", // Full context for review
       },
@@ -94,7 +95,7 @@ export default defineFlow({
       agent: "deployer-agent", // Replace with your agent
       dependsOn: ["stage-4-review"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["stage-2-development", "stage-4-review"],
         transform: "merge_as_context", // Implementation + review feedback
       },
@@ -106,7 +107,7 @@ export default defineFlow({
   ],
   output: {
     from: "stage-5-deployment",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 1, // Sequential stages
@@ -131,8 +132,8 @@ Customization Guide:
    - Update dependency chains
 
 3. Configure input aggregation per stage:
-   - Early stages: "request" or single step input
-   - Later stages: "aggregate" from multiple previous stages
+   - Early stages: FlowInputSource.REQUEST or single step input
+   - Later stages: FlowInputSource.AGGREGATE from multiple previous stages
    - Use transforms to prepare data for each stage
 
 4. Set appropriate timeouts and retry logic:

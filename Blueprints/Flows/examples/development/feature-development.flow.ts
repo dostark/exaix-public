@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module FeatureDevelopment.Flow
  * @path Blueprints/Flows/examples/development/feature-development.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "product-manager",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -43,7 +44,7 @@ export default defineFlow({
       agent: "senior-developer",
       dependsOn: ["requirements-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "requirements-analysis",
         transform: "passthrough",
       },
@@ -58,7 +59,7 @@ export default defineFlow({
       agent: "senior-developer",
       dependsOn: ["technical-design"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["requirements-analysis", "technical-design"],
         transform: "merge_as_context",
       },
@@ -73,7 +74,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["implementation"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["requirements-analysis", "technical-design", "implementation"],
         transform: "merge_as_context",
       },
@@ -88,7 +89,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["unit-testing"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["requirements-analysis", "implementation", "unit-testing"],
         transform: "merge_as_context",
       },
@@ -103,7 +104,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["integration-testing"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["requirements-analysis", "technical-design", "implementation", "integration-testing"],
         transform: "merge_as_context",
       },
@@ -115,7 +116,7 @@ export default defineFlow({
   ],
   output: {
     from: "documentation",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 1, // Sequential development stages

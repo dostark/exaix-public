@@ -4,8 +4,6 @@
  * @description Module for pipeline.flow.template.
  */
 
-import { defineFlow } from "../../../src/flows/define_flow.ts";
-
 /**
  * Pipeline Flow Template
  *
@@ -20,6 +18,9 @@ import { defineFlow } from "../../../src/flows/define_flow.ts";
  * Pattern: Step 1 → Step 2 → Step 3 → ... → Final Step
  */
 
+import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
+
 export default defineFlow({
   id: "pipeline-template",
   name: "Pipeline Flow Template",
@@ -32,7 +33,7 @@ export default defineFlow({
       agent: "coordinator-agent", // Replace with your agent
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -46,7 +47,7 @@ export default defineFlow({
       agent: "processor-agent", // Replace with your agent
       dependsOn: ["initialize"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "initialize",
         transform: "passthrough", // Replace with appropriate transform
       },
@@ -61,7 +62,7 @@ export default defineFlow({
       agent: "refiner-agent", // Replace with your agent
       dependsOn: ["process-step-1"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "process-step-1",
         transform: "passthrough", // Replace with appropriate transform
       },
@@ -76,7 +77,7 @@ export default defineFlow({
       agent: "summarizer-agent", // Replace with your agent
       dependsOn: ["process-step-2"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "process-step-2",
         transform: "passthrough", // Replace with appropriate transform
       },
@@ -88,7 +89,7 @@ export default defineFlow({
   ],
   output: {
     from: "finalize",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 1, // Sequential execution

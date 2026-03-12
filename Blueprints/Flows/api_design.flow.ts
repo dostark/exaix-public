@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Api_Design.Flow
  * @path Blueprints/Flows/api_design.flow.ts
@@ -28,7 +29,7 @@ export default defineFlow({
       agent: "product-manager",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -42,7 +43,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["gather-requirements"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "gather-requirements",
         transform: "mergeAsContext",
       },
@@ -59,7 +60,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["design-architecture"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "design-architecture",
         transform: "mergeAsContext",
       },
@@ -76,7 +77,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["design-architecture"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "design-architecture",
         transform: "mergeAsContext",
       },
@@ -93,7 +94,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["design-architecture"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "design-architecture",
         transform: "mergeAsContext",
       },
@@ -110,7 +111,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["define-endpoints", "design-schemas"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["define-endpoints", "design-schemas"],
         transform: "mergeAsContext",
       },
@@ -126,7 +127,7 @@ export default defineFlow({
       agent: "performance-engineer",
       dependsOn: ["define-endpoints", "design-schemas"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["design-architecture", "define-endpoints", "design-schemas"],
         transform: "mergeAsContext",
       },
@@ -149,7 +150,7 @@ export default defineFlow({
         "performance-considerations",
       ],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "gather-requirements",
           "design-architecture",
@@ -171,7 +172,7 @@ export default defineFlow({
   ],
   output: {
     from: "compile-api-spec",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 3,

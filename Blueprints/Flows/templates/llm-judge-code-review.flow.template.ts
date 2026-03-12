@@ -4,8 +4,6 @@
  * @description Module for llmjudgecodereview.flow.template.
  */
 
-import { defineFlow } from "../../../src/flows/define_flow.ts";
-
 /**
  * LLM-as-a-Judge Code Review Flow
  *
@@ -36,6 +34,9 @@ import { defineFlow } from "../../../src/flows/define_flow.ts";
  * - append_to_request: Include original request with step output
  */
 
+import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts"
+
 export default defineFlow({
   id: "llm-judge-code-review",
   name: "LLM-as-a-Judge Code Review",
@@ -49,7 +50,7 @@ export default defineFlow({
       agent: "code-analyzer",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -65,7 +66,7 @@ export default defineFlow({
       agent: "security-reviewer",
       dependsOn: ["analyze-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code",
         transform: "append_to_request", // Include original code + analysis
       },
@@ -80,7 +81,7 @@ export default defineFlow({
       agent: "quality-reviewer",
       dependsOn: ["analyze-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code",
         transform: "append_to_request",
       },
@@ -98,7 +99,7 @@ export default defineFlow({
       agent: "quality-judge",
       dependsOn: ["security-review", "quality-review"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-code", "security-review", "quality-review"],
         transform: "merge_as_context", // Combines all as ## Step 1, ## Step 2, etc.
       },
@@ -116,7 +117,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["judge-evaluation"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "analyze-code",
           "security-review",
@@ -133,7 +134,7 @@ export default defineFlow({
   ],
   output: {
     from: "generate-report",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 2, // Security and quality reviews run in parallel

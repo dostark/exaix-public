@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
 /**
  * @module FanOutFanIn.Flow.Template
  * @path Blueprints/Flows/templates/fan-out-fan-in.flow.template.ts
@@ -32,7 +33,7 @@ export default defineFlow({
       agent: "coordinator-agent", // Replace with your agent
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -46,7 +47,7 @@ export default defineFlow({
       agent: "specialist-agent-1", // Replace with your agent
       dependsOn: ["distribute"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "distribute",
         transform: "passthrough", // Replace with perspective-specific transform
       },
@@ -61,7 +62,7 @@ export default defineFlow({
       agent: "specialist-agent-2", // Replace with your agent
       dependsOn: ["distribute"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "distribute",
         transform: "passthrough", // Replace with perspective-specific transform
       },
@@ -76,7 +77,7 @@ export default defineFlow({
       agent: "specialist-agent-3", // Replace with your agent
       dependsOn: ["distribute"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "distribute",
         transform: "passthrough", // Replace with perspective-specific transform
       },
@@ -86,12 +87,12 @@ export default defineFlow({
       },
     },
     {
-      id: "aggregate",
+      id: FlowInputSource.AGGREGATE,
       name: "Aggregate Results",
       agent: "synthesizer-agent", // Replace with your agent
       dependsOn: ["worker-1", "worker-2", "worker-3"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["worker-1", "worker-2", "worker-3"],
         transform: "merge_as_context", // Combine all worker outputs
       },
@@ -102,8 +103,8 @@ export default defineFlow({
     },
   ],
   output: {
-    from: "aggregate",
-    format: "markdown",
+    from: FlowInputSource.AGGREGATE,
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 3, // Allow parallel execution of workers

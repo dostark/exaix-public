@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Migration_Planning.Flow
  * @path Blueprints/Flows/migration_planning.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "product-manager",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -43,7 +44,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["code-review", "typescript-patterns"],
@@ -59,7 +60,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["gather-requirements", "analyze-current-state"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["gather-requirements", "analyze-current-state"],
         transform: "mergeAsContext",
       },
@@ -76,7 +77,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["impact-analysis"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["gather-requirements", "impact-analysis"],
         transform: "mergeAsContext",
       },
@@ -93,7 +94,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["impact-analysis", "breaking-changes"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["impact-analysis", "breaking-changes"],
         transform: "mergeAsContext",
       },
@@ -110,7 +111,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["impact-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "impact-analysis",
         transform: "mergeAsContext",
       },
@@ -127,7 +128,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["breaking-changes", "risk-assessment", "security-considerations"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "gather-requirements",
           "impact-analysis",
@@ -150,7 +151,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["create-migration-plan"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["breaking-changes", "create-migration-plan"],
         transform: "mergeAsContext",
       },
@@ -167,7 +168,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["create-migration-plan", "testing-strategy"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "gather-requirements",
           "impact-analysis",
@@ -188,7 +189,7 @@ export default defineFlow({
   ],
   output: {
     from: "generate-documentation",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 2,

@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Test_Generation.Flow
  * @path Blueprints/Flows/test_generation.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["code-review", "typescript-patterns"],
@@ -45,7 +46,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["analyze-code-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code-structure",
         transform: "mergeAsContext",
       },
@@ -62,7 +63,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["identify-test-scenarios"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-code-structure", "identify-test-scenarios"],
         transform: "mergeAsContext",
       },
@@ -79,7 +80,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["identify-test-scenarios"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-code-structure", "identify-test-scenarios"],
         transform: "mergeAsContext",
       },
@@ -96,7 +97,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["analyze-code-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code-structure",
         transform: "mergeAsContext",
       },
@@ -113,7 +114,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["identify-edge-cases", "generate-unit-tests"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["identify-edge-cases", "generate-unit-tests"],
         transform: "mergeAsContext",
       },
@@ -130,7 +131,7 @@ export default defineFlow({
       agent: "quality-judge",
       dependsOn: ["generate-unit-tests", "generate-integration-tests", "generate-edge-case-tests"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["generate-unit-tests", "generate-integration-tests", "generate-edge-case-tests"],
         transform: "mergeAsContext",
       },
@@ -147,7 +148,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["review-test-quality"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["generate-unit-tests", "generate-integration-tests", "generate-edge-case-tests", "review-test-quality"],
         transform: "mergeAsContext",
       },
@@ -160,7 +161,7 @@ export default defineFlow({
   ],
   output: {
     from: "compile-test-suite",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 3,

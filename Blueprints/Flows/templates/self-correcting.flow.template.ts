@@ -4,8 +4,6 @@
  * @description Module for selfcorrecting.flow.template.
  */
 
-import { defineFlow } from "../../../src/flows/define_flow.ts";
-
 /**
  * Self-Correcting Flow Template
  *
@@ -41,6 +39,9 @@ import { defineFlow } from "../../../src/flows/define_flow.ts";
  * - ERROR_HANDLING: Validates error handling presence
  */
 
+import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
+
 export default defineFlow({
   id: "self-correcting-template",
   name: "Self-Correcting Flow Template",
@@ -54,7 +55,7 @@ export default defineFlow({
       agent: "generator-agent", // Replace with your generation agent
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -72,7 +73,7 @@ export default defineFlow({
       agent: "quality-judge",
       dependsOn: ["generate-initial"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["generate-initial"],
         transform: "merge_as_context",
       },
@@ -91,7 +92,7 @@ export default defineFlow({
       agent: "refiner-agent", // Replace with your refinement agent
       dependsOn: ["evaluate-quality"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["generate-initial", "evaluate-quality"],
         transform: "merge_as_context",
       },
@@ -108,7 +109,7 @@ export default defineFlow({
       agent: "generator-agent",
       dependsOn: ["refine-output"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "refine-output",
         transform: "passthrough",
       },
@@ -120,7 +121,7 @@ export default defineFlow({
   ],
   output: {
     from: "finalize-output",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 1, // Sequential for feedback flow

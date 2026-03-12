@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module ApiDocumentation.Flow
  * @path Blueprints/Flows/examples/content/api-documentation.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "api-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -43,7 +44,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["api-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "api-analysis",
         transform: "passthrough",
       },
@@ -58,7 +59,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["api-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "api-analysis",
         transform: "passthrough",
       },
@@ -73,7 +74,7 @@ export default defineFlow({
       agent: "security-writer",
       dependsOn: ["api-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "api-analysis",
         transform: "passthrough",
       },
@@ -88,7 +89,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["endpoint-documentation", "data-models", "authentication-docs"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["endpoint-documentation", "data-models", "authentication-docs"],
         transform: "merge_as_context",
       },
@@ -103,7 +104,7 @@ export default defineFlow({
       agent: "documentation-reviewer",
       dependsOn: ["endpoint-documentation", "data-models", "authentication-docs", "examples-integration"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["endpoint-documentation", "data-models", "authentication-docs", "examples-integration"],
         transform: "merge_as_context",
       },
@@ -115,7 +116,7 @@ export default defineFlow({
   ],
   output: {
     from: "documentation-review",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 3, // Parallel documentation generation

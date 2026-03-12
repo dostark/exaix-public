@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Security_Audit.Flow
  * @path Blueprints/Flows/security_audit.flow.ts
@@ -28,7 +29,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["security-first"],
@@ -44,7 +45,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nFocus specifically on dependencies and third-party packages." },
       },
@@ -61,7 +62,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nFocus on authentication, authorization, and access control patterns." },
       },
@@ -78,7 +79,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nFocus on data encryption, PII handling, and sensitive data exposure." },
       },
@@ -95,7 +96,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["static-analysis", "dependency-audit", "auth-review", "data-protection"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["static-analysis", "dependency-audit", "auth-review", "data-protection"],
         transform: "mergeAsContext",
       },
@@ -112,7 +113,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["consolidate-findings"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "consolidate-findings",
         transform: "mergeAsContext",
       },
@@ -129,7 +130,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["consolidate-findings", "risk-assessment"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["consolidate-findings", "risk-assessment"],
         transform: "mergeAsContext",
       },
@@ -146,7 +147,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["consolidate-findings", "risk-assessment", "remediation-plan"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["consolidate-findings", "risk-assessment", "remediation-plan"],
         transform: "mergeAsContext",
       },
@@ -159,7 +160,7 @@ export default defineFlow({
   ],
   output: {
     from: "generate-report",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 4, // Run initial audits in parallel

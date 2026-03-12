@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module SecurityAudit.Flow
  * @path Blueprints/Flows/examples/operations/security-audit.flow.ts
@@ -30,7 +31,7 @@ export default defineFlow({
       agent: "code-security-auditor",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -44,7 +45,7 @@ export default defineFlow({
       agent: "infrastructure-security-auditor",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -58,7 +59,7 @@ export default defineFlow({
       agent: "compliance-auditor",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -72,7 +73,7 @@ export default defineFlow({
       agent: "dependency-auditor",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -86,7 +87,7 @@ export default defineFlow({
       agent: "risk-assessor",
       dependsOn: ["code-security-scan", "infrastructure-security", "compliance-check", "dependency-analysis"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["code-security-scan", "infrastructure-security", "compliance-check", "dependency-analysis"],
         transform: "merge_as_context",
       },
@@ -101,7 +102,7 @@ export default defineFlow({
       agent: "security-synthesizer",
       dependsOn: ["risk-assessment"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "code-security-scan",
           "infrastructure-security",
@@ -119,7 +120,7 @@ export default defineFlow({
   ],
   output: {
     from: "remediation-planning",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 4, // Parallel security assessments

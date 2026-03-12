@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Bug_Investigation.Flow
  * @path Blueprints/Flows/bug_investigation.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "product-manager",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -43,7 +44,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: ["analyze-bug-report"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-bug-report",
         transform: "mergeAsContext",
       },
@@ -59,7 +60,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["locate-relevant-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "locate-relevant-code",
         transform: "mergeAsContext",
       },
@@ -76,7 +77,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["identify-root-cause"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "identify-root-cause",
         transform: "mergeAsContext",
       },
@@ -93,7 +94,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["identify-root-cause", "security-impact"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["identify-root-cause", "security-impact"],
         transform: "mergeAsContext",
       },
@@ -110,7 +111,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["propose-fix"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "propose-fix",
         transform: "mergeAsContext",
       },
@@ -126,7 +127,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["propose-fix", "write-test-cases"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-bug-report", "identify-root-cause", "security-impact", "propose-fix", "write-test-cases"],
         transform: "mergeAsContext",
       },
@@ -139,7 +140,7 @@ export default defineFlow({
   ],
   output: {
     from: "compile-report",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 2,

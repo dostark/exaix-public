@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Code_Review.Flow
  * @path Blueprints/Flows/code_review.flow.ts
@@ -19,7 +20,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -33,7 +34,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["analyze-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code",
         transform: "extract-security-focus",
       },
@@ -49,7 +50,7 @@ export default defineFlow({
       agent: "performance-engineer",
       dependsOn: ["analyze-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-code",
         transform: "extract-performance-focus",
       },
@@ -65,7 +66,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["security-review", "performance-review"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         transform: "combine-reviews",
       },
       condition: "results.every(r => r.status === 'completed')",
@@ -77,7 +78,7 @@ export default defineFlow({
   ],
   output: {
     from: "final-report",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 2,

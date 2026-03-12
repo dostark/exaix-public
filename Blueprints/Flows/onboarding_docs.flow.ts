@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Onboarding_Docs.Flow
  * @path Blueprints/Flows/onboarding_docs.flow.ts
@@ -30,7 +31,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["code-review", "typescript-patterns"],
@@ -46,7 +47,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["analyze-project-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-project-structure",
         transform: "mergeAsContext",
       },
@@ -63,7 +64,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["analyze-project-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-project-structure",
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nCreate a quick start guide for developers new to this project." },
@@ -81,7 +82,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["identify-key-concepts"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-project-structure", "identify-key-concepts"],
         transform: "mergeAsContext",
       },
@@ -98,7 +99,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["analyze-project-structure"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-project-structure",
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nCreate a detailed development environment setup guide." },
@@ -116,7 +117,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["identify-key-concepts"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-project-structure", "identify-key-concepts"],
         transform: "appendToRequest",
         transformArgs: {
@@ -136,7 +137,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["identify-key-concepts"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "identify-key-concepts",
         transform: "appendToRequest",
         transformArgs: { suffix: "\n\nCreate a glossary of key terms and concepts used in this project." },
@@ -160,7 +161,7 @@ export default defineFlow({
         "generate-glossary",
       ],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "generate-quickstart",
           "generate-architecture-overview",
@@ -180,7 +181,7 @@ export default defineFlow({
   ],
   output: {
     from: "compile-onboarding-docs",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 4,

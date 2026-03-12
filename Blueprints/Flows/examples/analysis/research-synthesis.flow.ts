@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module ResearchSynthesis.Flow
  * @path Blueprints/Flows/examples/analysis/research-synthesis.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "literature-researcher",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -43,7 +44,7 @@ export default defineFlow({
       agent: "data-researcher",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -57,7 +58,7 @@ export default defineFlow({
       agent: "expert-consultant",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -71,7 +72,7 @@ export default defineFlow({
       agent: "methodology-expert",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       retry: {
@@ -85,7 +86,7 @@ export default defineFlow({
       agent: "strategic-analyst",
       dependsOn: ["literature-review", "data-analysis", "expert-insights"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["literature-review", "data-analysis", "expert-insights"],
         transform: "merge_as_context",
       },
@@ -100,7 +101,7 @@ export default defineFlow({
       agent: "synthesis-analyst",
       dependsOn: ["literature-review", "data-analysis", "expert-insights", "methodology-assessment", "gap-analysis"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["literature-review", "data-analysis", "expert-insights", "methodology-assessment", "gap-analysis"],
         transform: "merge_as_context",
       },
@@ -112,7 +113,7 @@ export default defineFlow({
   ],
   output: {
     from: "comprehensive-synthesis",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 4, // Parallel research streams

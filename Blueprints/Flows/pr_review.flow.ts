@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Pr_Review.Flow
  * @path Blueprints/Flows/pr_review.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["code-review", "typescript-patterns"],
@@ -45,7 +46,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["diff-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "diff-analysis",
         transform: "mergeAsContext",
       },
@@ -62,7 +63,7 @@ export default defineFlow({
       agent: "security-expert",
       dependsOn: ["diff-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "diff-analysis",
         transform: "mergeAsContext",
       },
@@ -79,7 +80,7 @@ export default defineFlow({
       agent: "performance-engineer",
       dependsOn: ["diff-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "diff-analysis",
         transform: "mergeAsContext",
       },
@@ -96,7 +97,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["diff-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "diff-analysis",
         transform: "mergeAsContext",
       },
@@ -113,7 +114,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["diff-analysis"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "diff-analysis",
         transform: "mergeAsContext",
       },
@@ -136,7 +137,7 @@ export default defineFlow({
         "documentation-review",
       ],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "code-quality-review",
           "security-review",
@@ -159,7 +160,7 @@ export default defineFlow({
       agent: "technical-writer",
       dependsOn: ["consolidate-feedback"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["diff-analysis", "consolidate-feedback"],
         transform: "mergeAsContext",
       },
@@ -172,7 +173,7 @@ export default defineFlow({
   ],
   output: {
     from: "generate-pr-report",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 5, // Run parallel reviews for speed

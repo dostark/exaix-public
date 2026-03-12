@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Refactoring.Flow
  * @path Blueprints/Flows/refactoring.flow.ts
@@ -29,7 +30,7 @@ export default defineFlow({
       agent: "code-analyst",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "passthrough",
       },
       skills: ["code-review"],
@@ -44,7 +45,7 @@ export default defineFlow({
       agent: "software-architect",
       dependsOn: ["analyze-current-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-current-code",
         transform: "mergeAsContext",
       },
@@ -60,7 +61,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["identify-improvements"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "identify-improvements",
         transform: "mergeAsContext",
       },
@@ -77,7 +78,7 @@ export default defineFlow({
       agent: "test-engineer",
       dependsOn: ["analyze-current-code"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "analyze-current-code",
         transform: "mergeAsContext",
       },
@@ -93,7 +94,7 @@ export default defineFlow({
       agent: "senior-coder",
       dependsOn: ["identify-improvements", "assess-risks", "write-safety-tests"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["identify-improvements", "assess-risks", "write-safety-tests"],
         transform: "mergeAsContext",
       },
@@ -110,7 +111,7 @@ export default defineFlow({
       agent: "qa-engineer",
       dependsOn: ["implement-refactoring"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["write-safety-tests", "implement-refactoring"],
         transform: "mergeAsContext",
       },
@@ -126,7 +127,7 @@ export default defineFlow({
       agent: "quality-judge",
       dependsOn: ["validate-refactoring"],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: ["analyze-current-code", "implement-refactoring", "validate-refactoring"],
         transform: "mergeAsContext",
       },
@@ -139,7 +140,7 @@ export default defineFlow({
   ],
   output: {
     from: "final-review",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 2,

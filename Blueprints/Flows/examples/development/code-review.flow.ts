@@ -1,3 +1,4 @@
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module CodeReview.Flow
  * @path Blueprints/Flows/examples/development/code-review.flow.ts
@@ -31,7 +32,7 @@ export default defineFlow({
       agent: "security-reviewer",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -45,7 +46,7 @@ export default defineFlow({
       agent: "performance-reviewer",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -59,7 +60,7 @@ export default defineFlow({
       agent: "maintainability-reviewer",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -73,7 +74,7 @@ export default defineFlow({
       agent: "best-practices-reviewer",
       dependsOn: [],
       input: {
-        source: "request",
+        source: FlowInputSource.REQUEST,
         transform: "extract_code",
       },
       retry: {
@@ -92,7 +93,7 @@ export default defineFlow({
         "best-practices-analysis",
       ],
       input: {
-        source: "aggregate",
+        source: FlowInputSource.AGGREGATE,
         from: [
           "security-analysis",
           "performance-analysis",
@@ -109,7 +110,7 @@ export default defineFlow({
   ],
   output: {
     from: "synthesis-review",
-    format: "markdown",
+    format: FlowOutputFormat.MARKDOWN,
   },
   settings: {
     maxParallelism: 4, // Parallel analysis steps
