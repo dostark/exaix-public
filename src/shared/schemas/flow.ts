@@ -63,7 +63,7 @@ export const FlowStepSchema = z.object({
   agent: z.string().min(1, "Agent reference cannot be empty"),
   dependsOn: z.array(z.string()).default([]),
   input: z.object({
-    source: z.union([z.nativeEnum(FlowInputSource), z.string()]).default(FlowInputSource.REQUEST),
+    source: z.nativeEnum(FlowInputSource).default(FlowInputSource.REQUEST),
     stepId: z.string().optional(),
     from: z.array(z.string()).optional(), // For aggregate source
     transform: z.union([z.string(), z.function().args(z.string()).returns(z.string())]).default("passthrough"),
@@ -101,7 +101,7 @@ export const FlowSchema = z.object({
   steps: z.array(FlowStepSchema).min(1, "Flow must have at least one step"),
   output: z.object({
     from: z.union([z.string(), z.array(z.string())]),
-    format: z.union([z.nativeEnum(FlowOutputFormat), z.string()]).default(FlowOutputFormat.MARKDOWN),
+    format: z.nativeEnum(FlowOutputFormat).default(FlowOutputFormat.MARKDOWN),
   }),
   settings: z.object({
     maxParallelism: z.number().int().min(1).default(3),
