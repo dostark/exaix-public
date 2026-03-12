@@ -7,7 +7,7 @@
  * @related-files [src/shared/interfaces/i_portal_service.ts]
  */
 
-import type { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
+import type { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../enums.ts";
 
 /**
  * Basic information about a portal.
@@ -37,6 +37,6 @@ export interface IPortalDetails extends IPortalInfo {
  */
 export interface IVerificationResult {
   alias: string;
-  status: "ok" | "failed";
+  status: VerificationStatus;
   issues?: string[];
 }

@@ -6,12 +6,10 @@
   "files.insertFinalNewline": true,
   "deno.enable": true,
   "deno.lint": true,
-  // "deno.unstable": true,
-  // TypeScript Server optimization to prevent stale errors
-  "typescript.tsserver.maxTsServerMemory": 4096,
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
-  "typescript.tsserver.watchOptions": {
-    "synchronousWatchDirectory": true
+  "deno.suggest.imports.autoDiscover": true,
+  "deno.importMap": "./deno.json",
+  "deno.suggest.imports.hosts": {
+    "https://deno.land": true
   },
   // Exclude build artifacts and caches from file watcher
   "files.watcherExclude": {
