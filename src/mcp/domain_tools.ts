@@ -18,6 +18,7 @@ import { ToolHandler } from "./tool_handler.ts";
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
+import { RequestSource } from "../shared/enums.ts";
 
 /**
  * Tool for creating new ExoFrame requests
@@ -37,7 +38,7 @@ export class CreateRequestTool extends ToolHandler {
       const result = await requestCmd.create(
         description,
         { agent },
-        "cli", // marking source as CLI (or should we add 'mcp' source? 'cli' is safe for now)
+        RequestSource.MCP, // marking source as MCP
       );
 
       this.logToolExecution("create_request", "system", {

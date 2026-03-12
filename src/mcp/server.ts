@@ -11,6 +11,7 @@ import type { IDatabaseService } from "../services/db.ts";
 import type { ICliApplicationContext } from "../cli/cli_context.ts";
 import { MCPConfigSchema, type MCPTool } from "../shared/schemas/mcp.ts";
 import { JSONValue } from "../shared/types/json.ts";
+import { McpTransportType } from "../shared/enums.ts";
 import { ToolHandler } from "./tool_handler.ts";
 import { GitCommitTool } from "./handlers/git_commit_tool.ts";
 import { GitCreateBranchTool } from "./handlers/git_create_branch_tool.ts";
@@ -44,7 +45,7 @@ import { logInfo } from "../services/structured_logger.ts";
 
 interface MCPServerOptions {
   context: ICliApplicationContext;
-  transport: "stdio" | "sse";
+  transport: McpTransportType;
 }
 
 interface JSONRPCRequest {
@@ -99,7 +100,7 @@ export class MCPServer {
   private context: ICliApplicationContext;
   private config: Config;
   private db: IDatabaseService;
-  private transport: "stdio" | "sse";
+  private transport: McpTransportType;
   private running = false;
   private serverName: string;
   private serverVersion: string;

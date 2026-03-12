@@ -9,6 +9,7 @@
 
 import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "../services/db.ts";
+import { MessageRole } from "../shared/enums.ts";
 
 // ============================================================================
 // Types
@@ -27,7 +28,7 @@ export interface MCPPromptArgument {
 }
 
 export interface MCPPromptMessage {
-  role: "user" | "assistant";
+  role: MessageRole;
   content: {
     type: "text";
     text: string;
@@ -117,7 +118,7 @@ export function generateExecutePlanPrompt(
 
   const messages: MCPPromptMessage[] = [
     {
-      role: "user",
+      role: MessageRole.USER,
       content: {
         type: "text",
         text: `You are executing an ExoFrame plan in portal "${portal}".
@@ -183,7 +184,7 @@ export function generateCreateReviewPrompt(
 
   const messages: MCPPromptMessage[] = [
     {
-      role: "user",
+      role: MessageRole.USER,
       content: {
         type: "text",
         text: `You are creating a review in portal "${portal}".
