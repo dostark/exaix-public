@@ -1,13 +1,13 @@
 /**
- * @module ProdHandleKey
+ * @module TuiProdHandleKey
  * @path src/tui/tui_helpers/prod_handle_key.ts
- * @description Production-grade key event handler for the TUI dashboard, with support for advanced terminal escape sequences.
+ * @description Production key handler for the TUI dashboard, wiring pane
+ * management, layout persistence, and notification dispatch to keyboard events.
  * @architectural-layer TUI
- * @dependencies [keyboard, pane_manager, notification_service]
- * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/handle_key.ts]
+ * @dependencies [pane_manager, keyboard, enums]
+ * @related-files [src/tui/tui_helpers/handle_key.ts, src/tui/tui_dashboard.ts]
  */
-
-import { MessageType } from "../../shared/enums.ts";
+import { MessageType, SplitDirection } from "../../shared/enums.ts";
 import type { IDashboardViewState, IPane, ITuiView } from "../tui_dashboard.ts";
 import type { IMemoryNotification } from "../../shared/types/notification.ts";
 import type { INotificationService } from "../../shared/interfaces/i_notification_service.ts";
@@ -179,10 +179,10 @@ async function handlePaneManagement(
   const { panes, views, activePaneRef, addNotification } = ctx;
 
   if (key === KEYS.V) { // Split vertical
-    await splitPane(panes, activePaneRef.id, views, "vertical", addNotification);
+    await splitPane(panes, activePaneRef.id, views, SplitDirection.VERTICAL, addNotification);
     return { reRender: true };
   } else if (key === KEYS.H) { // Split horizontal
-    await splitPane(panes, activePaneRef.id, views, "horizontal", addNotification);
+    await splitPane(panes, activePaneRef.id, views, SplitDirection.HORIZONTAL, addNotification);
     return { reRender: true };
   } else if (key === KEYS.C) { // Close pane
     const result = await closePane(panes, activePaneRef.id, activePaneRef.id, addNotification);

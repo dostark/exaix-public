@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { ExecutionStatus, MessageType, SkillStatus } from "../../../src/shared/enums.ts";
+import { ExecutionStatus, MessageType, SkillStatus, SpinnerStyle, StatusIndicator } from "../../../src/shared/enums.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 import {
   addStatusLine,
@@ -124,7 +124,7 @@ Deno.test("renderStatusBar: renders with spinner", () => {
     width: 60,
     useColors: false,
     showSpinner: true,
-    spinnerStyle: "dots",
+    spinnerStyle: SpinnerStyle.DOTS,
   };
   const result = renderStatusBar(state, config);
   assertExists(result);
@@ -198,7 +198,7 @@ Deno.test("createStatusItem: creates status items for all states", () => {
   ] as const satisfies readonly ("active" | "pending" | "completed" | "failed")[];
 
   for (const status of statuses) {
-    const item = createStatusItem(status, undefined, theme);
+    const item = createStatusItem(status as StatusIndicator, undefined, theme);
     assertEquals(item.text, status);
     assertExists(item.icon);
     assertEquals(item.priority, 75);
@@ -207,13 +207,13 @@ Deno.test("createStatusItem: creates status items for all states", () => {
 
 Deno.test("createStatusItem: accepts custom label", () => {
   const theme = getTheme(true);
-  const item = createStatusItem(SkillStatus.ACTIVE, "Running", theme);
+  const item = createStatusItem(SkillStatus.ACTIVE as StatusIndicator, "Running", theme);
   assertEquals(item.text, "Running");
   assertEquals(item.icon, "●");
 });
 
 Deno.test("createStatusItem: works without theme", () => {
-  const item = createStatusItem(ExecutionStatus.COMPLETED);
+  const item = createStatusItem(ExecutionStatus.COMPLETED as StatusIndicator);
   assertEquals(item.text, ExecutionStatus.COMPLETED);
   assertEquals(item.icon, TUI_ICON_SUCCESS);
   assertEquals(item.color, "");

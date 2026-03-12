@@ -9,7 +9,6 @@
 
 import { type RequestStatusType } from "../status/request_status.ts";
 import { type IRequestAnalysis } from "../schemas/request_analysis.ts";
-import { type RequestPriority } from "../enums.ts";
 
 /**
  * AnalysisMode enum for triggering request analysis.
@@ -53,7 +52,6 @@ export interface IRequestOptions {
 /**
  * Source of request creation
  */
-export type RequestSource = "cli" | "file" | "interactive" | "tui";
 
 /**
  * Metadata returned when a request is created or listed

@@ -39,8 +39,60 @@ export enum GeneralStatus {
 }
 
 /**
+ * States of a circuit breaker.
+ */
+export enum CircuitState {
+  CLOSED = "closed",
+  OPEN = "open",
+  HALF_OPEN = "half-open",
+}
+
+/**
+ * MCP transport types.
+ */
+export enum McpTransportType {
+  STDIO = "stdio",
+  SSE = "sse",
+}
+
+/**
+ * Message roles (e.g., for LLM conversations).
+ */
+export enum MessageRole {
+  USER = "user",
+  ASSISTANT = "assistant",
+  SYSTEM = "system",
+  DEVELOPER = "developer",
+  TOOL = "tool",
+}
+
+/**
+ * Data serialization formats.
+ */
+export enum DataFormat {
+  JSON = "json",
+  YAML = "yaml",
+  TOML = "toml",
+  MARKDOWN = "markdown",
+  TEXT = "text",
+}
+
+/**
+ * Memory type classifications.
+ */
+export enum MemoryType {
+  PROJECT = "project",
+  EXECUTION = "execution",
+  PROPOSAL = "proposal",
+  SYSTEM = "system",
+  RELEVANT = "relevant",
+  PATTERN = "pattern",
+  DECISION = "decision",
+  LEARNING = "learning",
+}
+
+/**
  * Types of AI providers supported by the system.
- * Each provider represents a different AI service or model backend.
  */
 export enum ProviderType {
   /** Local Ollama instance for running open-source models */
@@ -158,6 +210,255 @@ export enum SecurityEventResult {
 }
 
 /**
+ * Verification result status.
+ */
+export enum VerificationStatus {
+  OK = "ok",
+  FAILED = "failed",
+}
+
+/**
+ * Common grouping modes for TUI views.
+ */
+export enum GroupingMode {
+  AGENT = "agent",
+  ACTION = "action",
+  NONE = "none",
+  STATUS = "status",
+  PROJECT = "project",
+}
+
+/**
+ * Split directions for TUI panes.
+ */
+export enum SplitDirection {
+  VERTICAL = "vertical",
+  HORIZONTAL = "horizontal",
+}
+
+/**
+ * Grouping modes for Request Manager.
+ */
+export enum RequestGroupingMode {
+  NONE = "none",
+  STATUS = "status",
+  PRIORITY = "priority",
+  AGENT = "agent",
+}
+
+/**
+ * Sources for request creation.
+ */
+export enum RequestSource {
+  CLI = "cli",
+  FILE = "file",
+  INTERACTIVE = "interactive",
+  TUI = "tui",
+  MCP = "mcp",
+}
+
+/**
+ * Direction for database migrations.
+ */
+export enum MigrationDirection {
+  UP = "up",
+  DOWN = "down",
+}
+
+/**
+ * Common operations for request management.
+ */
+export enum RequestOperation {
+  CREATE = "create",
+  VIEW = "view",
+  DELETE = "delete",
+}
+
+/**
+ * Grouping modes for Structured Log Viewer.
+ */
+export enum LogGroupingMode {
+  CORRELATION = "correlation",
+  TRACE = "trace",
+  AGENT = "agent",
+  LEVEL = "level",
+  TIME = "time",
+  NONE = "none",
+}
+
+/**
+ * Grouping modes for Skills Manager.
+ */
+export enum SkillGroupingMode {
+  SOURCE = "source",
+  STATUS = "status",
+  NONE = "none",
+}
+
+/**
+ * Fields to omit when creating or updating skills.
+ */
+/**
+ * Skill fields that are automatically managed by the system.
+ */
+export enum SkillManagedField {
+  ID = "id",
+  CREATED_AT = "created_at",
+  USAGE_COUNT = "usage_count",
+}
+
+/**
+ * Fields that cannot be changed after creation.
+ */
+export enum SkillImmutableField {
+  ID = "id",
+  SKILL_ID = "skill_id",
+  CREATED_AT = "created_at",
+}
+
+/**
+ * @deprecated Use SkillManagedField instead.
+ */
+export type SkillOmitFields = SkillManagedField;
+
+/**
+ * Common purposes for dialogs.
+ */
+export enum DialogPurpose {
+  SPLIT = "split",
+  CHANGE = "change",
+  NEW = "new",
+}
+
+/**
+ * Common modes for layout management.
+ */
+export enum LayoutMode {
+  SAVE = "save",
+  LOAD = "load",
+  DELETE = "delete",
+}
+
+/**
+ * Severity levels for linting.
+ */
+export enum Severity {
+  ERROR = "error",
+  WARN = "warn",
+}
+
+/**
+ * Types of markdown list markers.
+ */
+export enum MarkdownListKind {
+  UL = "ul",
+  OL = "ol",
+}
+
+/**
+ * Navigation directions for lists and trees.
+ */
+export enum NavDirection {
+  UP = "up",
+  DOWN = "down",
+  FIRST = "first",
+  LAST = "last",
+}
+
+/**
+ * Directions for resizing panes.
+ */
+export enum ResizeDirection {
+  LEFT = "left",
+  RIGHT = "right",
+  UP = "up",
+  DOWN = "down",
+}
+
+/**
+ * Directions for scrolling content.
+ */
+export enum ScrollDirection {
+  UP = "up",
+  DOWN = "down",
+  TOP = "top",
+  BOTTOM = "bottom",
+}
+
+/**
+ * Keyboard modifiers for TUI input.
+ */
+export enum KeyModifier {
+  CTRL = "ctrl",
+  ALT = "alt",
+  SHIFT = "shift",
+  META = "meta",
+}
+
+/**
+ * User interface output formats.
+ */
+export enum UIOutputFormat {
+  TABLE = "table",
+  JSON = "json",
+  MARKDOWN = "md",
+}
+
+/**
+ * Memory record statuses.
+ */
+export enum MemoryRecordStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  ARCHIVED = "archived",
+}
+
+/**
+ * Actions taken after gate evaluation.
+ */
+export enum FlowGateAction {
+  PASSED = "passed",
+  RETRY = "retry",
+  HALTED = "halted",
+  CONTINUED_WITH_WARNING = "continued-with-warning",
+}
+
+/**
+ * Log rotation intervals.
+ */
+export enum LogRotationInterval {
+  DAILY = "daily",
+  HOURLY = "hourly",
+}
+
+/**
+ * Types of requests in the system.
+ */
+export enum RequestKind {
+  FLOW = "flow",
+  AGENT = "agent",
+}
+
+/**
+ * File change operation types.
+ */
+export enum FileOperation {
+  CREATE = "create",
+  MODIFY = "modify",
+  DELETE = "delete",
+}
+
+/**
+ * Types of artifacts produced by agents.
+ */
+export enum ArtifactType {
+  ANALYSIS = "analysis",
+  REPORT = "report",
+  DIAGRAM = "diagram",
+}
+
+/**
  * Operations that can be performed on a portal.
  */
 export enum PortalOperation {
@@ -204,6 +505,53 @@ export enum SecurityMode {
   SANDBOXED = "sandboxed",
   /** Shared access to selected resources */
   HYBRID = "hybrid",
+}
+
+/**
+ * TUI spinner and animation styles.
+ */
+export enum SpinnerStyle {
+  DOTS = "dots",
+  BRAILLE = "braille",
+  LINE = "line",
+  ARC = "arc",
+  BOUNCE = "bounce",
+  PULSE = "pulse",
+}
+
+/**
+ * Types of reviews or artifacts.
+ */
+export enum ReviewType {
+  CODE = "code",
+  ARTIFACT = "artifact",
+}
+
+/**
+ * Review type filters.
+ */
+export enum ReviewTypeFilter {
+  ALL = "all",
+  CODE = "code",
+  ARTIFACT = "artifact",
+}
+
+/**
+ * Artifact specific types for CLI/Review.
+ */
+export enum ArtifactSubtype {
+  ANALYSIS = "analysis",
+  REPORT = "report",
+  DIAGRAM = "diagram",
+}
+
+/**
+ * Memory scope for storage.
+ */
+export enum StorageScope {
+  USER = "user",
+  SESSION = "session",
+  REPO = "repo",
 }
 
 /**
@@ -463,13 +811,6 @@ export enum FlowOutputFormat {
 }
 
 /**
- * Transport protocols for MCP communication.
- */
-export enum MCPTransport {
-  STDIO = "stdio",
-  SSE = "sse",
-}
-
 /**
  * Standard MCP tool names used in the system.
  */
@@ -505,13 +846,16 @@ export enum MemoryReferenceType {
 /**
  * Sources for memory bank entries.
  */
-export enum MemorySource {
+export enum MemoryBankSource {
   EXECUTION = "execution",
   USER = "user",
   AGENT = "agent",
   LEARNED = "learned",
   CORE = "core",
   PROJECT = "project",
+  FILE = "file",
+  DATABASE = "database",
+  LLM = "llm",
 }
 
 /**
@@ -520,6 +864,7 @@ export enum MemorySource {
 export enum MemoryScope {
   GLOBAL = "global",
   PROJECT = "project",
+  SESSION = "session",
 }
 
 /**
@@ -662,12 +1007,12 @@ export enum SessionMemoryItemType {
 /**
  * Types of search results and entries in memory banks.
  */
-export enum MemoryType {
-  PROJECT = "project",
-  EXECUTION = "execution",
-  PATTERN = "pattern",
-  DECISION = "decision",
-  LEARNING = "learning",
+export enum MemoryEntryType {
+  PROJECT = MemoryType.PROJECT,
+  EXECUTION = MemoryType.EXECUTION,
+  PATTERN = MemoryType.PATTERN,
+  DECISION = MemoryType.DECISION,
+  LEARNING = MemoryType.LEARNING,
 }
 
 /**
@@ -785,4 +1130,57 @@ export enum DaemonKeyAction {
   HELP = "help",
   QUIT = "quit",
   CANCEL = "cancel",
+}
+
+/**
+ * Common properties for evaluation criteria.
+ */
+export enum EvaluationCriterionProperty {
+  NAME = "name",
+  DESCRIPTION = "description",
+  WEIGHT = "weight",
+  REQUIRED = "required",
+  CATEGORY = "category",
+}
+/**
+ * Connection status for real-time streams.
+ */
+export enum ConnectionStatus {
+  CONNECTING = "connecting",
+  CONNECTED = "connected",
+  DISCONNECTED = "disconnected",
+  ERROR = "error",
+}
+
+/**
+ * Status indicators for UI elements.
+ */
+export enum StatusIndicator {
+  ACTIVE = "active",
+  PENDING = "pending",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  ARCHIVED = "archived",
+  RUNNING = "running",
+}
+
+/**
+ * Fields used for grouping lists.
+ */
+export enum GroupingField {
+  SOURCE = "source",
+  STATUS = "status",
+  CATEGORY = "category",
+  PRIORITY = "priority",
+}
+
+/**
+ * Actions for daemon control.
+ */
+export enum DaemonAction {
+  START = "start",
+  STOP = "stop",
+  RESTART = "restart",
 }
