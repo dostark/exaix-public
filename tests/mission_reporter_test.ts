@@ -13,7 +13,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import { getMemoryExecutionDir } from "./helpers/paths_helper.ts";
 import type { IDatabaseService } from "../src/services/db.ts";
 import { ITraceData, MissionReporter, ReportConfig } from "../src/services/mission_reporter.ts";
-import { join } from "path";
+import { join } from "@std/path";
 
 // ============================================================================
 // Helper Functions
