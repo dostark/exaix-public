@@ -14,6 +14,7 @@ import {
   TUI_LAYOUT_PRESET_LIST_WIDTH,
   TUI_VIEW_PICKER_INNER_WIDTH,
 } from "../helpers/constants.ts";
+import { DialogPurpose, LayoutMode } from "../../shared/enums.ts";
 import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
 
 // ===== View Picker Dialog =====
@@ -41,7 +42,7 @@ export const AVAILABLE_VIEWS: IViewInfo[] = [
 export interface IViewPickerDialogState {
   isOpen: boolean;
   selectedIndex: number;
-  purpose: "split" | "change" | "new";
+  purpose: DialogPurpose;
   targetPaneId?: string;
 }
 
@@ -60,7 +61,7 @@ export interface ILayoutPresetInfo {
 
 export interface INamedLayoutDialogState {
   isOpen: boolean;
-  mode: "save" | "load" | "delete";
+  mode: LayoutMode;
   layouts: string[];
   selectedIndex: number;
   inputName: string;
@@ -76,7 +77,7 @@ export function createViewPickerState(): IViewPickerDialogState {
   return {
     isOpen: false,
     selectedIndex: 0,
-    purpose: "split",
+    purpose: DialogPurpose.SPLIT,
   };
 }
 
@@ -94,9 +95,9 @@ export function renderViewPickerDialog(
   if (!state.isOpen) return [];
 
   const lines: string[] = [];
-  const title = state.purpose === "split"
+  const title = state.purpose === DialogPurpose.SPLIT
     ? "Select View for New IPane"
-    : state.purpose === "change"
+    : state.purpose === DialogPurpose.CHANGE
     ? "Change View"
     : "Select View";
 
@@ -289,7 +290,7 @@ export function handleLayoutPresetKey(
 export function createNamedLayoutState(): INamedLayoutDialogState {
   return {
     isOpen: false,
-    mode: "save",
+    mode: LayoutMode.SAVE,
     layouts: [],
     selectedIndex: 0,
     inputName: "",
@@ -304,7 +305,11 @@ export function renderNamedLayoutDialog(
   if (!state.isOpen) return [];
 
   const lines: string[] = [];
-  const title = state.mode === "save" ? "Save Layout" : state.mode === "load" ? "Load Layout" : "Delete Layout";
+  const title = state.mode === LayoutMode.SAVE
+    ? "Save Layout"
+    : state.mode === LayoutMode.LOAD
+    ? "Load Layout"
+    : "Delete Layout";
 
   lines.push(colorize("┌────────────────────────────────────────┐", theme.border, theme.reset));
   lines.push(
@@ -314,7 +319,7 @@ export function renderNamedLayoutDialog(
   );
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
 
-  if (state.mode === "save") {
+  if (state.mode === LayoutMode.SAVE) {
     // Show input field
     const inputLine = state.inputActive
       ? colorize(`Name: ${state.inputName}_`, theme.primary, theme.reset)
@@ -345,7 +350,7 @@ export function renderNamedLayoutDialog(
       shortcut: "",
     }));
 
-    const selectedIndex = state.mode === "save" ? null : state.selectedIndex;
+    const selectedIndex = state.mode === LayoutMode.SAVE ? null : state.selectedIndex;
 
     lines.push(
       ...renderLayoutPresetListLines(
@@ -355,7 +360,7 @@ export function renderNamedLayoutDialog(
         { width: TUI_LAYOUT_PRESET_LIST_WIDTH, showDescription: false },
       ),
     );
-  } else if (state.mode !== "save") {
+  } else if (state.mode !== LayoutMode.SAVE) {
     lines.push(
       colorize("│", theme.border, theme.reset) +
         colorize("   No saved layouts                    ", theme.textDim, theme.reset) +
@@ -365,9 +370,9 @@ export function renderNamedLayoutDialog(
 
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
 
-  const hint = state.mode === "save"
+  const hint = state.mode === LayoutMode.SAVE
     ? " Type name, Enter to save, Esc cancel  "
-    : state.mode === "delete"
+    : state.mode === LayoutMode.DELETE
     ? " Enter to delete, Esc to cancel        "
     : " Enter to load, Esc to cancel          ";
 
@@ -386,7 +391,7 @@ export function handleNamedLayoutKey(
   key: string,
 ): {
   state: INamedLayoutDialogState;
-  action?: "save" | "load" | "delete";
+  action?: LayoutMode;
   layoutName?: string;
   closed: boolean;
 } {
@@ -415,7 +420,7 @@ export function handleNamedLayoutKey(
       return { state: newState, closed: false };
 
     case KEYS.ENTER:
-      if (state.mode === "save") {
+      if (state.mode === LayoutMode.SAVE) {
         newState.inputActive = true;
         return { state: newState, closed: false };
       } else if (state.layouts.length > 0) {
@@ -447,18 +452,18 @@ function handleSaveModeInputKey(
   key: string,
 ): {
   state: INamedLayoutDialogState;
-  action?: "save" | "load" | "delete";
+  action?: LayoutMode;
   layoutName?: string;
   closed: boolean;
 } | null {
-  if (state.mode !== "save" || !state.inputActive) return null;
+  if (state.mode !== LayoutMode.SAVE || !state.inputActive) return null;
 
   if (key === KEYS.ENTER && state.inputName.trim()) {
     newState.isOpen = false;
     newState.inputActive = false;
     return {
       state: newState,
-      action: "save",
+      action: LayoutMode.SAVE,
       layoutName: state.inputName.trim(),
       closed: true,
     };

@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/dashboard/renderer.ts]
  */
 
-import { MessageType } from "../../shared/enums.ts";
+import { MessageType, SplitDirection } from "../../shared/enums.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../helpers/constants.ts";
 
 import type { IPane, ITuiView } from "../tui_dashboard.ts";
@@ -19,14 +19,14 @@ export async function splitPane(
   panes: IPane[],
   activePaneId: string,
   views: ITuiView[],
-  direction: "vertical" | "horizontal",
+  direction: SplitDirection,
   notify: (message: string, type?: string) => Promise<void>,
 ): Promise<{ panes: IPane[]; activePaneId: string }> {
   const activePane = panes.find((p) => p.id === activePaneId);
   if (!activePane) return { panes, activePaneId };
 
   const newId = `pane-${panes.length}`;
-  if (direction === "vertical") {
+  if (direction === SplitDirection.VERTICAL) {
     // Split vertically: left-right
     const halfFlexWidth = activePane.flexWidth / 2;
     const halfWidth = Math.floor(activePane.width / 2);

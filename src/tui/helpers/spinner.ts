@@ -8,10 +8,7 @@
  */
 
 import { colorize, getTheme } from "./colors.ts";
-
-// ===== Spinner Types =====
-
-export type SpinnerStyle = "dots" | "braille" | "line" | "arc" | "bounce" | "pulse";
+import { SpinnerStyle } from "../../shared/enums.ts";
 
 export interface ISpinnerConfig {
   style: SpinnerStyle;
@@ -22,33 +19,33 @@ export interface ISpinnerConfig {
 // ===== Spinner Definitions =====
 
 export const SPINNERS: Record<SpinnerStyle, ISpinnerConfig> = {
-  dots: {
-    style: "dots",
+  [SpinnerStyle.DOTS]: {
+    style: SpinnerStyle.DOTS,
     frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
     interval: 80,
   },
-  braille: {
-    style: "braille",
+  [SpinnerStyle.BRAILLE]: {
+    style: SpinnerStyle.BRAILLE,
     frames: ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"],
     interval: 100,
   },
-  line: {
-    style: "line",
+  [SpinnerStyle.LINE]: {
+    style: SpinnerStyle.LINE,
     frames: ["-", "\\", "|", "/"],
     interval: 100,
   },
-  arc: {
-    style: "arc",
+  [SpinnerStyle.ARC]: {
+    style: SpinnerStyle.ARC,
     frames: ["◜", "◠", "◝", "◞", "◡", "◟"],
     interval: 100,
   },
-  bounce: {
-    style: "bounce",
+  [SpinnerStyle.BOUNCE]: {
+    style: SpinnerStyle.BOUNCE,
     frames: ["⠁", "⠂", "⠄", "⠂"],
     interval: 120,
   },
-  pulse: {
-    style: "pulse",
+  [SpinnerStyle.PULSE]: {
+    style: SpinnerStyle.PULSE,
     frames: ["○", "◔", "◑", "◕", "●", "◕", "◑", "◔"],
     interval: 120,
   },
@@ -115,7 +112,7 @@ export function nextFrame(state: SpinnerState): SpinnerState {
  */
 export function renderSpinnerFrame(
   frame: number,
-  style: SpinnerStyle = "dots",
+  style: SpinnerStyle = SpinnerStyle.DOTS,
 ): string {
   const spinner = SPINNERS[style];
   return spinner.frames[frame % spinner.frames.length];
@@ -132,7 +129,7 @@ export function renderSpinner(
     showElapsed?: boolean;
   } = {},
 ): string {
-  const { style = "dots", useColors = true, showElapsed = false } = options;
+  const { style = SpinnerStyle.DOTS, useColors = true, showElapsed = false } = options;
   const theme = getTheme(useColors);
 
   if (!state.active) return "";

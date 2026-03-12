@@ -7,8 +7,16 @@
  * @related-files [src/services/skill_service.ts, src/tui/tui_dashboard.ts]
  */
 
-import { MessageType } from "../shared/enums.ts";
-import { DialogStatus, MemoryScope, MemorySource, SkillStatus } from "../shared/enums.ts";
+import {
+  DialogStatus,
+  GroupingField,
+  MemoryBankSource,
+  MemoryScope,
+  MessageType,
+  SkillGroupingMode,
+  SkillStatus,
+} from "../shared/enums.ts";
+import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "./helpers/dialog_base.ts";
 import { IKeyBinding, KeyBindingCategory } from "./helpers/keyboard.ts";
@@ -24,8 +32,7 @@ import {
   TUI_STATUS_ICONS,
 } from "./helpers/constants.ts";
 import { KEYS } from "./helpers/keyboard.ts";
-import { type ISkill } from "../shared/schemas/memory_bank.ts";
-import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
+import { type ISkill, type SkillDefinition } from "../shared/schemas/memory_bank.ts";
 import { type ISkillMatchRequest } from "../shared/types/skill.ts";
 import { type ISkillMatch } from "../shared/schemas/memory_bank.ts";
 
@@ -43,11 +50,11 @@ export interface ISkillsViewExtensions {
   /** Detail content for expanded skill */
   detailContent: string;
   /** Filter by memory source */
-  filterSource: "all" | MemorySource | "core" | "project";
+  filterSource: "all" | MemoryBankSource;
   /** Filter by skill status */
   filterStatus: "all" | SkillStatus;
   /** Current grouping mode */
-  groupBy: "source" | "status" | "none";
+  groupBy: SkillGroupingMode;
 }
 
 // ===== Icons and Visual Constants =====
@@ -213,7 +220,7 @@ export class SkillsManagerView {
 
   constructor(private readonly skillsService: ISkillsViewService) {}
 
-  async getSkillsList(filter?: { source?: string; status?: string }): Promise<ISkillSummary[]> {
+  async getSkillsList(filter?: { source?: MemoryBankSource; status?: SkillStatus }): Promise<ISkillSummary[]> {
     this.skills = await this.skillsService.listSkills(filter);
     return this.skills;
   }
@@ -252,7 +259,7 @@ export class MinimalSkillsServiceMock implements ISkillsService {
     this.skills = skills;
   }
 
-  listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]> {
+  listSkills(filter?: { source?: MemoryBankSource; status?: SkillStatus }): Promise<ISkill[]> {
     let result = [...this.skills];
     if (filter?.source) {
       result = result.filter((s) => s.source === filter.source);
@@ -294,7 +301,7 @@ export class MinimalSkillsServiceMock implements ISkillsService {
 
   deriveSkillFromLearnings(
     _learningIds: string[],
-    _skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    _skillDef: SkillDefinition,
   ): Promise<ISkill> {
     return Promise.resolve({
       id: "new-skill-id",
@@ -305,7 +312,7 @@ export class MinimalSkillsServiceMock implements ISkillsService {
       usage_count: 0,
       status: SkillStatus.ACTIVE,
       version: "1.0.0",
-      source: MemorySource.LEARNED,
+      source: MemoryBankSource.LEARNED,
       scope: MemoryScope.GLOBAL,
       triggers: { keywords: [] },
       instructions: "Do things.",
@@ -320,7 +327,7 @@ export class MinimalSkillsServiceMock implements ISkillsService {
     return Promise.resolve();
   }
 
-  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill> {
+  createSkill(skillDef: SkillDefinition): Promise<ISkill> {
     const newSkill: ISkill = {
       ...skillDef,
       id: `skill-${Date.now()}`,
@@ -353,7 +360,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
       detailContent: "",
       filterSource: "all",
       filterStatus: "all",
-      groupBy: "source",
+      groupBy: SkillGroupingMode.SOURCE,
     };
   }
 
@@ -376,12 +383,12 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
   }
 
   private async loadSkills(): Promise<void> {
-    const filter: { source?: string; status?: string } = {};
+    const filter: { source?: MemoryBankSource; status?: SkillStatus } = {};
     if (this.skillsViewExtensions.filterSource !== "all") {
-      filter.source = this.skillsViewExtensions.filterSource as string;
+      filter.source = this.skillsViewExtensions.filterSource as MemoryBankSource;
     }
     if (this.skillsViewExtensions.filterStatus !== "all") {
-      filter.status = this.skillsViewExtensions.filterStatus as string;
+      filter.status = this.skillsViewExtensions.filterStatus as SkillStatus;
     }
     this.skills = await this.skillsView.getSkillsList(filter);
   }
@@ -403,20 +410,20 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
     }
 
     // Build tree based on grouping
-    if (this.skillsViewExtensions.groupBy === "none") {
+    if (this.skillsViewExtensions.groupBy === SkillGroupingMode.NONE) {
       this.state.tree = filteredSkills.map((s) => this.createSkillNode(s));
-    } else if (this.skillsViewExtensions.groupBy === "source") {
-      this.state.tree = this.buildGroupedTree(filteredSkills, "source");
+    } else if (this.skillsViewExtensions.groupBy === SkillGroupingMode.SOURCE) {
+      this.state.tree = this.buildGroupedTree(filteredSkills, GroupingField.SOURCE);
     } else {
-      this.state.tree = this.buildGroupedTree(filteredSkills, "status");
+      this.state.tree = this.buildGroupedTree(filteredSkills, GroupingField.STATUS);
     }
   }
 
-  private buildGroupedTree(skills: ISkillSummary[], groupBy: "source" | "status"): ITreeNode<ISkillSummary>[] {
+  private buildGroupedTree(skills: ISkillSummary[], groupBy: GroupingField): ITreeNode<ISkillSummary>[] {
     const groups = new Map<string, ISkillSummary[]>();
 
     for (const skill of skills) {
-      const key = groupBy === "source" ? skill.source : skill.status;
+      const key = groupBy === GroupingField.SOURCE ? skill.source : skill.status;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
@@ -424,14 +431,14 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
     }
 
     const tree: ITreeNode<ISkillSummary>[] = [];
-    const order = groupBy === "source"
-      ? ["core", "project", "learned"]
+    const order = groupBy === GroupingField.SOURCE
+      ? [MemoryBankSource.CORE, MemoryBankSource.PROJECT, MemoryBankSource.LEARNED]
       : [SkillStatus.ACTIVE, SkillStatus.DRAFT, SkillStatus.DEPRECATED];
 
     for (const key of order) {
       const groupSkills = groups.get(key);
       if (groupSkills && groupSkills.length > 0) {
-        const icon = groupBy === "source" ? SOURCE_ICONS[key] : STATUS_ICONS[key];
+        const icon = groupBy === GroupingField.SOURCE ? SOURCE_ICONS[key] : STATUS_ICONS[key];
         const label = `${icon} ${key.charAt(0).toUpperCase() + key.slice(1)} Skills (${groupSkills.length})`;
         tree.push(
           createGroupNode<ISkillSummary>(
@@ -683,7 +690,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<ISkillSummary> {
   // ===== Grouping =====
 
   cycleGrouping(): void {
-    const modes: Array<"source" | "status" | "none"> = ["source", "status", "none"];
+    const modes = [SkillGroupingMode.SOURCE, SkillGroupingMode.STATUS, SkillGroupingMode.NONE];
     const currentIdx = modes.indexOf(this.skillsViewExtensions.groupBy);
     this.skillsViewExtensions.groupBy = modes[(currentIdx + 1) % modes.length];
     this.buildTree();

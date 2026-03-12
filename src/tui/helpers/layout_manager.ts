@@ -10,6 +10,7 @@
 import { colorize, type ITuiTheme } from "./colors.ts";
 import { renderLayoutPresetListLines } from "./layout_rendering.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
+import { ResizeDirection, SplitDirection } from "../../shared/enums.ts";
 import type { JSONObject } from "../../shared/types/json.ts";
 
 // ===== Layout Interfaces =====
@@ -261,7 +262,7 @@ export const LAYOUT_PRESETS: ILayoutPreset[] = [
 
 // ===== Layout Manager Class =====
 
-type ResizeDirection = "left" | "right" | "up" | "down";
+type ResizeDirectionAlias = ResizeDirection;
 
 function resizePaneLeft(pane: ILayoutPane, affected: ILayoutPane | undefined, amount: number) {
   if (pane.width - amount < MIN_PANE_WIDTH) return;
@@ -325,10 +326,12 @@ const RESIZE_PANE_HANDLERS: Record<
     terminalHeight: number;
   }) => void
 > = {
-  left: ({ pane, affected, amount }) => resizePaneLeft(pane, affected, amount),
-  right: ({ pane, affected, amount, terminalWidth }) => resizePaneRight(pane, affected, amount, terminalWidth),
-  up: ({ pane, affected, amount }) => resizePaneUp(pane, affected, amount),
-  down: ({ pane, affected, amount, terminalHeight }) => resizePaneDown(pane, affected, amount, terminalHeight),
+  [ResizeDirection.LEFT]: ({ pane, affected, amount }) => resizePaneLeft(pane, affected, amount),
+  [ResizeDirection.RIGHT]: ({ pane, affected, amount, terminalWidth }) =>
+    resizePaneRight(pane, affected, amount, terminalWidth),
+  [ResizeDirection.UP]: ({ pane, affected, amount }) => resizePaneUp(pane, affected, amount),
+  [ResizeDirection.DOWN]: ({ pane, affected, amount, terminalHeight }) =>
+    resizePaneDown(pane, affected, amount, terminalHeight),
 };
 
 export class LayoutManager {
@@ -379,7 +382,7 @@ export class LayoutManager {
   splitPane(
     panes: ILayoutPane[],
     paneId: string,
-    direction: "vertical" | "horizontal",
+    direction: SplitDirection,
     newViewName: string,
   ): ILayoutPane[] {
     if (panes.length >= MAX_PANES) {
@@ -393,7 +396,7 @@ export class LayoutManager {
 
     const newId = `pane-${Date.now()}`;
 
-    if (direction === "vertical") {
+    if (direction === SplitDirection.VERTICAL) {
       const halfWidth = Math.floor(pane.width / 2);
       if (halfWidth < MIN_PANE_WIDTH) {
         throw new Error(`IPane too narrow to split (min: ${MIN_PANE_WIDTH})`);
@@ -540,31 +543,31 @@ export class LayoutManager {
   private findAffectedPane(
     panes: ILayoutPane[],
     source: ILayoutPane,
-    direction: "left" | "right" | "up" | "down",
+    direction: ResizeDirection,
   ): ILayoutPane | undefined {
     switch (direction) {
-      case "right":
+      case ResizeDirection.RIGHT:
         return panes.find(
           (p) =>
             p.id !== source.id &&
             p.x === source.x + source.width &&
             this.overlapsVertically(p, source),
         );
-      case "left":
+      case ResizeDirection.LEFT:
         return panes.find(
           (p) =>
             p.id !== source.id &&
             p.x + p.width === source.x &&
             this.overlapsVertically(p, source),
         );
-      case "down":
+      case ResizeDirection.DOWN:
         return panes.find(
           (p) =>
             p.id !== source.id &&
             p.y === source.y + source.height &&
             this.overlapsHorizontally(p, source),
         );
-      case "up":
+      case ResizeDirection.UP:
         return panes.find(
           (p) =>
             p.id !== source.id &&
@@ -782,14 +785,14 @@ export function renderPaneBorder(pane: ILayoutPane, theme: ITuiTheme): string {
 }
 
 export function renderResizeIndicator(
-  direction: "left" | "right" | "up" | "down",
+  direction: ResizeDirection,
   theme: ITuiTheme,
 ): string {
-  const arrows: Record<string, string> = {
-    left: "◀",
-    right: "▶",
-    up: "▲",
-    down: "▼",
+  const arrows: Record<ResizeDirection, string> = {
+    [ResizeDirection.LEFT]: "◀",
+    [ResizeDirection.RIGHT]: "▶",
+    [ResizeDirection.UP]: "▲",
+    [ResizeDirection.DOWN]: "▼",
   };
   return colorize(`Resize ${arrows[direction]}`, theme.primary, theme.reset);
 }

@@ -22,7 +22,6 @@ import {
   renderTree,
   toggleNode,
 } from "./helpers/tree_view.ts";
-import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../shared/enums.ts";
 import { AgentStatus, type AgentStatusType as _AgentStatusType } from "../shared/status/agent_status.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./helpers/dialog_base.ts";
@@ -41,7 +40,7 @@ import { DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
 // Extracted utilities
 import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
 import { buildFlatTree, buildTreeByModel, buildTreeByStatus } from "./agent_status/tree_builder.ts";
-import { MessageType } from "../shared/enums.ts";
+import { AgentHealth, DialogStatus, LogLevel, MessageType, TuiGroupBy } from "../shared/enums.ts";
 import { IAgentService } from "../shared/interfaces/i_agent_service.ts";
 import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../shared/types/agent.ts";
 

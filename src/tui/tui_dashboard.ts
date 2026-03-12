@@ -15,7 +15,7 @@
  * - Layout persistence
  */
 
-import { MessageType } from "../shared/enums.ts";
+import { MessageType, SplitDirection } from "../shared/enums.ts";
 import { type INotificationService } from "../shared/interfaces/i_notification_service.ts";
 import {
   TUI_DASHBOARD_ICONS,
@@ -146,7 +146,7 @@ export interface ITuiDashboard {
   destroy(): void;
 
   // IPane management
-  splitPane(direction: "vertical" | "horizontal"): Promise<void>;
+  splitPane(direction: SplitDirection): Promise<void>;
   closePane(paneId: string): Promise<void>;
   resizePane(paneId: string, deltaWidth: number, deltaHeight: number): void;
   switchPane(paneId: string): void;
@@ -744,7 +744,7 @@ function createTestDashboard(options: {
       splitHorizontal: KEYS.H,
       closePane: KEYS.C,
     },
-    async splitPane(direction: "vertical" | "horizontal") {
+    async splitPane(direction: SplitDirection) {
       const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));
       this.activePaneId = result.activePaneId;
     },

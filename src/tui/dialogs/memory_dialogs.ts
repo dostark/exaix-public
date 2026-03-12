@@ -19,7 +19,7 @@ import {
   renderProposalInfo,
   setupDialogRender,
 } from "../helpers/dialog_base.ts";
-import { DialogStatus } from "../../shared/enums.ts";
+import { DialogStatus, MemoryScope } from "../../shared/enums.ts";
 
 // ===== Dialog Types =====
 
@@ -46,7 +46,7 @@ export interface IAddLearningResult {
   category: string;
   content: string;
   tags: string[];
-  scope: "global" | "project";
+  scope: MemoryScope;
   portal?: string;
 }
 
@@ -346,7 +346,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
   private category = "pattern";
   private content = "";
   private tags = "";
-  private scope: "global" | "project" = "global";
+  private scope: MemoryScope = MemoryScope.GLOBAL;
   private portal = "";
   private activeField = 0;
   private editMode = false;
@@ -363,7 +363,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
     super();
     if (defaultPortal) {
       this.portal = defaultPortal;
-      this.scope = "project";
+      this.scope = MemoryScope.PROJECT;
     }
   }
 
@@ -433,7 +433,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
         this.tags = this.applyTextInputKey(this.tags, key);
         break;
       case 4: // scope
-        this.scope = this.scope === "global" ? "project" : "global";
+        this.scope = this.scope === MemoryScope.GLOBAL ? MemoryScope.PROJECT : MemoryScope.GLOBAL;
         break;
       case 5: // portal
         this.portal = this.applyTextInputKey(this.portal, key);
@@ -464,7 +464,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
   }
 
   private renderPortalField(innerWidth: number): string[] {
-    if (this.scope !== "project") return [];
+    if (this.scope !== MemoryScope.PROJECT) return [];
     const portalLabel = this.fieldLabel(5, "Portal");
     const portalValue = this.fieldDisplayValue(5, this.portal, "(required)");
     return [`│  ${portalLabel} ${portalValue.slice(0, innerWidth - 12).padEnd(innerWidth - 11)}│`];
@@ -474,7 +474,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
     if (!this.title.trim()) {
       return false;
     }
-    if (this.scope === "project" && !this.portal.trim()) {
+    if (this.scope === MemoryScope.PROJECT && !this.portal.trim()) {
       return false;
     }
     return true;
@@ -490,7 +490,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
         .map((t) => t.trim())
         .filter((t) => t),
       scope: this.scope,
-      portal: this.scope === "project" ? this.portal.trim() : undefined,
+      portal: this.scope === MemoryScope.PROJECT ? this.portal.trim() : undefined,
     };
   }
 
@@ -554,7 +554,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
   setCategory(c: string): void {
     this.category = c;
   }
-  setScope(s: "global" | "project"): void {
+  setScope(s: MemoryScope): void {
     this.scope = s;
   }
   setPortal(p: string): void {
@@ -566,7 +566,7 @@ export class AddLearningDialog extends DialogBase<IAddLearningResult> {
   getCategory(): string {
     return this.category;
   }
-  getScope(): "global" | "project" {
+  getScope(): MemoryScope {
     return this.scope;
   }
 }

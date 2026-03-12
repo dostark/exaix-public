@@ -8,17 +8,17 @@
  */
 
 import { BaseTreeView } from "./base/base_tree_view.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "./helpers/tree_view.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import { type DialogBase } from "./helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
 import type { IActivityRecord, IJournalFilterOptions } from "../shared/types/database.ts";
-import { DialogStatus } from "../shared/enums.ts";
+import { DialogStatus, GroupingMode } from "../shared/enums.ts";
 import type { JSONObject } from "../shared/types/json.ts";
 import { IJournalService } from "../shared/interfaces/i_journal_service.ts";
 import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { TUI_LAYOUT_NARROW_WIDTH } from "./helpers/constants.ts";
-import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 export interface ILogEntry {
   id: string;
@@ -40,11 +40,8 @@ export interface ILogViewExtensions {
   detailContent: string;
   /** Bookmarked log IDs */
   bookmarkedIds: Set<string>;
-  /** Current grouping mode */
-  groupBy: "agent" | "action" | "none";
+  groupBy: GroupingMode;
 }
-
-export { LOG_COLORS, LOG_ICONS };
 
 export enum MonitorViewAction {
   NAVIGATE_UP = "navigate-up",
@@ -377,7 +374,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       showDetail: false,
       detailContent: "",
       bookmarkedIds: new Set(),
-      groupBy: "none",
+      groupBy: GroupingMode.NONE,
     };
     // Build tree synchronously for immediate access
     this.buildTree();
@@ -410,7 +407,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     return this.logViewExtensions.bookmarkedIds;
   }
 
-  getGroupBy(): "agent" | "action" | "none" {
+  getGroupBy(): GroupingMode {
     return this.logViewExtensions.groupBy;
   }
 
@@ -665,12 +662,12 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   }
 
   toggleGrouping(): void {
-    if (this.logViewExtensions.groupBy === "none") {
-      this.logViewExtensions.groupBy = "agent";
-    } else if (this.logViewExtensions.groupBy === "agent") {
-      this.logViewExtensions.groupBy = "action";
+    if (this.logViewExtensions.groupBy === GroupingMode.NONE) {
+      this.logViewExtensions.groupBy = GroupingMode.AGENT;
+    } else if (this.logViewExtensions.groupBy === GroupingMode.AGENT) {
+      this.logViewExtensions.groupBy = GroupingMode.ACTION;
     } else {
-      this.logViewExtensions.groupBy = "none";
+      this.logViewExtensions.groupBy = GroupingMode.NONE;
     }
     this.buildTree();
     this.selectFirstLog();

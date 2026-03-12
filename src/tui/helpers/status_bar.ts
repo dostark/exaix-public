@@ -8,9 +8,9 @@
  */
 
 import { colorize, getTheme, type ITuiTheme, padEnd, visibleLength } from "./colors.ts";
-import { renderSpinner, type SpinnerState, type SpinnerStyle } from "./spinner.ts";
+import { renderSpinner, type SpinnerState } from "./spinner.ts";
 import { TUI_ICON_SUCCESS } from "./constants.ts";
-import { MessageType } from "../../shared/enums.ts";
+import { MessageType, SpinnerStyle, StatusIndicator } from "../../shared/enums.ts";
 
 // ===== Status Bar Interfaces =====
 
@@ -202,23 +202,23 @@ export function createCountItem(count: number, label: string, theme: ITuiTheme):
  * Create a status indicator item
  */
 export function createStatusItem(
-  status: "active" | "pending" | "completed" | "failed",
+  status: StatusIndicator,
   label?: string,
   theme?: ITuiTheme,
 ): IStatusBarItem {
-  const icons: Record<string, string> = {
-    active: "●",
-    pending: "◐",
-    completed: TUI_ICON_SUCCESS,
-    failed: "✗",
-  };
+  const icons: Partial<Record<StatusIndicator, string>> = {
+    [StatusIndicator.ACTIVE]: "●",
+    [StatusIndicator.PENDING]: "◐",
+    [StatusIndicator.COMPLETED]: TUI_ICON_SUCCESS,
+    [StatusIndicator.FAILED]: "✗",
+  } as Record<StatusIndicator, string>;
 
-  const colors: Record<string, string> = {
-    active: theme?.statusActive ?? "",
-    pending: theme?.statusPending ?? "",
-    completed: theme?.statusCompleted ?? "",
-    failed: theme?.statusFailed ?? "",
-  };
+  const colors: Partial<Record<StatusIndicator, string>> = {
+    [StatusIndicator.ACTIVE]: theme?.statusActive ?? "",
+    [StatusIndicator.PENDING]: theme?.statusPending ?? "",
+    [StatusIndicator.COMPLETED]: theme?.statusCompleted ?? "",
+    [StatusIndicator.FAILED]: theme?.statusFailed ?? "",
+  } as Record<StatusIndicator, string>;
 
   return {
     text: label ?? status,

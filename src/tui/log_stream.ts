@@ -10,6 +10,7 @@
 import type { IStructuredLogEntry } from "../shared/types/logging.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
 import type { JSONObject } from "../shared/types/json.ts";
+import { ConnectionStatus } from "../shared/enums.ts";
 
 /**
  * Log stream configuration
@@ -40,7 +41,7 @@ export interface LogStreamState {
   /** Last update timestamp */
   lastUpdate: Date | null;
   /** Connection status */
-  status: "connecting" | "connected" | "disconnected" | "error";
+  status: ConnectionStatus;
 }
 
 /**
@@ -62,7 +63,7 @@ export class LogStreamManager {
       bufferSize: 0,
       subscriberCount: 0,
       lastUpdate: null,
-      status: "disconnected",
+      status: ConnectionStatus.DISCONNECTED,
     };
   }
 
@@ -73,7 +74,7 @@ export class LogStreamManager {
     if (this.state.isActive) return;
 
     this.state.isActive = true;
-    this.state.status = "connecting";
+    this.state.status = ConnectionStatus.CONNECTING;
 
     // Subscribe to the log service
     this.service.subscribeToLogs((entry) => {
@@ -90,7 +91,7 @@ export class LogStreamManager {
       this.cleanupOldEntries();
     }, this.config.cleanupInterval);
 
-    this.state.status = "connected";
+    this.state.status = ConnectionStatus.CONNECTED;
   }
 
   /**
@@ -100,7 +101,7 @@ export class LogStreamManager {
     if (!this.state.isActive) return;
 
     this.state.isActive = false;
-    this.state.status = "disconnected";
+    this.state.status = ConnectionStatus.DISCONNECTED;
 
     if (this.updateTimer) {
       clearInterval(this.updateTimer);

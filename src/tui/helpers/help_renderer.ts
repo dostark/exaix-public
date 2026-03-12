@@ -10,6 +10,7 @@
 import { KEYS } from "./keyboard.ts";
 import { colorize, getTheme } from "./colors.ts";
 import { renderBoxBottom, renderBoxLine, renderBoxLineCentered, renderBoxTop } from "./dialog_base.ts";
+import { ScrollDirection } from "../../shared/enums.ts";
 import type { IKeyBinding } from "./keyboard.ts";
 
 // ===== Help Interfaces =====
@@ -256,7 +257,7 @@ export function toggleHelpDialog(
  */
 export function scrollHelpDialog(
   state: IHelpDialogState,
-  direction: "up" | "down",
+  direction: ScrollDirection,
   visibleLines: number,
 ): IHelpDialogState {
   if (!state.visible) return state;
@@ -264,7 +265,7 @@ export function scrollHelpDialog(
   const maxOffset = Math.max(0, state.content.length - visibleLines);
   let newOffset = state.scrollOffset;
 
-  if (direction === "up") {
+  if (direction === ScrollDirection.UP) {
     newOffset = Math.max(0, newOffset - 1);
   } else {
     newOffset = Math.min(maxOffset, newOffset + 1);
@@ -305,13 +306,13 @@ export function handleHelpKey(
     case KEYS.UP:
     case KEYS.K:
       return {
-        state: scrollHelpDialog(state, "up", visibleLines),
+        state: scrollHelpDialog(state, ScrollDirection.UP, visibleLines),
         handled: true,
       };
     case KEYS.DOWN:
     case KEYS.J:
       return {
-        state: scrollHelpDialog(state, "down", visibleLines),
+        state: scrollHelpDialog(state, ScrollDirection.DOWN, visibleLines),
         handled: true,
       };
     case KEYS.HOME:

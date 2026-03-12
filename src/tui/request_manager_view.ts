@@ -11,7 +11,6 @@ import { KEYS } from "./helpers/keyboard.ts";
 import { KeyBindingCategory } from "./helpers/keyboard.ts";
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
-import { MessageType, RequestPriority } from "../shared/enums.ts";
 import { AnalysisMode } from "../shared/types/request.ts";
 import { isRequestStatus, RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
 import { createGroupNode, createNode, findNode, flattenTree, type ITreeNode, renderTree } from "./helpers/tree_view.ts";
@@ -31,7 +30,15 @@ import {
   processDialogCompletion as helperProcessDialogCompletion,
   type RequestDialogTypeUnion,
 } from "./request_manager/dialog_handlers.ts";
-import { RequestDialogType } from "../shared/enums.ts";
+import {
+  MessageType,
+  NavDirection,
+  RequestDialogType,
+  RequestGroupingMode,
+  RequestOperation,
+  RequestPriority,
+  RequestSource,
+} from "../shared/enums.ts";
 import { ConfirmDialog, InputDialog } from "./helpers/dialog_base.ts";
 
 import {
@@ -39,7 +46,6 @@ import {
   type IRequestMetadata,
   type IRequestOptions,
   type IRequestShowResult,
-  type RequestSource,
 } from "../shared/types/request.ts";
 import { IRequestService } from "../shared/interfaces/i_request_service.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "./helpers/constants.ts";
@@ -60,8 +66,12 @@ export interface IRequestViewState {
   filterStatus: RequestStatusType | null;
   filterPriority: string | null;
   filterAgent: string | null;
-  groupBy: "none" | "status" | "priority" | "agent";
+  groupBy: RequestGroupingMode;
 }
+/**
+ * Internal action types for request management.
+ */
+export type InternalRequestAction = RequestOperation;
 
 // --- Phase 13.6: Visual constants ---
 export const PRIORITY_ICONS: Record<string, string> = {
@@ -256,7 +266,7 @@ export class MinimalRequestServiceMock implements IRequestService {
       agent: options?.agent || "default",
       created: new Date().toISOString(),
       filename: "request-1.md",
-      source: "tui",
+      source: RequestSource.TUI,
       created_by: "test-user",
     } as IRequestMetadata);
   }
@@ -313,7 +323,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       filterStatus: null,
       filterPriority: null,
       filterAgent: null,
-      groupBy: "none",
+      groupBy: RequestGroupingMode.NONE,
     };
 
     // Build initial tree
@@ -368,13 +378,13 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     const filtered = this.getFilteredRequests();
 
     switch (this.state.groupBy) {
-      case "status":
+      case RequestGroupingMode.STATUS:
         this.state.requestTree = this.buildGroupedByStatus(filtered);
         break;
-      case "priority":
+      case RequestGroupingMode.PRIORITY:
         this.state.requestTree = this.buildGroupedByPriority(filtered);
         break;
-      case "agent":
+      case RequestGroupingMode.AGENT:
         this.state.requestTree = this.buildGroupedByAgent(filtered);
         break;
       default:
@@ -508,11 +518,11 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   // ===== Grouping =====
 
   toggleGrouping(): void {
-    const modes: Array<"none" | "status" | "priority" | "agent"> = [
-      "none",
-      "status",
-      "priority",
-      "agent",
+    const modes = [
+      RequestGroupingMode.NONE,
+      RequestGroupingMode.STATUS,
+      RequestGroupingMode.PRIORITY,
+      RequestGroupingMode.AGENT,
     ];
     const currentIdx = modes.indexOf(this.state.groupBy);
     this.state.groupBy = modes[(currentIdx + 1) % modes.length];
@@ -528,7 +538,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== Navigation =====
 
-  navigateTree(direction: "up" | "down" | "first" | "last"): void {
+  navigateTree(direction: NavDirection): void {
     this.state.selectedRequestId = NavigationHandler.navigate(
       this.state.requestTree,
       this.state.selectedRequestId,
@@ -1043,13 +1053,13 @@ export class LegacyRequestManagerTuiSession {
         this.selectedIndex = 0;
         break;
       case "c":
-        await this.#triggerAction("create");
+        await this.#triggerAction(RequestOperation.CREATE);
         break;
       case "v":
-        await this.#triggerAction("view");
+        await this.#triggerAction(RequestOperation.VIEW);
         break;
       case "d":
-        await this.#triggerAction("delete");
+        await this.#triggerAction(RequestOperation.DELETE);
         break;
     }
 
@@ -1062,17 +1072,17 @@ export class LegacyRequestManagerTuiSession {
    * Trigger a request action and update status.
    * @param action Action to perform
    */
-  async #triggerAction(action: "create" | "view" | "delete") {
+  async #triggerAction(action: InternalRequestAction) {
     try {
       switch (action) {
-        case "create": {
+        case RequestOperation.CREATE: {
           const newRequest = await this.service.createRequest("New request from TUI", {
             priority: RequestPriority.NORMAL,
           });
           this.statusMessage = `Created request: ${newRequest.trace_id.slice(0, 8)}`;
           break;
         }
-        case "view": {
+        case RequestOperation.VIEW: {
           const request = this.requests[this.selectedIndex];
           if (request) {
             const _content = await this.service.getRequestContent(request.trace_id);
@@ -1081,7 +1091,7 @@ export class LegacyRequestManagerTuiSession {
           }
           break;
         }
-        case "delete": {
+        case RequestOperation.DELETE: {
           const delRequest = this.requests[this.selectedIndex];
           if (delRequest) {
             await this.service.updateRequestStatus(delRequest.trace_id, RequestStatus.CANCELLED);

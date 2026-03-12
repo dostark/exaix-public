@@ -9,7 +9,6 @@
 
 import { type IPortalDetails, type IPortalInfo, type IVerificationResult } from "../shared/types/portal.ts";
 import { type IPortalService } from "../shared/interfaces/i_portal_service.ts";
-import { PortalExecutionStrategy } from "../shared/enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "./helpers/dialog_base.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
@@ -23,7 +22,7 @@ import {
   type ITreeNode,
   type TreeRenderOptions,
 } from "./helpers/tree_view.ts";
-import { DialogStatus, PortalStatus, TuiIcon } from "../shared/enums.ts";
+import { DialogStatus, PortalExecutionStrategy, PortalStatus, TuiIcon } from "../shared/enums.ts";
 import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "./helpers/constants.ts";
 
 // ===== Portal View Extensions =====

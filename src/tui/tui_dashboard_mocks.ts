@@ -14,9 +14,10 @@ import {
   ExecutionStatus,
   LearningCategory,
   LogLevel,
+  MemoryBankSource,
   MemoryOperation,
+  MemoryRecordStatus,
   MemoryScope,
-  MemorySource,
   MemoryType,
   PortalExecutionStrategy,
   PortalStatus,
@@ -34,7 +35,7 @@ import {
   type IRequestMetadata,
   type IRequestOptions,
   type IRequestShowResult,
-  type RequestSource,
+  RequestSource,
 } from "../shared/types/request.ts";
 import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../shared/types/agent.ts";
 import { type IStructuredLogEntry, type LogQueryOptions } from "../shared/types/logging.ts";
@@ -50,6 +51,8 @@ import {
   type IProjectMemory,
   type ISkill,
   type ISkillMatch,
+  type SkillImmutableFields as _SkillImmutableFields,
+  type SkillManagedFields,
 } from "../shared/schemas/memory_bank.ts";
 import { IPortalService } from "../shared/interfaces/i_portal_service.ts";
 import { IPlanService } from "../shared/interfaces/i_plan_service.ts";
@@ -283,7 +286,11 @@ export class MockDaemonService implements IDaemonService {
  * MockRequestService
  */
 export class MockRequestService implements IRequestService {
-  create(description: string, options?: IRequestOptions, source: RequestSource = "tui"): Promise<IRequestMetadata> {
+  create(
+    description: string,
+    options?: IRequestOptions,
+    source: RequestSource = RequestSource.TUI,
+  ): Promise<IRequestMetadata> {
     return Promise.resolve({
       trace_id: "new-trace-id",
       filename: "request.md",
@@ -319,7 +326,7 @@ export class MockRequestService implements IRequestService {
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
         agent: "default",
-        source: "tui",
+        source: "tui" as RequestSource,
         created: new Date().toISOString(),
         created_by: "test-user",
       },
@@ -517,7 +524,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
         content: "Mock memory content",
         metadata: {
           title: "Mock Memory",
-          source: MemorySource.AGENT,
+          source: MemoryBankSource.LEARNED,
           scope: MemoryScope.PROJECT,
           created_at: new Date().toISOString(),
           tags: ["test"],
@@ -563,7 +570,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
     return Promise.resolve(null);
   }
 
-  getMemoryBySource(_source: MemorySource): Promise<IMemorySearchResult[]> {
+  getMemoryBySource(_source: MemoryBankSource): Promise<IMemorySearchResult[]> {
     return Promise.resolve([]);
   }
 
@@ -738,7 +745,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
         learning: {
           id: "learn-1",
           created_at: new Date().toISOString(),
-          source: MemorySource.AGENT,
+          source: MemoryBankSource.LEARNED,
           scope: MemoryScope.PROJECT,
           title: "Test Pattern",
           description: "A pattern for the mock",
@@ -748,7 +755,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
         },
         reason: "Testing",
         agent: "test-agent",
-        status: "pending",
+        status: MemoryRecordStatus.PENDING,
         created_at: new Date().toISOString(),
       },
     ]);
@@ -764,7 +771,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
       learning: {
         id: "learn-1",
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.LEARNED,
         scope: MemoryScope.PROJECT,
         title: "Test Pattern",
         description: "A pattern for the mock",
@@ -774,7 +781,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
       },
       reason: "Testing",
       agent: "test-agent",
-      status: "pending",
+      status: MemoryRecordStatus.PENDING,
       created_at: new Date().toISOString(),
     });
   }
@@ -796,7 +803,7 @@ export class MockSkillsService implements ISkillsService {
     return Promise.resolve();
   }
 
-  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill> {
+  createSkill(skillDef: Omit<ISkill, SkillManagedFields>): Promise<ISkill> {
     return Promise.resolve({
       ...skillDef,
       id: "mock-id",
@@ -819,7 +826,7 @@ export class MockSkillsService implements ISkillsService {
 
   deriveSkillFromLearnings(
     _learningIds: string[],
-    _skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    _skillDef: Omit<ISkill, SkillManagedFields>,
   ): Promise<ISkill> {
     return Promise.resolve({
       id: "123e4567-e89b-12d3-a456-426614174000",
@@ -830,7 +837,7 @@ export class MockSkillsService implements ISkillsService {
       usage_count: 0,
       status: SkillStatus.ACTIVE,
       version: "1.0.0",
-      source: MemorySource.LEARNED,
+      source: MemoryBankSource.LEARNED,
       scope: MemoryScope.GLOBAL,
       triggers: { keywords: [] },
       instructions: "Do things.",
@@ -852,7 +859,7 @@ export class MockSkillsService implements ISkillsService {
         created_at: new Date().toISOString(),
         usage_count: 0,
         status: SkillStatus.ACTIVE,
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         triggers: { keywords: [] },
         instructions: "Do it.",
@@ -870,7 +877,7 @@ export class MockSkillsService implements ISkillsService {
       created_at: new Date().toISOString(),
       usage_count: 0,
       status: SkillStatus.ACTIVE,
-      source: MemorySource.LEARNED,
+      source: MemoryBankSource.LEARNED,
       scope: MemoryScope.GLOBAL,
       triggers: { keywords: [] },
       instructions: "Do things.",

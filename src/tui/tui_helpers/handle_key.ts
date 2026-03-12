@@ -1,3 +1,4 @@
+import { SplitDirection } from "../../shared/enums.ts";
 /**
  * @module TuiHandleKey
  * @path src/tui/tui_helpers/handle_key.ts
@@ -137,13 +138,25 @@ async function handlePaneManagementKeys(
   const k = key.toLowerCase();
 
   if (k === KEYS.V) { // Split vertical
-    const res = await splitPane(panes, dashboard.activePaneId, views, "vertical", dashboard.notify.bind(dashboard));
+    const res = await splitPane(
+      panes,
+      dashboard.activePaneId,
+      views,
+      SplitDirection.VERTICAL,
+      dashboard.notify.bind(dashboard),
+    );
     dashboard.activePaneId = res.activePaneId;
     return true;
   }
 
   if (k === KEYS.H) { // Split horizontal
-    const res = await splitPane(panes, dashboard.activePaneId, views, "horizontal", dashboard.notify.bind(dashboard));
+    const res = await splitPane(
+      panes,
+      dashboard.activePaneId,
+      views,
+      SplitDirection.HORIZONTAL,
+      dashboard.notify.bind(dashboard),
+    );
     dashboard.activePaneId = res.activePaneId;
     return true;
   }

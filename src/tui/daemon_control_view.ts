@@ -12,11 +12,10 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory, KEYS } from "./helpers/keyboard.ts";
-import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../shared/enums.ts";
+import { DaemonAction, DaemonStatus, DialogStatus, MessageType } from "../shared/enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { MessageType } from "../shared/enums.ts";
 import { IDaemonService } from "../shared/interfaces/i_daemon_service.ts";
 
 // ===== View State =====
@@ -97,8 +96,8 @@ export const LOG_LEVEL_COLORS: Record<string, string> = {
 
 // ===== Key Bindings =====
 
-// ===== Daemon Action Types =====
-export enum DaemonAction {
+// ===== Daemon Key Action Types =====
+export enum DaemonKeyAction {
   START = "start",
   STOP = "stop",
   RESTART = "restart",
@@ -646,7 +645,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   // ===== Dialog Handling =====
 
-  private pendingDialogAction: "start" | "stop" | "restart" | null = null;
+  private pendingDialogAction: DaemonAction | null = null;
 
   async closeDialog(): Promise<void> {
     if (this.state.activeDialog) {
@@ -658,13 +657,13 @@ export class DaemonControlTuiSession extends TuiSessionBase {
         this.state.activeDialog = null;
 
         switch (action) {
-          case "start":
+          case DaemonAction.START:
             await this.startDaemon();
             break;
-          case "stop":
+          case DaemonAction.STOP:
             await this.stopDaemon();
             break;
-          case "restart":
+          case DaemonAction.RESTART:
             await this.restartDaemon();
             break;
         }
@@ -720,15 +719,15 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   private async handleMainViewKey(key: string): Promise<boolean> {
     switch (key) {
       case KEYS.S:
-        this.pendingDialogAction = "start";
+        this.pendingDialogAction = DaemonAction.START;
         this.showStartConfirm();
         return true;
       case "k":
-        this.pendingDialogAction = "stop";
+        this.pendingDialogAction = DaemonAction.STOP;
         this.showStopConfirm();
         return true;
       case KEYS.R:
-        this.pendingDialogAction = "restart";
+        this.pendingDialogAction = DaemonAction.RESTART;
         this.showRestartConfirm();
         return true;
       case KEYS.L:

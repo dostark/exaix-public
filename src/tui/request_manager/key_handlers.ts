@@ -8,7 +8,7 @@
  */
 
 import { KEYS } from "../helpers/keyboard.ts";
-import { TuiNodeType } from "../../shared/enums.ts";
+import { NavDirection, RequestGroupingMode as _RequestGroupingMode, TuiNodeType } from "../../shared/enums.ts";
 import type { ITreeNode } from "../helpers/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../helpers/tree_view.ts";
 
@@ -22,7 +22,7 @@ export class NavigationHandler {
   static navigate(
     tree: ITreeNode[],
     selectedId: string | null,
-    direction: "up" | "down" | "first" | "last",
+    direction: NavDirection,
   ): string | null {
     const flat = flattenTree(tree);
     if (flat.length === 0) return null;
@@ -31,16 +31,16 @@ export class NavigationHandler {
 
     let newIdx: number;
     switch (direction) {
-      case "up":
+      case NavDirection.UP:
         newIdx = currentIdx > 0 ? currentIdx - 1 : 0;
         break;
-      case "down":
+      case NavDirection.DOWN:
         newIdx = currentIdx < flat.length - 1 ? currentIdx + 1 : flat.length - 1;
         break;
-      case "first":
+      case NavDirection.FIRST:
         newIdx = 0;
         break;
-      case "last":
+      case NavDirection.LAST:
         newIdx = flat.length - 1;
         break;
     }
@@ -121,7 +121,7 @@ export class MainKeyHandler {
       requestTree: ITreeNode[];
     },
     actions: {
-      navigateTree: (dir: "up" | "down" | "first" | "last") => void;
+      navigateTree: (dir: NavDirection) => void;
       collapseSelectedNode: () => void;
       expandSelectedNode: () => void;
       toggleSelectedNode: () => void;
@@ -162,20 +162,20 @@ export class MainKeyHandler {
    */
   private static handleNavigationKeys(
     key: string,
-    actions: { navigateTree: (dir: "up" | "down" | "first" | "last") => void },
+    actions: { navigateTree: (dir: NavDirection) => void },
   ): boolean {
     switch (key) {
       case KEYS.UP:
-        actions.navigateTree("up");
+        actions.navigateTree(NavDirection.UP);
         return true;
       case KEYS.DOWN:
-        actions.navigateTree("down");
+        actions.navigateTree(NavDirection.DOWN);
         return true;
       case KEYS.HOME:
-        actions.navigateTree("first");
+        actions.navigateTree(NavDirection.FIRST);
         return true;
       case KEYS.END:
-        actions.navigateTree("last");
+        actions.navigateTree(NavDirection.LAST);
         return true;
     }
     return false;

@@ -7,7 +7,6 @@
  * @related-files [src/services/structured_logger.ts, src/tui/monitor_view.ts]
  */
 
-import { MessageType } from "../shared/enums.ts";
 import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "./helpers/tree_view.ts";
 import { type IHelpSection, renderHelpScreen } from "./helpers/help_renderer.ts";
 import { DialogBase } from "./helpers/dialog_base.ts";
@@ -22,7 +21,7 @@ import { IStructuredLogEntry, LogQueryOptions } from "../shared/types/logging.ts
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "./helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { DialogStatus, LogLevel } from "../shared/enums.ts";
+import { DialogStatus, LogGroupingMode, LogLevel, MessageType } from "../shared/enums.ts";
 
 // ===== View State =====
 
@@ -33,7 +32,7 @@ export interface ILogViewExtensions {
   /** Bookmarked log IDs */
   bookmarkedIds: Set<string>;
   /** Current grouping mode */
-  groupBy: "correlation" | "trace" | "agent" | "level" | "time" | "none";
+  groupBy: LogGroupingMode;
   /** Whether auto-refresh is enabled */
   autoRefresh: boolean;
   /** Log level filter */
@@ -305,7 +304,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
   private createInitialExtensions(testMode = false): ILogViewExtensions {
     return {
       bookmarkedIds: new Set(),
-      groupBy: "correlation",
+      groupBy: LogGroupingMode.CORRELATION,
       autoRefresh: testMode ? false : true,
       logLevelFilter: [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL],
       showPerformanceMetrics: true,
@@ -396,7 +395,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
   protected override buildTree(): void {
     const nodes: ITreeNode<IStructuredLogEntry>[] = [];
 
-    if (this.logViewExtensions.groupBy === "none") {
+    if (this.logViewExtensions.groupBy === LogGroupingMode.NONE) {
       // Flat list
       for (const entry of this.logViewExtensions.filteredEntries) {
         const node = createNode<IStructuredLogEntry>(
@@ -445,19 +444,19 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
       let key: string;
 
       switch (groupBy) {
-        case "correlation":
+        case LogGroupingMode.CORRELATION:
           key = entry.context.correlation_id || "no-correlation";
           break;
-        case "trace":
+        case LogGroupingMode.TRACE:
           key = entry.context.trace_id || "no-trace";
           break;
-        case "agent":
+        case LogGroupingMode.AGENT:
           key = entry.context.agent_id || "no-agent";
           break;
-        case "level":
+        case LogGroupingMode.LEVEL:
           key = entry.level;
           break;
-        case "time": {
+        case LogGroupingMode.TIME: {
           const date = new Date(entry.timestamp);
           key = date.toISOString().split("T")[0]; // YYYY-MM-DD
           break;
@@ -477,15 +476,15 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
 
   private getGroupIcon(groupBy: string): string {
     switch (groupBy) {
-      case "correlation":
+      case LogGroupingMode.CORRELATION:
         return STRUCTURED_LOG_ICONS.correlation;
-      case "trace":
+      case LogGroupingMode.TRACE:
         return STRUCTURED_LOG_ICONS.trace;
-      case "agent":
+      case LogGroupingMode.AGENT:
         return STRUCTURED_LOG_ICONS.agent;
-      case "level":
+      case LogGroupingMode.LEVEL:
         return STRUCTURED_LOG_ICONS[LogLevel.DEBUG] || "📊";
-      case "time":
+      case LogGroupingMode.TIME:
         return "🕐";
       default:
         return "📁";
@@ -614,13 +613,13 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
 
   /** Toggle grouping mode. */
   toggleGrouping(): void {
-    const modes: Array<ILogViewExtensions["groupBy"]> = [
-      "correlation",
-      "trace",
-      "agent",
-      "level",
-      "time",
-      "none",
+    const modes = [
+      LogGroupingMode.CORRELATION,
+      LogGroupingMode.TRACE,
+      LogGroupingMode.AGENT,
+      LogGroupingMode.LEVEL,
+      LogGroupingMode.TIME,
+      LogGroupingMode.NONE,
     ];
     const currentIndex = modes.indexOf(this.logViewExtensions.groupBy);
     this.logViewExtensions.groupBy = modes[(currentIndex + 1) % modes.length];

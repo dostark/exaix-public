@@ -7,9 +7,9 @@
  * @related-files [src/helpers/tree_view.ts]
  */
 
-// ===== Key Handling Interfaces =====
+import { KeyModifier } from "../../shared/enums.ts";
 
-export type KeyModifier = "ctrl" | "alt" | "shift" | "meta";
+// ===== Key Handling Interfaces =====
 
 export type KeyHandler = (key: string) => boolean | void | Promise<boolean | void>;
 
@@ -379,19 +379,19 @@ export function parseKey(raw: string): IKeyEvent {
 
   // Check for modifier prefixes
   if (key.startsWith("ctrl+") || key.startsWith("c-")) {
-    modifiers.add("ctrl");
+    modifiers.add(KeyModifier.CTRL);
     key = key.replace(/^(ctrl\+|c-)/, "");
   }
   if (key.startsWith("alt+") || key.startsWith("m-")) {
-    modifiers.add("alt");
+    modifiers.add(KeyModifier.ALT);
     key = key.replace(/^(alt\+|m-)/, "");
   }
   if (key.startsWith("shift+") || key.startsWith("s-")) {
-    modifiers.add("shift");
+    modifiers.add(KeyModifier.SHIFT);
     key = key.replace(/^(shift\+|s-)/, "");
   }
   if (key.startsWith("meta+") || key.startsWith("super+")) {
-    modifiers.add("meta");
+    modifiers.add(KeyModifier.META);
     key = key.replace(/^(meta\+|super\+)/, "");
   }
 
@@ -405,10 +405,10 @@ export function formatKey(key: string, modifiers?: KeyModifier[]): string {
   const parts: string[] = [];
 
   if (modifiers) {
-    if (modifiers.includes("ctrl")) parts.push("Ctrl");
-    if (modifiers.includes("alt")) parts.push("Alt");
-    if (modifiers.includes("shift")) parts.push("Shift");
-    if (modifiers.includes("meta")) parts.push("Meta");
+    if (modifiers.includes(KeyModifier.CTRL)) parts.push("Ctrl");
+    if (modifiers.includes(KeyModifier.ALT)) parts.push("Alt");
+    if (modifiers.includes(KeyModifier.SHIFT)) parts.push("Shift");
+    if (modifiers.includes(KeyModifier.META)) parts.push("Meta");
   }
 
   // Capitalize special keys
