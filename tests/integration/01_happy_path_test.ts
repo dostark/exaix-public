@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { ExecutionStatus, McpToolName, MemorySource, PortalOperation } from "../../src/shared/enums.ts";
+import { ExecutionStatus, McpToolName, MemoryBankSource, PortalOperation } from "../../src/shared/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
@@ -223,7 +223,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
 
       // Should have execution-related activities
       const hasExecutionActivity = actionTypes.some((t) =>
-        t.includes(MemorySource.EXECUTION) || t.includes(PortalOperation.GIT) || t.includes("report")
+        t.includes(MemoryBankSource.EXECUTION) || t.includes(PortalOperation.GIT) || t.includes("report")
       );
 
       assert(

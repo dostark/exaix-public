@@ -6,10 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { McpToolName } from "../src/shared/enums.ts";
-
-import { DaemonStatus } from "../src/shared/enums.ts";
-
+import { DaemonStatus, McpToolName } from "../src/shared/enums.ts";
 import { join } from "@std/path";
 import { ToolRegistry } from "../src/services/tool_registry.ts";
 import { createMockConfig } from "./helpers/config.ts";

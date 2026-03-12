@@ -118,7 +118,7 @@ Deno.test("defineFlow: accepts custom configurations", () => {
       agent: "ag1",
       dependsOn: ["other"],
       input: {
-        source: "step",
+        source: FlowInputSource.STEP,
         stepId: "other",
         transform: "custom",
       },
@@ -129,7 +129,7 @@ Deno.test("defineFlow: accepts custom configurations", () => {
       condition: "true",
       timeout: 5000,
     }],
-    output: { from: "s1", format: "json" },
+    output: { from: "s1", format: FlowOutputFormat.JSON },
     settings: {
       maxParallelism: 10,
       failFast: false,
@@ -139,12 +139,12 @@ Deno.test("defineFlow: accepts custom configurations", () => {
 
   assertEquals(flow.version, "2.5.0");
   assertEquals(flow.steps[0].dependsOn, ["other"]);
-  assertEquals(flow.steps[0].input.source, "step");
+  assertEquals(flow.steps[0].input.source, FlowInputSource.STEP);
   assertEquals(flow.steps[0].input.stepId, "other");
   assertEquals(flow.steps[0].retry.maxAttempts, 5);
   assertEquals(flow.steps[0].condition, "true");
   assertEquals(flow.steps[0].timeout, 5000);
-  assertEquals(flow.output.format, "json");
+  assertEquals(flow.output.format, FlowOutputFormat.JSON);
   assertEquals(flow.settings.maxParallelism, 10);
   assertEquals(flow.settings.failFast, false);
   assertEquals(flow.settings.timeout, 60000);

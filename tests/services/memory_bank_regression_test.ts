@@ -20,8 +20,8 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryScope,
-  MemorySource,
 } from "../../src/shared/enums.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
@@ -84,7 +84,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
           category: LearningCategory.INSIGHT,
           confidence: ConfidenceLevel.HIGH,
           scope: MemoryScope.GLOBAL,
-          source: MemorySource.AGENT,
+          source: MemoryBankSource.AGENT,
         }),
       ]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {

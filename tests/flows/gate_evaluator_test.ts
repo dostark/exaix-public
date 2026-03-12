@@ -6,10 +6,8 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { FlowGateOnFail } from "../../src/shared/enums.ts";
-
+import { EvaluationCategory, FlowGateAction, FlowGateOnFail } from "../../src/shared/enums.ts";
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
-import { EvaluationCategory } from "../../src/shared/enums.ts";
 import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
 import { IStepResult } from "../../src/flows/flow_runner.ts";
 
@@ -35,7 +33,7 @@ Deno.test("GateEvaluator: passes gate when score above threshold", async () => {
 
   assertEquals(result.passed, true);
   assertEquals(result.score >= 0.8, true);
-  assertEquals(result.action, "passed");
+  assertEquals(result.action, FlowGateAction.PASSED);
   assertExists(result.evaluation);
 });
 
@@ -54,7 +52,7 @@ Deno.test("GateEvaluator: returns retry action when configured", async () => {
   const result = await evaluator.evaluate(config, "Content", undefined, 0);
 
   assertEquals(result.passed, false);
-  assertEquals(result.action, FlowGateOnFail.RETRY);
+  assertEquals(result.action, FlowGateAction.RETRY);
   assertEquals(result.attempts, 1);
 });
 
@@ -65,7 +63,7 @@ Deno.test("GateEvaluator: halts after max retries exceeded", async () => {
   const result = await evaluator.evaluate(config, "Content", undefined, 2);
 
   assertEquals(result.passed, false);
-  assertEquals(result.action, "halted");
+  assertEquals(result.action, FlowGateAction.HALTED);
   assertEquals(result.attempts, 3);
 });
 
@@ -142,7 +140,7 @@ Deno.test("GateEvaluator.evaluateStepResult: evaluates step result content", asy
   };
 
   const result = await evaluator.evaluateStepResult(config, stepResult, "original request");
-  assertEquals(result.action, "passed");
+  assertEquals(result.action, FlowGateAction.PASSED);
 });
 
 Deno.test("GateEvaluator: fails if required criteria fail even when overallScore meets threshold", async () => {
@@ -183,7 +181,7 @@ Deno.test("GateEvaluator: fails if required criteria fail even when overallScore
 
   const result = await evaluator.evaluate(config, "content");
   assertEquals(result.passed, false);
-  assertEquals(result.action, "halted");
+  assertEquals(result.action, FlowGateAction.HALTED);
 });
 
 Deno.test("GateEvaluator: supports criteria objects in config.criteria", async () => {
@@ -233,7 +231,7 @@ Deno.test("GateEvaluator: handles judge errors and returns halted by default", a
 
   const result = await evaluator.evaluate(config, "content");
   assertEquals(result.passed, false);
-  assertEquals(result.action, "halted");
+  assertEquals(result.action, FlowGateAction.HALTED);
   assertEquals(result.error, "judge failed");
   assertEquals(result.evaluation.feedback.includes("Evaluation failed"), true);
 });
@@ -243,7 +241,7 @@ Deno.test("GateEvaluator.formatFeedbackForRetry: includes failed criteria detail
     passed: false,
     score: 0.6,
     attempts: 1,
-    action: "retry",
+    action: FlowGateAction.RETRY,
     evaluationDurationMs: 10,
     evaluation: {
       overallScore: 0.6,

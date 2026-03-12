@@ -5,7 +5,7 @@
  * wait-based synchronization, temporary file cleanup, and process capturing.
  */
 
-import { MemorySource, SkillStatus } from "../../src/shared/enums.ts";
+import { MemoryBankSource, RequestSource, SkillStatus } from "../../src/shared/enums.ts";
 import { PlanStatus, type PlanStatusType } from "../../src/shared/status/plan_status.ts";
 import { RequestStatus, type RequestStatusType } from "../../src/shared/status/request_status.ts";
 
@@ -37,7 +37,7 @@ export interface ITestSkillFixture {
   name: string;
   version: string;
   status: SkillStatus;
-  source: MemorySource;
+  source: MemoryBankSource;
   description: string;
 }
 
@@ -71,7 +71,7 @@ export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
   agent: "default",
   created: new Date().toISOString(),
   created_by: "test@example.com",
-  source: "cli",
+  source: RequestSource.CLI,
 }));
 
 // Plan factory
@@ -87,7 +87,7 @@ export const skillFactory = new TestDataFactory<ITestSkillFixture>(() => ({
   name: "Skill",
   version: "1.0.0",
   status: SkillStatus.ACTIVE,
-  source: MemorySource.CORE,
+  source: MemoryBankSource.CORE,
   description: "Test skill",
 }));
 
@@ -173,7 +173,7 @@ export class MockRequestService extends BaseMockService<ITestRequestFixture> {
       model: options?.model,
       created: new Date().toISOString(),
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     });
   }
 

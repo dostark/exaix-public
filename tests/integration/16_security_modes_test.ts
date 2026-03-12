@@ -6,13 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
-
-import { SecurityMode } from "../../src/shared/enums.ts";
-
-import { PortalOperation } from "../../src/shared/enums.ts";
-
-import { MemoryOperation } from "../../src/shared/enums.ts";
+import { McpToolName, MemoryOperation, PortalOperation, SecurityMode } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

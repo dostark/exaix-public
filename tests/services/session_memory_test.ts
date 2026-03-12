@@ -28,8 +28,8 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryScope,
-  MemorySource,
   MemoryType,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
@@ -469,7 +469,7 @@ Deno.test("SessionMemoryService - saveInsight creates learning entry", async () 
   assertEquals(savedLearnings.length, 1);
   assertEquals(savedLearnings[0].title, "Test Insight");
   assertEquals(savedLearnings[0].status, MemoryStatus.PENDING);
-  assertEquals(savedLearnings[0].source, MemorySource.AGENT);
+  assertEquals(savedLearnings[0].source, MemoryBankSource.AGENT);
 });
 
 Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped learning", async () => {

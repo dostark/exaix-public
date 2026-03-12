@@ -15,7 +15,7 @@ import {
   renderPaneTitleBar,
   renderViewPicker,
 } from "../../src/tui/tui_dashboard.ts";
-import { PortalStatus } from "../../src/shared/enums.ts";
+import { PortalStatus, SplitDirection } from "../../src/shared/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
@@ -139,7 +139,7 @@ Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
   await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, "main"); // Only one pane, wraps to itself
   // Add another pane
-  await dashboard.splitPane("vertical");
+  await dashboard.splitPane(SplitDirection.VERTICAL);
   assertEquals(dashboard.panes.length, 2);
   await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
@@ -194,14 +194,14 @@ Deno.test("TUI dashboard split view functionality", async () => {
   assertEquals(dashboard.activePaneId, "main");
 
   // Split vertical
-  await dashboard.splitPane("vertical");
+  await dashboard.splitPane(SplitDirection.VERTICAL);
   assertEquals(dashboard.panes.length, 2);
   assertEquals(dashboard.panes[0].width, 40); // Half of 80
   assertEquals(dashboard.panes[1].x, 40);
 
   // Split horizontal on second pane
   dashboard.switchPane(dashboard.panes[1].id);
-  await dashboard.splitPane("horizontal");
+  await dashboard.splitPane(SplitDirection.HORIZONTAL);
   assertEquals(dashboard.panes.length, 3);
   assertEquals(dashboard.panes[1].height, 12); // Half of 24
   assertEquals(dashboard.panes[2].y, 12);
@@ -219,7 +219,7 @@ Deno.test("TUI dashboard split view functionality", async () => {
 
 Deno.test("TUI dashboard pane focus and switching", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
-  dashboard.splitPane("vertical");
+  dashboard.splitPane(SplitDirection.VERTICAL);
   const secondPaneId = dashboard.panes[1].id;
 
   dashboard.switchPane(secondPaneId);
@@ -232,8 +232,8 @@ Deno.test("TUI dashboard layout save and restore", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Modify layout
-  dashboard.splitPane("vertical");
-  dashboard.splitPane("horizontal");
+  dashboard.splitPane(SplitDirection.VERTICAL);
+  dashboard.splitPane(SplitDirection.HORIZONTAL);
   const originalPanes = dashboard.panes.length;
   const originalActive = dashboard.activePaneId;
 
@@ -298,8 +298,8 @@ Deno.test("TUI dashboard reset to default", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Modify layout
-  await dashboard.splitPane("vertical");
-  await dashboard.splitPane("horizontal");
+  await dashboard.splitPane(SplitDirection.VERTICAL);
+  await dashboard.splitPane(SplitDirection.HORIZONTAL);
   assertEquals(dashboard.panes.length, 3);
 
   // Reset
@@ -650,8 +650,8 @@ Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Create multiple panes
-  dashboard.splitPane("vertical");
-  dashboard.splitPane("horizontal");
+  dashboard.splitPane(SplitDirection.VERTICAL);
+  dashboard.splitPane(SplitDirection.HORIZONTAL);
   assertEquals(dashboard.panes.length, 3);
 
   // Navigate directly to panes using number keys
@@ -817,7 +817,7 @@ Deno.test("TUI dashboard neighbor-aware flex resizing logic", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // 1. Vertical split: IPane 0 (Left 0.5) | IPane 1 (Right 0.5)
-  await dashboard.splitPane("vertical");
+  await dashboard.splitPane(SplitDirection.VERTICAL);
   assertEquals(dashboard.panes[0].flexWidth, 0.5);
   assertEquals(dashboard.panes[1].flexWidth, 0.5);
   assertEquals(dashboard.panes[1].flexX, 0.5);
@@ -839,7 +839,7 @@ Deno.test("TUI dashboard neighbor-aware flex resizing logic", async () => {
 
   // 2. Horizontal split on IPane 0: IPane 0 (Top) | IPane 2 (Bottom)
   dashboard.switchPane(dashboard.panes[0].id);
-  await dashboard.splitPane("horizontal");
+  await dashboard.splitPane(SplitDirection.HORIZONTAL);
   // IPane 0 now has flexHeight 0.5 of its original 1.0 = 0.5
   // IPane 2 has flexY 0.5 and flexHeight 0.5
   assertEquals(dashboard.panes[0].flexHeight, 0.5);

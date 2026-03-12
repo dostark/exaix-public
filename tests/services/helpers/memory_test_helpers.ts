@@ -9,9 +9,9 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryScope,
-  MemorySource,
   ReviewSource,
 } from "../../../src/shared/enums.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
@@ -100,7 +100,7 @@ export function createBaseLearning(
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440001",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
-    source: overrides.source ?? MemorySource.EXECUTION,
+    source: overrides.source ?? MemoryBankSource.EXECUTION,
     source_id: overrides.source_id ?? "trace-123",
     scope: overrides.scope ?? MemoryScope.PROJECT,
     project: overrides.project ?? "my-app",
@@ -147,7 +147,7 @@ export function createGlobalProposal(overrides: Partial<IMemoryUpdateProposal> =
     target_scope: overrides.target_scope ?? MemoryScope.GLOBAL,
     learning: createBaseLearning({
       id: "550e8400-e29b-41d4-a716-446655440003",
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "Always validate input",
       description: "Input validation prevents security issues",
@@ -178,7 +178,7 @@ export function createApprovedProposal(overrides: Partial<IMemoryUpdateProposal>
     target_project: overrides.target_project ?? "my-app",
     learning: createBaseLearning({
       id: "550e8400-e29b-41d4-a716-446655440005",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       title: "Test ILearning",
       description: "Test description",
       category: LearningCategory.PATTERN,
@@ -244,7 +244,7 @@ function createInvalidLearning(
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440007",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
-    source: overrides.source ?? MemorySource.USER,
+    source: overrides.source ?? MemoryBankSource.USER,
     scope: overrides.scope ?? MemoryScope.PROJECT,
     title: overrides.title ?? "Test",
     description: overrides.description ?? "Test",

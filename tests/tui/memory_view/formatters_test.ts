@@ -21,9 +21,9 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryScope,
-  MemorySource,
   TuiNodeType,
 } from "../../../src/shared/enums.ts";
 import { createMockService } from "./memory_test_helpers.ts";
@@ -55,7 +55,7 @@ Deno.test("MemoryFormatter.formatScopeDetail: covers known scopes and fallback",
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: "global",
         title: "L1",
         description: "desc",
@@ -131,7 +131,7 @@ Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning conte
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Learn",
       description: "Desc",

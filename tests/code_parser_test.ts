@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryOperation } from "../src/shared/enums.ts";
+import { FileOperation } from "../src/shared/enums.ts";
 
 import {
   countOperations,
@@ -64,7 +64,7 @@ export const config = { auth: true };
     assertEquals(result.changes.length, 3);
     assertEquals(result.changes[0].operation, "create");
     assertEquals(result.changes[1].operation, "modify");
-    assertEquals(result.changes[2].operation, MemoryOperation.DELETE);
+    assertEquals(result.changes[2].operation, FileOperation.DELETE);
   });
 
   await t.step("should handle delete operations without code blocks", () => {
@@ -77,7 +77,7 @@ This file is no longer needed.
     const result = parseCodeGeneration(llmResponse, portalRoot);
 
     assertEquals(result.changes.length, 1);
-    assertEquals(result.changes[0].operation, MemoryOperation.DELETE);
+    assertEquals(result.changes[0].operation, FileOperation.DELETE);
     assertEquals(result.changes[0].content, undefined);
   });
 
@@ -264,9 +264,9 @@ Deno.test("Code Parser - validateFilePath()", async (t) => {
 Deno.test("Code Parser - extractFilePaths()", async (t) => {
   await t.step("should extract file paths from parse result", () => {
     const changes: IFileChange[] = [
-      { path: "src/auth.ts", operation: "create", content: "..." },
-      { path: "tests/auth_test.ts", operation: "create", content: "..." },
-      { path: "src/old.ts", operation: MemoryOperation.DELETE },
+      { path: "src/auth.ts", operation: FileOperation.CREATE, content: "..." },
+      { path: "tests/auth_test.ts", operation: FileOperation.CREATE, content: "..." },
+      { path: "src/old.ts", operation: FileOperation.DELETE },
     ];
 
     const paths = extractFilePaths({ changes, invalidPaths: [], errors: [] });
@@ -287,10 +287,10 @@ Deno.test("Code Parser - extractFilePaths()", async (t) => {
 Deno.test("Code Parser - countOperations()", async (t) => {
   await t.step("should count file operations", () => {
     const changes: IFileChange[] = [
-      { path: "src/a.ts", operation: "create", content: "..." },
-      { path: "src/b.ts", operation: "create", content: "..." },
-      { path: "src/c.ts", operation: "modify", content: "..." },
-      { path: "src/d.ts", operation: MemoryOperation.DELETE },
+      { path: "src/a.ts", operation: FileOperation.CREATE, content: "..." },
+      { path: "src/b.ts", operation: FileOperation.CREATE, content: "..." },
+      { path: "src/c.ts", operation: FileOperation.MODIFY, content: "..." },
+      { path: "src/d.ts", operation: FileOperation.DELETE },
     ];
 
     const counts = countOperations(changes);

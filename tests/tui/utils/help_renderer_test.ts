@@ -23,6 +23,7 @@ import {
   toggleHelpDialog,
 } from "../../../src/tui/helpers/help_renderer.ts";
 import type { IKeyBinding } from "../../../src/tui/helpers/keyboard.ts";
+import { ScrollDirection } from "../../../src/shared/enums.ts";
 
 // ===== renderHelpScreen tests =====
 
@@ -145,11 +146,15 @@ Deno.test("getNavigationHelpSection: returns navigation section", () => {
   assertEquals(section.title, "Navigation");
   assertEquals(section.items.length > 0, true);
   assertEquals(
-    section.items.some((i: { key: string; description?: string; action?: string }) => i.key.includes("up")),
+    section.items.some((i: { key: string; description?: string; action?: string }) =>
+      i.key.includes(ScrollDirection.UP)
+    ),
     true,
   );
   assertEquals(
-    section.items.some((i: { key: string; description?: string; action?: string }) => i.key.includes("down")),
+    section.items.some((i: { key: string; description?: string; action?: string }) =>
+      i.key.includes(ScrollDirection.DOWN)
+    ),
     true,
   );
 });
@@ -262,7 +267,7 @@ Deno.test("scrollHelpDialog: scrolls down", () => {
     scrollOffset: 0,
     content: Array(20).fill("Line"),
   };
-  const scrolled = scrollHelpDialog(state, "down", 10);
+  const scrolled = scrollHelpDialog(state, ScrollDirection.DOWN, 10);
   assertEquals(scrolled.scrollOffset, 1);
 });
 
@@ -272,7 +277,7 @@ Deno.test("scrollHelpDialog: scrolls up", () => {
     scrollOffset: 5,
     content: Array(20).fill("Line"),
   };
-  const scrolled = scrollHelpDialog(state, "up", 10);
+  const scrolled = scrollHelpDialog(state, ScrollDirection.UP, 10);
   assertEquals(scrolled.scrollOffset, 4);
 });
 
@@ -282,7 +287,7 @@ Deno.test("scrollHelpDialog: clamps at 0", () => {
     scrollOffset: 0,
     content: Array(20).fill("Line"),
   };
-  const scrolled = scrollHelpDialog(state, "up", 10);
+  const scrolled = scrollHelpDialog(state, ScrollDirection.UP, 10);
   assertEquals(scrolled.scrollOffset, 0);
 });
 
@@ -292,7 +297,7 @@ Deno.test("scrollHelpDialog: clamps at max", () => {
     scrollOffset: 10,
     content: Array(20).fill("Line"),
   };
-  const scrolled = scrollHelpDialog(state, "down", 10);
+  const scrolled = scrollHelpDialog(state, ScrollDirection.DOWN, 10);
   assertEquals(scrolled.scrollOffset, 10);
 });
 
@@ -302,7 +307,7 @@ Deno.test("scrollHelpDialog: does nothing when not visible", () => {
     scrollOffset: 0,
     content: Array(20).fill("Line"),
   };
-  const scrolled = scrollHelpDialog(state, "down", 10);
+  const scrolled = scrollHelpDialog(state, ScrollDirection.DOWN, 10);
   assertEquals(scrolled.scrollOffset, 0);
 });
 
@@ -349,7 +354,7 @@ Deno.test("handleHelpKey: scrolls up with up key", () => {
     scrollOffset: 5,
     content: Array(20).fill("Line"),
   };
-  const { state: newState, handled } = handleHelpKey(state, "up", 10);
+  const { state: newState, handled } = handleHelpKey(state, ScrollDirection.UP, 10);
   assertEquals(handled, true);
   assertEquals(newState.scrollOffset, 4);
 });
@@ -371,7 +376,7 @@ Deno.test("handleHelpKey: scrolls down with down key", () => {
     scrollOffset: 0,
     content: Array(20).fill("Line"),
   };
-  const { state: newState, handled } = handleHelpKey(state, "down", 10);
+  const { state: newState, handled } = handleHelpKey(state, ScrollDirection.DOWN, 10);
   assertEquals(handled, true);
   assertEquals(newState.scrollOffset, 1);
 });

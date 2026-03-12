@@ -6,7 +6,7 @@
  */
 
 import { join } from "@std/path";
-import { MCPTransport, PortalOperation } from "../../../src/shared/enums.ts";
+import { McpTransportType, PortalOperation } from "../../../src/shared/enums.ts";
 import { ensureDir } from "@std/fs";
 import { assertEquals, assertExists } from "@std/assert";
 import { MCPServer } from "../../../src/mcp/server.ts";
@@ -131,7 +131,7 @@ export async function initMCPTest(
 ): Promise<IMCPTestContext> {
   const env = await initTestEnv(options);
   const context = createTestContext(env.config, env.db);
-  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
+  const server = new MCPServer({ context, transport: McpTransportType.STDIO });
   await server.start();
 
   const cleanup = async () => {
@@ -202,7 +202,7 @@ export async function initMCPTestWithoutPortal(): Promise<
 
   const config = createMockConfig(tempDir);
   const context = createTestContext(config, db);
-  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
+  const server = new MCPServer({ context, transport: McpTransportType.STDIO });
   await server.start();
 
   const cleanup = async () => {

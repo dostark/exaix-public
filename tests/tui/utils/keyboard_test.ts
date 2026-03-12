@@ -18,6 +18,7 @@ import {
   matchesKey,
   parseKey,
 } from "../../../src/tui/helpers/keyboard.ts";
+import { KeyModifier } from "../../../src/shared/enums.ts";
 
 // ===== Key Constants Tests =====
 
@@ -110,25 +111,25 @@ Deno.test("parseKey: parses simple key", () => {
 Deno.test("parseKey: parses ctrl+ modifier", () => {
   const event = parseKey("ctrl+c");
   assertEquals(event.key, "c");
-  assertEquals(event.modifiers.has("ctrl"), true);
+  assertEquals(event.modifiers.has(KeyModifier.CTRL), true);
 });
 
 Deno.test("parseKey: parses alt+ modifier", () => {
   const event = parseKey("alt+x");
   assertEquals(event.key, "x");
-  assertEquals(event.modifiers.has("alt"), true);
+  assertEquals(event.modifiers.has(KeyModifier.ALT), true);
 });
 
 Deno.test("parseKey: parses shift+ modifier", () => {
   const event = parseKey("shift+tab");
   assertEquals(event.key, "tab");
-  assertEquals(event.modifiers.has("shift"), true);
+  assertEquals(event.modifiers.has(KeyModifier.SHIFT), true);
 });
 
 Deno.test("parseKey: normalizes to lowercase", () => {
   const event = parseKey("Ctrl+C");
   assertEquals(event.key, "c");
-  assertEquals(event.modifiers.has("ctrl"), true);
+  assertEquals(event.modifiers.has(KeyModifier.CTRL), true);
 });
 
 // ===== Format Key Tests =====
@@ -144,12 +145,12 @@ Deno.test("formatKey: formats special keys", () => {
 });
 
 Deno.test("formatKey: formats with modifiers", () => {
-  const result = formatKey("c", ["ctrl"]);
+  const result = formatKey("c", [KeyModifier.CTRL]);
   assertEquals(result, "Ctrl+C");
 });
 
 Deno.test("formatKey: formats multiple modifiers", () => {
-  const result = formatKey("s", ["ctrl", "shift"]);
+  const result = formatKey("s", [KeyModifier.CTRL, KeyModifier.SHIFT]);
   assertEquals(result, "Ctrl+Shift+S");
 });
 

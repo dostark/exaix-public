@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { MemorySource, RequestPriority } from "../../src/shared/enums.ts";
+import { RequestGroupingMode, RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { commonTestData } from "../helpers/test_utils.ts";
 import type { IRequest } from "../../src/shared/types/request.ts";
@@ -340,7 +340,7 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
 
   // Toggle to agent grouping
   tui.toggleGrouping();
-  assertEquals(tui.getState().groupBy, MemorySource.AGENT);
+  assertEquals(tui.getState().groupBy, RequestGroupingMode.AGENT);
 
   // Toggle back to none
   tui.toggleGrouping();
@@ -406,7 +406,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       agent: "developer",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
     {
       trace_id: "req-2",
@@ -417,7 +417,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       agent: "designer",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
   ];
   const view = new RequestManagerView(mockService);

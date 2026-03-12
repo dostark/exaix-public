@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MCPTransport } from "../../src/shared/enums.ts";
+import { McpTransportType } from "../../src/shared/enums.ts";
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
@@ -47,7 +47,7 @@ async function createTestServer(portals: Array<{ alias: string; files: Record<st
     display: createStubDisplay(),
   };
 
-  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
+  const server = new MCPServer({ context, transport: McpTransportType.STDIO });
   await server.start();
 
   return { server, db, tempDir, cleanup };
@@ -153,7 +153,7 @@ Deno.test("MCP Server: resources/read rejects invalid URI", async () => {
     provider: createStubProvider(),
     display: createStubDisplay(),
   };
-  const server = new MCPServer({ context, transport: MCPTransport.STDIO });
+  const server = new MCPServer({ context, transport: McpTransportType.STDIO });
   await server.start();
 
   try {

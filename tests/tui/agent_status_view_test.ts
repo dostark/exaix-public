@@ -19,9 +19,8 @@ import {
 import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../../src/shared/types/agent.ts";
 import { IAgentService } from "../../src/shared/interfaces/i_agent_service.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
-import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/shared/enums.ts";
 import { AgentStatus } from "../../src/shared/status/agent_status.ts";
-import { CritiqueSeverity } from "../../src/shared/enums.ts";
+import { AgentHealth, CritiqueSeverity, LogLevel, TuiGroupBy } from "../../src/shared/enums.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import { assertEquals, assertExists } from "@std/assert";
 

@@ -14,17 +14,14 @@ import {
   assertStringIncludes,
   assertThrows,
 } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
-import { SecurityMode } from "../../src/shared/enums.ts";
-import { PortalOperation } from "../../src/shared/enums.ts";
-import { createTestConfig } from "../ai/helpers/test_config.ts";
-import { MemoryOperation } from "../../src/shared/enums.ts";
+import { McpToolName, MemoryOperation, PortalOperation, SecurityMode } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 import { AgentExecutionError, AgentExecutor, type IBlueprint } from "../../src/services/agent_executor.ts";
 import type { IWorkspaceExecutionContext } from "../../src/services/workspace_execution_context.ts";
 import { stub } from "@std/testing/mock";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
+import { createTestConfig } from "../ai/helpers/test_config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";

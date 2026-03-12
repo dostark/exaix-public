@@ -6,18 +6,22 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
-import { EvaluationCategory, ProviderCostTier } from "../../src/shared/enums.ts";
-import { HealthCheckVerdict } from "../../src/shared/enums.ts";
-import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
-import { MockProviderFactory } from "../../src/ai/factories/mock_factory.ts";
-import { ProviderSelector } from "../../src/ai/provider_selector.ts";
-import { CostTracker } from "../../src/services/cost_tracker.ts";
-import { HealthCheckService } from "../../src/services/health_check_service.ts";
-import { initTestDbService } from "../helpers/db.ts";
-import { PricingTier, TaskComplexity } from "../../src/shared/enums.ts";
+import {
+  EvaluationCategory,
+  HealthCheckVerdict,
+  PricingTier,
+  ProviderCostTier,
+  TaskComplexity,
+} from "../../src/shared/enums.ts";
 import { createTestConfig } from "./helpers/test_config.ts";
 import { PROVIDER_OPENAI } from "../../src/shared/constants.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
+import { initTestDbService } from "../helpers/db.ts";
+import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
+import { MockProviderFactory } from "../../src/ai/factories/mock_factory.ts";
+import { CostTracker } from "../../src/services/cost_tracker.ts";
+import { ProviderSelector } from "../../src/ai/provider_selector.ts";
+import { HealthCheckService } from "../../src/services/health_check_service.ts";
 
 async function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {
   const previous: Record<string, string | undefined> = {};

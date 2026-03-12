@@ -6,10 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
-
-import { MemorySource } from "../../src/shared/enums.ts";
-
+import { McpToolName, MemoryBankSource } from "../../src/shared/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -161,7 +158,7 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
     await t.step("Test 6: Revision requests logged to IActivity Journal", async () => {
       // Log revision activity
       env.db.logActivity(
-        MemorySource.USER,
+        MemoryBankSource.USER,
         "plan.revision_requested",
         planPath,
         {

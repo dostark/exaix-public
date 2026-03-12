@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemorySource } from "../../src/shared/enums.ts";
+import { MemoryBankSource } from "../../src/shared/enums.ts";
 
 import { initSimpleMCPServer } from "./helpers/test_setup.ts";
 
@@ -102,7 +102,7 @@ Deno.test("MCP Server: handles prompts/get for execute_plan", async () => {
     assertStringIncludes(result.description, "test-plan-123");
     assertStringIncludes(result.description, "MyApp");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, MemorySource.USER);
+    assertEquals(result.messages[0].role, MemoryBankSource.USER);
     assertStringIncludes(result.messages[0].content.text, "test-plan-123");
     assertStringIncludes(result.messages[0].content.text, "MyApp");
   });

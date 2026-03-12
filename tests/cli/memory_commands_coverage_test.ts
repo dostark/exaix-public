@@ -9,9 +9,10 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryScope,
-  MemorySource,
   MemoryType,
+  UIOutputFormat,
 } from "../../src/shared/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
@@ -68,7 +69,7 @@ Deno.test("MemoryCommands: search with useEmbeddings option", async () => {
 
     const result = await commands.search("error handling", {
       useEmbeddings: true,
-      format: "table",
+      format: UIOutputFormat.TABLE,
     });
 
     // Should return some results (even if empty due to mock embeddings)
@@ -94,7 +95,7 @@ Deno.test("MemoryCommands: search with tags option", async () => {
 
     const result = await commands.search(LearningCategory.PATTERN, {
       tags: ["typescript"],
-      format: "table",
+      format: UIOutputFormat.TABLE,
     });
 
     assertEquals(typeof result, "string");
@@ -110,7 +111,7 @@ Deno.test("MemoryCommands: search --format md outputs markdown", async () => {
       new ProjectMemoryBuilder("MdSearchProject").build(),
     );
 
-    const result = await commands.search("IPattern", { format: "md" });
+    const result = await commands.search("IPattern", { format: UIOutputFormat.MARKDOWN });
 
     // If results found, should have markdown formatting
     if (!result.includes("No results found")) {
@@ -131,7 +132,7 @@ Deno.test("MemoryCommands: project list --format md outputs markdown", async () 
       new ProjectMemoryBuilder("MdListProject").build(),
     );
 
-    const result = await commands.projectList("md");
+    const result = await commands.projectList(UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Project Memories");
     assertStringIncludes(result, "| Project |");
@@ -150,7 +151,7 @@ Deno.test("MemoryCommands: project show --format md outputs markdown", async () 
         .build(),
     );
 
-    const result = await commands.projectShow("MdShowProject", "md");
+    const result = await commands.projectShow("MdShowProject", UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Project Memory:");
     assertStringIncludes(result, "## Overview");
@@ -184,7 +185,7 @@ Deno.test("MemoryCommands: execution list --format md outputs markdown", async (
       },
     });
 
-    const result = await commands.executionList({ format: "md" });
+    const result = await commands.executionList({ format: UIOutputFormat.MARKDOWN });
 
     assertStringIncludes(result, "# Execution History");
     assertStringIncludes(result, "| Trace ID |");
@@ -198,7 +199,7 @@ Deno.test("MemoryCommands: execution list --format md outputs markdown", async (
 Deno.test("MemoryCommands: globalShow returns init message when not initialized", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.globalShow("table");
+    const result = await commands.globalShow(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "not initialized");
   } finally {
@@ -211,7 +212,7 @@ Deno.test("MemoryCommands: globalShow with initialized memory", async () => {
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow("table");
+    const result = await commands.globalShow(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Global Memory");
     assertStringIncludes(result, "Version:");
@@ -225,7 +226,7 @@ Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () =>
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow("md");
+    const result = await commands.globalShow(UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Global Memory");
     assertStringIncludes(result, "| Property | Value |");
@@ -237,7 +238,7 @@ Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () =>
 Deno.test("MemoryCommands: globalListLearnings returns init message when not initialized", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.globalListLearnings("table");
+    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "not initialized");
   } finally {
@@ -250,7 +251,7 @@ Deno.test("MemoryCommands: globalListLearnings with no learnings", async () => {
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalListLearnings("table");
+    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "No learnings");
   } finally {
@@ -274,7 +275,7 @@ Deno.test("MemoryCommands: globalListLearnings --format md outputs markdown", as
 
     await memoryBank.addGlobalLearning(learning);
 
-    const result = await commands.globalListLearnings("md");
+    const result = await commands.globalListLearnings(UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Global Learnings");
     assertStringIncludes(result, "| ID |");
@@ -286,7 +287,7 @@ Deno.test("MemoryCommands: globalListLearnings --format md outputs markdown", as
 Deno.test("MemoryCommands: globalStats returns init message when not initialized", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.globalStats("table");
+    const result = await commands.globalStats(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "not initialized");
   } finally {
@@ -299,7 +300,7 @@ Deno.test("MemoryCommands: globalStats --format md outputs markdown", async () =
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalStats("md");
+    const result = await commands.globalStats(UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Global Memory Statistics");
     assertStringIncludes(result, "| Metric | Value |");
@@ -423,7 +424,7 @@ Deno.test("MemoryCommands: execution show with error message", async () => {
       error_message: "Connection timeout after 30 seconds",
     });
 
-    const result = await commands.executionShow(traceId, "table");
+    const result = await commands.executionShow(traceId, UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Error:");
     assertStringIncludes(result, "Connection timeout");
@@ -455,7 +456,7 @@ Deno.test("MemoryCommands: execution show with changes and lessons learned", asy
       lessons_learned: ["Lesson 1: Test first", "Lesson 2: Document everything"],
     });
 
-    const result = await commands.executionShow(traceId, "table");
+    const result = await commands.executionShow(traceId, UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Changes:");
     assertStringIncludes(result, "Created:");
@@ -491,7 +492,7 @@ Deno.test("MemoryCommands: execution show --format md with full data", async () 
       lessons_learned: ["Always write tests"],
     });
 
-    const result = await commands.executionShow(traceId, "md");
+    const result = await commands.executionShow(traceId, UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Execution:");
     assertStringIncludes(result, "## Context Files");
@@ -523,7 +524,7 @@ Deno.test("MemoryCommands: globalListLearnings table format with learnings", asy
       );
     }
 
-    const result = await commands.globalListLearnings("table");
+    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Global Learnings");
     assertStringIncludes(result, "ID");
@@ -569,7 +570,7 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
         .build(),
     );
 
-    const result = await commands.globalStats("table");
+    const result = await commands.globalStats(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Global Memory Statistics");
     assertStringIncludes(result, "Total Learnings:");
@@ -589,7 +590,7 @@ Deno.test("MemoryCommands: pendingList and pendingShow return proposal details",
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: TEST_PENDING_LEARNING_TITLE,
         description: TEST_PENDING_LEARNING_DESCRIPTION,
@@ -602,11 +603,11 @@ Deno.test("MemoryCommands: pendingList and pendingShow return proposal details",
       TEST_AGENT_NAME,
     );
 
-    const listResult = await commands.pendingList("table");
+    const listResult = await commands.pendingList(UIOutputFormat.TABLE);
     assertStringIncludes(listResult, "Pending Memory Update Proposals");
     assertStringIncludes(listResult, TEST_PENDING_LEARNING_TITLE);
 
-    const showResult = await commands.pendingShow(proposalId, "md");
+    const showResult = await commands.pendingShow(proposalId, UIOutputFormat.MARKDOWN);
     assertStringIncludes(showResult, "# Pending Proposal");
     assertStringIncludes(showResult, TEST_PENDING_LEARNING_DESCRIPTION);
   } finally {
@@ -624,7 +625,7 @@ Deno.test("MemoryCommands: pendingApprove approves global proposal", async () =>
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: TEST_PENDING_LEARNING_TITLE,
         description: TEST_PENDING_LEARNING_DESCRIPTION,
@@ -655,7 +656,7 @@ Deno.test("MemoryCommands: pendingReject rejects proposal with reason", async ()
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: TEST_PENDING_LEARNING_TITLE,
         description: TEST_PENDING_LEARNING_DESCRIPTION,
@@ -687,7 +688,7 @@ Deno.test("MemoryCommands: pendingApproveAll approves multiple proposals", async
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: TEST_PENDING_LEARNING_TITLE,
         description: TEST_PENDING_LEARNING_DESCRIPTION,
@@ -705,7 +706,7 @@ Deno.test("MemoryCommands: pendingApproveAll approves multiple proposals", async
       {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.PROJECT,
         project: "PendingProject",
         title: TEST_PENDING_LEARNING_TITLE,
@@ -743,7 +744,7 @@ Deno.test("MemoryCommands: skillCreate, skillShow, and skillList (json) work", a
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const createResult = await commands.skillCreate(TEST_SKILL_NAME, {
-      category: "learned",
+      category: MemoryBankSource.LEARNED,
       description: TEST_SKILL_DESCRIPTION,
       instructions: TEST_SKILL_INSTRUCTIONS,
       triggersKeywords: [TEST_SKILL_KEYWORD],
@@ -752,11 +753,11 @@ Deno.test("MemoryCommands: skillCreate, skillShow, and skillList (json) work", a
 
     assertStringIncludes(createResult, TEST_SKILL_ID);
 
-    const listJson = await commands.skillList({ category: "learned", format: "json" });
+    const listJson = await commands.skillList({ category: MemoryBankSource.LEARNED, format: UIOutputFormat.JSON });
     const parsed = JSON.parse(listJson) as Array<{ skill_id: string }>;
     assertEquals(parsed[0].skill_id, TEST_SKILL_ID);
 
-    const showResult = await commands.skillShow(TEST_SKILL_ID, "md");
+    const showResult = await commands.skillShow(TEST_SKILL_ID, UIOutputFormat.MARKDOWN);
     assertStringIncludes(showResult, TEST_SKILL_NAME);
   } finally {
     await cleanup();
@@ -767,7 +768,7 @@ Deno.test("MemoryCommands: skillMatch returns matches for active skill", async (
   const { commands, config, db, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await commands.skillCreate(TEST_SKILL_NAME, {
-      category: "learned",
+      category: MemoryBankSource.LEARNED,
       description: TEST_SKILL_DESCRIPTION,
       instructions: TEST_SKILL_INSTRUCTIONS,
       triggersKeywords: [TEST_SKILL_KEYWORD],
@@ -780,7 +781,7 @@ Deno.test("MemoryCommands: skillMatch returns matches for active skill", async (
 
     const result = await commands.skillMatch(TEST_SKILL_REQUEST_TEXT, {
       taskType: TEST_SKILL_TASK_TYPE,
-      format: "table",
+      format: UIOutputFormat.TABLE,
     });
 
     assertStringIncludes(result, TEST_SKILL_ID);
@@ -797,7 +798,7 @@ Deno.test("MemoryCommands: skillDerive returns derived skill JSON", async () => 
       name: TEST_DERIVED_SKILL_NAME,
       description: TEST_DERIVED_SKILL_DESCRIPTION,
       instructions: TEST_DERIVED_SKILL_INSTRUCTIONS,
-      format: "json",
+      format: UIOutputFormat.JSON,
     });
 
     const parsed = JSON.parse(result) as { skill_id: string };

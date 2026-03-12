@@ -6,7 +6,6 @@
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { join } from "@std/path";
@@ -15,7 +14,7 @@ import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { ILearning, IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryBankSource, MemoryScope } from "../../src/shared/enums.ts";
 import { getMemoryGlobalDir, getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Setup Helpers =====
@@ -63,7 +62,7 @@ async function setupTestData(
     {
       id: "cccccccc-3333-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "Code review checklist",
       description: "Always check for proper error handling and edge cases",
@@ -75,7 +74,7 @@ async function setupTestData(
     {
       id: "cccccccc-3333-4000-8000-000000000002",
       created_at: new Date().toISOString(),
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Documentation standards",
       description: "Use JSDoc for all public functions and classes",

@@ -9,15 +9,15 @@ import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/a
 import {
   CritiqueSeverity as _CritiqueSeverity,
   LogLevel,
-  MCPTransport,
-  MemorySource,
+  McpTransportType,
+  RequestGroupingMode,
   RequestPriority,
+  RequestSource,
   SqliteJournalMode,
 } from "../../src/shared/enums.ts";
 import {
-  type AnalysisMode as _AnalysisMode,
+  AnalysisMode,
   type IRequest,
-  type IRequestAnalysis as _IRequestAnalysis,
   type IRequestEntry,
   type IRequestMetadata,
   type IRequestShowResult,
@@ -58,7 +58,7 @@ function createTestRequests(): IRequest[] {
       agent: "default",
       created: "2025-01-01T10:00:00Z",
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
     {
       trace_id: "req-002",
@@ -69,7 +69,7 @@ function createTestRequests(): IRequest[] {
       agent: "code-reviewer",
       created: "2025-01-01T11:00:00Z",
       created_by: "user@example.com",
-      source: "cli", // Changing "portal" to "cli" to match RequestSource union
+      source: RequestSource.CLI,
       skills: {
         explicit: ["security-audit"],
         autoMatched: ["code-review"],
@@ -86,7 +86,7 @@ function createTestRequests(): IRequest[] {
       agent: "architect",
       created: "2025-01-01T12:00:00Z",
       created_by: "admin@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
     {
       trace_id: "req-004",
@@ -97,7 +97,7 @@ function createTestRequests(): IRequest[] {
       agent: "default",
       created: "2025-01-01T13:00:00Z",
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
     {
       trace_id: "req-005",
@@ -108,7 +108,7 @@ function createTestRequests(): IRequest[] {
       agent: "researcher",
       created: "2025-01-01T14:00:00Z",
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
     },
   ];
 }
@@ -274,7 +274,7 @@ Deno.test("RequestManagerTuiSession: toggleGrouping cycles through modes", () =>
   assertEquals(session.getState().groupBy, "priority");
 
   session.toggleGrouping();
-  assertEquals(session.getState().groupBy, MemorySource.AGENT);
+  assertEquals(session.getState().groupBy, RequestGroupingMode.AGENT);
 
   session.toggleGrouping();
   assertEquals(session.getState().groupBy, "none");
@@ -398,7 +398,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     agent: "default",
     created: "2025-01-01T10:00:00Z",
     created_by: "test@example.com",
-    source: "cli",
+    source: RequestSource.CLI,
     skills: {},
   };
 
@@ -415,7 +415,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
         agent: "default",
         created: "2025-01-01T10:00:00Z",
         created_by: "test@example.com",
-        source: "cli",
+        source: RequestSource.CLI,
       };
       return Promise.resolve({
         metadata,
@@ -864,7 +864,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
     mcp: {
       enabled: true,
       version: "1.0",
-      transport: MCPTransport.STDIO,
+      transport: McpTransportType.STDIO,
       server_name: "test-server",
     },
     mcp_defaults: { agent_id: "agent-1" },
@@ -918,7 +918,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
     cost_tracking: { batch_delay_ms: 0, max_batch_size: 0, rates: {} },
     health: { check_timeout_ms: 0, cache_ttl_ms: 0, memory_warn_percent: 0, memory_critical_percent: 0 },
     request_analysis: {
-      mode: "hybrid" as const,
+      mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,
     },
@@ -997,7 +997,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
           agent: "dummy",
           created: new Date().toISOString(),
           created_by: "dummy",
-          source: "cli",
+          source: RequestSource.CLI,
         },
         content: "",
       });
@@ -1012,7 +1012,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
         agent: "dummy",
         created: new Date().toISOString(),
         created_by: "dummy",
-        source: "cli",
+        source: RequestSource.CLI,
       });
     }
     override createFromFile(): Promise<IRequestMetadata> {
@@ -1025,7 +1025,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
         agent: "dummy",
         created: new Date().toISOString(),
         created_by: "dummy",
-        source: "cli",
+        source: RequestSource.CLI,
       });
     }
   }

@@ -8,7 +8,8 @@
 import { AiConfig, AiConfigSchema } from "../../../src/shared/schemas/ai_config.ts";
 import { Config } from "../../../src/shared/schemas/config.ts";
 import { ExoPathDefaults } from "../../../src/shared/constants.ts";
-import { LogLevel, MCPTransport, ProviderType, SqliteJournalMode } from "../../../src/shared/enums.ts";
+import { LogLevel, McpTransportType, ProviderType, SqliteJournalMode } from "../../../src/shared/enums.ts";
+import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import { IModelProvider } from "../../../src/ai/types.ts";
 import { ProviderFactory } from "../../../src/ai/provider_factory.ts";
 
@@ -61,7 +62,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     portals: [],
     mcp: {
       enabled: true,
-      transport: MCPTransport.STDIO,
+      transport: McpTransportType.STDIO,
       server_name: "exoframe",
       version: "1.0.0",
     },
@@ -153,7 +154,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       memory_critical_percent: 95,
     },
     request_analysis: {
-      mode: "hybrid",
+      mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,
     },

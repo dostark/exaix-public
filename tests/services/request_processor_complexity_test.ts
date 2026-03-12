@@ -10,7 +10,7 @@
 import { assertEquals } from "@std/assert";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { buildParsedRequest } from "../../src/services/request_common.ts";
-import { TaskComplexity } from "../../src/shared/enums.ts";
+import { RequestSource, TaskComplexity } from "../../src/shared/enums.ts";
 import {
   type IRequestAnalysis,
   RequestAnalysisComplexity,
@@ -94,7 +94,7 @@ Deno.test("[classifyTaskComplexity] uses analysis complexity as primary signal",
       created: new Date().toISOString(),
       status: RequestStatus.PENDING,
       priority: "normal",
-      source: "cli",
+      source: RequestSource.CLI,
       created_by: "user",
     };
     const request = buildParsedRequest(
@@ -149,7 +149,7 @@ Deno.test("[classifyTaskComplexity] falls back to content heuristics without ana
       created: new Date().toISOString(),
       status: RequestStatus.PENDING,
       priority: "normal",
-      source: "cli",
+      source: RequestSource.CLI,
       created_by: "user",
     };
 
@@ -211,7 +211,7 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
       created: new Date().toISOString(),
       status: RequestStatus.PENDING,
       priority: "normal",
-      source: "cli",
+      source: RequestSource.CLI,
       created_by: "user",
     };
 
@@ -277,7 +277,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: short body with no bullet
         created: new Date().toISOString(),
         status: RequestStatus.PENDING,
         priority: "normal",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       },
       "req-1",
@@ -308,7 +308,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: many bullets (>=8) -> COM
         created: new Date().toISOString(),
         status: RequestStatus.PENDING,
         priority: "normal",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       },
       "req-1",
@@ -339,7 +339,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: many file refs (>=5) -> C
         created: new Date().toISOString(),
         status: RequestStatus.PENDING,
         priority: "normal",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       },
       "req-1",
@@ -369,7 +369,7 @@ Deno.test("[classifyTaskComplexity] handles empty/undefined body gracefully (MED
         created: new Date().toISOString(),
         status: RequestStatus.PENDING,
         priority: "normal",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       },
       "req-1",
@@ -400,7 +400,7 @@ Deno.test("[classifyTaskComplexity] maps EPIC to COMPLEX", async () => {
         created: new Date().toISOString(),
         status: RequestStatus.PENDING,
         priority: "normal",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       },
       "req-1",

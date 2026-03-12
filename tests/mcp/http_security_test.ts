@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import { MCPTransport } from "../../src/shared/enums.ts";
+import { McpTransportType } from "../../src/shared/enums.ts";
 
 import { MCPServer } from "../../src/mcp/server.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -32,7 +32,7 @@ async function cleanupAuditFolder(config: Config): Promise<void> {
 
 // Helper for MCP Server security tests
 async function withMCPServerSecurity(
-  options: { transport?: MCPTransport } = {},
+  options: { transport?: McpTransportType } = {},
   fn: (
     ctx: { server: MCPServer; db: IDatabaseService; config: Config; headers: Record<string, string> },
   ) => void | Promise<void>,
@@ -54,7 +54,7 @@ async function withMCPServerSecurity(
 
     const server = new MCPServer({
       context,
-      transport: options.transport || MCPTransport.STDIO,
+      transport: options.transport || McpTransportType.STDIO,
     });
 
     // Helper to get headers if available
@@ -159,14 +159,14 @@ Deno.test("MCPServer: headers prevent common attacks", async () => {
 });
 
 Deno.test("MCPServer: supports SSE transport configuration", async () => {
-  await withMCPServerSecurity({ transport: MCPTransport.SSE }, ({ server }) => {
+  await withMCPServerSecurity({ transport: McpTransportType.SSE }, ({ server }) => {
     // Verify server is configured for SSE
-    assertEquals(server.getTransport(), MCPTransport.SSE);
+    assertEquals(server.getTransport(), McpTransportType.SSE);
   });
 });
 
 Deno.test("MCPServer: handles HTTP POST requests", async () => {
-  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
+  await withMCPServerSecurity({ transport: McpTransportType.SSE }, async ({ server }) => {
     // Create a mock initialize request
     const initRequest = new Request("http://localhost:3000", {
       method: "POST",
@@ -197,7 +197,7 @@ Deno.test("MCPServer: handles HTTP POST requests", async () => {
 });
 
 Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
-  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
+  await withMCPServerSecurity({ transport: McpTransportType.SSE }, async ({ server }) => {
     // Create a GET request
     const getRequest = new Request("http://localhost:3000", {
       method: "GET",
@@ -212,7 +212,7 @@ Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
 });
 
 Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
-  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
+  await withMCPServerSecurity({ transport: McpTransportType.SSE }, async ({ server }) => {
     // Create a request with invalid JSON
     const badRequest = new Request("http://localhost:3000", {
       method: "POST",
@@ -233,7 +233,7 @@ Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
 });
 
 Deno.test("MCPServer: HTTP server only starts with SSE transport", async () => {
-  await withMCPServerSecurity({ transport: MCPTransport.STDIO }, async ({ server }) => {
+  await withMCPServerSecurity({ transport: McpTransportType.STDIO }, async ({ server }) => {
     // Should reject HTTP server start with stdio transport
     await assertRejects(
       () => server.startHTTPServer(3000),

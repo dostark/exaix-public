@@ -6,17 +6,17 @@
  */
 
 import { assertEquals, assertExists, assertGreater, assertStringIncludes } from "@std/assert";
-import {
-  ExecutionStatus,
-  LearningCategory,
-  MemoryOperation,
-  MemoryScope,
-  MemorySource,
-  MemoryType,
-} from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryOperation,
+  MemoryScope,
+  MemoryType,
+} from "../../src/shared/enums.ts";
 import type {
   IExecutionMemory,
   IGlobalMemory,
@@ -115,7 +115,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements IMemoryS
           category: LearningCategory.INSIGHT,
           confidence: ConfidenceLevel.HIGH,
           tags: [MemoryScope.GLOBAL],
-          source: MemorySource.USER,
+          source: MemoryBankSource.USER,
           scope: MemoryScope.GLOBAL,
           created_at: new Date().toISOString(),
           status: MemoryStatus.APPROVED,
@@ -223,7 +223,7 @@ function createMockProposal(
       category,
       confidence: ConfidenceLevel.HIGH,
       tags: [category, "test"],
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.PROJECT,
       created_at: new Date().toISOString(),
     },

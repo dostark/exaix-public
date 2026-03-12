@@ -12,10 +12,10 @@ import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import {
   ConfidenceLevel,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryReferenceType,
   MemoryScope,
-  MemorySource,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import type { ILearning, IMemoryUpdateProposal, IProposalLearning } from "../../src/shared/schemas/memory_bank.ts";
@@ -28,7 +28,7 @@ function makeProposalLearning(overrides: Partial<IProposalLearning> = {}): IProp
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    source: MemorySource.AGENT,
+    source: MemoryBankSource.AGENT,
     source_id: undefined,
 
     scope: MemoryScope.GLOBAL,

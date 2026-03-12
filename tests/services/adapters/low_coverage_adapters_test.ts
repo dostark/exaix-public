@@ -12,7 +12,7 @@ import { DisplayAdapter } from "../../../src/services/adapters/display_adapter.t
 import { JournalServiceAdapter } from "../../../src/services/adapters/journal_adapter.ts";
 import { AgentServiceAdapter } from "../../../src/services/adapters/agent_adapter.ts";
 import { LogServiceAdapter } from "../../../src/services/adapters/log_adapter.ts";
-import { LogLevel, RequestPriority } from "../../../src/shared/enums.ts";
+import { LogLevel, RequestPriority, RequestSource } from "../../../src/shared/enums.ts";
 import { RequestStatus } from "../../../src/shared/status/request_status.ts";
 import type { IDatabaseService } from "../../../src/shared/interfaces/i_database_service.ts";
 import type { IStructuredLogEntry } from "../../../src/shared/types/logging.ts";
@@ -37,7 +37,7 @@ function createRequestMetadata() {
     agent: TEST_AGENT_ID,
     created: new Date().toISOString(),
     created_by: "tester",
-    source: "cli" as const,
+    source: RequestSource.CLI as const,
   };
 }
 

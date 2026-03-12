@@ -6,13 +6,17 @@
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { EvaluationCategory } from "../../src/shared/enums.ts";
-
+import {
+  ConfidenceLevel,
+  EvaluationCategory,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryScope,
+} from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { ILearning, IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
@@ -78,7 +82,7 @@ async function setupTestLearnings(
     {
       id: "aaaaaaaa-1111-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "Error handling best practice",
       description: "Always wrap async operations in try-catch for proper error propagation",
@@ -90,7 +94,7 @@ async function setupTestLearnings(
     {
       id: "aaaaaaaa-1111-4000-8000-000000000002",
       created_at: new Date().toISOString(),
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Avoid callback hell",
       description: "Use async/await instead of nested callbacks for better readability",
@@ -102,7 +106,7 @@ async function setupTestLearnings(
     {
       id: "aaaaaaaa-1111-4000-8000-000000000003",
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       source_id: "trace-123",
       scope: MemoryScope.PROJECT,
       project: "search-test-project",

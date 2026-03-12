@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity, MemoryReferenceType, RequestPriority } from "../../src/shared/enums.ts";
+import { CritiqueSeverity, RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -18,6 +18,7 @@ import { createMockConfig } from "../helpers/config.ts";
 import { getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
+import { AnalysisMode, type IRequestOptions } from "../../src/shared/types/request.ts";
 
 describe("RequestCommands", () => {
   let tempDir: string;
@@ -106,8 +107,12 @@ describe("RequestCommands", () => {
     });
 
     it("should reject invalid priority", async () => {
+      // Use helper to bypass type checking for invalid priority test
+      function createOptions(priority: any): IRequestOptions {
+        return { priority };
+      }
       await assertRejects(
-        async () => await requestCommands.create("Test", { priority: "invalid" as RequestPriority }),
+        async () => await requestCommands.create("Test", createOptions("invalid")),
         Error,
         "Invalid priority",
       );
@@ -159,7 +164,7 @@ describe("RequestCommands", () => {
 
     it("should include source field", async () => {
       const result = await requestCommands.create("Test");
-      assertEquals(result.source, "cli");
+      assertEquals(result.source, RequestSource.CLI);
 
       if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
@@ -253,7 +258,7 @@ describe("RequestCommands", () => {
     it("should support engine override for analysis", async () => {
       const result = await requestCommands.create("LLM analysis test", {
         analyze: true,
-        analysis_engine: "llm" as any,
+        analysis_engine: AnalysisMode.LLM,
       });
 
       if (!result.path) throw new Error("Path should be defined");
@@ -275,7 +280,7 @@ describe("RequestCommands", () => {
       if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "Implement feature from file");
-      assertEquals(result.source, MemoryReferenceType.FILE);
+      assertEquals(result.source, RequestSource.FILE);
       assertStringIncludes(content, "source: file");
     });
 
@@ -706,7 +711,7 @@ Minimal content for show
       assertEquals(payload.priority, "high");
       assertEquals(payload.agent, "special_agent");
       assertEquals(payload.portal, "TestPortal");
-      assertEquals(payload.source, "cli");
+      assertEquals(payload.source, RequestSource.CLI);
       assertEquals(typeof payload.description_length, "number");
     });
 

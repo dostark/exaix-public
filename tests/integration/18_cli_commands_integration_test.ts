@@ -9,8 +9,7 @@
 // Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { FlowInputSource } from "../../src/shared/enums.ts";
-import { MemoryOperation } from "../../src/shared/enums.ts";
+import { FlowInputSource, MemoryOperation, RequestSource } from "../../src/shared/enums.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
@@ -61,7 +60,7 @@ async function runExoctl(args: string[], cwd: string) {
   try {
     const ciActive = Deno.env.get("CI") || Deno.env.get("GITHUB_ACTIONS");
     if (ciActive) {
-      const artifactsDir = join(cwd, "test-artifacts", "cli");
+      const artifactsDir = join(cwd, "test-artifacts", RequestSource.CLI);
       await Deno.mkdir(artifactsDir, { recursive: true });
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const meta = {

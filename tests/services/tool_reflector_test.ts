@@ -6,9 +6,8 @@
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
+import { CritiqueSeverity, McpToolName } from "../../src/shared/enums.ts";
 import type { JSONObject } from "../../src/shared/types/json.ts";
-import { CritiqueSeverity } from "../../src/shared/enums.ts";
 
 import { IModelProvider } from "../../src/ai/types.ts";
 import {

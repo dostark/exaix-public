@@ -9,9 +9,9 @@ import { assertEquals } from "@std/assert";
 import {
   ConfidenceLevel,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryScope,
-  MemorySource,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
@@ -37,7 +37,7 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
       learning: {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.PROJECT,
         title: "Test ILearning",
         description: "Test description",

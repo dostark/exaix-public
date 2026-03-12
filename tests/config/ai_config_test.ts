@@ -33,10 +33,9 @@ import {
   DEFAULT_OPENAI_RETRY_BACKOFF_MS,
   DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS,
 } from "../../src/shared/constants.ts";
-import { ProviderType } from "../../src/shared/enums.ts";
 import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { initializeRegistry } from "../../src/ai/provider_factory.ts";
-import { PricingTier, ProviderCostTier } from "../../src/shared/enums.ts";
+import { PricingTier, ProviderCostTier, ProviderType } from "../../src/shared/enums.ts";
 import { IProviderFactory } from "../../src/ai/factories/abstract_provider_factory.ts";
 import {
   TEST_AI_INVALID_URL,

@@ -6,8 +6,7 @@
  */
 
 import { assertEquals, assertThrows } from "https://deno.land/std@0.203.0/assert/mod.ts";
-import { DaemonStatus } from "../../src/shared/enums.ts";
-
+import { DaemonStatus, LayoutMode, ResizeDirection, SplitDirection } from "../../src/shared/enums.ts";
 import {
   createLayoutManager,
   type ILayoutPane,
@@ -37,7 +36,6 @@ import {
 } from "../../src/tui/dialogs/layout_dialogs.ts";
 import { getTheme } from "../../src/tui/helpers/colors.ts";
 import { createPanes, createTestPane, setupLayoutManager } from "./layout_test_helper.ts";
-
 const theme = getTheme(true);
 
 // ===== Layout Manager Tests =====
@@ -167,7 +165,7 @@ Deno.test("LayoutManager: splitPane - vertical split", () => {
   const manager = setupLayoutManager();
   const panes: ILayoutPane[] = [createTestPane()];
 
-  const result = manager.splitPane(panes, "main", "vertical", "MonitorView");
+  const result = manager.splitPane(panes, "main", SplitDirection.VERTICAL, "MonitorView");
 
   assertEquals(result.length, 2);
   assertEquals(panes[0].width, 40);
@@ -180,7 +178,7 @@ Deno.test("LayoutManager: splitPane - horizontal split", () => {
   const manager = setupLayoutManager();
   const panes: ILayoutPane[] = [createTestPane()];
 
-  const result = manager.splitPane(panes, "main", "horizontal", "MonitorView");
+  const result = manager.splitPane(panes, "main", SplitDirection.HORIZONTAL, "MonitorView");
 
   assertEquals(result.length, 2);
   assertEquals(panes[0].height, 12);
@@ -204,7 +202,7 @@ Deno.test("LayoutManager: splitPane throws when max panes reached", () => {
   }
 
   assertThrows(
-    () => manager.splitPane(panes, "pane-0", "vertical", "MonitorView"),
+    () => manager.splitPane(panes, "pane-0", SplitDirection.VERTICAL, "MonitorView"),
     Error,
     "Maximum panes",
   );
@@ -215,7 +213,7 @@ Deno.test("LayoutManager: splitPane throws for pane too narrow", () => {
   const panes: ILayoutPane[] = [createTestPane({ width: MIN_PANE_WIDTH })];
 
   assertThrows(
-    () => manager.splitPane(panes, "main", "vertical", "MonitorView"),
+    () => manager.splitPane(panes, "main", SplitDirection.VERTICAL, "MonitorView"),
     Error,
     "too narrow",
   );
@@ -226,7 +224,7 @@ Deno.test("LayoutManager: splitPane throws for pane too short", () => {
   const panes: ILayoutPane[] = [createTestPane({ height: MIN_PANE_HEIGHT })];
 
   assertThrows(
-    () => manager.splitPane(panes, "main", "horizontal", "MonitorView"),
+    () => manager.splitPane(panes, "main", SplitDirection.HORIZONTAL, "MonitorView"),
     Error,
     "too short",
   );
@@ -238,10 +236,10 @@ Deno.test("LayoutManager: closePane removes pane and expands adjacent", () => {
   const manager = setupLayoutManager();
   const panes = createPanes(2);
 
-  const result = manager.closePane(panes, "right");
+  const result = manager.closePane(panes, ResizeDirection.RIGHT);
 
   assertEquals(result.length, 1);
-  assertEquals(result[0].id, "left");
+  assertEquals(result[0].id, ResizeDirection.LEFT);
   assertEquals(result[0].width, 80);
 });
 
@@ -273,7 +271,7 @@ Deno.test("LayoutManager: swapPanes swaps view names", () => {
   const manager = createLayoutManager();
   const panes = createPanes(2);
 
-  manager.swapPanes(panes, "left", "right");
+  manager.swapPanes(panes, ResizeDirection.LEFT, ResizeDirection.RIGHT);
 
   assertEquals(panes[0].viewName, "MonitorView");
   assertEquals(panes[1].viewName, "PortalManagerView");
@@ -282,11 +280,11 @@ Deno.test("LayoutManager: swapPanes swaps view names", () => {
 Deno.test("LayoutManager: swapPanes throws for unknown pane", () => {
   const manager = createLayoutManager();
   const panes: ILayoutPane[] = [
-    createTestPane({ id: "left", width: 40 }),
+    createTestPane({ id: ResizeDirection.LEFT, width: 40 }),
   ];
 
   assertThrows(
-    () => manager.swapPanes(panes, "left", DaemonStatus.UNKNOWN),
+    () => manager.swapPanes(panes, ResizeDirection.LEFT, DaemonStatus.UNKNOWN),
     Error,
     "not found",
   );
@@ -297,10 +295,10 @@ Deno.test("LayoutManager: swapPanes throws for unknown pane", () => {
 Deno.test("LayoutManager: maximizePane maximizes pane", () => {
   const manager = setupLayoutManager();
   const panes: ILayoutPane[] = [
-    createTestPane({ id: "left", width: 40 }),
+    createTestPane({ id: ResizeDirection.LEFT, width: 40 }),
   ];
 
-  manager.maximizePane(panes, "left");
+  manager.maximizePane(panes, ResizeDirection.LEFT);
 
   assertEquals(panes[0].maximized, true);
   assertEquals(panes[0].width, 80);
@@ -312,7 +310,7 @@ Deno.test("LayoutManager: maximizePane restores pane", () => {
   const manager = setupLayoutManager();
   const panes: ILayoutPane[] = [
     {
-      id: "left",
+      id: ResizeDirection.LEFT,
       viewName: "PortalManagerView",
       x: 0,
       y: 0,
@@ -324,7 +322,7 @@ Deno.test("LayoutManager: maximizePane restores pane", () => {
     },
   ];
 
-  manager.maximizePane(panes, "left");
+  manager.maximizePane(panes, ResizeDirection.LEFT);
 
   assertEquals(panes[0].maximized, false);
   assertEquals(panes[0].width, 40);
@@ -338,7 +336,7 @@ Deno.test("LayoutManager: resizePane - shrink left", () => {
   const panes = createPanes(2);
 
   // Shrinking left shrinks the pane's own width (no adjacent pane to the left to expand)
-  manager.resizePane(panes, "left", "left", 5);
+  manager.resizePane(panes, ResizeDirection.LEFT, ResizeDirection.LEFT, 5);
 
   // Left pane shrinks, but there's no pane to the left to expand
   // The right pane should expand to fill
@@ -350,7 +348,7 @@ Deno.test("LayoutManager: resizePane - grow right", () => {
   const manager = setupLayoutManager();
   const panes = createPanes(2);
 
-  manager.resizePane(panes, "left", "right", 5);
+  manager.resizePane(panes, ResizeDirection.LEFT, ResizeDirection.LEFT, 5);
 
   assertEquals(panes[0].width, 45);
   assertEquals(panes[1].x, 45);
@@ -523,10 +521,10 @@ Deno.test("renderPaneBorder: renders maximized pane", () => {
 });
 
 Deno.test("renderResizeIndicator: renders direction arrows", () => {
-  assertEquals(renderResizeIndicator("left", theme).includes("◀"), true);
-  assertEquals(renderResizeIndicator("right", theme).includes("▶"), true);
-  assertEquals(renderResizeIndicator("up", theme).includes("▲"), true);
-  assertEquals(renderResizeIndicator("down", theme).includes("▼"), true);
+  assertEquals(renderResizeIndicator(ResizeDirection.LEFT, theme).includes("◀"), true);
+  assertEquals(renderResizeIndicator(ResizeDirection.RIGHT, theme).includes("▶"), true);
+  assertEquals(renderResizeIndicator(ResizeDirection.UP, theme).includes("▲"), true);
+  assertEquals(renderResizeIndicator(ResizeDirection.DOWN, theme).includes("▼"), true);
 });
 
 // ===== View Picker Dialog Tests =====
@@ -560,10 +558,10 @@ Deno.test("renderViewPickerDialog: renders dialog when open", () => {
 Deno.test("handleViewPickerKey: navigates up/down", () => {
   const state = { ...createViewPickerState(), isOpen: true, selectedIndex: 0 };
 
-  const result1 = handleViewPickerKey(state, "down");
+  const result1 = handleViewPickerKey(state, ResizeDirection.DOWN);
   assertEquals(result1.state.selectedIndex, 1);
 
-  const result2 = handleViewPickerKey(result1.state, "up");
+  const result2 = handleViewPickerKey(result1.state, ResizeDirection.UP);
   assertEquals(result2.state.selectedIndex, 0);
 });
 
@@ -629,7 +627,7 @@ Deno.test("createNamedLayoutState: creates initial state", () => {
 });
 
 Deno.test("renderNamedLayoutDialog: renders save mode", () => {
-  const state = { ...createNamedLayoutState(), isOpen: true, mode: "save" as const };
+  const state = { ...createNamedLayoutState(), isOpen: true, mode: LayoutMode.SAVE as const };
   const lines = renderNamedLayoutDialog(state, theme);
 
   assertEquals(lines.some((l: string) => l.includes("Save Layout")), true);
@@ -639,7 +637,7 @@ Deno.test("renderNamedLayoutDialog: renders load mode with layouts", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "load" as const,
+    mode: LayoutMode.LOAD as const,
     layouts: ["layout-1", "layout-2"],
   };
   const lines = renderNamedLayoutDialog(state, theme);
@@ -649,7 +647,7 @@ Deno.test("renderNamedLayoutDialog: renders load mode with layouts", () => {
 });
 
 Deno.test("handleNamedLayoutKey: activates input on enter in save mode", () => {
-  const state = { ...createNamedLayoutState(), isOpen: true, mode: "save" as const };
+  const state = { ...createNamedLayoutState(), isOpen: true, mode: LayoutMode.SAVE as const };
 
   const result = handleNamedLayoutKey(state, "enter");
   assertEquals(result.state.inputActive, true);
@@ -659,7 +657,7 @@ Deno.test("handleNamedLayoutKey: accepts text input", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "save" as const,
+    mode: LayoutMode.SAVE as const,
     inputActive: true,
     inputName: "my",
   };
@@ -672,7 +670,7 @@ Deno.test("handleNamedLayoutKey: handles backspace", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "save" as const,
+    mode: LayoutMode.SAVE as const,
     inputActive: true,
     inputName: "myl",
   };
@@ -685,7 +683,7 @@ Deno.test("handleNamedLayoutKey: saves on enter with name", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "save" as const,
+    mode: LayoutMode.SAVE as const,
     inputActive: true,
     inputName: "my-layout",
   };
@@ -722,7 +720,7 @@ Deno.test("LayoutManager: resizePane - down with neighbors", () => {
   ];
 
   // Resize top pane DOWN (should grow top, push bottom down)
-  manager.resizePane(panes, "top", "down", 4);
+  manager.resizePane(panes, "top", ResizeDirection.DOWN, 4);
 
   // Top height grows
   assertEquals(panes[0].height, 16);
@@ -739,22 +737,22 @@ Deno.test("LayoutManager: resizePane - up with neighbors (bottom pane)", () => {
   ];
 
   // Resize bottom pane UP (should grow bottom, shrink top)
-  // Logic "up": pane.height (bottom) -= amount? No.
-  // "up" direction on bottom pane usually means pulling top edge up?
-  // Implementation: "up" -> pane.height -= amount.
+  // Logic ResizeDirection.UP: pane.height (bottom) -= amount? No.
+  // ResizeDirection.UP direction on bottom pane usually means pulling top edge up?
+  // Implementation: ResizeDirection.UP -> pane.height -= amount.
   // This shrinks the pane.
   // If we want to GROW bottom pane UP into top pane, we should resize TOP pane DOWN? No.
   // We should resize BOTTOM pane... wait.
   // If we drag the divider UP...
   // Usually divider belongs to the pane above/left?
-  // If we pick "bottom" pane and resize "up":
+  // If we pick "bottom" pane and resize ResizeDirection.UP:
   // Implementation: height shrinks. Neighbor above?
-  // `findAffectedPane` "up": neighbor y + h === source.y. (Top pane).
+  // `findAffectedPane` ResizeDirection.UP: neighbor y + h === source.y. (Top pane).
   // `if (affected && affected.y > pane.y)` -> Top.y (0) > Bottom.y (12)? False.
   // So affected is NOT updated.
   // So bottom pane shrinks. Top pane stays. Gap created.
 
-  manager.resizePane(panes, "bottom", "up", 2);
+  manager.resizePane(panes, "bottom", ResizeDirection.UP, 2);
   assertEquals(panes[1].height, 10);
   // Top pane unchanged
   assertEquals(panes[0].height, 12);
@@ -777,7 +775,7 @@ Deno.test("LayoutManager: resizePane - min size constraints", () => {
 
   // Try to shrink top pane further
   const hBefore = panes[0].height;
-  manager.resizePane(panes, "top", "up", 1);
+  manager.resizePane(panes, "top", ResizeDirection.UP, 1);
   assertEquals(panes[0].height, hBefore); // Should not change
 });
 

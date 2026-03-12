@@ -9,13 +9,17 @@ import "./helpers/set_test_mode.ts";
 import { assert, assertEquals } from "@std/assert";
 import {
   FlowInputSource,
-  FlowOutputFormat,
+  MemoryBankSource,
   MemoryOperation,
   MemoryScope,
-  MemorySource,
   PortalOperation,
   PortalStatus,
+  RequestPriority,
+  RequestSource,
+  ReviewType,
   SkillStatus as _SkillStatus,
+  UIOutputFormat,
+  VerificationStatus,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { PlanStatus } from "../../src/shared/status/plan_status.ts";
@@ -24,9 +28,8 @@ import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import type { OutputFormat } from "../../src/cli/memory_types.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { IRequestOptions, RequestSource } from "../../src/shared/types/request.ts";
+import type { IRequestOptions } from "../../src/shared/types/request.ts";
 import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
@@ -357,8 +360,8 @@ Deno.test("portal verify logs warnings and summary", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.portalCommands.verify = () =>
       Promise.resolve([
-        { alias: "Healthy", status: "ok", issues: [] },
-        { alias: "Broken", status: "failed", issues: ["missing"] },
+        { alias: "Healthy", status: VerificationStatus.OK, issues: [] },
+        { alias: "Broken", status: VerificationStatus.FAILED, issues: ["missing"] },
       ]);
 
     const { logs, warns } = await captureAllOutputs(async () => {
@@ -384,7 +387,7 @@ Deno.test("review show --diff prints diff only", async () => {
         created_at: new Date().toISOString(),
         agent_id: "test-agent",
         commits: [],
-        type: "code",
+        type: ReviewType.CODE,
       });
 
     const output = await captureConsoleOutput(async () => {
@@ -696,11 +699,11 @@ Deno.test("memory default action shows list", async () => {
 Deno.test("memory list with format option", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.memoryCommands.list = (format?: OutputFormat) => {
-      assertEquals(format, FlowOutputFormat.JSON);
+      assertEquals(format, UIOutputFormat.JSON);
       return Promise.resolve('{"data": []}');
     };
     const out = await captureConsoleOutput(async () => {
-      await mod.__test_command.parse(["memory", "list", "--format", FlowOutputFormat.JSON]);
+      await mod.__test_command.parse(["memory", "list", "--format", UIOutputFormat.JSON]);
     });
     assert(out.includes('{"data": []}'));
   });
@@ -763,7 +766,7 @@ Deno.test("memory execution default action lists executions", async () => {
       return Promise.resolve("Executions list");
     };
     const out = await captureConsoleOutput(async () => {
-      await mod.__test_command.parse(["memory", MemorySource.EXECUTION]);
+      await mod.__test_command.parse(["memory", MemoryBankSource.EXECUTION]);
     });
     assert(called);
     assert(out.includes("Executions list"));
@@ -889,7 +892,7 @@ Deno.test("request create with all options", async () => {
         priority: RequestPriority.HIGH,
         agent: "custom-agent",
         path: "/tmp",
-        source: "cli" as const,
+        source: RequestSource.CLI as const,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -928,7 +931,7 @@ Deno.test("request create with flow option", async () => {
         priority: RequestPriority.HIGH,
         flow: "code-review",
         path: "/tmp",
-        source: "cli" as const,
+        source: RequestSource.CLI as const,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -982,7 +985,7 @@ Deno.test("request list shows different priority icons", async () => {
           status: MemoryStatus.PENDING,
           filename: "f",
           path: "p",
-          source: "cli",
+          source: RequestSource.CLI,
         },
         {
           trace_id: "t2",
@@ -993,7 +996,7 @@ Deno.test("request list shows different priority icons", async () => {
           status: MemoryStatus.PENDING,
           filename: "f",
           path: "p",
-          source: "cli",
+          source: RequestSource.CLI,
         },
         {
           trace_id: "t3",
@@ -1004,7 +1007,7 @@ Deno.test("request list shows different priority icons", async () => {
           status: MemoryStatus.PENDING,
           filename: "f",
           path: "p",
-          source: "cli",
+          source: RequestSource.CLI,
         },
       ]);
     const out = await captureConsoleOutput(async () => {
@@ -1033,7 +1036,7 @@ Deno.test("end-to-end flow request workflow", async () => {
         priority: RequestPriority.NORMAL,
         flow: "web-dev-flow",
         path: "/tmp",
-        source: "cli" as const,
+        source: RequestSource.CLI as const,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -1052,7 +1055,7 @@ Deno.test("end-to-end flow request workflow", async () => {
         created: new Date().toISOString(),
         filename: "flow-test-123.md",
         path: "/tmp",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "user",
       }]);
     };
@@ -1071,7 +1074,7 @@ Deno.test("end-to-end flow request workflow", async () => {
           flow: "web-dev-flow",
           created: new Date().toISOString(),
           created_by: "test-user",
-          source: "cli",
+          source: RequestSource.CLI,
         },
         content: "Build a web application",
       });

@@ -5,6 +5,7 @@
  * logic, PID file management, and background process orchestration.
  */
 
+import { RequestSource } from "../../src/shared/enums.ts";
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -235,7 +236,7 @@ await new Promise(() => {});
       const payload = JSON.parse(log.payload as string);
       assertExists(payload.pid);
       assertExists(payload.log_file);
-      assertEquals(payload.via, "cli");
+      assertEquals(payload.via, RequestSource.CLI);
       assertExists(payload.command);
       assertEquals(payload.command.startsWith("exoctl "), true);
       assertExists(payload.timestamp);
@@ -336,7 +337,7 @@ await new Promise(() => {});
       const payload = JSON.parse(log.payload as string);
       assertExists(payload.pid);
       assertExists(payload.method); // 'graceful' or 'forced'
-      assertEquals(payload.via, "cli");
+      assertEquals(payload.via, RequestSource.CLI);
       assertExists(payload.timestamp);
     });
   });
@@ -403,7 +404,7 @@ await new Promise(() => {});
       const payload = JSON.parse(log.payload as string);
       assertEquals(payload.previous_pid, firstStatus.pid);
       assertExists(payload.new_pid);
-      assertEquals(payload.via, "cli");
+      assertEquals(payload.via, RequestSource.CLI);
       assertExists(payload.timestamp);
     });
   });

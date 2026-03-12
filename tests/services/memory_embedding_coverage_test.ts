@@ -5,7 +5,6 @@
  * ensuring robust handling of zero vectors and dimension mismatches in RAG operations.
  */
 import { ensureDir } from "@std/fs";
-import { LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { assert } from "@std/assert";
@@ -19,7 +18,7 @@ import {
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { ILearning } from "../../src/shared/schemas/memory_bank.ts";
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryBankSource, MemoryScope } from "../../src/shared/enums.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixture =====
@@ -27,7 +26,7 @@ import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 const testLearning: ILearning = {
   id: "ffffffff-1111-4000-8000-000000000001",
   created_at: new Date().toISOString(),
-  source: MemorySource.AGENT,
+  source: MemoryBankSource.AGENT,
   scope: MemoryScope.GLOBAL,
   title: "Coverage test learning",
   description: "This is a test learning for coverage testing of embedding service",

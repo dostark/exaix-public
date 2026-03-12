@@ -8,7 +8,7 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { RequestService } from "../../src/services/request.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
+import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { createStubConfig, createStubDisplay } from "../test_helpers.ts";
 
@@ -37,7 +37,7 @@ Deno.test("RequestService.create: creates a request file with correct frontmatte
     assertEquals(metadata.status, RequestStatus.PENDING);
     assertEquals(metadata.priority, RequestPriority.NORMAL);
     assertEquals(metadata.agent, "default");
-    assertEquals(metadata.source, "cli");
+    assertEquals(metadata.source, RequestSource.CLI);
     assertEquals(metadata.created_by, "tester");
     assertEquals(metadata.subject, "Build the login page");
 
@@ -82,7 +82,7 @@ Deno.test("RequestService.create: uses provided options", async () => {
       flow: "code-review",
       subject: "Custom subject",
       skills: ["typescript", "deno"],
-    }, "tui");
+    }, RequestSource.TUI);
 
     assertEquals(metadata.priority, RequestPriority.HIGH);
     assertEquals(metadata.agent, "coder");
@@ -90,7 +90,7 @@ Deno.test("RequestService.create: uses provided options", async () => {
     assertEquals(metadata.target_branch, "feature/test");
     assertEquals(metadata.model, "gpt-5");
     assertEquals(metadata.flow, "code-review");
-    assertEquals(metadata.source, "tui");
+    assertEquals(metadata.source, RequestSource.TUI);
     assertEquals(metadata.subject, "Custom subject");
     assertEquals(metadata.skills, ["typescript", "deno"]);
   } finally {
@@ -302,7 +302,7 @@ Test body
 
     const service = createTestRequestService(tempDir);
     const shown = await service.show("request-test5678.md");
-    assertEquals(shown.metadata.source, "cli");
+    assertEquals(shown.metadata.source, RequestSource.CLI);
   } finally {
     await Deno.remove(tempDir, { recursive: true }).catch(() => {});
   }

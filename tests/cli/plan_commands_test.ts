@@ -5,6 +5,7 @@
  * detailed diff visualization, approval workflows, and status synchronization with the Workspace.
  */
 
+import { RequestSource } from "../../src/shared/enums.ts";
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { PlanStatus } from "../../src/shared/status/plan_status.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
@@ -116,7 +117,7 @@ created_at: "2025-11-25T10:00:00Z"
       assertExists(approval?.actor);
       assertEquals(approval?.agent_id, null);
       const approvalPayload = JSON.parse(approval?.payload || "{}");
-      assertEquals(approvalPayload?.via, "cli");
+      assertEquals(approvalPayload?.via, RequestSource.CLI);
       assertEquals(approval?.trace_id, "trace-123");
     });
 
@@ -224,7 +225,7 @@ status: review
       assertExists(rejection?.actor);
       const rejectionPayload = JSON.parse(rejection?.payload || "{}");
       assertEquals(rejectionPayload?.reason, reason);
-      assertEquals(rejectionPayload?.via, "cli");
+      assertEquals(rejectionPayload?.via, RequestSource.CLI);
     });
 
     it("should reject rejection if reason is empty", async () => {

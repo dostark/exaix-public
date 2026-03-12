@@ -6,8 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
-import { MemorySource } from "../../src/shared/enums.ts";
+import { FlowInputSource, MemoryBankSource, UIOutputFormat } from "../../src/shared/enums.ts";
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
@@ -99,7 +98,7 @@ describe("FlowReporter", () => {
         ],
         output: {
           from: "step2",
-          format: FlowOutputFormat.MARKDOWN,
+          format: UIOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,
@@ -214,7 +213,7 @@ describe("FlowReporter", () => {
         ],
         output: {
           from: "step1",
-          format: FlowOutputFormat.MARKDOWN,
+          format: UIOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,
@@ -267,7 +266,7 @@ describe("FlowReporter", () => {
         steps: [{
           id: "step1",
           name: "Step 1",
-          agent: MemorySource.AGENT,
+          agent: MemoryBankSource.AGENT,
           dependsOn: [],
           input: {
             source: FlowInputSource.REQUEST,
@@ -280,7 +279,7 @@ describe("FlowReporter", () => {
         }],
         output: {
           from: "step1",
-          format: FlowOutputFormat.MARKDOWN,
+          format: UIOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,

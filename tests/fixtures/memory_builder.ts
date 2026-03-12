@@ -9,8 +9,8 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryScope,
-  MemorySource,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import type {
@@ -157,7 +157,7 @@ export class LearningBuilder {
     this.learning = {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Test ILearning",
       description: "Test description",

@@ -11,9 +11,9 @@ import type { IMemoryUpdateProposal } from "../../../src/shared/schemas/memory_b
 import {
   ConfidenceLevel,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryScope,
-  MemorySource,
 } from "../../../src/shared/enums.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
@@ -53,7 +53,7 @@ export function createTestProposal(idOrOverrides?: string | Partial<IMemoryUpdat
     learning: {
       id: crypto.randomUUID(),
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       scope: MemoryScope.PROJECT,
       project: "my-app",
       title: "Test IPattern",

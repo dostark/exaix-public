@@ -6,11 +6,7 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
-
-import { PortalOperation } from "../../src/shared/enums.ts";
-
-import { LearningCategory } from "../../src/shared/enums.ts";
+import { LearningCategory, McpToolName, PortalOperation } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 
 import { ToolRegistry } from "../../src/services/tool_registry.ts";

@@ -9,14 +9,19 @@
 import { assertEquals } from "@std/assert";
 import { PortalAdapter } from "../../../src/services/adapters/portal_adapter.ts";
 import type { IPortalDetails, IPortalInfo } from "../../../src/shared/types/portal.ts";
-import { DaemonStatus, PortalExecutionStrategy, PortalStatus } from "../../../src/shared/enums.ts";
+import {
+  ArchiveStatus,
+  DaemonStatus,
+  PortalExecutionStrategy,
+  PortalStatus,
+  VerificationStatus,
+} from "../../../src/shared/enums.ts";
 import type { PortalService } from "../../../src/services/portal.ts";
 import { MemoryServiceAdapter } from "../../../src/services/adapters/memory_adapter.ts";
 import type { MemoryBankService } from "../../../src/services/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
 import { ArchiveAdapter } from "../../../src/services/adapters/archive_adapter.ts";
 import type { ArchiveEntry, ArchiveService } from "../../../src/services/archive_service.ts";
-import { ArchiveStatus } from "../../../src/shared/enums.ts";
 import { FlowValidatorAdapter } from "../../../src/services/adapters/flow_validator_adapter.ts";
 import type { FlowValidatorImpl } from "../../../src/services/flow_validator.ts";
 import type { IFlow } from "../../../src/shared/schemas/flow.ts";
@@ -52,7 +57,7 @@ function createMockPortalService(overrides: Partial<PortalService> = {}): Portal
     list: () => Promise.resolve([defaultInfo]),
     show: () => Promise.resolve(defaultDetails),
     remove: () => Promise.resolve(),
-    verify: () => Promise.resolve([{ alias: "myportal", status: "ok" }]),
+    verify: () => Promise.resolve([{ alias: "myportal", status: VerificationStatus.OK }]),
     refresh: () => Promise.resolve(),
     ...overrides,
   } as unknown) as PortalService;
@@ -141,7 +146,7 @@ Deno.test("PortalAdapter: verify delegates", async () => {
     verify: (alias?: string) =>
       Promise.resolve([{
         alias: alias ?? "all",
-        status: "ok" as const,
+        status: VerificationStatus.OK as const,
       }]),
   });
   const adapter = new PortalAdapter(service);

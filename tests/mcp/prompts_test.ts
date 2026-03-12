@@ -6,10 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { McpToolName } from "../../src/shared/enums.ts";
-
-import { MemorySource } from "../../src/shared/enums.ts";
-
+import { McpToolName, MessageRole } from "../../src/shared/enums.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
@@ -61,7 +58,7 @@ Deno.test("generateExecutePlanPrompt: generates prompt with plan details", async
     assertStringIncludes(result.description, "test-plan-123");
     assertStringIncludes(result.description, "MyApp");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, MemorySource.USER);
+    assertEquals(result.messages[0].role, MessageRole.USER);
 
     const text = result.messages[0].content.text;
     assertStringIncludes(text, "test-plan-123");
@@ -125,7 +122,7 @@ Deno.test("generateCreateReviewPrompt: generates prompt with review details", as
     assertExists(result.description);
     assertStringIncludes(result.description, "Add user authentication");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, MemorySource.USER);
+    assertEquals(result.messages[0].role, MessageRole.USER);
 
     const text = result.messages[0].content.text;
     assertStringIncludes(text, "MyApp");

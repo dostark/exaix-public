@@ -25,6 +25,7 @@ import {
   stopSpinner,
   updateProgress,
 } from "../../../src/tui/helpers/spinner.ts";
+import { SpinnerStyle } from "../../../src/shared/enums.ts";
 
 // ===== Spinner Definitions Tests =====
 
@@ -93,21 +94,21 @@ Deno.test("nextFrame: increments frame", () => {
 // ===== Spinner Rendering Tests =====
 
 Deno.test("renderSpinnerFrame: returns frame character", () => {
-  const frame = renderSpinnerFrame(0, "dots");
+  const frame = renderSpinnerFrame(0, SpinnerStyle.DOTS);
   assertEquals(frame, "⠋");
 });
 
 Deno.test("renderSpinnerFrame: cycles through frames", () => {
   const frames = new Set<string>();
   for (let i = 0; i < 10; i++) {
-    frames.add(renderSpinnerFrame(i, "dots"));
+    frames.add(renderSpinnerFrame(i, SpinnerStyle.DOTS));
   }
   assertEquals(frames.size, 10);
 });
 
 Deno.test("renderSpinnerFrame: wraps around", () => {
-  const frame0 = renderSpinnerFrame(0, "dots");
-  const frame10 = renderSpinnerFrame(10, "dots");
+  const frame0 = renderSpinnerFrame(0, SpinnerStyle.DOTS);
+  const frame10 = renderSpinnerFrame(10, SpinnerStyle.DOTS);
   assertEquals(frame0, frame10);
 });
 

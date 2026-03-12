@@ -5,13 +5,7 @@
  * initialization, listing, and cross-project pattern retrieval.
  */
 
-import {
-  ConfidenceLevel,
-  FlowOutputFormat,
-  LearningCategory,
-  MemoryScope,
-  MemoryType,
-} from "../../src/shared/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemoryType, UIOutputFormat } from "../../src/shared/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
 import { LearningBuilder } from "../fixtures/memory_builder.ts";
@@ -22,7 +16,7 @@ import { createTestProject } from "../helpers/memory_test_helper.ts";
 Deno.test("MemoryCommands: globalShow returns empty for uninitialized", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.globalShow("table");
+    const result = await commands.globalShow(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "not initialized");
   } finally {
@@ -35,7 +29,7 @@ Deno.test("MemoryCommands: globalShow displays initialized memory", async () => 
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow("table");
+    const result = await commands.globalShow(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Global Memory");
     assertStringIncludes(result, "Version:");
@@ -50,7 +44,7 @@ Deno.test("MemoryCommands: globalShow --format json outputs valid JSON", async (
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow(FlowOutputFormat.JSON);
+    const result = await commands.globalShow(UIOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.version, "1.0.0");
@@ -66,7 +60,7 @@ Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () =>
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow("md");
+    const result = await commands.globalShow(UIOutputFormat.MARKDOWN);
 
     assertStringIncludes(result, "# Global Memory");
     assertStringIncludes(result, "## Statistics");
@@ -82,7 +76,7 @@ Deno.test("MemoryCommands: globalListLearnings returns empty message", async () 
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalListLearnings("table");
+    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "No learnings");
   } finally {
@@ -104,7 +98,7 @@ Deno.test("MemoryCommands: globalListLearnings displays learnings", async () => 
 
     await memoryBank.addGlobalLearning(learning);
 
-    const result = await commands.globalListLearnings("table");
+    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Test Learning Title");
     assertStringIncludes(result, LearningCategory.PATTERN);
@@ -126,7 +120,7 @@ Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON"
 
     await memoryBank.addGlobalLearning(learning);
 
-    const result = await commands.globalListLearnings(FlowOutputFormat.JSON);
+    const result = await commands.globalListLearnings(UIOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -163,7 +157,7 @@ Deno.test("MemoryCommands: globalStats displays statistics", async () => {
         .build(),
     );
 
-    const result = await commands.globalStats("table");
+    const result = await commands.globalStats(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "Global Memory Statistics");
     assertStringIncludes(result, "Total Learnings:");
@@ -178,7 +172,7 @@ Deno.test("MemoryCommands: globalStats --format json outputs valid JSON", async 
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalStats(FlowOutputFormat.JSON);
+    const result = await commands.globalStats(UIOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(typeof parsed.total_learnings, "number");

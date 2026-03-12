@@ -7,15 +7,14 @@
 
 import { RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import {
-  type AnalysisMode,
   type IRequestAnalysis,
   type IRequestEntry as IRequest,
   type IRequestMetadata as _IRequestMetadata,
   type IRequestOptions,
   type IRequestShowResult,
 } from "../../src/shared/types/request.ts";
+import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { type IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
-import { MemoryScope, MemorySource, PortalStatus, SkillStatus } from "../../src/shared/enums.ts";
 import { LegacyRequestManagerTuiSession as _LegacyRequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { ILogEntry, MonitorView } from "../../src/tui/monitor_view.ts";
@@ -48,11 +47,15 @@ import {
   ConfidenceLevel,
   EvaluationCategory,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryReferenceType,
+  MemoryScope,
+  PortalStatus,
   RequestPriority,
+  RequestSource,
+  SkillStatus,
 } from "../../src/shared/enums.ts";
-import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enums.ts";
 import { type IMemoryService } from "../../src/shared/interfaces/i_memory_service.ts";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { type ITreeNode } from "../../src/tui/helpers/tree_view.ts";
@@ -157,13 +160,13 @@ export function createMockRequestService(initial: IRequest[] = []) {
         filename: `request-test.md`,
         subject: description,
         status: RequestStatus.PENDING,
-        priority: (options?.priority as RequestPriority) || RequestPriority.NORMAL,
+        priority: options?.priority || RequestPriority.NORMAL,
         agent: options?.agent || "default",
         portal: options?.portal,
         model: options?.model,
         created: new Date().toISOString(),
         created_by: "test@example.com",
-        source: "cli",
+        source: RequestSource.CLI,
       };
       this.requests.push(newRequest);
       return Promise.resolve(newRequest);
@@ -226,7 +229,7 @@ export function sampleLogEntry(overrides: ILogEntryOverrides = {}): ILogEntry {
   return {
     id,
     trace_id: overrides.trace_id ?? `trace-${id}`,
-    actor: overrides.actor ?? MemorySource.AGENT,
+    actor: overrides.actor ?? MemoryBankSource.AGENT,
     agent_id: overrides.agent_id ?? "default",
     action_type: overrides.action_type ?? "request_created",
     target: overrides.target ?? "Workspace/Requests/test.md",
@@ -262,7 +265,7 @@ export function sampleMonitorLogs() {
     {
       id: "1",
       trace_id: "t1",
-      actor: MemorySource.USER,
+      actor: MemoryBankSource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -272,7 +275,7 @@ export function sampleMonitorLogs() {
     {
       id: "2",
       trace_id: "t2",
-      actor: MemorySource.USER,
+      actor: MemoryBankSource.USER,
       agent_id: "a2",
       action_type: "plan.approved",
       target: "target2.md",
@@ -288,7 +291,7 @@ export function sampleSingleMonitorLog() {
     {
       id: "1",
       trace_id: "t1",
-      actor: MemorySource.USER,
+      actor: MemoryBankSource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -510,7 +513,7 @@ function createMockRequestMetadata(overrides: Partial<IRequest> = {}): IRequest 
     agent: overrides.agent ?? "default",
     created: overrides.created ?? new Date().toISOString(),
     created_by: overrides.created_by ?? "test-user",
-    source: overrides.source ?? "cli",
+    source: overrides.source ?? RequestSource.CLI,
     subject: overrides.subject ?? "Test request",
   };
 }
@@ -826,7 +829,7 @@ export interface ISkillSummaryOverrides {
   name?: string;
   version?: string;
   status?: SkillStatus;
-  source?: MemorySource | "core" | "project";
+  source?: MemoryBankSource | "core" | "project";
   description?: string;
   triggers?: { keywords?: string[]; taskTypes?: string[]; filePatterns?: string[]; [key: string]: unknown };
   instructions?: string;
@@ -840,7 +843,7 @@ export function sampleSkill(overrides: ISkillSummaryOverrides = {}): ISkillSumma
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    source: MemorySource.CORE,
+    source: MemoryBankSource.CORE,
     scope: MemoryScope.GLOBAL,
     status: SkillStatus.ACTIVE,
     skill_id: `skill-${Math.floor(Math.random() * 1e6)}`,
@@ -867,7 +870,7 @@ export function sampleTestSkills(): ISkillSummary[] {
       name: "TDD Methodology",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemorySource.CORE,
+      source: MemoryBankSource.CORE,
       description: "Test-Driven Development methodology",
       triggers: {
         keywords: ["tdd", "test-first"],
@@ -881,7 +884,7 @@ export function sampleTestSkills(): ISkillSummary[] {
       name: "Security First",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemorySource.CORE,
+      source: MemoryBankSource.CORE,
       description: "Security-focused development",
       triggers: {
         keywords: [EvaluationCategory.SECURITY, "auth"],
@@ -892,21 +895,21 @@ export function sampleTestSkills(): ISkillSummary[] {
       name: "Project Conventions",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemorySource.PROJECT,
+      source: MemoryBankSource.PROJECT,
     },
     {
       id: "learned-pattern",
       name: "Learned Pattern",
       version: "1.0.0",
       status: SkillStatus.DRAFT,
-      source: MemorySource.LEARNED,
+      source: MemoryBankSource.LEARNED,
     },
     {
       id: "deprecated-skill",
       name: "Deprecated Skill",
       version: "0.5.0",
       status: SkillStatus.DEPRECATED,
-      source: MemorySource.PROJECT,
+      source: MemoryBankSource.PROJECT,
     },
   ]);
 }
@@ -965,7 +968,7 @@ export function createMockProposals(): IMemoryUpdateProposal[] {
       learning: {
         id: "729b8001-0000-4000-8000-000000000001",
         created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.PROJECT,
         title: "Error Handling Pattern",
         description: "Use try-catch for all async functions",
@@ -986,7 +989,7 @@ export function createMockProposals(): IMemoryUpdateProposal[] {
       learning: {
         id: "729b8001-0000-4000-8000-000000000002",
         created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         title: "API Rate Limiting",
         description: "Implement rate limiting for all API endpoints",
@@ -1005,7 +1008,7 @@ export function createMockProposals(): IMemoryUpdateProposal[] {
       learning: {
         id: "729b8001-0000-4000-8000-000000000003",
         created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        source: MemorySource.EXECUTION,
+        source: MemoryBankSource.EXECUTION,
         scope: MemoryScope.PROJECT,
         title: "Database Connection Issue",
         description: "Connection timeout solutions",

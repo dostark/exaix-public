@@ -6,7 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryOperation, MemorySource, PortalOperation } from "../src/shared/enums.ts";
+import { MemoryBankSource, MemoryOperation, PortalOperation } from "../src/shared/enums.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { join } from "@std/path";
@@ -483,7 +483,7 @@ content = "activity journal logging test"
     );
 
     // Verify agent_id is set
-    const agentActions = activities.filter((a: ActivityRecord) => a.actor === MemorySource.AGENT);
+    const agentActions = activities.filter((a: ActivityRecord) => a.actor === MemoryBankSource.AGENT);
     agentActions.forEach((action: ActivityRecord) => {
       assertEquals(action.agent_id, "test-agent", "Agent actions should have agent_id");
     });

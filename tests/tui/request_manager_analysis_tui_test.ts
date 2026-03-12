@@ -14,7 +14,7 @@ import {
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../src/shared/types/request.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
+import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 
 Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", async () => {
@@ -46,7 +46,7 @@ Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", as
     priority: RequestPriority.NORMAL,
     agent: "default",
     created: new Date().toISOString(),
-    source: "tui" as const,
+    source: RequestSource.TUI,
     created_by: "test-user",
   };
 

@@ -15,7 +15,7 @@ import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { MinimalRequestServiceMock, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import { IRequest } from "../../src/shared/types/request.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
+import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 
 // ===== Test Data =====
 
@@ -164,7 +164,7 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
       agent: "code-reviewer",
       created: new Date().toISOString(),
       created_by: "test@example.com",
-      source: "cli",
+      source: RequestSource.CLI,
       skills: {
         explicit: ["security-audit"],
         autoMatched: ["code-review"],

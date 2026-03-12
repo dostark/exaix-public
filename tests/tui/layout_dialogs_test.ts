@@ -6,6 +6,7 @@
  */
 
 import { assert, assertEquals } from "@std/assert";
+import { DialogPurpose, LayoutMode } from "../../src/shared/enums.ts";
 import { getTheme } from "../../src/tui/helpers/colors.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 import {
@@ -26,21 +27,21 @@ Deno.test("layout dialogs: view picker state defaults", () => {
   const state = createViewPickerState();
   assertEquals(state.isOpen, false);
   assertEquals(state.selectedIndex, 0);
-  assertEquals(state.purpose, "split");
+  assertEquals(state.purpose, DialogPurpose.SPLIT);
 });
 
 Deno.test("layout dialogs: render view picker with purpose titles", () => {
   const theme = getTheme(true);
 
-  const splitState = { ...createViewPickerState(), isOpen: true, purpose: "split" as const };
+  const splitState = { ...createViewPickerState(), isOpen: true, purpose: DialogPurpose.SPLIT as const };
   const splitLines = renderViewPickerDialog(splitState, theme).join("\n");
   assert(splitLines.includes("Select View for New IPane"));
 
-  const changeState = { ...createViewPickerState(), isOpen: true, purpose: "change" as const };
+  const changeState = { ...createViewPickerState(), isOpen: true, purpose: DialogPurpose.CHANGE as const };
   const changeLines = renderViewPickerDialog(changeState, theme).join("\n");
   assert(changeLines.includes("Change View"));
 
-  const newState = { ...createViewPickerState(), isOpen: true, purpose: "new" as const };
+  const newState = { ...createViewPickerState(), isOpen: true, purpose: DialogPurpose.NEW as const };
   const newLines = renderViewPickerDialog(newState, theme).join("\n");
   assert(newLines.includes("Select View"));
 });
@@ -92,7 +93,7 @@ Deno.test("layout dialogs: named layout save input handling", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "save" as const,
+    mode: LayoutMode.SAVE as const,
     inputActive: true,
     inputName: "layout",
   };
@@ -114,7 +115,7 @@ Deno.test("layout dialogs: named layout load selects entry", () => {
   const state = {
     ...createNamedLayoutState(),
     isOpen: true,
-    mode: "load" as const,
+    mode: LayoutMode.LOAD as const,
     layouts: ["alpha", "beta"],
     selectedIndex: 1,
   };
@@ -127,7 +128,7 @@ Deno.test("layout dialogs: named layout load selects entry", () => {
 
 Deno.test("layout dialogs: render named layout dialog empty state", () => {
   const theme = getTheme(true);
-  const state = { ...createNamedLayoutState(), isOpen: true, mode: "load" as const };
+  const state = { ...createNamedLayoutState(), isOpen: true, mode: LayoutMode.LOAD as const };
   const lines = renderNamedLayoutDialog(state, theme).join("\n");
   assert(lines.includes("No saved layouts"));
 });

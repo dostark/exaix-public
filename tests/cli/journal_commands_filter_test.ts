@@ -8,6 +8,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
 import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
+import { UIOutputFormat } from "../../src/shared/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createStubConfig, createStubContext } from "../test_helpers.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
@@ -31,7 +32,6 @@ import {
   JOURNAL_TRACE_ID_ONE,
   JOURNAL_UNKNOWN_FILTER_PREFIX,
   JournalAction,
-  JournalFormat,
 } from "../config/constants.ts";
 
 Deno.test("JournalCommands maps explicit options into query filters", async () => {
@@ -53,7 +53,7 @@ Deno.test("JournalCommands maps explicit options into query filters", async () =
         payload: JOURNAL_PAYLOAD,
         actor: JOURNAL_ACTOR_USER,
         target: JOURNAL_TARGET_SHORT,
-        format: JournalFormat.Json,
+        format: UIOutputFormat.JSON,
       })
     );
 
@@ -89,7 +89,7 @@ Deno.test("JournalCommands maps filter strings to query filters", async () => {
           JOURNAL_FILTER_AGENT,
           JOURNAL_FILTER_SINCE,
         ],
-        format: JournalFormat.Json,
+        format: UIOutputFormat.JSON,
       })
     );
 
@@ -110,7 +110,7 @@ Deno.test("JournalCommands warns on unknown filter keys", async () => {
 
   try {
     const { errs } = await captureAllOutputs(() =>
-      cmd.show({ filter: [JOURNAL_FILTER_UNKNOWN], format: JournalFormat.Json })
+      cmd.show({ filter: [JOURNAL_FILTER_UNKNOWN], format: UIOutputFormat.JSON })
     );
     assertStringIncludes(errs.join(" "), JOURNAL_UNKNOWN_FILTER_PREFIX);
   } finally {
@@ -124,7 +124,7 @@ Deno.test("JournalCommands exits on invalid filter format", async () => {
 
   try {
     const result = await expectExitWithLogs(() =>
-      cmd.show({ filter: [JOURNAL_FILTER_INVALID], format: JournalFormat.Json })
+      cmd.show({ filter: [JOURNAL_FILTER_INVALID], format: UIOutputFormat.JSON })
     );
 
     assertEquals(result.exitCalled, true);

@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { FlowOutputFormat } from "../../src/shared/enums.ts";
+import { UIOutputFormat } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
@@ -51,7 +51,7 @@ async function createTestEnvironmentWithProposal(traceId?: string) {
 Deno.test("MemoryCommands: pendingList returns empty message", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.pendingList("table");
+    const result = await commands.pendingList(UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "No pending");
   } finally {
@@ -62,7 +62,7 @@ Deno.test("MemoryCommands: pendingList returns empty message", async () => {
 Deno.test("MemoryCommands: pendingList shows proposals", async () => {
   const { commands, cleanup, proposalId } = await createTestEnvironmentWithProposal();
   try {
-    const result = await commands.pendingList("table");
+    const result = await commands.pendingList(UIOutputFormat.TABLE);
 
     // Should show the pending proposal
     if (proposalId) {
@@ -76,7 +76,7 @@ Deno.test("MemoryCommands: pendingList shows proposals", async () => {
 Deno.test("MemoryCommands: pendingList --format json outputs valid JSON", async () => {
   const { commands, cleanup } = await createTestEnvironmentWithProposal();
   try {
-    const result = await commands.pendingList(FlowOutputFormat.JSON);
+    const result = await commands.pendingList(UIOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -94,7 +94,7 @@ Deno.test("MemoryCommands: pendingShow displays proposal details", async () => {
   try {
     if (!proposalId) return;
 
-    const result = await commands.pendingShow(proposalId, "table");
+    const result = await commands.pendingShow(proposalId, UIOutputFormat.TABLE);
 
     assertStringIncludes(result, proposalId.substring(0, 8));
     assertStringIncludes(result, MemoryStatus.PENDING);
@@ -106,7 +106,7 @@ Deno.test("MemoryCommands: pendingShow displays proposal details", async () => {
 Deno.test("MemoryCommands: pendingShow non-existent returns error", async () => {
   const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const result = await commands.pendingShow("non-existent-id", "table");
+    const result = await commands.pendingShow("non-existent-id", UIOutputFormat.TABLE);
 
     assertStringIncludes(result, "not found");
   } finally {
@@ -121,7 +121,7 @@ Deno.test("MemoryCommands: pendingShow --format json outputs valid JSON", async 
   try {
     if (!proposalId) return;
 
-    const result = await commands.pendingShow(proposalId, FlowOutputFormat.JSON);
+    const result = await commands.pendingShow(proposalId, UIOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.id, proposalId);

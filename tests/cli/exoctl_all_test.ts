@@ -11,17 +11,20 @@ import { join } from "@std/path";
 import { ExoPathDefaults } from "../../src/shared/constants.ts";
 import {
   FlowInputSource,
+  MemoryBankSource,
   MemoryOperation,
-  MemorySource,
   PortalOperation,
   PortalStatus,
   RequestPriority,
+  RequestSource,
+  ReviewType,
+  VerificationStatus,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
 import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { IRequestOptions, RequestSource } from "../../src/shared/types/request.ts";
+import type { IRequestOptions } from "../../src/shared/types/request.ts";
 import type { RequestStatusType } from "../../src/shared/status/request_status.ts";
 import type { PlanStatusType } from "../../src/shared/status/plan_status.ts";
 import type { IPlanMetadata } from "../../src/shared/types/plan.ts";
@@ -158,7 +161,7 @@ Deno.test("request list prints entries when present", async () => {
           status: MemoryStatus.PENDING,
           filename: "/tmp/req.md",
           path: "/tmp",
-          source: "cli" as RequestSource,
+          source: RequestSource.CLI as RequestSource,
         },
       ]);
     const out = await captureConsoleOutput(async () => {
@@ -176,12 +179,12 @@ Deno.test("request show prints content when request exists", async () => {
           trace_id: id,
           status: MemoryStatus.PENDING,
           priority: RequestPriority.NORMAL,
-          agent: MemorySource.AGENT,
+          agent: MemoryBankSource.AGENT,
           created_by: "tester",
           created: "time",
           filename: "/tmp/req.md",
           path: "/tmp",
-          source: "cli" as RequestSource,
+          source: RequestSource.CLI as RequestSource,
         },
         content: "Hello world",
       });
@@ -320,7 +323,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
         priority: RequestPriority.NORMAL,
         agent: "default",
         path: "/tmp",
-        source: "file",
+        source: RequestSource.FILE,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -341,7 +344,7 @@ Deno.test("request --file prints human output when no --json", async () => {
         priority: RequestPriority.HIGH,
         agent: "tester",
         path: "/tmp",
-        source: "file",
+        source: RequestSource.FILE,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -381,9 +384,9 @@ Deno.test("request show handles not found and exits", async () => {
 Deno.test("portal verify summarizes healthy and broken portals", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.portalCommands.verify = () =>
-      Promise.resolve([{ alias: "A", status: "ok", issues: [] }, {
+      Promise.resolve([{ alias: "A", status: VerificationStatus.OK, issues: [] }, {
         alias: "B",
-        status: "failed",
+        status: VerificationStatus.FAILED,
         issues: ["missing"],
       }]);
     const outs = await captureAllOutputs(async () => {
@@ -419,7 +422,7 @@ Deno.test("review show prints commits and diff", async () => {
         diff: "---a\n+++b\n",
         trace_id: "t1",
         created_at: new Date().toISOString(),
-        type: "code",
+        type: ReviewType.CODE,
         agent_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
@@ -441,7 +444,7 @@ Deno.test("review show --diff outputs only diff", async () => {
         diff: "diff --git a/file.txt b/file.txt\n---a\n+++b\n",
         trace_id: "t1",
         created_at: new Date().toISOString(),
-        type: "code",
+        type: ReviewType.CODE,
         agent_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
@@ -466,7 +469,7 @@ Deno.test("request inline --dry-run logs dry_run and creates file", async () => 
         priority: RequestPriority.NORMAL,
         agent: "a",
         path: "/tmp",
-        source: "cli" as const,
+        source: RequestSource.CLI as const,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -556,7 +559,7 @@ Deno.test("request list --json outputs JSON", async () => {
           status: MemoryStatus.PENDING,
           filename: "f",
           path: "p",
-          source: "cli",
+          source: RequestSource.CLI,
         },
       ]);
     const outs = await captureAllOutputs(async () => {
@@ -645,7 +648,7 @@ Deno.test("request inline --json prints JSON output", async () => {
         priority: RequestPriority.NORMAL,
         agent: "a",
         path: "/tmp",
-        source: "cli" as const,
+        source: RequestSource.CLI as const,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -757,7 +760,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
         priority: RequestPriority.NORMAL,
         agent: "file-agent",
         path: "/tmp",
-        source: "file",
+        source: RequestSource.FILE,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -778,7 +781,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
         priority: RequestPriority.HIGH,
         agent: "file-agent",
         path: "/tmp",
-        source: "file",
+        source: RequestSource.FILE,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,
@@ -817,7 +820,7 @@ Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
         priority: RequestPriority.NORMAL,
         agent: "a",
         path: "/tmp",
-        source: "cli",
+        source: RequestSource.CLI,
         created_by: "tester",
         created: "now",
         status: MemoryStatus.PENDING,

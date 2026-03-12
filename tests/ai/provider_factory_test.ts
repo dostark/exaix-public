@@ -9,10 +9,9 @@ import { assertEquals, assertExists, assertRejects, assertStringIncludes } from 
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { TEST_MODEL_ANTHROPIC, TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
-import { DaemonStatus, ProviderType } from "../../src/shared/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
-import { MockStrategy } from "../../src/shared/enums.ts";
+import { DaemonStatus, MockStrategy, ProviderType } from "../../src/shared/enums.ts";
 
 import { AiConfigSchema } from "../../src/shared/schemas/ai_config.ts";
 import { createTestConfig, getProviderForModel } from "./helpers/test_config.ts";

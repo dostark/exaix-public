@@ -9,7 +9,7 @@ import { type IRequestService } from "../../src/shared/interfaces/i_request_serv
 import { RequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { IRequest } from "../../src/shared/types/request.ts";
 import { RequestStatus, RequestStatusType } from "../../src/shared/status/request_status.ts";
-import { RequestPriority } from "../../src/shared/enums.ts";
+import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 
 class MockRequestService implements IRequestService {
   public listCalledWithIncludeArchived = false;
@@ -26,7 +26,7 @@ class MockRequestService implements IRequestService {
         agent: "agent1",
         created: new Date().toISOString(),
         created_by: "user1",
-        source: "cli",
+        source: RequestSource.CLI,
       },
     ];
     if (includeArchived) {
@@ -39,7 +39,7 @@ class MockRequestService implements IRequestService {
         agent: "agent1",
         created: new Date().toISOString(),
         created_by: "user1",
-        source: "cli",
+        source: RequestSource.CLI,
       });
     }
     return Promise.resolve(requests);
@@ -60,7 +60,7 @@ class MockRequestService implements IRequestService {
         agent: "agent1",
         created: new Date().toISOString(),
         created_by: "user1",
-        source: "cli",
+        source: RequestSource.CLI,
       },
       {
         trace_id: "trace2",
@@ -71,7 +71,7 @@ class MockRequestService implements IRequestService {
         agent: "agent1",
         created: new Date().toISOString(),
         created_by: "user1",
-        source: "cli",
+        source: RequestSource.CLI,
       },
     ];
     const request = requests.find((r) => r.trace_id === id) || requests[0];
@@ -88,7 +88,7 @@ class MockRequestService implements IRequestService {
       agent: options?.agent || "default",
       created: new Date().toISOString(),
       created_by: "user1",
-      source: "cli",
+      source: RequestSource.CLI,
     });
   }
 

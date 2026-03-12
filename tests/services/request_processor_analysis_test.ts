@@ -22,6 +22,7 @@ import {
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../src/shared/types/request.ts";
+import { RequestSource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -108,7 +109,7 @@ created: "${new Date().toISOString()}"
 status: "${RequestStatus.PENDING}"
 priority: "normal"
 agent: "${agent}"
-source: "cli"
+source: RequestSource.CLI
 created_by: "test-user"
 ---
 ${body}`;
@@ -133,7 +134,7 @@ created: "${new Date().toISOString()}"
 status: "${RequestStatus.PENDING}"
 priority: "normal"
 flow: "${flow}"
-source: "cli"
+source: RequestSource.CLI
 created_by: "test-user"
 ---
 ${body}`;
@@ -152,7 +153,7 @@ Deno.test("[RequestProcessor] populates IParsedRequest.taskType from analysis", 
     created: new Date().toISOString(),
     status: RequestStatus.PENDING,
     priority: "normal",
-    source: "cli",
+    source: RequestSource.CLI,
     created_by: "user",
   };
   const request = buildParsedRequest("Do bugfix work", frontmatter, "req-1", "trace-1");
@@ -169,7 +170,7 @@ Deno.test("[RequestProcessor] populates IParsedRequest.tags from analysis", () =
     created: new Date().toISOString(),
     status: RequestStatus.PENDING,
     priority: "normal",
-    source: "cli",
+    source: RequestSource.CLI,
     created_by: "user",
   };
   const request = buildParsedRequest("Fix auth bug", frontmatter, "req-2", "trace-2");
@@ -186,7 +187,7 @@ Deno.test("[RequestProcessor] populates IParsedRequest.filePaths from analysis",
     created: new Date().toISOString(),
     status: RequestStatus.PENDING,
     priority: "normal",
-    source: "cli",
+    source: RequestSource.CLI,
     created_by: "user",
   };
   const request = buildParsedRequest("Update src/auth.ts", frontmatter, "req-3", "trace-3");
@@ -203,7 +204,7 @@ Deno.test("[RequestProcessor] populates request.context.analysis for downstream 
     created: new Date().toISOString(),
     status: RequestStatus.PENDING,
     priority: "normal",
-    source: "cli",
+    source: RequestSource.CLI,
     created_by: "user",
   };
   const request = buildParsedRequest("Test analysis propagation", frontmatter, "req-4", "trace-4");

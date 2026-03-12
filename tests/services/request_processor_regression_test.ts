@@ -85,7 +85,7 @@ created: "${new Date().toISOString()}"
 status: "${RequestStatus.PENDING}"
 priority: "normal"
 agent: "test-agent"
-source: "cli"
+source: RequestSource.CLI
 created_by: "test-user"
 ---
 Test body`;

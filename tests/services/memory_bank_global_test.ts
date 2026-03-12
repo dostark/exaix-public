@@ -18,7 +18,13 @@ import {
   type IProjectMemory,
   LearningSchema,
 } from "../../src/shared/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryType } from "../../src/shared/enums.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryScope,
+  MemoryType,
+} from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
@@ -29,7 +35,7 @@ Deno.test("LearningSchema: validates minimal learning", () => {
   const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440000",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.EXECUTION,
+    source: MemoryBankSource.EXECUTION,
     scope: MemoryScope.PROJECT,
     project: "my-app",
     title: "Error handling pattern",
@@ -48,7 +54,7 @@ Deno.test("LearningSchema: validates global learning without project", () => {
   const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440001",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.USER,
+    source: MemoryBankSource.USER,
     scope: MemoryScope.GLOBAL,
     title: "Always run tests before commit",
     description: "Ensure all tests pass before committing to avoid CI failures",
@@ -66,7 +72,7 @@ Deno.test("LearningSchema: validates pending status with references", () => {
   const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440002",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.AGENT,
+    source: MemoryBankSource.AGENT,
     source_id: "trace-123",
     scope: MemoryScope.PROJECT,
     project: "my-app",
@@ -90,7 +96,7 @@ Deno.test("LearningSchema: rejects invalid category", () => {
   const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.USER,
+    source: MemoryBankSource.USER,
     scope: MemoryScope.GLOBAL,
     title: "Test",
     description: "Test description",
@@ -108,7 +114,7 @@ Deno.test("LearningSchema: rejects invalid status", () => {
   const learning: unknown = {
     id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.AGENT,
+    source: MemoryBankSource.AGENT,
     scope: MemoryScope.GLOBAL,
     title: "Test title",
     description: "Test description",
@@ -151,7 +157,7 @@ Deno.test("GlobalMemorySchema: validates populated global memory", () => {
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440000",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: "Global pattern",
         description: "A global pattern description",
@@ -249,7 +255,7 @@ Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async (
     const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Always validate input",
       description: "Validate all user input at API boundaries",
@@ -279,7 +285,7 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
     const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Input Validation IPattern",
       description: "Always validate user input at API boundaries",
@@ -307,7 +313,7 @@ Deno.test("MemoryBankService: addGlobalLearning logs to IActivity Journal", asyn
     const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Test learning",
       description: "Test description",
@@ -521,7 +527,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
     const learning1 = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440001",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "ILearning 1",
       description: "First learning",
@@ -533,7 +539,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
     const learning2 = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440002",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "ILearning 2",
       description: "Second learning",
@@ -594,7 +600,7 @@ Deno.test("MemoryBankService: demoteLearning to non-existent project throws", as
     const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Test",
       description: "Test",
@@ -631,7 +637,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440001",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         project: "app-a",
         title: "IPattern 1",
@@ -644,7 +650,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440002",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         project: "app-a",
         title: "IPattern 2",
@@ -657,7 +663,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440003",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         project: "app-b",
         title: "Insight 1",

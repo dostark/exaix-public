@@ -5,12 +5,15 @@
  * execution to interactive approval and promote/search workflows.
  */
 
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
-import { EvaluationCategory } from "../../src/shared/enums.ts";
-
-import { FlowOutputFormat } from "../../src/shared/enums.ts";
-
-import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import {
+  ConfidenceLevel,
+  EvaluationCategory,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryScope,
+  UIOutputFormat,
+} from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 
 import { assertEquals, assertExists, assertGreaterOrEqual, assertStringIncludes } from "@std/assert";
@@ -140,7 +143,7 @@ Deno.test("Integration: execution failure extracts troubleshooting learning", as
     assertGreaterOrEqual(learnings.length, 1);
     const learning = learnings[0];
     assertEquals(learning.category, "troubleshooting");
-    assertStringIncludes(learning.description.toLowerCase(), FlowOutputFormat.JSON);
+    assertStringIncludes(learning.description.toLowerCase(), UIOutputFormat.JSON);
   } finally {
     await cleanup();
   }
@@ -172,7 +175,7 @@ Deno.test("Integration: promote workflow - project → global", async () => {
     const learning: ILearning = {
       id: "ffffffff-6666-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: "Singleton IPattern Best Practice",
       description: "Use lazy initialization for singletons to avoid startup overhead",
@@ -236,7 +239,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
       {
         id: "11111111-aaaa-4000-8000-000000000001",
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         title: "Database indexing strategy",
         description: "Create indexes on frequently queried columns for optimal database performance",
@@ -248,7 +251,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
       {
         id: "11111111-aaaa-4000-8000-000000000002",
         created_at: new Date().toISOString(),
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: "Error logging best practice",
         description: "Always log errors with stack traces and context for debugging",
@@ -319,7 +322,7 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
     const commands = new MemoryCommands(context);
 
     // Step 1: List (should be empty or minimal)
-    const listResult = await commands.list("table");
+    const listResult = await commands.list(UIOutputFormat.TABLE);
     assertExists(listResult);
 
     // Step 2: Create project memory via service (simulating real usage)
@@ -339,15 +342,15 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
     });
 
     // Step 3: List projects
-    const projectListResult = await commands.projectList("table");
+    const projectListResult = await commands.projectList(UIOutputFormat.TABLE);
     assertStringIncludes(projectListResult, "cli-test-portal");
 
     // Step 4: Show project
-    const projectShowResult = await commands.projectShow("cli-test-portal", "table");
+    const projectShowResult = await commands.projectShow("cli-test-portal", UIOutputFormat.TABLE);
     assertStringIncludes(projectShowResult, "Factory IPattern");
 
     // Step 5: Search
-    const searchResult = await commands.search("factory", { format: "table" });
+    const searchResult = await commands.search("factory", { format: UIOutputFormat.TABLE });
     assertStringIncludes(searchResult, "Factory");
 
     // Step 6: Rebuild index
@@ -410,7 +413,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
     await extractor.createProposal(learnings[0], execution, execution.agent);
 
     // List pending via CLI
-    const pendingList = await commands.pendingList("table");
+    const pendingList = await commands.pendingList(UIOutputFormat.TABLE);
     assertStringIncludes(pendingList, MemoryStatus.PENDING);
 
     // Get the proposal ID
@@ -479,7 +482,7 @@ Deno.test("Integration: performance - embedding search completes under 500ms", a
     const learnings: ILearning[] = Array.from({ length: 20 }, (_, i) => ({
       id: `33333333-cccc-4000-8000-00000000000${i.toString().padStart(2, "0")}`,
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: `ILearning ${i}`,
       description: `Description for learning ${i} with some searchable content`,

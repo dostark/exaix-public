@@ -6,7 +6,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { MemorySource } from "../../src/shared/enums.ts";
+import { MemoryBankSource } from "../../src/shared/enums.ts";
 import { assertSpyCalls, spy } from "@std/testing/mock";
 import { DatabaseActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { ActivityRepository } from "../../src/repositories/activity_repository.ts";
@@ -168,7 +168,7 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
     {
       id: "1",
       trace_id: "trace1",
-      actor: MemorySource.USER,
+      actor: MemoryBankSource.USER,
       agent_id: null,
       action_type: "user.action",
       target: "file.txt",
@@ -192,7 +192,7 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
   assertSpyCalls(getRecentActivitySpy, 1);
   assertEquals(capturedLimit, 10);
   assertEquals(activities.length, 1);
-  assertEquals(activities[0].actor, MemorySource.USER);
+  assertEquals(activities[0].actor, MemoryBankSource.USER);
 });
 
 Deno.test("DatabaseActivityRepository: maps database records to domain objects", async () => {

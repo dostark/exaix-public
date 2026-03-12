@@ -9,6 +9,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalFormatter } from "../../src/cli/formatters/journal_formatter.ts";
 import { ActivityRecord } from "../../src/services/db.ts";
 import { IJournalFilterOptions } from "../../src/shared/types/database.ts";
+import { DataFormat, UIOutputFormat } from "../../src/shared/enums.ts";
 import { captureConsoleOutput } from "./helpers/console_utils.ts";
 import {
   JOURNAL_ACTIVITY_COUNT,
@@ -31,7 +32,6 @@ import {
   JOURNAL_TRACE_ID_TWO,
   JOURNAL_TRUNCATE_MAX,
   JournalAction,
-  JournalFormat,
 } from "../config/constants.ts";
 
 const baseActivities: ActivityRecord[] = [
@@ -70,7 +70,7 @@ const baseActivities: ActivityRecord[] = [
 Deno.test("JournalFormatter: renders JSON output", async () => {
   const output = await captureConsoleOutput(() => {
     const filter: IJournalFilterOptions = {};
-    JournalFormatter.render(baseActivities, filter, JournalFormat.Json);
+    JournalFormatter.render(baseActivities, filter, UIOutputFormat.JSON);
   });
 
   const parsed = JSON.parse(output) as ActivityRecord[];
@@ -81,7 +81,7 @@ Deno.test("JournalFormatter: renders JSON output", async () => {
 Deno.test("JournalFormatter: renders table output and truncates long targets", async () => {
   const output = await captureConsoleOutput(() => {
     const filter: IJournalFilterOptions = {};
-    JournalFormatter.render(baseActivities, filter, JournalFormat.Table);
+    JournalFormatter.render(baseActivities, filter, UIOutputFormat.TABLE);
   });
 
   const expectedTruncated = JOURNAL_TARGET_LONG.slice(
@@ -97,7 +97,7 @@ Deno.test("JournalFormatter: renders table output and truncates long targets", a
 Deno.test("JournalFormatter: renders text output", async () => {
   const output = await captureConsoleOutput(() => {
     const filter: IJournalFilterOptions = {};
-    JournalFormatter.render(baseActivities, filter, JournalFormat.Text);
+    JournalFormatter.render(baseActivities, filter, DataFormat.TEXT);
   });
 
   assertStringIncludes(output, JournalAction.Error);
@@ -107,7 +107,7 @@ Deno.test("JournalFormatter: renders text output", async () => {
 Deno.test("JournalFormatter: renders distinct values in table format", async () => {
   const output = await captureConsoleOutput(() => {
     const filter: IJournalFilterOptions = { distinct: JOURNAL_DISTINCT_FIELD_ACTION };
-    JournalFormatter.render(baseActivities, filter, JournalFormat.Table);
+    JournalFormatter.render(baseActivities, filter, UIOutputFormat.TABLE);
   });
 
   assertStringIncludes(output, JournalAction.Error);
@@ -120,7 +120,7 @@ Deno.test("JournalFormatter: renders counts in table format", async () => {
       ...activity,
       count: JOURNAL_COUNT_VALUE,
     }));
-    JournalFormatter.render(countActivities, filter, JournalFormat.Table);
+    JournalFormatter.render(countActivities, filter, UIOutputFormat.TABLE);
   });
 
   assertStringIncludes(output, JournalAction.Error);
@@ -134,7 +134,7 @@ Deno.test("JournalFormatter: renders counts in text format", async () => {
       ...activity,
       count: JOURNAL_COUNT_VALUE,
     }));
-    JournalFormatter.render(countActivities, filter, JournalFormat.Text);
+    JournalFormatter.render(countActivities, filter, DataFormat.TEXT);
   });
   assertStringIncludes(output, JournalAction.Error);
   assertStringIncludes(output, String(JOURNAL_COUNT_VALUE));

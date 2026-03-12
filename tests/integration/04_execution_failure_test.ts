@@ -6,11 +6,13 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { FlowStepType } from "../../src/shared/enums.ts";
-import { McpToolName } from "../../src/shared/enums.ts";
-import { PortalOperation } from "../../src/shared/enums.ts";
-import { EvaluationVerdict } from "../../src/shared/enums.ts";
-import { MemorySource } from "../../src/shared/enums.ts";
+import {
+  EvaluationVerdict,
+  FlowStepType,
+  McpToolName,
+  MemoryBankSource,
+  PortalOperation,
+} from "../../src/shared/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -103,7 +105,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
       const failureActivities = activities.filter((a) =>
         a.action_type.includes(EvaluationVerdict.FAIL) ||
         a.action_type.includes("error") ||
-        a.action_type.includes(MemorySource.EXECUTION)
+        a.action_type.includes(MemoryBankSource.EXECUTION)
       );
 
       // Should have failure-related activities
@@ -169,7 +171,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
 
       // Check for execution-related activities
       const _hasExecutionActivity = activities.some((a) =>
-        a.action_type.includes(MemorySource.EXECUTION) ||
+        a.action_type.includes(MemoryBankSource.EXECUTION) ||
         a.action_type.includes(PortalOperation.GIT)
       );
 

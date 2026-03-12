@@ -6,10 +6,7 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { MCPTransport } from "../../src/shared/enums.ts";
-
-import { McpToolName } from "../../src/shared/enums.ts";
-
+import { McpToolName, McpTransportType } from "../../src/shared/enums.ts";
 import { createMCPRequest, initMCPTestWithoutPortal } from "./helpers/test_setup.ts";
 
 /**
@@ -26,7 +23,7 @@ import { createMCPRequest, initMCPTestWithoutPortal } from "./helpers/test_setup
 Deno.test("MCP Server: initializes with stdio transport", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
-    assertEquals(ctx.server.getTransport(), MCPTransport.STDIO);
+    assertEquals(ctx.server.getTransport(), McpTransportType.STDIO);
     assertEquals(ctx.server.getServerName(), "exoframe");
     assertExists(ctx.server.getVersion());
   } finally {
@@ -110,7 +107,7 @@ Deno.test("MCP Server: logs startup to IActivity Journal", async () => {
     assertEquals(logs.length, 1);
     const log = logs[0] as { payload: string };
     const payload = JSON.parse(log.payload);
-    assertEquals(payload.transport, MCPTransport.STDIO);
+    assertEquals(payload.transport, McpTransportType.STDIO);
     assertEquals(payload.server_name, "exoframe");
   } finally {
     await ctx.cleanup();

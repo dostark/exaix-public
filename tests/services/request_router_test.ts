@@ -6,10 +6,8 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
-import { MemorySource } from "../../src/shared/enums.ts";
-
+import { RequestKind } from "../../src/shared/enums.ts";
 import { RoutingError } from "../../src/services/request_router.ts";
-
 import { createRouterTestContext, sampleRouterRequest } from "./helpers.ts";
 
 // Test-specific helpers are provided by tests/services/helpers.ts
@@ -22,7 +20,7 @@ Deno.test("RequestRouter: routes flow requests to FlowRunner", async () => {
 
   const result = await router.route(request);
 
-  assertEquals(result.type, "flow");
+  assertEquals(result.type, RequestKind.FLOW);
   assertEquals(result.flowId, "code-review");
   assertEquals(mockFlowRunner.executedFlows.length, 1);
   assertEquals(mockFlowRunner.executedFlows[0].flow.id, "code-review");
@@ -37,7 +35,7 @@ Deno.test("RequestRouter: routes agent requests to AgentRunner", async () => {
 
   const result = await router.route(request);
 
-  assertEquals(result.type, MemorySource.AGENT);
+  assertEquals(result.type, RequestKind.AGENT);
   assertEquals(result.agentId, "senior-coder");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
   assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "senior-coder");
@@ -51,7 +49,7 @@ Deno.test("RequestRouter: routes requests without flow/agent to default agent", 
 
   const result = await router.route(request);
 
-  assertEquals(result.type, MemorySource.AGENT);
+  assertEquals(result.type, RequestKind.AGENT);
   assertEquals(result.agentId, "default-agent");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
   assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "default-agent");
@@ -110,7 +108,7 @@ Deno.test("RequestRouter: flow takes priority over agent when both present (shou
 
   const result = await router.route(request);
 
-  assertEquals(result.type, "flow");
+  assertEquals(result.type, RequestKind.FLOW);
   assertEquals(result.flowId, "code-review");
   assertEquals(mockFlowRunner.executedFlows.length, 1);
   assertEquals(mockAgentRunner.executedAgents.length, 0); // Agent should not be called

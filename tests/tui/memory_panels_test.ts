@@ -6,20 +6,18 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { MemoryReferenceType } from "../../src/shared/enums.ts";
-
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
-
 import {
+  ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
+  MemoryReferenceType,
   MemoryScope,
-  MemorySource,
   MemoryType,
 } from "../../src/shared/enums.ts";
 
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
 import {
   type IPanelRenderOptions,
   MemoryColors,
@@ -89,7 +87,7 @@ function createLearning(overrides: Partial<ILearning> = {}): ILearning {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    source: MemorySource.EXECUTION,
+    source: MemoryBankSource.EXECUTION,
     scope: MemoryScope.PROJECT,
     title: "Test ILearning",
     description: "A test learning description",
@@ -461,7 +459,7 @@ Deno.test("renderPendingPanel: renders single proposal", () => {
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       scope: MemoryScope.PROJECT,
       project: "test-portal",
       title: "Test ILearning as ILearning",
@@ -490,7 +488,7 @@ Deno.test("renderPendingPanel: renders multiple proposals", () => {
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       scope: i % 2 === 0 ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
       title: `ILearning as ILearning ${i}`,
       description: `Description ${i}`,
@@ -502,7 +500,7 @@ Deno.test("renderPendingPanel: renders multiple proposals", () => {
       confidence: [ConfidenceLevel.LOW, ConfidenceLevel.MEDIUM, ConfidenceLevel.HIGH][i % 3],
     },
     reason: `Reason ${i}`,
-    agent: MemorySource.AGENT,
+    agent: MemoryBankSource.AGENT,
     status: MemoryStatus.PENDING,
   });
 
@@ -520,7 +518,7 @@ Deno.test("renderPendingPanel: handles selection", () => {
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       scope: MemoryScope.PROJECT,
       title: `Proposal ${i}`,
       description: `Desc ${i}`,
@@ -529,7 +527,7 @@ Deno.test("renderPendingPanel: handles selection", () => {
       confidence: ConfidenceLevel.MEDIUM,
     },
     reason: "Reason",
-    agent: MemorySource.AGENT,
+    agent: MemoryBankSource.AGENT,
     status: MemoryStatus.PENDING,
   }));
 

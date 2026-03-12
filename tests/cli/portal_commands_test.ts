@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { ExecutionStatus, PortalStatus } from "../../src/shared/enums.ts";
+import { PortalStatus, VerificationStatus } from "../../src/shared/enums.ts";
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { PortalCommands } from "../../src/cli/commands/portal_commands.ts";
@@ -245,7 +245,7 @@ Deno.test("PortalCommands: verifies all portals", async () => {
     assertEquals(portal1.status, "ok");
 
     assertExists(portal2);
-    assertEquals(portal2.status, ExecutionStatus.FAILED);
+    assertEquals(portal2.status, VerificationStatus.FAILED);
     assertExists(portal2.issues);
     assertEquals(portal2.issues!.length > 0, true);
   } finally {
@@ -422,7 +422,7 @@ Deno.test("PortalCommands: verify detects missing symlink", async () => {
     const results = await commands.verify("NoSymlink");
 
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, ExecutionStatus.FAILED);
+    assertEquals(results[0].status, VerificationStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(results[0].issues!.some((i: string) => i.includes("Symlink")), true);
   } finally {
@@ -441,7 +441,7 @@ Deno.test("PortalCommands: verify detects missing context card", async () => {
     const results = await commands.verify("NoCardVerify");
 
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, ExecutionStatus.FAILED);
+    assertEquals(results[0].status, VerificationStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(results[0].issues!.some((i: string) => i.includes("Context card")), true);
   } finally {
@@ -547,7 +547,7 @@ Deno.test("PortalCommands: verify detects config mismatch", async () => {
     // Verify should detect mismatch
     const results = await helper.verifyPortal("MismatchTest");
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, ExecutionStatus.FAILED);
+    assertEquals(results[0].status, VerificationStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
       results[0].issues!.some((i: string) => i.includes("Config mismatch")),
@@ -573,7 +573,7 @@ Deno.test("PortalCommands: verify detects missing config entry", async () => {
     // Verify should detect missing config
     const results = await helper.verifyPortal("Orphaned");
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, ExecutionStatus.FAILED);
+    assertEquals(results[0].status, VerificationStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
       results[0].issues!.some((i: string) => i.includes("not found in configuration")),

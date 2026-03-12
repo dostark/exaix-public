@@ -6,7 +6,7 @@
  */
 
 import { assert, assertStringIncludes } from "@std/assert";
-import { MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import { MemoryBankSource, MemoryScope } from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 
 async function readMemoryBanksDoc(): Promise<string> {
@@ -65,7 +65,7 @@ Deno.test("Memory Banks documentation documents directory purposes", async () =>
 
   // Should explain what each directory is for
   const hasProjects = lower.includes(MemoryScope.PROJECT);
-  const hasExecution = lower.includes(MemorySource.EXECUTION);
+  const hasExecution = lower.includes(MemoryBankSource.EXECUTION);
 
   assert(hasProjects && hasExecution, "Documentation should document directory purposes");
 });

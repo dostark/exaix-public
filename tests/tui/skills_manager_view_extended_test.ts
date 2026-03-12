@@ -18,7 +18,7 @@ import {
   SOURCE_ICONS,
   STATUS_ICONS,
 } from "../../src/tui/skills_manager_view.ts";
-import { MemoryScope, MemorySource, SkillStatus } from "../../src/shared/enums.ts";
+import { MemoryBankSource, MemoryScope, SkillStatus } from "../../src/shared/enums.ts";
 import { type ISkillsService as _ISkillsService } from "../../src/shared/interfaces/i_skills_service.ts";
 import {
   createSkillsManagerTuiSession,
@@ -92,7 +92,7 @@ Deno.test("SkillsManagerView: getCachedSkills returns copy of skills", async () 
       name: "Extra",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemorySource.CORE,
+      source: MemoryBankSource.CORE,
     }),
   ];
   assertNotEquals(view.getCachedSkills().length, expandedCached.length);
@@ -147,13 +147,13 @@ Deno.test("MinimalSkillsServiceMock: listSkills filters by source", async () => 
   const skills = sampleTestSkills();
   const mock = new MinimalSkillsServiceMock(skills);
 
-  const coreSkills = await mock.listSkills({ source: MemorySource.CORE });
+  const coreSkills = await mock.listSkills({ source: MemoryBankSource.CORE });
   assertEquals(coreSkills.length, 2); // tdd-methodology and security-first
 
-  const projectSkills = await mock.listSkills({ source: MemoryScope.PROJECT });
+  const projectSkills = await mock.listSkills({ source: MemoryBankSource.PROJECT });
   assertEquals(projectSkills.length, 2); // project-conventions and deprecated-skill
 
-  const learnedSkills = await mock.listSkills({ source: MemorySource.LEARNED });
+  const learnedSkills = await mock.listSkills({ source: MemoryBankSource.LEARNED });
   assertEquals(learnedSkills.length, 1); // learned-pattern
 });
 
@@ -175,7 +175,7 @@ Deno.test("MinimalSkillsServiceMock: listSkills filters by both source and statu
   const skills = sampleTestSkills();
   const mock = new MinimalSkillsServiceMock(skills);
 
-  const result = await mock.listSkills({ source: MemorySource.CORE, status: SkillStatus.ACTIVE });
+  const result = await mock.listSkills({ source: MemoryBankSource.CORE, status: SkillStatus.ACTIVE });
   assertEquals(result.length, 2);
 });
 
@@ -262,7 +262,9 @@ testSkillsSessionRender(
   [KEYS.DOWN, KEYS.DOWN, KEYS.DOWN, KEYS.DOWN, KEYS.DOWN], // Navigate to a project/learned skill
   async (_rendered, session) => {
     const state = session.getState();
-    if (state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemorySource.LEARNED)) {
+    if (
+      state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemoryBankSource.LEARNED)
+    ) {
       await session.handleKey(KEYS.D);
       // Check if dialog opened or not, depending on implementation
     }
@@ -472,7 +474,7 @@ Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)",
       name: "Long Instructions",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemorySource.PROJECT,
+      source: MemoryBankSource.PROJECT,
       description: "Skill with long instructions",
       instructions: Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join("\n"),
     }),

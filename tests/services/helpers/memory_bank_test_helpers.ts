@@ -15,9 +15,9 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryReferenceType,
   MemoryScope,
-  MemorySource,
 } from "../../../src/shared/enums.ts";
 import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
 
@@ -61,7 +61,7 @@ export async function createTestMemoryBankWithGlobal(
       const defaultLearning = createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440000",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
+        source: MemoryBankSource.USER,
         scope: MemoryScope.GLOBAL,
         title: "Test IPattern",
         description: "A test pattern for global memory",
@@ -180,7 +180,7 @@ export function createSampleLearning(overrides: Partial<ILearning> = {}): ILearn
   return {
     id: overrides.id ?? "learning-123",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
-    source: overrides.source ?? MemorySource.EXECUTION,
+    source: overrides.source ?? MemoryBankSource.EXECUTION,
     source_id: overrides.source_id ?? "trace-123",
     scope: overrides.scope ?? MemoryScope.PROJECT,
     project: overrides.project ?? "test-portal",

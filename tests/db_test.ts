@@ -5,7 +5,7 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { MemorySource } from "../src/shared/enums.ts";
+import { MemoryBankSource } from "../src/shared/enums.ts";
 
 import { initActivityTableSchema, initTestDbService } from "./helpers/db.ts";
 import { DatabaseService } from "../src/services/db.ts";
@@ -42,13 +42,13 @@ Deno.test("DatabaseService: logs single activity", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const traceId = crypto.randomUUID();
-    db.logActivity(MemorySource.USER, "test.action", "target", { foo: "bar" }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", { foo: "bar" }, traceId);
 
     await db.waitForFlush();
 
     const activities = db.getActivitiesByTrace(traceId);
     assertEquals(activities.length, 1);
-    assertEquals(activities[0].actor, MemorySource.USER);
+    assertEquals(activities[0].actor, MemoryBankSource.USER);
     assertEquals(activities[0].action_type, "test.action");
     assertEquals(activities[0].target, "target");
     assertEquals(JSON.parse(activities[0].payload).foo, "bar");
@@ -66,7 +66,7 @@ Deno.test("DatabaseService: batches multiple activities", async () => {
 
     // Log multiple activities
     for (let i = 0; i < 5; i++) {
-      db.logActivity(MemorySource.USER, "test.action", `target-${i}`, { index: i }, traceId);
+      db.logActivity(MemoryBankSource.USER, "test.action", `target-${i}`, { index: i }, traceId);
     }
 
     await db.waitForFlush();
@@ -91,7 +91,7 @@ Deno.test("DatabaseService: flushes when max batch size reached", async () => {
 
     // Log exactly MAX_BATCH_SIZE activities
     for (let i = 0; i < 100; i++) {
-      db.logActivity(MemorySource.USER, "test.action", `target-${i}`, { index: i }, traceId);
+      db.logActivity(MemoryBankSource.USER, "test.action", `target-${i}`, { index: i }, traceId);
     }
 
     // Should auto-flush at 100, no need to wait long
@@ -122,7 +122,7 @@ Deno.test("DatabaseService: prevents logging when closing", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const traceId = crypto.randomUUID();
-    db.logActivity(MemorySource.USER, "test.before", "target", { test: 1 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.before", "target", { test: 1 }, traceId);
 
     await db.waitForFlush();
 
@@ -135,7 +135,7 @@ Deno.test("DatabaseService: prevents logging when closing", async () => {
 
     // Close and try to log
     await db.close();
-    db.logActivity(MemorySource.USER, "test.after", "target", { test: 2 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.after", "target", { test: 2 }, traceId);
 
     console.warn = originalWarn;
 
@@ -155,8 +155,8 @@ Deno.test("DatabaseService: flushes pending logs on close", async () => {
     const traceId = crypto.randomUUID();
 
     // Log activities
-    db.logActivity(MemorySource.USER, "test.action1", "target", { test: 1 }, traceId);
-    db.logActivity(MemorySource.USER, "test.action2", "target", { test: 2 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action1", "target", { test: 1 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action2", "target", { test: 2 }, traceId);
 
     // Don't wait for flush, close immediately
     await db.close();
@@ -187,9 +187,9 @@ Deno.test("DatabaseService: getActivitiesByActionType returns filtered results",
     const traceId = crypto.randomUUID();
 
     // Log different action types
-    db.logActivity(MemorySource.USER, "type.one", "target1", {}, traceId);
-    db.logActivity(MemorySource.USER, "type.two", "target2", {}, traceId);
-    db.logActivity(MemorySource.USER, "type.one", "target3", {}, traceId);
+    db.logActivity(MemoryBankSource.USER, "type.one", "target1", {}, traceId);
+    db.logActivity(MemoryBankSource.USER, "type.two", "target2", {}, traceId);
+    db.logActivity(MemoryBankSource.USER, "type.one", "target3", {}, traceId);
 
     await db.waitForFlush();
 
@@ -214,7 +214,7 @@ Deno.test("DatabaseService: getRecentActivity returns limited results", async ()
 
     // Log 10 activities
     for (let i = 0; i < 10; i++) {
-      db.logActivity(MemorySource.USER, "test.action", `target-${i}`, { index: i }, traceId);
+      db.logActivity(MemoryBankSource.USER, "test.action", `target-${i}`, { index: i }, traceId);
     }
 
     await db.waitForFlush();
@@ -240,8 +240,8 @@ Deno.test("DatabaseService: getRecentActivity flushes pending logs", async () =>
     const traceId = crypto.randomUUID();
 
     // Log activities without waiting for flush
-    db.logActivity(MemorySource.USER, "test.action", "target", { test: 1 }, traceId);
-    db.logActivity(MemorySource.USER, "test.action", "target", { test: 2 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", { test: 1 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", { test: 2 }, traceId);
 
     // getRecentActivity should flush pending logs
     const recent = await db.getRecentActivity(10);
@@ -259,7 +259,7 @@ Deno.test("DatabaseService: handles null agent_id", async () => {
     const traceId = crypto.randomUUID();
 
     // Log with explicit null agent
-    db.logActivity(MemorySource.USER, "test.action", "target", { test: 1 }, traceId, null);
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", { test: 1 }, traceId, null);
 
     await db.waitForFlush();
 
@@ -279,7 +279,7 @@ Deno.test("DatabaseService: handles null target", async () => {
     const traceId = crypto.randomUUID();
 
     // Log with null target
-    db.logActivity(MemorySource.USER, "test.action", null, { test: 1 }, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action", null, { test: 1 }, traceId);
 
     await db.waitForFlush();
 
@@ -310,7 +310,7 @@ Deno.test("DatabaseService: handles complex payload objects", async () => {
       nullValue: null,
     };
 
-    db.logActivity(MemorySource.USER, "test.action", "target", complexPayload, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", complexPayload, traceId);
 
     await db.waitForFlush();
 
@@ -337,7 +337,7 @@ Deno.test("DatabaseService: generates unique activity IDs", async () => {
 
     // Log multiple activities
     for (let i = 0; i < 5; i++) {
-      db.logActivity(MemorySource.USER, "test.action", "target", {}, traceId);
+      db.logActivity(MemoryBankSource.USER, "test.action", "target", {}, traceId);
     }
 
     await db.waitForFlush();
@@ -359,7 +359,7 @@ Deno.test("DatabaseService: auto-generates trace_id if not provided", async () =
   const { db, cleanup } = await initTestDbService();
   try {
     // Log without trace_id
-    db.logActivity(MemorySource.USER, "test.action", "target", {});
+    db.logActivity(MemoryBankSource.USER, "test.action", "target", {});
 
     await db.waitForFlush();
 
@@ -380,7 +380,7 @@ Deno.test("DatabaseService: persists data across connections", async () => {
     const traceId = crypto.randomUUID();
 
     // First connection - write data
-    db1.logActivity(MemorySource.USER, "test.action", "target", { test: 1 }, traceId);
+    db1.logActivity(MemoryBankSource.USER, "test.action", "target", { test: 1 }, traceId);
     await db1.waitForFlush();
     await db1.close();
 
@@ -412,7 +412,7 @@ Deno.test("DatabaseService: handles rapid concurrent logging", async () => {
     // Log many activities rapidly
     const promises = [];
     for (let i = 0; i < 50; i++) {
-      db.logActivity(MemorySource.USER, "test.action", `target-${i}`, { index: i }, traceId);
+      db.logActivity(MemoryBankSource.USER, "test.action", `target-${i}`, { index: i }, traceId);
       // Add small async operation to simulate concurrency
       promises.push(
         new Promise((resolve) => queueMicrotask(() => resolve(undefined))),
@@ -451,7 +451,7 @@ Deno.test("DatabaseService: handles transaction rollback on error", async () => 
       return originalExec(sql, ...(args as never[]));
     };
 
-    db.logActivity(MemorySource.USER, "test.fail", "target", {}, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.fail", "target", {}, traceId);
     await db.waitForFlush();
 
     const activities = db.getActivitiesByTrace(traceId);
@@ -481,7 +481,7 @@ Deno.test("DatabaseService: retries on database locked", async () => {
       return originalExec(sql, ...(args as Parameters<typeof originalExec>));
     };
 
-    db.logActivity(MemorySource.USER, "test.retry", "target", {}, traceId);
+    db.logActivity(MemoryBankSource.USER, "test.retry", "target", {}, traceId);
 
     // Wait for retries
     await new Promise((resolve) => setTimeout(resolve, 1000));

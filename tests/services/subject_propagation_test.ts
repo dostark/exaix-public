@@ -139,7 +139,7 @@ created: "${new Date().toISOString()}"
 status: "pending"
 priority: "normal"
 agent: "test-agent"
-source: "cli"
+source: RequestSource.CLI
 created_by: "user"
 subject: "${initialSubject}"
 subject_is_fallback: true
@@ -198,7 +198,7 @@ created: "${new Date().toISOString()}"
 status: "pending"
 priority: "normal"
 agent: "test-agent"
-source: "cli"
+source: RequestSource.CLI
 created_by: "user"
 subject: "${explicitSubject}"
 subject_is_fallback: false

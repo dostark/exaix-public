@@ -16,8 +16,8 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryScope,
-  MemorySource,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryExecutionDir, getMemoryIndexDir, getMemoryProjectsDir } from "../helpers/paths_helper.ts";
@@ -649,7 +649,7 @@ Deno.test("MemoryBankService: file locking serializes global learning updates", 
       const learning: ILearning = {
         id: generateTestUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         title: `Sequential ILearning ${i}`,
         description: `ILearning added sequentially ${i}`,
@@ -685,7 +685,7 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "First ILearning",
       description: "Testing lock acquisition",
@@ -700,7 +700,7 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "Second ILearning",
       description: "Testing lock release",
@@ -730,7 +730,7 @@ Deno.test("MemoryBankService: lock files are cleaned up on success", async () =>
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.AGENT,
+      source: MemoryBankSource.AGENT,
       scope: MemoryScope.GLOBAL,
       title: "Cleanup Test",
       description: "Testing lock file cleanup",
@@ -763,7 +763,7 @@ Deno.test("MemoryBankService: lock files are cleaned up on failure", async () =>
       await service.addGlobalLearning({
         id: duplicateId,
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         title: "Duplicate Test",
         description: "First instance",
@@ -778,7 +778,7 @@ Deno.test("MemoryBankService: lock files are cleaned up on failure", async () =>
       await service.addGlobalLearning({
         id: duplicateId, // Same ID
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         title: "Duplicate Test",
         description: "Second instance - should fail",

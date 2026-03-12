@@ -11,10 +11,10 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryReferenceType,
   MemoryScope,
-  MemorySource,
   SkillStatus,
 } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
@@ -133,7 +133,7 @@ function createLearning(): ILearning {
   return {
     id: TEST_TRACE_ID,
     created_at: TEST_GLOBAL_UPDATED_AT,
-    source: MemorySource.USER,
+    source: MemoryBankSource.USER,
     scope: MemoryScope.GLOBAL,
     project: undefined,
     title: TEST_PATTERN_NAME,
@@ -169,7 +169,7 @@ function createPendingProposal(): IMemoryUpdateProposal {
     learning: {
       id: TEST_TRACE_ID,
       created_at: TEST_STARTED_AT,
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       title: TEST_PENDING_LEARNING_TITLE,
       description: TEST_PENDING_LEARNING_DESCRIPTION,
@@ -190,7 +190,7 @@ function createSkill(): ISkill {
     id: TEST_TRACE_ID,
     skill_id: TEST_SKILL_ID,
     name: TEST_SKILL_NAME,
-    source: MemorySource.USER,
+    source: MemoryBankSource.USER,
     scope: MemoryScope.PROJECT,
     version: TEST_SKILL_VERSION,
     status: SkillStatus.ACTIVE,

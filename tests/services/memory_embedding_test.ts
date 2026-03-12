@@ -6,8 +6,13 @@
  */
 
 import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { EvaluationCategory } from "../../src/shared/enums.ts";
-
+import {
+  ConfidenceLevel,
+  EvaluationCategory,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryScope,
+} from "../../src/shared/enums.ts";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import {
@@ -17,7 +22,6 @@ import {
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { ILearning } from "../../src/shared/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
@@ -26,7 +30,7 @@ import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 const testLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000001",
   created_at: new Date().toISOString(),
-  source: MemorySource.AGENT,
+  source: MemoryBankSource.AGENT,
   scope: MemoryScope.GLOBAL,
   title: "Test learning for embedding",
   description: "This is a test learning about error handling best practices in TypeScript",
@@ -39,7 +43,7 @@ const testLearning: ILearning = {
 const anotherTestLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000002",
   created_at: new Date().toISOString(),
-  source: MemorySource.USER,
+  source: MemoryBankSource.USER,
   scope: MemoryScope.GLOBAL,
   title: "Another learning about errors",
   description: "Error propagation should use Result types for better error handling",
@@ -52,7 +56,7 @@ const anotherTestLearning: ILearning = {
 const unrelatedLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000003",
   created_at: new Date().toISOString(),
-  source: MemorySource.EXECUTION,
+  source: MemoryBankSource.EXECUTION,
   scope: MemoryScope.GLOBAL,
   title: "Database optimization tips",
   description: "Use indexes on frequently queried columns for better performance",

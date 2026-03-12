@@ -5,10 +5,14 @@
  * categorization and metadata display in the terminal review interface.
  */
 
-import { ConfidenceLevel } from "../../src/shared/enums.ts";
-import { EvaluationCategory as _EvaluationCategory } from "../../src/shared/enums.ts";
-import { MemoryReferenceType as _MemoryReferenceType } from "../../src/shared/enums.ts";
-import { LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/shared/enums.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryBankSource,
+  MemoryOperation,
+  MemoryReferenceType as _MemoryReferenceType,
+  MemoryScope,
+} from "../../src/shared/enums.ts";
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryViewTuiSession as _MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
@@ -114,7 +118,7 @@ Deno.test("renderPendingPanel: limits display to 10 items", () => {
         description: "Test",
         confidence: ConfidenceLevel.HIGH,
         tags: [],
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: MemoryScope.GLOBAL,
         created_at: new Date().toISOString(),
       },
