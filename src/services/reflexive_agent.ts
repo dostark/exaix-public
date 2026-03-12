@@ -117,13 +117,13 @@ Consider:
 ## Response Format
 Respond with a JSON object:
 {
-  "quality": "excellent" | "good" | "acceptable" | "needs_improvement" | "poor",
+  "quality": "${CritiqueQuality.EXCELLENT}" | "${CritiqueQuality.GOOD}" | "${CritiqueQuality.ACCEPTABLE}" | "${CritiqueQuality.NEEDS_IMPROVEMENT}" | "${CritiqueQuality.POOR}",
   "confidence": <0-100>,
   "passed": <true if quality is acceptable or better>,
   "issues": [
     {
-      "type": "accuracy" | "completeness" | "clarity" | "relevance" | "format" | "logic" | "other",
-      "severity": "critical" | "major" | "minor" | "suggestion",
+      "type": "${CritiqueIssueType.ACCURACY}" | "${CritiqueIssueType.COMPLETENESS}" | "${CritiqueIssueType.CLARITY}" | "${CritiqueIssueType.RELEVANCE}" | "${CritiqueIssueType.FORMAT}" | "${CritiqueIssueType.LOGIC}" | "${CritiqueIssueType.OTHER}",
+      "severity": "${CritiqueSeverity.CRITICAL}" | "${CritiqueSeverity.MAJOR}" | "${CritiqueSeverity.MINOR}" | "${CritiqueSeverity.SUGGESTION}",
       "description": "...",
       "suggestion": "..."
     }

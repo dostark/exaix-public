@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { EvaluationCategory } from "../shared/enums.ts";
+import { EvaluationCategory, EvaluationCriterionProperty } from "../shared/enums.ts";
 
 /**
  * Schema for an evaluation criterion
@@ -325,7 +325,9 @@ export function checkRequiredCriteria(
 export function createCriterion(
   name: string,
   description: string,
-  options: Partial<Omit<EvaluationCriterion, "name" | "description">> = {},
+  options: Partial<
+    Omit<EvaluationCriterion, EvaluationCriterionProperty.NAME | EvaluationCriterionProperty.DESCRIPTION>
+  > = {},
 ): EvaluationCriterion {
   return EvaluationCriterionSchema.parse({
     name,

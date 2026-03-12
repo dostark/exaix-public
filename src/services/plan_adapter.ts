@@ -107,7 +107,7 @@ Common Requirements:
 - "subject": string (1-80 chars, summary describing the goal)
 - "description": string
 - "steps": array of objects (if this is an execution plan)
-- "analysis" | "security" | "qa" | "performance": objects (if this is an analysis report)
+- analysis, security, qa, performance: objects (if this is an analysis report)
 
 Ensure you use valid JSON syntax (no trailing commas, double quotes for keys).
 `.trim();

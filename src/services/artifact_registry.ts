@@ -39,6 +39,8 @@ function shortId(): string {
   return crypto.randomUUID().split("-")[0];
 }
 
+import { ArtifactSubtype as ArtifactType } from "../shared/enums.ts";
+
 /**
  * Service for managing read-only agent artifacts
  */
@@ -47,7 +49,7 @@ export class ArtifactRegistry {
     return {
       id: row.id,
       status: coerceReviewStatus(row.status),
-      type: row.type as "analysis" | "report" | "diagram",
+      type: row.type as ArtifactType,
       agent: row.agent,
       portal: row.portal,
       target_branch: row.target_branch,
@@ -89,7 +91,7 @@ export class ArtifactRegistry {
     // Create frontmatter
     const frontmatter: IArtifactFrontmatter = {
       status: ReviewStatus.PENDING,
-      type: "analysis",
+      type: ArtifactType.ANALYSIS,
       agent,
       portal: portal || null,
       target_branch: targetBranch?.trim() ? targetBranch.trim() : null,

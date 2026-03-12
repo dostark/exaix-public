@@ -20,7 +20,7 @@ export function defineFlow(config: {
     agent: string;
     dependsOn?: string[];
     input?: {
-      source?: "request" | "step" | "aggregate" | "feedback";
+      source?: FlowInputSource;
       stepId?: string;
       from?: string[];
       transform?: string;
@@ -35,7 +35,7 @@ export function defineFlow(config: {
     /** Skills to apply for this step (Phase 17) */
     skills?: string[];
   }>;
-  output: { from: string | string[]; format?: "markdown" | "json" | "concat" };
+  output: { from: string | string[]; format?: FlowOutputFormat };
   settings?: { maxParallelism?: number; failFast?: boolean; timeout?: number };
   /** Default skills to apply to all steps (Phase 17) */
   defaultSkills?: string[];

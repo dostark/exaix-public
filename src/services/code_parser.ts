@@ -8,11 +8,7 @@
  */
 
 import { join, normalize } from "@std/path";
-
-/**
- * File change operation types
- */
-export type FileOperation = "create" | "modify" | "delete";
+import { FileOperation } from "../shared/enums.ts";
 
 /**
  * Represents a file change to be applied
@@ -112,7 +108,7 @@ export function parseCodeGeneration(
     if (operation === "delete") {
       changes.push({
         path: filePath,
-        operation: "delete",
+        operation: FileOperation.DELETE,
       });
       continue;
     }
@@ -125,9 +121,18 @@ export function parseCodeGeneration(
 
     const [, , code] = codeBlockMatch;
 
+    let opType: FileOperation;
+    if (operation === "create") {
+      opType = FileOperation.CREATE;
+    } else if (operation === "modify") {
+      opType = FileOperation.MODIFY;
+    } else {
+      opType = FileOperation.DELETE;
+    }
+
     changes.push({
       path: filePath,
-      operation: operation as FileOperation,
+      operation: opType,
       content: code,
     });
   }

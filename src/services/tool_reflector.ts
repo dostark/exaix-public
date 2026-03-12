@@ -121,9 +121,9 @@ Respond with a JSON object:
   "achieved_purpose": <true if purpose was fulfilled>,
   "issues": [
     {
-      "type": "error" | "incomplete" | "unexpected" | "timeout" | "permission" | "format" | "other",
+      "type": "error, incomplete, unexpected, timeout, permission, format, or other",
       "description": "Issue description",
-      "severity": "critical" | "major" | "minor"
+      "severity": "critical, major, or minor"
     }
   ],
   "retry_suggested": <true if retry would help>,

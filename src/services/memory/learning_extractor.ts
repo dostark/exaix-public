@@ -11,9 +11,9 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryReferenceType,
   MemoryScope,
-  MemorySource,
 } from "../../shared/enums.ts";
 
 /**
@@ -101,7 +101,7 @@ export class LearningExtractor {
     return {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       source_id: execution.trace_id,
       scope: MemoryScope.PROJECT,
       project: execution.portal,
@@ -201,7 +201,7 @@ export class LearningExtractor {
         learnings.push({
           id: crypto.randomUUID(),
           created_at: new Date().toISOString(),
-          source: MemorySource.EXECUTION,
+          source: MemoryBankSource.EXECUTION,
           source_id: execution.trace_id,
           scope: MemoryScope.PROJECT,
           project: execution.portal,
@@ -232,7 +232,7 @@ export class LearningExtractor {
     return {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
+      source: MemoryBankSource.EXECUTION,
       source_id: execution.trace_id,
       scope: MemoryScope.PROJECT,
       project: execution.portal,

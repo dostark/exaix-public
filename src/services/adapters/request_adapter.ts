@@ -10,6 +10,7 @@
 import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
 import { type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
 import { type RequestStatusType } from "../../shared/status/request_status.ts";
+import { AnalysisMode } from "../../shared/types/request.ts";
 import type {
   IRequestEntry,
   IRequestMetadata,
@@ -70,7 +71,7 @@ export class RequestAdapter implements IRequestService {
 
   async analyze(
     requestId: string,
-    options?: { mode?: "heuristic" | "llm" | "hybrid"; force?: boolean },
+    options?: { mode?: AnalysisMode; force?: boolean },
   ): Promise<IRequestAnalysis> {
     return await this.service.analyze(requestId, options);
   }

@@ -630,7 +630,7 @@ export class ToolRegistry {
     this.executors.set("create_directory", (p) => this.createDirectory(str(p.path)));
     this.executors.set(
       "fetch_url",
-      (p) => this.fetchUrl(str(p.url), p.format ? str(p.format) as "text" | "markdown" : undefined),
+      (p) => this.fetchUrl(str(p.url), p.format ? str(p.format) : undefined),
     );
     this.executors.set(
       "grep_search",
@@ -654,7 +654,7 @@ export class ToolRegistry {
     this.executors.set("delete_file", (p) => this.deleteFile(str(p.path)));
     this.executors.set(
       "git_info",
-      (p) => this.gitInfo(str(p.repo_path), p.scope ? str(p.scope) as "status" | "branch" | "diff_summary" : undefined),
+      (p) => this.gitInfo(str(p.repo_path), p.scope ? str(p.scope) : undefined),
     );
     this.executors.set(
       "deno_task",
@@ -1008,7 +1008,7 @@ export class ToolRegistry {
   /**
    * Fetch URL tool implementation
    */
-  private async fetchUrl(url: string, format: "text" | "markdown" = "markdown"): Promise<IToolResult> {
+  private async fetchUrl(url: string, format: string = "markdown"): Promise<IToolResult> {
     try {
       // 1. Check if enabled
       if (!this.config.tools?.fetch_url?.enabled) {
@@ -1265,7 +1265,7 @@ export class ToolRegistry {
    */
   private async gitInfo(
     repoPath: string,
-    scope: "status" | "branch" | "diff_summary" = "status",
+    scope: string = "status",
   ): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(repoPath);

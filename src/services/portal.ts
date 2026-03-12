@@ -10,7 +10,7 @@
 import { join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { Config } from "../shared/schemas/config.ts";
-import { PortalExecutionStrategy, PortalStatus } from "../shared/enums.ts";
+import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../shared/enums.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../shared/types/portal.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
 import { IContextCardGeneratorService } from "../shared/interfaces/i_context_card_generator_service.ts";
@@ -310,7 +310,7 @@ export class PortalService {
 
       results.push({
         alias: portalAlias,
-        status: issues.length === 0 ? "ok" : "failed",
+        status: issues.length === 0 ? VerificationStatus.OK : VerificationStatus.FAILED,
         issues: issues.length > 0 ? issues : undefined,
       });
     }

@@ -125,12 +125,12 @@ Assess the confidence level of this response. Consider:
 Respond with a JSON object:
 {
   "score": <0-100 confidence score>,
-  "level": "very_high" | "high" | "medium" | "low" | "very_low",
+  "level": "one of: very_high, high, medium, low, or very_low",
   "reasoning": "Why this confidence level was assigned",
   "factors": [
     {
       "name": "factor name",
-      "impact": "positive" | "negative" | "neutral",
+      "impact": "one of: positive, negative, or neutral",
       "weight": <0-1 importance>,
       "description": "How this factor affects confidence"
     }

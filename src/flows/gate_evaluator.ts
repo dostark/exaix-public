@@ -17,7 +17,7 @@ import {
   getCriteriaByNames,
 } from "./evaluation_criteria.ts";
 import { IStepResult } from "./flow_runner.ts";
-import { FlowGateOnFail } from "../shared/enums.ts";
+import { FlowGateAction, FlowGateOnFail } from "../shared/enums.ts";
 
 /**
  * Result of gate evaluation
@@ -32,7 +32,7 @@ export interface IGateResult {
   /** Number of attempts made */
   attempts: number;
   /** Action taken based on result */
-  action: "passed" | "retry" | "halted" | "continued-with-warning";
+  action: FlowGateAction;
   /** Duration of evaluation in ms */
   evaluationDurationMs: number;
   /** Any error that occurred */
@@ -107,15 +107,15 @@ export class GateEvaluator {
       const passed = this.checkPassed(evaluation, criteria, config.threshold);
 
       // Determine action
-      let action: IGateResult["action"];
+      let action: FlowGateAction;
       if (passed) {
-        action = "passed";
-      } else if (config.onFail === "retry" && previousAttempts < config.maxRetries - 1) {
-        action = "retry";
-      } else if (config.onFail === "continue-with-warning") {
-        action = "continued-with-warning";
+        action = FlowGateAction.PASSED;
+      } else if (config.onFail === FlowGateOnFail.RETRY && previousAttempts < config.maxRetries - 1) {
+        action = FlowGateAction.RETRY;
+      } else if (config.onFail === FlowGateOnFail.CONTINUE_WITH_WARNING) {
+        action = FlowGateAction.CONTINUED_WITH_WARNING;
       } else {
-        action = "halted";
+        action = FlowGateAction.HALTED;
       }
 
       return {
@@ -132,7 +132,9 @@ export class GateEvaluator {
         score: 0,
         evaluation: this.createErrorEvaluation(error),
         attempts: previousAttempts + 1,
-        action: config.onFail === "continue-with-warning" ? "continued-with-warning" : "halted",
+        action: config.onFail === FlowGateOnFail.CONTINUE_WITH_WARNING
+          ? FlowGateAction.CONTINUED_WITH_WARNING
+          : FlowGateAction.HALTED,
         evaluationDurationMs: performance.now() - startTime,
         error: error instanceof Error ? error.message : String(error),
       };

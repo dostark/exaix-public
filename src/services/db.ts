@@ -317,7 +317,10 @@ export class DatabaseService implements IDatabaseService {
     return z.array(ActivityRecordSchema).parse(rows);
   }
 
-  private async queryByFieldSafe(field: "trace_id" | "action_type", value: string): Promise<ActivityRecord[]> {
+  private async queryByFieldSafe(
+    field: string,
+    value: string,
+  ): Promise<ActivityRecord[]> {
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
        FROM activity

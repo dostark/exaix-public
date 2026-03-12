@@ -11,7 +11,7 @@ import { z } from "zod";
 import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
 import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
 import type { ILearning, IMemorySearchResult } from "../shared/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../shared/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryBankSource, MemoryScope } from "../shared/enums.ts";
 import { MemoryStatus } from "../shared/status/memory_status.ts";
 
 // ===== Configuration Schema =====
@@ -260,7 +260,7 @@ export class SessionMemoryService {
       const learning: ILearning = {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemorySource.AGENT,
+        source: MemoryBankSource.AGENT,
         scope: insight.portal ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
         project: insight.portal,
         title: insight.title,

@@ -17,7 +17,6 @@ import { applyAnalysisToRequest, buildParsedRequest } from "./request_common.ts"
 import { BlueprintLoader, type ILoadedBlueprint } from "./blueprint_loader.ts";
 import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
-import { TaskComplexity } from "../shared/enums.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
 import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
@@ -39,7 +38,10 @@ import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { IServiceContext } from "./common/types.ts";
 import { RequestAnalyzer, saveAnalysis } from "./request_analysis/mod.ts";
 import { type IRequestAnalysis, RequestAnalysisComplexity } from "../shared/schemas/request_analysis.ts";
-import type { IRequestAnalyzerService } from "../shared/interfaces/i_request_analyzer_service.ts";
+import { IRequestAnalyzerService } from "../shared/interfaces/i_request_analyzer_service.ts";
+import { RequestKind, TaskComplexity } from "../shared/enums.ts";
+
+import { AnalysisMode } from "../shared/types/request.ts";
 
 export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
@@ -48,7 +50,7 @@ export interface IRequestProcessingContext extends IServiceContext {
   body: string;
   traceLogger: EventLogger;
   requestId: string;
-  requestKind: "flow" | "agent";
+  requestKind: RequestKind;
   analysis?: IRequestAnalysis;
 }
 
@@ -118,7 +120,7 @@ export class RequestProcessor {
     this.requestParser = new RequestParser(this.logger);
     this.statusManager = new StatusManager(this.logger);
     this.analyzer = testAnalyzer ?? new RequestAnalyzer({
-      mode: config.request_analysis?.mode ?? "heuristic",
+      mode: config.request_analysis?.mode ?? AnalysisMode.HEURISTIC,
       actionabilityThreshold: config.request_analysis?.actionability_threshold,
       inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
     });
@@ -226,7 +228,7 @@ export class RequestProcessor {
     frontmatter: IRequestFrontmatter;
     filePath: string;
     traceLogger: EventLogger;
-  }): Promise<"flow" | "agent" | null> {
+  }): Promise<RequestKind | null> {
     const { frontmatter, filePath, traceLogger } = args;
 
     const hasFlow = !!frontmatter.flow;
@@ -256,7 +258,7 @@ export class RequestProcessor {
       return null;
     }
 
-    return hasFlow ? "flow" : "agent";
+    return hasFlow ? RequestKind.FLOW : RequestKind.AGENT;
   }
 
   private createRequestProcessingPipeline(): MiddlewarePipeline<IRequestProcessingContext> {
@@ -292,7 +294,7 @@ export class RequestProcessor {
   }
 
   private processRequestByKind(
-    kind: "flow" | "agent",
+    kind: RequestKind,
     frontmatter: IRequestFrontmatter,
     body: string,
     filePath: string,
@@ -301,7 +303,7 @@ export class RequestProcessor {
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
   ): Promise<string | null> {
-    if (kind === "flow") {
+    if (kind === RequestKind.FLOW) {
       return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis);
     }
 

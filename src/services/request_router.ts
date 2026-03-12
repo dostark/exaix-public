@@ -21,6 +21,7 @@ import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import type { IRequestFrontmatter } from "./request_processing/types.ts";
 import type { IFlow } from "../shared/schemas/flow.ts";
+import { RequestKind } from "../shared/enums.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine
@@ -33,7 +34,7 @@ import type { IFlow } from "../shared/schemas/flow.ts";
  */
 
 export interface IRoutingDecision {
-  type: "flow" | "agent";
+  type: RequestKind;
   flowId?: string;
   agentId?: string;
   result: IAgentExecutionResult | IFlowResult;
@@ -186,7 +187,7 @@ export class RequestRouter {
     );
 
     return {
-      type: "flow",
+      type: RequestKind.FLOW,
       flowId,
       result,
     };
@@ -225,7 +226,7 @@ export class RequestRouter {
     const result = await this.agentRunner.run(blueprint, parsedRequest);
 
     return {
-      type: "agent",
+      type: RequestKind.AGENT,
       agentId,
       result,
     };
@@ -264,7 +265,7 @@ export class RequestRouter {
     const result = await this.agentRunner.run(blueprint, parsedRequest);
 
     return {
-      type: "agent",
+      type: RequestKind.AGENT,
       agentId: this.defaultAgentId,
       result,
     };

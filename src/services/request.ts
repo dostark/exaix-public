@@ -11,18 +11,13 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { Config } from "../shared/schemas/config.ts";
 import { RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
-import { RequestPriority } from "../shared/enums.ts";
-import {
-  IRequestEntry,
-  IRequestMetadata,
-  IRequestOptions,
-  IRequestShowResult,
-  RequestSource,
-} from "../shared/types/request.ts";
+import { RequestPriority, RequestSource } from "../shared/enums.ts";
+import { IRequestEntry, IRequestMetadata, IRequestOptions, IRequestShowResult } from "../shared/types/request.ts";
 import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
 import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
-import { loadAnalysis } from "./request_analysis/mod.ts";
+import { loadAnalysis, RequestAnalyzer, saveAnalysis } from "./request_analysis/mod.ts";
+import { AnalysisMode } from "../shared/types/request.ts";
 import { JSONValue } from "../shared/types/json.ts";
 
 export class RequestService {
@@ -42,7 +37,7 @@ export class RequestService {
   async create(
     description: string,
     options: IRequestOptions = {},
-    source: RequestSource = "cli",
+    source: RequestSource = RequestSource.CLI,
   ): Promise<IRequestMetadata> {
     const trimmedDescription = description.trim();
     if (!trimmedDescription) throw new Error("Description cannot be empty");
@@ -174,7 +169,7 @@ export class RequestService {
           agent: "default",
           created: "",
           created_by: "unknown",
-          source: "cli",
+          source: RequestSource.CLI,
           subject: "",
         },
         content: content.trim(),
@@ -242,6 +237,31 @@ export class RequestService {
     return loadAnalysis(path);
   }
 
+  async analyze(requestId: string, options: { mode?: AnalysisMode; force?: boolean } = {}): Promise<IRequestAnalysis> {
+    const filename = await this.findFilename(requestId);
+    if (!filename) throw new Error(`Request not found: ${requestId}`);
+    const path = join(this.requestsDir, filename);
+
+    // Read request body
+    const content = await Deno.readTextFile(path);
+    const body = content.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
+
+    // Get metadata from show() to get priority/agent
+    const { metadata } = await this.show(filename);
+
+    const analyzer = new RequestAnalyzer({
+      mode: options.mode || AnalysisMode.HEURISTIC,
+    });
+
+    const analysis = await analyzer.analyze(body, {
+      agentId: metadata.agent,
+      priority: metadata.priority,
+    });
+
+    await saveAnalysis(path, analysis);
+    return analysis;
+  }
+
   private toRequestEntry(fm: Record<string, string>, filename: string, path: string): IRequestEntry {
     return {
       trace_id: fm.trace_id || "",
@@ -270,10 +290,13 @@ export class RequestService {
   }
 
   private parseSource(source?: string): RequestSource {
-    if (source === "cli" || source === "file" || source === "interactive" || source === "tui") {
-      return source;
+    if (
+      source === RequestSource.CLI || source === RequestSource.FILE || source === RequestSource.INTERACTIVE ||
+      source === RequestSource.TUI
+    ) {
+      return source as RequestSource;
     }
-    return "cli";
+    return RequestSource.CLI;
   }
 
   private async findFilename(id: string): Promise<string | null> {

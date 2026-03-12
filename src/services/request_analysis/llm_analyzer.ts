@@ -39,10 +39,10 @@ Respond with ONLY a valid JSON object matching this exact structure (no markdown
   "requirements": [{ "description": "string", "confidence": number (0.0-1.0) }],
   "constraints": ["string"],
   "acceptanceCriteria": ["string"],
-  "ambiguities": [{ "description": "string", "impact": "low"|"medium"|"high" }],
+  "ambiguities": [{ "description": "string", "impact": "low, medium, or high" }],
   "actionabilityScore": number (0-100, higher = clearer/more actionable),
-  "complexity": "simple"|"medium"|"complex"|"epic",
-  "taskType": "feature"|"bugfix"|"refactor"|"test"|"docs"|"analysis"|"unknown",
+  "complexity": "simple, medium, complex, or epic",
+  "taskType": "feature, bugfix, refactor, test, docs, analysis, or unknown",
   "tags": ["string"],
   "referencedFiles": ["string"],
   "metadata": {

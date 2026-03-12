@@ -8,9 +8,9 @@
 
 import type { ISkillsService } from "../../shared/interfaces/i_skills_service.ts";
 import type { SkillsService } from "../skills.ts";
-import type { ISkill, ISkillMatch } from "../../shared/schemas/memory_bank.ts";
+import type { ISkill, ISkillMatch, SkillDefinition } from "../../shared/schemas/memory_bank.ts";
 import type { ISkillMatchRequest } from "../../shared/types/skill.ts";
-import { SkillStatus } from "../../shared/enums.ts";
+import { MemoryBankSource, SkillStatus } from "../../shared/enums.ts";
 
 export class SkillsAdapter implements ISkillsService {
   constructor(private inner: SkillsService) {}
@@ -33,12 +33,12 @@ export class SkillsAdapter implements ISkillsService {
 
   async deriveSkillFromLearnings(
     learningIds: string[],
-    skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    skillDef: SkillDefinition,
   ): Promise<ISkill> {
     return await this.inner.deriveSkillFromLearnings(learningIds, skillDef);
   }
 
-  async createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill> {
+  async createSkill(skillDef: SkillDefinition): Promise<ISkill> {
     return await this.inner.createSkill(skillDef);
   }
 
@@ -46,23 +46,18 @@ export class SkillsAdapter implements ISkillsService {
     return await this.inner.rebuildIndex();
   }
 
-  async listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]> {
+  async listSkills(filter?: { source?: MemoryBankSource; status?: SkillStatus }): Promise<ISkill[]> {
     const normalized: {
       status?: SkillStatus;
-      source?: "core" | "project" | "user" | "learned";
+      source?: MemoryBankSource;
     } = {};
 
     if (filter?.status && Object.values(SkillStatus).includes(filter.status as SkillStatus)) {
       normalized.status = filter.status as SkillStatus;
     }
 
-    if (
-      filter?.source === "core" ||
-      filter?.source === "project" ||
-      filter?.source === "user" ||
-      filter?.source === "learned"
-    ) {
-      normalized.source = filter.source;
+    if (filter?.source && Object.values(MemoryBankSource).includes(filter.source as MemoryBankSource)) {
+      normalized.source = filter.source as MemoryBankSource;
     }
 
     return await this.inner.listSkills(normalized);

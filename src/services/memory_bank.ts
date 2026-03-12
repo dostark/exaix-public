@@ -16,7 +16,7 @@ import { ensureDir, ensureDirSync, exists } from "@std/fs";
 import type { Config } from "../shared/schemas/config.ts";
 import type { IDatabaseService } from "./db.ts";
 import { JSONValue } from "../shared/types/json.ts";
-import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryType } from "../shared/enums.ts";
+import { ActivityType, MemoryBankSource, MemoryReferenceType, MemoryScope, MemoryType } from "../shared/enums.ts";
 import { MemoryStatus } from "../shared/status/memory_status.ts";
 import { LOCK_ACQUIRE_TIMEOUT_MS } from "../shared/constants.ts";
 import {
@@ -661,7 +661,7 @@ export class MemoryBankService implements IMemoryBankService {
     const learning: ILearning = {
       id: learningId,
       created_at: now,
-      source: MemorySource.USER,
+      source: MemoryBankSource.USER,
       scope: MemoryScope.GLOBAL,
       project: portal,
       title: promotion.title,

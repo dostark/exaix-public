@@ -13,7 +13,7 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import type { IDatabaseService } from "./db.ts";
-import { MemoryScope, MemorySource as _MemorySource, SkillStatus } from "../shared/enums.ts";
+import { MemoryBankSource, MemoryScope, SkillStatus } from "../shared/enums.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import {
   type ISkill,
@@ -21,8 +21,10 @@ import {
   type ISkillIndexEntry,
   type ISkillMatch,
   type ISkillTriggers,
+  type SkillDefinition,
   SkillIndexSchema as _SkillIndexSchema,
   SkillSchema,
+  type SkillUpdates,
 } from "../shared/schemas/memory_bank.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../shared/types/json.ts";
 import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
@@ -114,14 +116,18 @@ export class SkillsService implements ISkillsService {
   // List all skills with optional filtering
   async listSkills(filter?: {
     status?: SkillStatus;
-    scope?: "global" | "project";
-    source?: "core" | "project" | "user" | "learned";
+    scope?: MemoryScope;
+    source?: MemoryBankSource;
   }): Promise<ISkill[]> {
     const index = await this.loadIndex();
     let filtered = index.skills;
 
-    if (filter?.status) filtered = filtered.filter((s: ISkillIndexEntry) => s.status === filter.status);
-    if (filter?.scope) filtered = filtered.filter((s: ISkillIndexEntry) => s.scope === filter.scope);
+    if (filter?.status) {
+      filtered = filtered.filter((s: ISkillIndexEntry) => s.status === filter.status);
+    }
+    if (filter?.scope) {
+      filtered = filtered.filter((s: ISkillIndexEntry) => s.scope === filter.scope);
+    }
 
     // For source, we need to load full skills (index doesn't have source)
     const skills = await Promise.all(
@@ -152,7 +158,7 @@ export class SkillsService implements ISkillsService {
 
   // Create a new skill
   async createSkill(
-    skill: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    skill: SkillDefinition,
   ): Promise<ISkill> {
     if (!this.skillsDir) await this.initialize();
 
@@ -201,7 +207,7 @@ export class SkillsService implements ISkillsService {
   // Update an existing skill
   async updateSkill(
     skillId: string,
-    updates: Partial<Omit<ISkill, "id" | "skill_id" | "created_at">>,
+    updates: SkillUpdates,
   ): Promise<ISkill | null> {
     const skill = await this.getSkill(skillId);
     if (!skill) return null;
@@ -468,7 +474,7 @@ export class SkillsService implements ISkillsService {
    */
   async deriveSkillFromLearnings(
     learningIds: string[],
-    skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    skillDef: SkillDefinition,
   ): Promise<ISkill> {
     const skill: ISkill = await this.createSkill({
       ...skillDef,

@@ -12,6 +12,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
+import { DataFormat } from "../shared/enums.ts";
 import { JSONValue } from "../shared/types/json.ts";
 
 /**
@@ -213,7 +214,7 @@ export class BlueprintLoader {
         content.slice(yamlMatch[0].length),
         agentId,
         path,
-        "yaml",
+        DataFormat.YAML,
       );
     }
 
@@ -225,7 +226,7 @@ export class BlueprintLoader {
         content.slice(tomlMatch[0].length),
         agentId,
         path,
-        "toml",
+        DataFormat.TOML,
       );
     }
 
@@ -241,12 +242,12 @@ export class BlueprintLoader {
     body: string,
     agentId: string,
     path: string,
-    format: "yaml" | "toml",
+    format: DataFormat.YAML | DataFormat.TOML,
   ): ILoadedBlueprint {
     let parsed: Record<string, JSONValue>;
 
     try {
-      if (format === "yaml") {
+      if (format === DataFormat.YAML) {
         parsed = parseYaml(frontmatterRaw) as Record<string, JSONValue>;
       } else {
         // TOML parsing - use dynamic import to avoid bundling if not needed
@@ -254,7 +255,7 @@ export class BlueprintLoader {
       }
     } catch (error) {
       throw new BlueprintLoadError(
-        `Invalid ${format.toUpperCase()} frontmatter in blueprint '${agentId}': ${
+        `Invalid ${String(format).toUpperCase()} frontmatter in blueprint '${agentId}': ${
           error instanceof Error ? error.message : String(error)
         }`,
         agentId,

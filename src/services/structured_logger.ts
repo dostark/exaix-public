@@ -24,7 +24,7 @@ import * as DEFAULTS from "../shared/constants.ts";
 // Types and Interfaces
 // ============================================================================
 
-import { LogLevel } from "../shared/enums.ts";
+import { LogLevel, LogRotationInterval } from "../shared/enums.ts";
 import { LogMetadata } from "../shared/types/json.ts";
 import { ILogger, ILogOutput } from "../shared/interfaces/i_log_service.ts";
 import { IStructuredLogEntry } from "../shared/types/logging.ts";
@@ -118,7 +118,7 @@ export class FileOutput implements ILogOutput {
     private options: {
       maxSizeMB?: number;
       maxFiles?: number;
-      rotationInterval?: "daily" | "hourly";
+      rotationInterval?: LogRotationInterval;
     } = {},
   ) {
     // If basePath doesn't end with the configured extension, treat it as a directory
