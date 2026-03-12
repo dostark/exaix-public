@@ -9,8 +9,7 @@
 
 import { join, resolve } from "@std/path";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { PortalStatus } from "../../shared/enums.ts";
-import { PortalExecutionStrategy } from "../../shared/enums.ts";
+import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../../shared/enums.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
 import type { JSONValue } from "../../shared/types/json.ts";
 
@@ -391,7 +390,7 @@ export class PortalCommands extends BaseCommand {
 
       results.push({
         alias: portalAlias,
-        status: issues.length === 0 ? "ok" : "failed",
+        status: issues.length === 0 ? VerificationStatus.OK : VerificationStatus.FAILED,
         issues: issues.length > 0 ? issues : undefined,
       });
     }

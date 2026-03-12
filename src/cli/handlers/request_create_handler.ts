@@ -10,7 +10,7 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { RequestPriority } from "../../shared/enums.ts";
+import { RequestPriority, RequestSource } from "../../shared/enums.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
@@ -18,11 +18,9 @@ import { CommandUtils } from "../helpers/command_utils.ts";
 import {
   type IRequestMetadata as RequestMetadata,
   type IRequestOptions as RequestOptions,
-  type RequestSource,
 } from "../../shared/types/request.ts";
 import { resolveSubject } from "../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
-import { RequestAnalyzer } from "../../services/request_analysis/mod.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
@@ -43,7 +41,7 @@ export class RequestCreateHandler extends BaseCommand {
   async create(
     description: string,
     options: RequestOptions = {},
-    source: RequestSource = "cli",
+    source: RequestSource = RequestSource.CLI,
   ): Promise<RequestMetadata> {
     try {
       const trimmedDescription = description.trim();
@@ -98,18 +96,9 @@ export class RequestCreateHandler extends BaseCommand {
 
       // Trigger analysis if requested
       if (options.analyze) {
-        const analyzer = new RequestAnalyzer({
+        await this.requests.analyze(trace_id, {
           mode: options.analysis_engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC,
         });
-        const analysis = await analyzer.analyze(trimmedDescription, {
-          agentId: agent,
-          priority: priority,
-        });
-        // saveAnalysis is imported in show handler, let's just do it directly here for the new file if needed
-        // but wait, RequestShowHandler uses saveAnalysis(matchingFile, analysis)
-        // Let's import saveAnalysis here too.
-        const { saveAnalysis } = await import("../../services/request_analysis/analysis_persistence.ts");
-        await saveAnalysis(path, analysis);
       }
 
       // Log activity using DisplayService
@@ -233,7 +222,7 @@ export class RequestCreateHandler extends BaseCommand {
       }
 
       // Create request with file source
-      return this.create(trimmed, options, "file");
+      return this.create(trimmed, options, RequestSource.FILE);
     } catch (error) {
       await DefaultErrorStrategy.handle({
         commandName: "RequestCreateHandler.createFromFile",

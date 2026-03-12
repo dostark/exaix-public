@@ -11,14 +11,15 @@ import { Table } from "@cliffy/table";
 import * as colors from "@std/fmt/colors";
 import { IActivityRecord } from "../../shared/types/database.ts";
 import { IJournalFilterOptions } from "../../shared/types/database.ts";
+import { DataFormat, UIOutputFormat } from "../../shared/enums.ts";
 
 export class JournalFormatter {
   static render(
     activities: IActivityRecord[],
     filter: IJournalFilterOptions,
-    format: "json" | "table" | "text" = "text",
+    format: UIOutputFormat | DataFormat.TEXT = DataFormat.TEXT,
   ): void {
-    if (format === "json") {
+    if (format === UIOutputFormat.JSON) {
       console.log(JSON.stringify(activities, null, 2));
       return;
     }

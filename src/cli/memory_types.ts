@@ -7,7 +7,9 @@
  * @related-files [src/cli/memory_commands.ts, src/cli/formatters/memory_formatter.ts]
  */
 
-export type OutputFormat = "table" | "json" | "md";
+import { UIOutputFormat } from "../shared/enums.ts";
+
+export type OutputFormat = UIOutputFormat;
 
 export interface IMemoryBankSummary {
   projects: string[];

@@ -10,7 +10,7 @@
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../shared/enums.ts";
+import { MemoryBankSource, MemoryScope, MemoryType, SkillStatus, UIOutputFormat } from "../../shared/enums.ts";
 import { type ISkillMatchRequest as SkillMatchRequest } from "../../shared/types/skill.ts";
 import type { ILearning, IMemorySearchResult } from "../../shared/schemas/memory_bank.ts";
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
@@ -42,15 +42,15 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format (table, json, md)
    * @returns Formatted output string
    */
-  async list(format: OutputFormat = "table"): Promise<string> {
+  async list(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const summary = await this.getSummary();
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(summary, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatListMarkdown(summary);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatListTable(summary);
     }
@@ -178,7 +178,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted project list
    */
-  async projectList(format: OutputFormat = "table"): Promise<string> {
+  async projectList(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const projects: { name: string; patterns: number; decisions: number }[] = [];
 
     const projectsDir = join(this.config.system.root, this.config.paths.memory, "Projects");
@@ -200,11 +200,11 @@ export class MemoryCommands extends BaseCommand {
     projects.sort((a, b) => a.name.localeCompare(b.name));
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(projects, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatProjectListMarkdown(projects);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatProjectListTable(projects);
     }
@@ -217,7 +217,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted project details or error message
    */
-  async projectShow(portal: string, format: OutputFormat = "table"): Promise<string> {
+  async projectShow(portal: string, format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const projectMem = await this.memoryBank.getProjectMemory(portal);
 
     if (!projectMem) {
@@ -225,11 +225,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(projectMem, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatProjectShowMarkdown(projectMem);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatProjectShowTable(projectMem);
     }
@@ -276,7 +276,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted execution details or error message
    */
-  async executionShow(traceId: string, format: OutputFormat = "table"): Promise<string> {
+  async executionShow(traceId: string, format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const execution = await this.memoryBank.getExecutionByTraceId(traceId);
 
     if (!execution) {
@@ -284,11 +284,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(execution, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatExecutionShowMarkdown(execution);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatExecutionShowTable(execution);
     }
@@ -302,7 +302,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted global memory or error message
    */
-  async globalShow(format: OutputFormat = "table"): Promise<string> {
+  async globalShow(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const globalMem = await this.memoryBank.getGlobalMemory();
 
     if (!globalMem) {
@@ -310,11 +310,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(globalMem, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatGlobalShowMarkdown(globalMem);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatGlobalShowTable(globalMem);
     }
@@ -326,7 +326,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted learnings list
    */
-  async globalListLearnings(format: OutputFormat = "table"): Promise<string> {
+  async globalListLearnings(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const globalMem = await this.memoryBank.getGlobalMemory();
 
     if (!globalMem) {
@@ -340,11 +340,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(learnings, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatGlobalLearningsMarkdown(learnings);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatGlobalLearningsTable(learnings);
     }
@@ -356,7 +356,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted statistics or error message
    */
-  async globalStats(format: OutputFormat = "table"): Promise<string> {
+  async globalStats(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const globalMem = await this.memoryBank.getGlobalMemory();
 
     if (!globalMem) {
@@ -364,11 +364,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(globalMem.statistics, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatGlobalStatsMarkdown(globalMem.statistics);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatGlobalStatsTable(globalMem.statistics);
     }
@@ -425,7 +425,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted list of pending proposals
    */
-  async pendingList(format: OutputFormat = "table"): Promise<string> {
+  async pendingList(format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const proposals = await this.extractor.listPending();
 
     if (proposals.length === 0) {
@@ -433,11 +433,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(proposals, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatPendingListMarkdown(proposals);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatPendingListTable(proposals);
     }
@@ -450,7 +450,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted proposal details
    */
-  async pendingShow(proposalId: string, format: OutputFormat = "table"): Promise<string> {
+  async pendingShow(proposalId: string, format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     const proposal = await this.extractor.getPending(proposalId);
 
     if (!proposal) {
@@ -458,11 +458,11 @@ export class MemoryCommands extends BaseCommand {
     }
 
     switch (format) {
-      case "json":
+      case UIOutputFormat.JSON:
         return JSON.stringify(proposal, null, 2);
-      case "md":
+      case UIOutputFormat.MARKDOWN:
         return this.formatter.formatPendingShowMarkdown(proposal);
-      case "table":
+      case UIOutputFormat.TABLE:
       default:
         return this.formatter.formatPendingShowTable(proposal);
     }
@@ -563,15 +563,15 @@ export class MemoryCommands extends BaseCommand {
    * @returns Formatted list of skills
    */
   async skillList(options: {
-    category?: "core" | "project" | "learned";
+    category?: MemoryBankSource;
     format?: OutputFormat;
   } = {}): Promise<string> {
-    const format = options.format || "table";
+    const format = options.format || UIOutputFormat.TABLE;
 
     try {
       await this.skills.initialize();
       // Map category to source for the API
-      const sourceFilter = options.category as "core" | "project" | "user" | "learned" | undefined;
+      const sourceFilter = options.category as MemoryBankSource | undefined;
       const skills = await this.skills.listSkills({ source: sourceFilter });
 
       if (skills.length === 0) {
@@ -579,7 +579,7 @@ export class MemoryCommands extends BaseCommand {
       }
 
       switch (format) {
-        case "json":
+        case UIOutputFormat.JSON:
           return JSON.stringify(
             skills.map((s) => ({
               skill_id: s.skill_id,
@@ -594,10 +594,10 @@ export class MemoryCommands extends BaseCommand {
             2,
           );
 
-        case "md":
+        case UIOutputFormat.MARKDOWN:
           return this.formatter.formatSkillListMarkdown(skills);
 
-        case "table":
+        case UIOutputFormat.TABLE:
         default:
           return this.formatter.formatSkillListTable(skills);
       }
@@ -613,7 +613,7 @@ export class MemoryCommands extends BaseCommand {
    * @param format - Output format
    * @returns Formatted skill details
    */
-  async skillShow(skillId: string, format: OutputFormat = "table"): Promise<string> {
+  async skillShow(skillId: string, format: OutputFormat = UIOutputFormat.TABLE): Promise<string> {
     try {
       await this.skills.initialize();
       const skill = await this.skills.getSkill(skillId);
@@ -623,12 +623,12 @@ export class MemoryCommands extends BaseCommand {
       }
 
       switch (format) {
-        case "json":
+        case UIOutputFormat.JSON:
           return JSON.stringify(skill, null, 2);
 
-        case "md":
+        case UIOutputFormat.MARKDOWN:
           return this.formatter.formatSkillShowMarkdown(skill);
-        case "table":
+        case UIOutputFormat.TABLE:
         default:
           return this.formatter.formatSkillShowTable(skill);
       }
@@ -767,7 +767,7 @@ export class MemoryCommands extends BaseCommand {
       skill_id: skillId,
       name: options.name,
       version: "1.0.0",
-      source: MemorySource.LEARNED,
+      source: MemoryBankSource.LEARNED,
       status: SkillStatus.DRAFT,
       description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
       scope,
@@ -792,30 +792,30 @@ export class MemoryCommands extends BaseCommand {
     name: string,
     options: {
       description?: string;
-      category?: "core" | "project" | "learned";
+      category?: MemoryBankSource;
       instructions?: string;
       triggersKeywords?: string[];
       triggersTaskTypes?: string[];
       format?: OutputFormat;
     } = {},
   ): Promise<string> {
-    const format = options.format || "table";
+    const format = options.format || UIOutputFormat.TABLE;
 
     try {
       await this.skills.initialize();
 
       const skillId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const location = options.category || "project";
+      const location = options.category || MemoryBankSource.PROJECT;
 
       const skillDef = this.buildSkillDefinition(name, skillId, location, options);
       const skill = await this.skills.createSkill(skillDef);
 
       switch (format) {
-        case "json":
+        case UIOutputFormat.JSON:
           return JSON.stringify(skill, null, 2);
 
-        case "md":
-        case "table":
+        case UIOutputFormat.MARKDOWN:
+        case UIOutputFormat.TABLE:
         default:
           return `Created skill: ${skill.skill_id} (${skill.name}) in ${location}/`;
       }
@@ -828,7 +828,7 @@ export class MemoryCommands extends BaseCommand {
   private buildSkillDefinition(
     name: string,
     skillId: string,
-    location: string,
+    location: MemoryBankSource,
     options: {
       description?: string;
       instructions?: string;
@@ -840,7 +840,7 @@ export class MemoryCommands extends BaseCommand {
     // Core and Learned (Global) always use GLOBAL scope.
     // User/Project use PROJECT scope if a portal is active, otherwise fall back to GLOBAL.
     const activePortal = Deno.env.get("EXO_PORTAL");
-    const scope = (location === "core" || location === "learned")
+    const scope = (location === MemoryBankSource.CORE || location === MemoryBankSource.LEARNED)
       ? MemoryScope.GLOBAL
       : (activePortal ? MemoryScope.PROJECT : MemoryScope.GLOBAL);
 
@@ -849,7 +849,7 @@ export class MemoryCommands extends BaseCommand {
       name,
       version: "1.0.0",
       description: options.description || `${name} skill`,
-      source: location === "learned" ? MemorySource.LEARNED : MemorySource.USER,
+      source: location === MemoryBankSource.LEARNED ? MemoryBankSource.LEARNED : MemoryBankSource.USER,
       scope,
       status: SkillStatus.DRAFT,
       instructions: options.instructions || "No instructions provided.",

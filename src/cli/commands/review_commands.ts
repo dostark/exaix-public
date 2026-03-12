@@ -21,9 +21,10 @@ import { isReviewStatus, ReviewStatus } from "../../reviews/review_status.ts";
 import type { IReviewStatus } from "../../reviews/review_status.ts";
 import type { IArtifact, IArtifactFilters, IArtifactWithContent } from "../../shared/schemas/artifact.ts";
 import type { IGitService } from "../../shared/interfaces/i_git_service.ts";
+import { ArtifactSubtype, ReviewType, ReviewTypeFilter as ReviewFilterEnum } from "../../shared/enums.ts";
 
 export interface IReviewMetadata {
-  type?: "code" | "artifact";
+  type?: ReviewType;
   file_path?: string;
   branch: string;
   trace_id: string;
@@ -65,11 +66,11 @@ export interface ReviewDetails extends IReviewMetadata {
   }>;
 }
 
-export type ReviewTypeFilter = "all" | "code" | "artifact";
+export type ReviewTypeFilter = ReviewFilterEnum;
 
 type ArtifactFrontmatterData = {
   status?: IReviewStatus;
-  type?: "analysis" | "report" | "diagram";
+  type?: ArtifactSubtype;
   agent?: string;
   portal?: string | null;
   target_branch?: string | null;
@@ -95,10 +96,14 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private normalizeTypeFilter(typeFilter?: string): ReviewTypeFilter {
-    if (!typeFilter) return "all";
+    if (!typeFilter) return ReviewFilterEnum.ALL;
     const normalized = typeFilter.toLowerCase();
-    if (normalized === "code" || normalized === "artifact" || normalized === "all") return normalized;
-    return "all";
+
+    if (normalized === "code") return ReviewFilterEnum.CODE;
+    if (normalized === "artifact") return ReviewFilterEnum.ARTIFACT;
+    if (normalized === "all") return ReviewFilterEnum.ALL;
+
+    return ReviewFilterEnum.ALL;
   }
 
   private normalizeStatusFilter(
@@ -413,7 +418,7 @@ export class ReviewCommands extends BaseCommand {
     return {
       id: row.id,
       status,
-      type: row.type as "analysis" | "report" | "diagram",
+      type: row.type as ArtifactSubtype,
       agent: row.agent,
       portal: row.portal,
       target_branch: row.target_branch,
@@ -470,7 +475,7 @@ export class ReviewCommands extends BaseCommand {
     return rows.map((row) => ({
       id: row.id,
       status: isReviewStatus(row.status) ? row.status : ReviewStatus.PENDING,
-      type: row.type as "analysis" | "report" | "diagram",
+      type: row.type as ArtifactSubtype,
       agent: row.agent,
       portal: row.portal,
       target_branch: row.target_branch,
@@ -649,11 +654,11 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private shouldIncludeArtifacts(type: ReviewTypeFilter): boolean {
-    return type === "all" || type === "artifact";
+    return type === ReviewFilterEnum.ALL || type === ReviewFilterEnum.ARTIFACT;
   }
 
   private shouldIncludeCode(type: ReviewTypeFilter): boolean {
-    return type === "all" || type === "code";
+    return type === ReviewFilterEnum.ALL || type === ReviewFilterEnum.CODE;
   }
 
   private sortReviewsNewestFirst(reviews: IReviewMetadata[]): IReviewMetadata[] {
@@ -674,7 +679,7 @@ export class ReviewCommands extends BaseCommand {
 
     for (const artifact of artifacts) {
       reviews.push({
-        type: "artifact",
+        type: ReviewType.ARTIFACT,
         branch: artifact.id,
         trace_id: artifact.id,
         request_id: artifact.request_id,
@@ -762,7 +767,7 @@ export class ReviewCommands extends BaseCommand {
     const status = isReviewStatus(normalizedStatus) ? normalizedStatus : undefined;
 
     return {
-      type: "code",
+      type: ReviewType.CODE,
       branch,
       trace_id: row.trace_id,
       request_id,
@@ -909,7 +914,7 @@ export class ReviewCommands extends BaseCommand {
     const filesChanged = await this.getFilesChangedCount(repoPath, baseBranch, branch);
 
     const basicMetadata: IReviewMetadata = {
-      type: "code",
+      type: ReviewType.CODE,
       branch,
       trace_id: effectiveTraceId,
       request_id: parsed.request_id,
@@ -934,7 +939,7 @@ export class ReviewCommands extends BaseCommand {
     if (this.isArtifactId(branchName)) {
       const artifact = await this.getArtifact(branchName);
       return {
-        type: "artifact",
+        type: ReviewType.ARTIFACT,
         branch: artifact.id,
         trace_id: artifact.id,
         request_id: artifact.request_id,
@@ -954,7 +959,7 @@ export class ReviewCommands extends BaseCommand {
     // If not a full branch name, try to find matching branch
     let fullBranch = branchName;
     if (!branchName.startsWith("feat/")) {
-      const branches = await this.list(undefined, "code");
+      const branches = await this.list(undefined, ReviewFilterEnum.CODE);
       const match = branches.find((b) => b.request_id === branchName || b.branch === `feat/${branchName}`);
       if (match) {
         fullBranch = match.branch;
@@ -965,7 +970,7 @@ export class ReviewCommands extends BaseCommand {
         if (byRequest) {
           const artifact = await this.getArtifact(byRequest.id);
           return {
-            type: "artifact",
+            type: ReviewType.ARTIFACT,
             branch: artifact.id,
             trace_id: artifact.id,
             request_id: artifact.request_id,
@@ -1058,7 +1063,7 @@ export class ReviewCommands extends BaseCommand {
     const [, request_id, trace_id] = match || ["", fullBranch, "unknown"];
 
     const basicMetadata = {
-      type: "code" as const,
+      type: ReviewType.CODE,
       branch: fullBranch,
       trace_id: storedTraceId ?? trace_id,
       request_id,
@@ -1067,7 +1072,7 @@ export class ReviewCommands extends BaseCommand {
       files_changed: files.length,
       created_at: commits[commits.length - 1]?.timestamp || new Date().toISOString(),
       agent_id: commits[0]?.sha.substring(0, 8) || "unknown",
-    };
+    } as IReviewMetadata;
 
     // Enrich with request and plan context
     const enrichedMetadata = await this.extractReviewMetadataWithContext(basicMetadata);

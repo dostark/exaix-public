@@ -13,13 +13,14 @@ import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
 import { RequestListHandler } from "../handlers/request_list_handler.ts";
 import { RequestShowHandler } from "../handlers/request_show_handler.ts";
 import { IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
+import { RequestSource as RequestSourceEnum } from "../../shared/enums.ts";
 import {
   AnalysisMode,
   type IRequestEntry,
   type IRequestMetadata,
   type IRequestOptions,
   type IRequestShowResult,
-  RequestSource,
+  type RequestSource,
 } from "../../shared/types/request.ts";
 
 /**
@@ -61,7 +62,7 @@ export class RequestCommands extends BaseCommand {
   async create(
     description: string,
     options: IRequestOptions = {},
-    source: RequestSource = "cli",
+    source: RequestSource = RequestSourceEnum.CLI,
   ): Promise<IRequestMetadata> {
     return await this.createHandler.create(description, options, source);
   }

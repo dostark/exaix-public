@@ -9,6 +9,7 @@
 
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import { MCPServer } from "../../mcp/server.ts";
+import { McpTransportType } from "../../shared/enums.ts";
 import { DEFAULT_MCP_HTTP_PORT } from "../../shared/constants.ts";
 
 export interface IMcpStdioServer {
@@ -61,13 +62,13 @@ export class McpCommands extends BaseCommand {
   }
 
   async start(options: { sse?: boolean; port?: number }) {
-    const transport = options.sse ? "sse" : "stdio";
+    const transport = options.sse ? McpTransportType.SSE : McpTransportType.STDIO;
     const server = new MCPServer({
       context: this.context,
       transport,
     });
 
-    if (transport === "sse") {
+    if (transport === McpTransportType.SSE) {
       await server.startHTTPServer(options.port || DEFAULT_MCP_HTTP_PORT);
     } else {
       await runMcpStdioLoop(server, {
