@@ -11,12 +11,12 @@ import { IRequestService } from "../../shared/interfaces/i_request_service.ts";
 import { type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
 import { type RequestStatusType } from "../../shared/status/request_status.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
+import type { RequestSource } from "../../shared/enums.ts";
 import type {
   IRequestEntry,
   IRequestMetadata,
   IRequestOptions,
   IRequestShowResult,
-  RequestSource,
 } from "../../shared/types/request.ts";
 
 export class RequestAdapter implements IRequestService {

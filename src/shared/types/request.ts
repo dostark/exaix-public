@@ -9,6 +9,7 @@
 
 import { type RequestStatusType } from "../status/request_status.ts";
 import { type IRequestAnalysis } from "../schemas/request_analysis.ts";
+import { type RequestPriority, type RequestSource } from "../enums.ts";
 
 /**
  * AnalysisMode enum for triggering request analysis.

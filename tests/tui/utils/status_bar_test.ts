@@ -6,8 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { ExecutionStatus, MessageType, SkillStatus, SpinnerStyle, StatusIndicator } from "../../../src/shared/enums.ts";
-import { MemoryStatus } from "../../../src/shared/status/memory_status.ts";
+import { MessageType, SpinnerStyle, StatusIndicator } from "../../../src/shared/enums.ts";
 import {
   addStatusLine,
   clearStatusMessage,
@@ -191,14 +190,14 @@ Deno.test("createCountItem: creates count item", () => {
 Deno.test("createStatusItem: creates status items for all states", () => {
   const theme = getTheme(true);
   const statuses = [
-    SkillStatus.ACTIVE,
-    MemoryStatus.PENDING,
-    ExecutionStatus.COMPLETED,
-    ExecutionStatus.FAILED,
-  ] as const satisfies readonly ("active" | "pending" | "completed" | "failed")[];
+    StatusIndicator.ACTIVE,
+    StatusIndicator.PENDING,
+    StatusIndicator.COMPLETED,
+    StatusIndicator.FAILED,
+  ] as const;
 
   for (const status of statuses) {
-    const item = createStatusItem(status as StatusIndicator, undefined, theme);
+    const item = createStatusItem(status, undefined, theme);
     assertEquals(item.text, status);
     assertExists(item.icon);
     assertEquals(item.priority, 75);
@@ -207,14 +206,14 @@ Deno.test("createStatusItem: creates status items for all states", () => {
 
 Deno.test("createStatusItem: accepts custom label", () => {
   const theme = getTheme(true);
-  const item = createStatusItem(SkillStatus.ACTIVE as StatusIndicator, "Running", theme);
+  const item = createStatusItem(StatusIndicator.ACTIVE, "Running", theme);
   assertEquals(item.text, "Running");
   assertEquals(item.icon, "●");
 });
 
 Deno.test("createStatusItem: works without theme", () => {
-  const item = createStatusItem(ExecutionStatus.COMPLETED as StatusIndicator);
-  assertEquals(item.text, ExecutionStatus.COMPLETED);
+  const item = createStatusItem(StatusIndicator.COMPLETED);
+  assertEquals(item.text, StatusIndicator.COMPLETED);
   assertEquals(item.icon, TUI_ICON_SUCCESS);
   assertEquals(item.color, "");
 });

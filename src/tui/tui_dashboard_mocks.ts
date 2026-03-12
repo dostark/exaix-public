@@ -22,6 +22,7 @@ import {
   PortalExecutionStrategy,
   PortalStatus,
   RequestPriority,
+  RequestSource,
   SkillStatus,
   TuiIcon,
 } from "../shared/enums.ts";
@@ -35,7 +36,6 @@ import {
   type IRequestMetadata,
   type IRequestOptions,
   type IRequestShowResult,
-  RequestSource,
 } from "../shared/types/request.ts";
 import { type AgentHealthData, type AgentLogEntry, type IAgentStatusItem } from "../shared/types/agent.ts";
 import { type IStructuredLogEntry, type LogQueryOptions } from "../shared/types/logging.ts";
