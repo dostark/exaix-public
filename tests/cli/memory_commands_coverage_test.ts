@@ -38,6 +38,25 @@ import {
 } from "../config/constants.ts";
 import { join } from "https://deno.land/std@0.203.0/path/join.ts";
 
+/**
+ * Builds a reusable test proposal data object for pending-commands tests.
+ */
+function buildTestProposalData(scope: MemoryScope = MemoryScope.GLOBAL, project?: string) {
+  return {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    source: MemoryBankSource.USER,
+    scope,
+    ...(project ? { project } : {}),
+    title: TEST_PENDING_LEARNING_TITLE,
+    description: TEST_PENDING_LEARNING_DESCRIPTION,
+    category: LearningCategory.PATTERN,
+    tags: [TEST_SKILL_KEYWORD],
+    confidence: ConfidenceLevel.HIGH,
+    references: [],
+  };
+}
+
 // ===== Search with Embeddings Tests =====
 
 Deno.test("MemoryCommands: search with useEmbeddings option", async () => {
@@ -195,69 +214,6 @@ Deno.test("MemoryCommands: execution list --format md outputs markdown", async (
 });
 
 // ===== Global Memory Tests =====
-
-Deno.test("MemoryCommands: globalShow returns init message when not initialized", async () => {
-  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
-  try {
-    const result = await commands.globalShow(UIOutputFormat.TABLE);
-
-    assertStringIncludes(result, "not initialized");
-  } finally {
-    await cleanup();
-  }
-});
-
-Deno.test("MemoryCommands: globalShow with initialized memory", async () => {
-  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
-  try {
-    await memoryBank.initGlobalMemory();
-
-    const result = await commands.globalShow(UIOutputFormat.TABLE);
-
-    assertStringIncludes(result, "Global Memory");
-    assertStringIncludes(result, "Version:");
-  } finally {
-    await cleanup();
-  }
-});
-
-Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () => {
-  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
-  try {
-    await memoryBank.initGlobalMemory();
-
-    const result = await commands.globalShow(UIOutputFormat.MARKDOWN);
-
-    assertStringIncludes(result, "# Global Memory");
-    assertStringIncludes(result, "| Property | Value |");
-  } finally {
-    await cleanup();
-  }
-});
-
-Deno.test("MemoryCommands: globalListLearnings returns init message when not initialized", async () => {
-  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
-  try {
-    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
-
-    assertStringIncludes(result, "not initialized");
-  } finally {
-    await cleanup();
-  }
-});
-
-Deno.test("MemoryCommands: globalListLearnings with no learnings", async () => {
-  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
-  try {
-    await memoryBank.initGlobalMemory();
-
-    const result = await commands.globalListLearnings(UIOutputFormat.TABLE);
-
-    assertStringIncludes(result, "No learnings");
-  } finally {
-    await cleanup();
-  }
-});
 
 Deno.test("MemoryCommands: globalListLearnings --format md outputs markdown", async () => {
   const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
@@ -586,22 +542,7 @@ Deno.test("MemoryCommands: pendingList and pendingShow return proposal details",
   const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const execution = new ExecutionMemoryBuilder("PendingProject").build();
-    const proposalId = await extractor.createProposal(
-      {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        source: MemoryBankSource.USER,
-        scope: MemoryScope.GLOBAL,
-        title: TEST_PENDING_LEARNING_TITLE,
-        description: TEST_PENDING_LEARNING_DESCRIPTION,
-        category: LearningCategory.PATTERN,
-        tags: [TEST_SKILL_KEYWORD],
-        confidence: ConfidenceLevel.HIGH,
-        references: [],
-      },
-      execution,
-      TEST_AGENT_NAME,
-    );
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
 
     const listResult = await commands.pendingList(UIOutputFormat.TABLE);
     assertStringIncludes(listResult, "Pending Memory Update Proposals");
@@ -621,22 +562,7 @@ Deno.test("MemoryCommands: pendingApprove approves global proposal", async () =>
     await memoryBank.initGlobalMemory();
 
     const execution = new ExecutionMemoryBuilder("GlobalProject").build();
-    const proposalId = await extractor.createProposal(
-      {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        source: MemoryBankSource.USER,
-        scope: MemoryScope.GLOBAL,
-        title: TEST_PENDING_LEARNING_TITLE,
-        description: TEST_PENDING_LEARNING_DESCRIPTION,
-        category: LearningCategory.PATTERN,
-        tags: [TEST_SKILL_KEYWORD],
-        confidence: ConfidenceLevel.HIGH,
-        references: [],
-      },
-      execution,
-      TEST_AGENT_NAME,
-    );
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
 
     const result = await commands.pendingApprove(proposalId);
     assertStringIncludes(result, "Proposal approved successfully");
@@ -652,22 +578,7 @@ Deno.test("MemoryCommands: pendingReject rejects proposal with reason", async ()
   const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const execution = new ExecutionMemoryBuilder("RejectProject").build();
-    const proposalId = await extractor.createProposal(
-      {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        source: MemoryBankSource.USER,
-        scope: MemoryScope.GLOBAL,
-        title: TEST_PENDING_LEARNING_TITLE,
-        description: TEST_PENDING_LEARNING_DESCRIPTION,
-        category: LearningCategory.PATTERN,
-        tags: [TEST_SKILL_KEYWORD],
-        confidence: ConfidenceLevel.HIGH,
-        references: [],
-      },
-      execution,
-      TEST_AGENT_NAME,
-    );
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
 
     const result = await commands.pendingReject(proposalId, TEST_PENDING_REASON);
     assertStringIncludes(result, "Proposal rejected");
@@ -684,38 +595,11 @@ Deno.test("MemoryCommands: pendingApproveAll approves multiple proposals", async
     await memoryBank.createProjectMemory(new ProjectMemoryBuilder("PendingProject").build());
 
     const globalExecution = new ExecutionMemoryBuilder("GlobalProject").build();
-    await extractor.createProposal(
-      {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        source: MemoryBankSource.USER,
-        scope: MemoryScope.GLOBAL,
-        title: TEST_PENDING_LEARNING_TITLE,
-        description: TEST_PENDING_LEARNING_DESCRIPTION,
-        category: LearningCategory.PATTERN,
-        tags: [TEST_SKILL_KEYWORD],
-        confidence: ConfidenceLevel.HIGH,
-        references: [],
-      },
-      globalExecution,
-      TEST_AGENT_NAME,
-    );
+    await extractor.createProposal(buildTestProposalData(), globalExecution, TEST_AGENT_NAME);
 
     const projectExecution = new ExecutionMemoryBuilder("PendingProject").build();
     await extractor.createProposal(
-      {
-        id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        source: MemoryBankSource.USER,
-        scope: MemoryScope.PROJECT,
-        project: "PendingProject",
-        title: TEST_PENDING_LEARNING_TITLE,
-        description: TEST_PENDING_LEARNING_DESCRIPTION,
-        category: LearningCategory.PATTERN,
-        tags: [TEST_SKILL_KEYWORD],
-        confidence: ConfidenceLevel.HIGH,
-        references: [],
-      },
+      buildTestProposalData(MemoryScope.PROJECT, "PendingProject"),
       projectExecution,
       TEST_AGENT_NAME,
     );

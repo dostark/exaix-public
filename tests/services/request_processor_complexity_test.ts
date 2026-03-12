@@ -75,6 +75,39 @@ function createTestAnalysis(complexity: RequestAnalysisComplexity): IRequestAnal
   };
 }
 
+/**
+ * Creates a RequestProcessor and cleanup function for use in complexity tests.
+ */
+async function createComplexityTestSetup() {
+  const { db, config, cleanup } = await initTestDbService();
+  const processor = new RequestProcessor(config, db, {
+    workspacePath: "",
+    requestsDir: "",
+    blueprintsPath: "",
+    includeReasoning: false,
+  });
+  return { processor, cleanup };
+}
+
+/**
+ * Builds a minimal IParsedRequest for use in complexity tests.
+ */
+function buildComplexityRequest(body: string, traceId = "t1", reqId = "req-1"): IParsedRequest {
+  return buildParsedRequest(
+    body,
+    {
+      trace_id: traceId,
+      created: new Date().toISOString(),
+      status: RequestStatus.PENDING,
+      priority: "normal",
+      source: RequestSource.CLI,
+      created_by: "user",
+    },
+    reqId,
+    `trace-${reqId}`,
+  ) as IParsedRequest;
+}
+
 Deno.test("[classifyTaskComplexity] uses analysis complexity as primary signal", async () => {
   const { db, config, cleanup } = await initTestDbService();
   try {
@@ -261,153 +294,67 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
 });
 
 Deno.test("[classifyTaskComplexity] content heuristic: short body with no bullets -> SIMPLE", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: "",
-      requestsDir: "",
-      blueprintsPath: "",
-      includeReasoning: false,
-    });
     const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
-    const request = buildParsedRequest(
-      "Just fix spelling.",
-      {
-        trace_id: "t1",
-        created: new Date().toISOString(),
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        source: RequestSource.CLI,
-        created_by: "user",
-      },
-      "req-1",
-      "trace-1",
-    ) as IParsedRequest;
-
-    assertEquals(callClassifyTaskComplexity(processor, blueprint, request), TaskComplexity.SIMPLE);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("Just fix spelling.")),
+      TaskComplexity.SIMPLE,
+    );
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("[classifyTaskComplexity] content heuristic: many bullets (>=8) -> COMPLEX", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: "",
-      requestsDir: "",
-      blueprintsPath: "",
-      includeReasoning: false,
-    });
     const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
     const longBody = "Requirements:\n- R1\n- R2\n- R3\n- R4\n- R5\n- R6\n- R7\n- R8";
-    const request = buildParsedRequest(
-      longBody,
-      {
-        trace_id: "t1",
-        created: new Date().toISOString(),
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        source: RequestSource.CLI,
-        created_by: "user",
-      },
-      "req-1",
-      "trace-1",
-    ) as IParsedRequest;
-
-    assertEquals(callClassifyTaskComplexity(processor, blueprint, request), TaskComplexity.COMPLEX);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(longBody)),
+      TaskComplexity.COMPLEX,
+    );
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("[classifyTaskComplexity] content heuristic: many file refs (>=5) -> COMPLEX", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: "",
-      requestsDir: "",
-      blueprintsPath: "",
-      includeReasoning: false,
-    });
     const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
-    const fileBody = "Change a.ts, b.ts, c.ts, d.ts, e.ts";
-    const request = buildParsedRequest(
-      fileBody,
-      {
-        trace_id: "t1",
-        created: new Date().toISOString(),
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        source: RequestSource.CLI,
-        created_by: "user",
-      },
-      "req-1",
-      "trace-1",
-    ) as IParsedRequest;
-
-    assertEquals(callClassifyTaskComplexity(processor, blueprint, request), TaskComplexity.COMPLEX);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("Change a.ts, b.ts, c.ts, d.ts, e.ts")),
+      TaskComplexity.COMPLEX,
+    );
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("[classifyTaskComplexity] handles empty/undefined body gracefully (MEDIUM via agent ID)", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: "",
-      requestsDir: "",
-      blueprintsPath: "",
-      includeReasoning: false,
-    });
     const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
-    const request = buildParsedRequest(
-      "",
-      {
-        trace_id: "t1",
-        created: new Date().toISOString(),
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        source: RequestSource.CLI,
-        created_by: "user",
-      },
-      "req-1",
-      "trace-1",
-    ) as IParsedRequest;
-
-    assertEquals(callClassifyTaskComplexity(processor, blueprint, request), TaskComplexity.MEDIUM);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("")),
+      TaskComplexity.MEDIUM,
+    );
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("[classifyTaskComplexity] maps EPIC to COMPLEX", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: "",
-      requestsDir: "",
-      blueprintsPath: "",
-      includeReasoning: false,
-    });
     const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
     const analysis = createTestAnalysis(RequestAnalysisComplexity.EPIC);
-    const request = buildParsedRequest(
-      "body",
-      {
-        trace_id: "t1",
-        created: new Date().toISOString(),
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        source: RequestSource.CLI,
-        created_by: "user",
-      },
-      "req-1",
-      "trace-1",
-    ) as IParsedRequest;
-
-    assertEquals(callClassifyTaskComplexity(processor, blueprint, request, analysis), TaskComplexity.COMPLEX);
+    assertEquals(
+      callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("body"), analysis),
+      TaskComplexity.COMPLEX,
+    );
   } finally {
     await cleanup();
   }

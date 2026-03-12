@@ -10,9 +10,8 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { GitService } from "../../src/services/git_service.ts";
-import { initTestDbService } from "../helpers/db.ts";
-import { createMockConfig } from "../helpers/config.ts";
-import { GitTestHelper, setupGitRepo } from "../helpers/git_test_helper.ts";
+import { GitTestHelper } from "../helpers/git_test_helper.ts";
+import { setupPortalGitRepos } from "../helpers/portal_test_utils.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
 
 /**
@@ -31,20 +30,7 @@ describe("GitService Portal Support", () => {
   let cleanup: () => Promise<void>;
 
   beforeEach(async () => {
-    const dbService = await initTestDbService();
-    tempDir = dbService.tempDir;
-    cleanup = dbService.cleanup;
-
-    portalRepoDir = join(tempDir, "portal-repo");
-    workspaceRepoDir = join(tempDir, "workspace-repo");
-
-    // Create directories and initialize actual git repos
-    await ensureDir(portalRepoDir);
-    await ensureDir(workspaceRepoDir);
-    await setupGitRepo(portalRepoDir, { initialCommit: true });
-    await setupGitRepo(workspaceRepoDir, { initialCommit: true });
-
-    config = createMockConfig(tempDir);
+    ({ tempDir, portalRepoDir, workspaceRepoDir, config, cleanup } = await setupPortalGitRepos());
   });
 
   afterEach(async () => {

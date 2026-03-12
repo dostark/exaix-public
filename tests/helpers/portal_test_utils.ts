@@ -17,6 +17,8 @@ import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import type { TestEnvironment } from "../integration/helpers/test_environment.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { createMockConfig } from "./config.ts";
+import { initTestDbService } from "./db.ts";
+import type { DatabaseService } from "../../src/services/db.ts";
 
 export interface IPortalTestSetup {
   portalAlias: string;
@@ -49,6 +51,32 @@ export async function setupPortalTest(
     config,
     tempDir,
   };
+}
+
+export interface IPortalGitRepoSetup {
+  tempDir: string;
+  portalRepoDir: string;
+  workspaceRepoDir: string;
+  config: Config;
+  db: DatabaseService;
+  cleanup: () => Promise<void>;
+}
+
+/**
+ * Setup two paired git repositories (portal-repo and workspace-repo) for portal tests.
+ */
+export async function setupPortalGitRepos(): Promise<IPortalGitRepoSetup> {
+  const { db, tempDir, cleanup } = await initTestDbService();
+  const portalRepoDir = join(tempDir, "portal-repo");
+  const workspaceRepoDir = join(tempDir, "workspace-repo");
+
+  await ensureDir(portalRepoDir);
+  await ensureDir(workspaceRepoDir);
+  await setupGitRepo(portalRepoDir, { initialCommit: true });
+  await setupGitRepo(workspaceRepoDir, { initialCommit: true });
+
+  const config = createMockConfig(tempDir);
+  return { tempDir, portalRepoDir, workspaceRepoDir, config, db, cleanup };
 }
 
 /**
