@@ -7,7 +7,8 @@
  * @related-files [src/shared/types/skill.ts]
  */
 
-import type { ISkill, ISkillMatch } from "../schemas/memory_bank.ts";
+import { MemoryBankSource, SkillStatus } from "../enums.ts";
+import type { ISkill, ISkillMatch, SkillDefinition } from "../schemas/memory_bank.ts";
 import type { ISkillMatchRequest } from "../types/skill.ts";
 
 export interface ISkillsService {
@@ -31,7 +32,7 @@ export interface ISkillsService {
    */
   deriveSkillFromLearnings(
     learningIds: string[],
-    skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">,
+    skillDef: SkillDefinition,
   ): Promise<ISkill>;
 
   /**
@@ -42,7 +43,7 @@ export interface ISkillsService {
   /**
    * List all skills, optionally filtered by source or status.
    */
-  listSkills(filter?: { source?: string; status?: string }): Promise<ISkill[]>;
+  listSkills(filter?: { source?: MemoryBankSource; status?: SkillStatus }): Promise<ISkill[]>;
 
   /**
    * Initialize skills service.
@@ -52,7 +53,7 @@ export interface ISkillsService {
   /**
    * Create a new skill.
    */
-  createSkill(skillDef: Omit<ISkill, "id" | "created_at" | "usage_count">): Promise<ISkill>;
+  createSkill(skillDef: SkillDefinition): Promise<ISkill>;
 
   /**
    * Get a specific skill by ID.

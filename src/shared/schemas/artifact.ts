@@ -10,6 +10,7 @@
 import { z } from "zod";
 import { REVIEW_STATUS_VALUES, ReviewStatus as ReviewStatusValue } from "../../reviews/review_status.ts";
 import type { IReviewStatus } from "../../reviews/review_status.ts";
+import { ArtifactSubtype as ArtifactType } from "../enums.ts";
 
 /**
  * Artifact status values
@@ -19,22 +20,11 @@ export const ArtifactStatus = ReviewStatusValue;
 export type IArtifactStatusType = IReviewStatus;
 
 /**
- * Artifact type values
- */
-export const ArtifactType = {
-  ANALYSIS: "analysis",
-  REPORT: "report",
-  DIAGRAM: "diagram",
-} as const;
-
-export type IArtifactTypeValue = typeof ArtifactType[keyof typeof ArtifactType];
-
-/**
  * Artifact frontmatter schema (YAML)
  */
 export const ArtifactFrontmatterSchema = z.object({
   status: z.enum(REVIEW_STATUS_VALUES),
-  type: z.enum(["analysis", "report", "diagram"]),
+  type: z.nativeEnum(ArtifactType),
   agent: z.string(),
   portal: z.string().nullable().optional(),
   target_branch: z.string().nullable().optional(),
@@ -50,7 +40,7 @@ export type IArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 export const ArtifactSchema = z.object({
   id: z.string(),
   status: z.enum(REVIEW_STATUS_VALUES),
-  type: z.enum(["analysis", "report", "diagram"]),
+  type: z.nativeEnum(ArtifactType),
   agent: z.string(),
   portal: z.string().nullable().optional(),
   target_branch: z.string().nullable().optional(),
@@ -80,7 +70,7 @@ export const CreateArtifactInputSchema = z.object({
   content: z.string(), // Markdown content (frontmatter will be added)
   portal: z.string().nullable().optional(),
   target_branch: z.string().nullable().optional(),
-  type: z.enum(["analysis", "report", "diagram"]).default("analysis"),
+  type: z.nativeEnum(ArtifactType).default(ArtifactType.ANALYSIS),
 });
 
 export type ICreateArtifactInput = z.infer<typeof CreateArtifactInputSchema>;
@@ -92,7 +82,7 @@ export const ArtifactFiltersSchema = z.object({
   status: z.enum(REVIEW_STATUS_VALUES).optional(),
   agent: z.string().optional(),
   portal: z.string().nullable().optional(),
-  type: z.enum(["analysis", "report", "diagram"]).optional(),
+  type: z.nativeEnum(ArtifactType).optional(),
 }).partial();
 
 export type IArtifactFilters = z.infer<typeof ArtifactFiltersSchema>;

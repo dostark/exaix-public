@@ -13,12 +13,14 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  MemoryBankSource,
   MemoryOperation,
   MemoryReferenceType,
   MemoryScope,
-  MemorySource,
   MemoryType,
   ReviewSource,
+  SkillImmutableField,
+  SkillManagedField,
   SkillStatus,
 } from "../enums.ts";
 import { MEMORY_STATUS_VALUES } from "../status/memory_status.ts";
@@ -156,7 +158,7 @@ export const LearningReferenceSchema = z.object({
 export const LearningSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.nativeEnum(MemorySource).describe("Who/what created this learning"),
+  source: z.nativeEnum(MemoryBankSource).describe("Who/what created this learning"),
   source_id: z.string().optional().describe("trace_id or user session if applicable"),
 
   scope: z.nativeEnum(MemoryScope).describe("Whether this applies globally or to a specific project"),
@@ -246,7 +248,7 @@ export type IGlobalMemory = z.infer<typeof GlobalMemorySchema>;
 export const ProposalLearningSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.nativeEnum(MemorySource),
+  source: z.nativeEnum(MemoryBankSource),
   source_id: z.string().optional(),
 
   scope: z.nativeEnum(MemoryScope),
@@ -344,7 +346,7 @@ export const SkillSchema = z.object({
   // === Memory Bank Standard Fields ===
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.nativeEnum(MemorySource).describe("Origin of the skill"),
+  source: z.nativeEnum(MemoryBankSource).describe("Origin of the skill"),
   source_id: z.string().optional().describe("Learning IDs if derived"),
 
   scope: z.nativeEnum(MemoryScope).describe("Applicability scope"),
@@ -382,6 +384,26 @@ export type ISkillTriggers = z.infer<typeof SkillTriggersSchema>;
 export type ISkillQualityCriterion = z.infer<typeof SkillQualityCriterionSchema>;
 export type ISkillCompatibility = z.infer<typeof SkillCompatibilitySchema>;
 export type ISkill = z.infer<typeof SkillSchema>;
+
+/**
+ * Skill fields that are automatically managed by the system.
+ */
+export type SkillManagedFields = `${SkillManagedField}`;
+
+/**
+ * Skill fields that cannot be changed after creation.
+ */
+export type SkillImmutableFields = `${SkillImmutableField}`;
+
+/**
+ * Skill interface without system-managed fields.
+ */
+export type SkillDefinition = Omit<ISkill, SkillManagedFields>;
+
+/**
+ * Skill updates interface.
+ */
+export type SkillUpdates = Partial<Omit<ISkill, SkillImmutableFields>>;
 
 /**
  * Skill index entry for fast lookup

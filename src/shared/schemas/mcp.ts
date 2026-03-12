@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { MCPTransport } from "../enums.ts";
+import { McpTransportType } from "../enums.ts";
 import { PLAN_STATUS_VALUES } from "../status/plan_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../constants.ts";
 
@@ -18,7 +18,7 @@ import { DEFAULT_QUERY_LIMIT } from "../constants.ts";
 
 export const MCPConfigSchema = z.object({
   enabled: z.boolean().default(true),
-  transport: z.nativeEnum(MCPTransport).default(MCPTransport.STDIO),
+  transport: z.nativeEnum(McpTransportType).default(McpTransportType.STDIO),
   server_name: z.string().default("exoframe"),
   version: z.string().default("1.0.0"),
 });

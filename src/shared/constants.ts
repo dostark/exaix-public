@@ -7,7 +7,7 @@
  * @related-files [src/shared/enums.ts, src/config/schema.ts]
  */
 
-import { LogLevel, MCPTransport, MockStrategy, ProviderCostTier, ProviderType } from "./enums.ts";
+import { LogLevel, McpTransportType, MockStrategy, ProviderCostTier, ProviderType } from "./enums.ts";
 
 // ============================================================================
 // Path Configuration Defaults
@@ -261,7 +261,7 @@ export const DEFAULT_ANTHROPIC_MAX_TOKENS = 4096;
 // MCP Defaults
 // ============================================================================
 export const DEFAULT_MCP_ENABLED = true;
-export const DEFAULT_MCP_TRANSPORT = MCPTransport.STDIO;
+export const DEFAULT_MCP_TRANSPORT = McpTransportType.STDIO;
 export const DEFAULT_MCP_SERVER_NAME = "exoframe";
 export const DEFAULT_MCP_VERSION = "1.0.0";
 export const DEFAULT_MCP_AGENT_ID = "system";
