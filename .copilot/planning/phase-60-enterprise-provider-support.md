@@ -31,6 +31,7 @@ Implement two enterprise provider types:
 1. **Google Vertex AI (Priority 1)** - Service account authentication for GCP projects
 1. **OpenRouter (Priority 2)** - Unified API gateway to 100+ models
 1. **Secure Execution (Priority 3)** - Enterprise-grade sandboxing and containerization for untrusted code
+1. **Multi-language Symbol Extraction (Priority 4)** - Tree-sitter WASM for non-TS portals (Python, Rust, Go, Ruby, etc.), extending Phase 46 portal knowledge to polyglot codebases (Team/Enterprise edition)
 
 **Key Decisions:**
 
@@ -49,6 +50,7 @@ Implement two enterprise provider types:
 - [ ] Implement Secure Execution abstraction (Sandbox/Container drivers)
 - [ ] Add support for Deno Sandbox (MicroVMs) for hypervisor-level isolation
 - [ ] Implement Docker driver for multi-tenant tool execution
+- [ ] Implement tree-sitter WASM symbol extraction driver for multi-language portal analysis (Team/Enterprise edition)
 - [ ] Implement Zod validation for enterprise credentials
 - [ ] Zero breaking changes to existing provider abstraction
 - [ ] Complete documentation (Technical Spec, User Guide, `.copilot/`)
@@ -1329,7 +1331,51 @@ export class DockerDriver implements SandboxDriver {
 
 ---
 
-### Phase 8: Success Criteria (Integrated)
+#### Step 7.4: Tree-sitter WASM Symbol Extraction (Team/Enterprise Edition)
+
+**Goal:** Extend portal knowledge gathering (Phase 46) to **all programming languages** via tree-sitter WASM — enabling the same `symbolMap` quality for Python, Rust, Go, Java, Ruby, C/C++, and other portals that `deno doc --json` cannot serve.
+
+> 🟡 **Team Edition** — available when `[portal_knowledge] tree_sitter_extraction = true`
+> 🔵 **Enterprise Edition** — enabled by default; runs automatically in `standard`/`deep` modes
+
+**Files to create:**
+
+- `src/services/portal_knowledge/tree_sitter_extractor.ts` (NEW)
+- `src/services/portal_knowledge/wasm/` (directory for grammar WASM blobs)
+
+**Architecture notes:**
+
+- Implements the same `extractSymbols(portalPath, fileList, limit) → Promise<ISymbolEntry[]>` contract as Phase 46 Strategy 6
+- Loads grammar WASM files via the `npm:web-tree-sitter` specifier in Deno
+- Supported grammars bundled: `tree-sitter-python`, `tree-sitter-rust`, `tree-sitter-go`, `tree-sitter-java`, `tree-sitter-ruby`, `tree-sitter-c`, `tree-sitter-cpp`
+- Language auto-detection from `techStack.primaryLanguage` (set by Strategy 1 in Phase 46)
+- Dispatch: `typescript`/`javascript` → `deno doc` (Phase 46 Strategy 6); all others → tree-sitter WASM (this step)
+- Extracts: function/method definitions, class declarations, public interfaces — no bodies
+- PageRank scoring via cross-file symbol reference graph (same algorithm as Phase 46 Strategy 6)
+- Grammar WASM files sourced from tree-sitter NPM packages; bundled at build time; checked in under `src/services/portal_knowledge/wasm/`
+- Edition gate: reads `[portal_knowledge] tree_sitter_extraction` from `exo.config.toml`; no-op on Solo edition
+
+**Success Criteria:**
+
+- [ ] Python portal produces `symbolMap` with function and class signatures
+- [ ] Rust portal produces `symbolMap` with `pub fn` and `pub struct` signatures
+- [ ] Go portal produces `symbolMap` with exported function and type signatures
+- [ ] Language dispatch routes TS/JS portals to `deno doc`, all others to tree-sitter
+- [ ] Falls back to `[]` on unsupported language (does not block analysis)
+- [ ] WASM grammar loading works in Deno's sandbox permission model
+- [ ] PageRank scoring consistent with Phase 46 Strategy 6 output format
+- [ ] Edition gate (`tree_sitter_extraction` config flag) enforced: disabled on Solo (no-op), opt-in on Team, default on Enterprise
+
+**Planned tests** (`tests/services/portal_knowledge/tree_sitter_extractor_test.ts`):
+
+- `[TreeSitterExtractor] extracts Python function and class signatures`
+- `[TreeSitterExtractor] extracts Rust pub fn and pub struct signatures`
+- `[TreeSitterExtractor] extracts Go exported function signatures`
+- `[TreeSitterExtractor] routes TypeScript portal to deno doc strategy`
+- `[TreeSitterExtractor] returns empty array for unsupported language`
+- `[TreeSitterExtractor] respects DEFAULT_SYMBOL_MAP_LIMIT`
+- `[TreeSitterExtractor] edition gate disables extraction on Solo`
+- `[TreeSitterExtractor] edition gate enables extraction on Enterprise by default`
 
 ### Functional Requirements
 
@@ -1359,6 +1405,13 @@ export class DockerDriver implements SandboxDriver {
   - [ ] Zod schemas validate all new configuration options
   - [ ] Invalid service account JSON rejected with clear messages
   - [ ] Missing API keys cause graceful failures with setup guidance
+
+- [ ] **FR6: Multi-language Symbol Extraction (Team/Enterprise)**
+  - [ ] Tree-sitter WASM grammars load in Deno sandbox permission model
+  - [ ] Python, Rust, Go, Java, Ruby portals produce valid `symbolMap`
+  - [ ] Language dispatch routes TS/JS to `deno doc`, all others to tree-sitter
+  - [ ] Edition gate enforced: disabled on Solo (no-op), opt-in on Team, default on Enterprise
+  - [ ] `symbolMap` output conforms to `ISymbolEntry[]` schema defined in Phase 46
 
 ### Non-Functional Requirements
 

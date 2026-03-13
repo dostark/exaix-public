@@ -185,6 +185,13 @@ export interface IPortalKnowledge {
     buildTool?: string;
   };
 
+  /**
+   * Top-N exported symbols ranked by connectivity (populated in `standard`/`deep` modes).
+   * Populated by Strategy 6 (`deno doc --json` for TS/Deno portals; tree-sitter WASM for
+   * other languages in Team/Enterprise edition). Empty array in `quick` mode.
+   */
+  symbolMap: ISymbolEntry[];
+
   /** Project statistics */
   stats: {
     totalFiles: number;
@@ -205,6 +212,21 @@ export interface IPortalKnowledge {
     /** Files read (content analyzed) */
     filesRead: number;
   };
+}
+
+export interface ISymbolEntry {
+  /** Symbol name (function, class, interface, const, type) */
+  name: string;
+  /** Symbol kind */
+  kind: "function" | "class" | "interface" | "const" | "type" | "enum";
+  /** File path relative to portal root */
+  file: string;
+  /** Full TypeScript/language signature (no body) */
+  signature: string;
+  /** JSDoc summary line, if present */
+  doc?: string;
+  /** PageRank-like connectivity score — higher = referenced by more files */
+  pageRankScore?: number;
 }
 ```
 
@@ -327,13 +349,26 @@ Produce a concise architecture overview including:
 Format as Markdown suitable for a developer onboarding document.
 ```
 
+#### Strategy 6: Symbol Extraction (No LLM — `standard` and `deep` modes)
+
+For **TypeScript / Deno portals**, run `deno doc --json <entrypoint>` as a subprocess to extract all exported symbols — functions, classes, interfaces, constants, and types — along with their signatures, JSDoc, and re-export chains. This produces a precise, compiler-verified symbol catalogue without any LLM call.
+
+- **Language detection gate:** only runs when `techStack.primaryLanguage` is `"typescript"` or `"javascript"` (determined by Strategy 1); silently skipped for other languages
+- **Input:** portal entrypoint(s) detected by Strategy 3 (`main.ts`, `mod.ts`, `index.ts`, etc.)
+- **Output:** `symbolMap[]` populated with top-N symbols; PageRank score computed from cross-file reference count (how many other files import each symbol)
+- **Ranking:** symbols sorted by `pageRankScore` descending; cap at `DEFAULT_SYMBOL_MAP_LIMIT` (default: 100) entries
+- **Multi-language portals (future — Team/Enterprise):** for non-TS languages, a tree-sitter WASM driver (see Phase 60) provides the same symbol extraction capability. Phase 46 outputs an empty `symbolMap` for non-TS portals with a `metadata.symbolExtractionSkipped: true` flag.
+- **Fallback:** if `deno doc` subprocess fails or times out, `symbolMap` is set to `[]` without blocking analysis
+
+> **Why this replaces pure heuristics for TS portals:** `deno doc` uses the TypeScript compiler's type checker, so it sees path aliases, re-exports, and generics correctly. Name heuristics (Strategy 3) miss re-exported symbols entirely and produce false positives on test helper files named `*_service.ts`.
+
 ### 4. Analysis Mode Comparison
 
 | Mode | LLM Calls | Files Read | Duration | Use Case |
 | ------ | ----------- | ------------ | ---------- | ---------- |
 | `quick` | 0 | 0 (structure + configs only) | <5s | Post-mount default; **basic structural orientation only** (file tree, dependency list, naming patterns — does not produce architectural understanding; run `exoctl portal analyze` before first agent use for full analysis — addresses Gap 14) |
-| `standard` | 1 | Up to 20 key files | ~15s | Pre-execution default; architecture inference |
-| `deep` | 2-3 | Up to 50 files | ~60s | Manual `exoctl portal analyze`; full convention mapping |
+| `standard` | 1 | Up to 20 key files | ~15s | Pre-execution default; architecture inference + symbol extraction (TS/Deno portals get `symbolMap` via `deno doc --json`, no extra LLM call) |
+| `deep` | 2-3 | Up to 50 files | ~60s | Manual `exoctl portal analyze`; full convention mapping + complete symbol index + multi-language support |
 
 ### 5. Persistence in Memory Bank
 
@@ -480,12 +515,13 @@ Incremental updates:
 **Architecture notes:**
 
 - Follow project schema convention: `XxxSchema` naming, `z.infer<typeof XxxSchema>` for types
-- Sub-schemas: `FileSignificanceSchema`, `ArchitectureLayerSchema`, `CodeConventionSchema`, `MonorepoPackageSchema`, `DependencyInfoSchema`, `PortalKnowledgeSchema`
+- Sub-schemas: `FileSignificanceSchema`, `ArchitectureLayerSchema`, `CodeConventionSchema`, `MonorepoPackageSchema`, `DependencyInfoSchema`, `SymbolEntrySchema`, `PortalKnowledgeSchema`
 - Enum values (`role`, `category`, `mode`) as Zod native enums
 - `CodeConventionSchema` includes `evidenceCount` (positive integer) and `confidence` (`"low" | "medium" | "high"` Zod native enum) — addresses Gap 11
 - `MonorepoPackageSchema` added with per-package `layers` and `conventions`; `PortalKnowledgeSchema` includes optional `packages` field (`z.array(MonorepoPackageSchema).optional()`) — addresses Gap 8
+- `SymbolEntrySchema` for `ISymbolEntry` with `kind` as Zod native enum; `PortalKnowledgeSchema` includes `symbolMap: z.array(SymbolEntrySchema)` (default `[]`)
 - `gatheredAt` as ISO string, `version` as positive integer
-- Export both schemas and inferred types (`IPortalKnowledge`, `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IMonorepoPackage`, `IDependencyInfo`)
+- Export both schemas and inferred types (`IPortalKnowledge`, `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IMonorepoPackage`, `IDependencyInfo`, `ISymbolEntry`)
 
 **Success criteria:**
 
@@ -553,6 +589,8 @@ Incremental updates:
   - `ARCHITECTURE_INFERRER_TOKEN_BUDGET = 8_000` — max total assembled prompt tokens sent to LLM in `ArchitectureInferrer` (Gap 9)
   - `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS = 200` — max lines per file before truncation in prompt assembly (Gap 9)
   - `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES = 60` — max lines for the `PORTAL_KNOWLEDGE_KEY` Markdown summary injected into agent prompts (Gap 12)
+  - `DEFAULT_SYMBOL_MAP_LIMIT = 100` — max `ISymbolEntry` records stored in `symbolMap`
+  - `DENO_DOC_TIMEOUT_MS = 15_000` — subprocess timeout for `deno doc --json` call
 - No magic numbers in strategy or service code — all from constants
 
 **Success criteria:**
@@ -782,9 +820,54 @@ Incremental updates:
 
 ---
 
+### Step 8b: Implement Symbol Extractor (Strategy 6 — `deno doc --json`)
+
+**What:** Create `src/services/portal_knowledge/symbol_extractor.ts` — a module that runs `deno doc --json` as a subprocess on detected entrypoints to extract an accurate symbol index for TypeScript/Deno portals. For non-TS portals the module silently returns an empty result; multi-language support via tree-sitter WASM is reserved for Team/Enterprise (Phase 60).
+
+**Files to create:**
+
+- `src/services/portal_knowledge/symbol_extractor.ts` (NEW)
+
+**Architecture notes:**
+
+- Export `extractSymbols(portalPath, entrypoints, options) → Promise<ISymbolEntry[]>`
+- Language detection input: `techStack.primaryLanguage` from Strategy 1 result; if not `"typescript"` or `"javascript"`, return `[]` immediately with no subprocess call
+- Subprocess call: `new Deno.Command("deno", { args: ["doc", "--json", entrypoint], cwd: portalPath, timeout: DENO_DOC_TIMEOUT_MS })` — parse stdout as JSON
+- Map `deno doc` JSON nodes to `ISymbolEntry`: kind enum mapping, signature reconstruction from `functionDef`/`classDef`/`interfaceDef`, first JSDoc line as `doc`
+- PageRank scoring: count how many other files import each symbol (from Strategy 1 file list + Strategy 2 path-alias map); `pageRankScore = importerCount / totalFiles`
+- Sort descending by `pageRankScore`, cap at `DEFAULT_SYMBOL_MAP_LIMIT`
+- Fallback: if subprocess fails or times out, return `[]` without throwing
+- `metadata.symbolExtractionSkipped = true` when language is not TS/JS
+
+**Success criteria:**
+
+- [ ] Returns empty array for non-TypeScript portals without spawning subprocess
+- [ ] Calls `deno doc --json` on detected entrypoints
+- [ ] Maps `deno doc` output nodes to `ISymbolEntry[]`
+- [ ] Populates `kind`, `name`, `file`, `signature`, `doc` for each symbol
+- [ ] Computes `pageRankScore` from cross-file import count
+- [ ] Sorts by `pageRankScore` descending and caps at `DEFAULT_SYMBOL_MAP_LIMIT`
+- [ ] Returns empty array on subprocess failure without throwing
+- [ ] Respects `DENO_DOC_TIMEOUT_MS` timeout
+
+**Planned tests** (`tests/services/portal_knowledge/symbol_extractor_test.ts`):
+
+- `[SymbolExtractor] returns empty array for non-TypeScript portal`
+- `[SymbolExtractor] maps deno doc JSON nodes to ISymbolEntry`
+- `[SymbolExtractor] assigns correct kind for function/class/interface/const/type`
+- `[SymbolExtractor] populates signature from functionDef`
+- `[SymbolExtractor] extracts JSDoc summary as doc field`
+- `[SymbolExtractor] computes pageRankScore from import count`
+- `[SymbolExtractor] sorts by pageRankScore descending`
+- `[SymbolExtractor] caps output at DEFAULT_SYMBOL_MAP_LIMIT`
+- `[SymbolExtractor] returns empty array on subprocess failure`
+- `[SymbolExtractor] respects timeout and returns empty on timeout`
+
+---
+
 ### Step 9: Implement `PortalKnowledgeService` (Orchestrator)
 
-**What:** Create `src/services/portal_knowledge/portal_knowledge_service.ts` — the main service that orchestrates all five analysis strategies based on configured mode, merges results, and manages staleness.
+**What:** Create `src/services/portal_knowledge/portal_knowledge_service.ts` — the main service that orchestrates all **six** analysis strategies based on configured mode, merges results, and manages staleness.
 
 **Files to create/modify:**
 
@@ -796,9 +879,9 @@ Incremental updates:
 - Class `PortalKnowledgeService` implements `IPortalKnowledgeService`
 - Constructor DI: `constructor(config: IPortalKnowledgeConfig, memoryBank: IMemoryBankService, provider?: IModelProvider, validator?: OutputValidator, db?: IDatabaseService)`
 - Mode determines which strategies run:
-  - `quick`: Strategies 1–3 only (directory, config, key files) — no LLM
-  - `standard`: All 5 strategies with `maxFilesToRead` cap — 1 LLM call
-  - `deep`: All 5 strategies with higher file read cap — 2–3 LLM calls
+  - `quick`: Strategies 1–3 only (directory, config, key files) — no LLM, no symbol extraction
+  - `standard`: All 6 strategies with `maxFilesToRead` cap — 1 LLM call + `deno doc --json` for TS portals
+  - `deep`: All 6 strategies with higher file read cap — 2–3 LLM calls + full symbol index
 - Merges results from all strategies into a single `IPortalKnowledge` object
 - `isStale()`: compares `gatheredAt` against `staleness` threshold
 - **`getOrAnalyze()` three code paths (addresses Gap 10):** (1) fresh cache → return immediately; (2) stale cache → return stale knowledge **immediately** then fire async background re-analysis (updates cache when complete, never blocks the request); (3) no cache → analyze synchronously before returning. Prevents user-visible latency spikes after each staleness window.
@@ -808,9 +891,11 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `quick` mode runs only Strategies 1–3 (no LLM calls)
-- [ ] `standard` mode runs all 5 strategies with 1 LLM call
-- [ ] `deep` mode runs all 5 strategies with higher caps
+- [ ] `quick` mode runs only Strategies 1–3 (no LLM calls, no symbol extraction)
+- [ ] `standard` mode runs all 6 strategies with 1 LLM call (+`deno doc` for TS)
+- [ ] `deep` mode runs all 6 strategies with higher caps
+- [ ] `standard` mode runs Strategy 6 (symbol extractor) for TS portals
+- [ ] `quick` mode skips Strategy 6 symbol extraction
 - [ ] Results merged into a single valid `IPortalKnowledge`
 - [ ] `isStale()` correctly compares timestamps against threshold
 - [ ] `getOrAnalyze()` returns cached knowledge when fresh
@@ -1186,7 +1271,7 @@ Incremental updates:
 1.
 
 1.
-   - Five analysis strategies with LLM/no-LLM breakdown
+   - Six analysis strategies with LLM/no-LLM breakdown (note Strategy 6 language gate)
    - Three modes comparison table (quick/standard/deep)
    - Persistence model (`knowledge.json` + `IProjectMemory` mapping)
    - Staleness detection and incremental updates
@@ -1199,7 +1284,7 @@ Incremental updates:
 **Success criteria:**
 
 - [ ] Portal knowledge pipeline documented with diagram
-- [ ] Five strategies described with mode matrix
+- [ ] Six strategies described with mode matrix (including Strategy 6 `deno doc` language gate)
 - [ ] `PortalKnowledgeSchema` listed in schema layer section
 - [ ] `portal.analyzed` event documented
 - [ ] Memory Bank section updated with knowledge.json
@@ -1229,9 +1314,10 @@ Incremental updates:
    - Describe `knowledge.json` in `Memory/Projects/`
 
 1.
-   - Add `IPortalKnowledge` schema specification (all sub-schemas: `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IDependencyInfo`)
+   - Add `IPortalKnowledge` schema specification (all sub-schemas: `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IDependencyInfo`, `ISymbolEntry`, `IMonorepoPackage`)
    - Document `PortalKnowledgeService` API (modes, strategies, config interface `IPortalKnowledgeConfig`)
-   - Document the five analysis strategy pipeline with inputs/outputs
+   - Document the **six** analysis strategy pipeline with inputs/outputs
+   - Note Strategy 6 language gate (TS/JS → `deno doc`; non-TS → empty, future tree-sitter in Phase 60)
    - Add `knowledge.json` to the file format specifications section
 
 1.
@@ -1299,7 +1385,8 @@ Step  5: Config file parser          ← depends on Steps 1, 3
 Step  6: Key file identifier         ← depends on Steps 1, 3
 Step  7: Pattern detector            ← depends on Steps 1, 3, 6
 Step  8: Architecture inferrer       ← depends on Steps 1, 4, 5, 6, 7
-Step  9: Portal knowledge service    ← depends on Steps 2, 4, 5, 6, 7, 8
+Step 8b: Symbol extractor            ← depends on Steps 1, 3, 5 (entrypoints from config), 6
+Step  9: Portal knowledge service    ← depends on Steps 2, 4, 5, 6, 7, 8, 8b
 Step 10: Knowledge persistence       ← depends on Steps 1, 9
 Step 11: Post-mount trigger          ← depends on Steps 9, 10
 Step 12: Pre-execution trigger       ← depends on Steps 9, 10
@@ -1319,7 +1406,7 @@ Step 20: .copilot/ agent docs        ← depends on Step 18 (needs architecture)
 | ------ | ------- | ------------- |
 | 1 | 1, 2, 3 | Types, interfaces, constants (no runtime code) |
 | 2 | 4, 5, 6 | Independent heuristic strategies (parallel) |
-| 3 | 7, 8 | Pattern detector + architecture inferrer (depend on previous) |
+| 3 | 7, 8, 8b | Pattern detector + architecture inferrer + symbol extractor (all depend on previous; 8 and 8b are independent of each other) |
 | 4 | 9, 10 | Orchestrator service + persistence |
 | 5 | 11, 12, 15, 16 | Pipeline triggers + CLI + config (parallel) |
 | 6 | 13, 14 | TUI integration (depends on data path) |
