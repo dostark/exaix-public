@@ -845,27 +845,29 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Returns empty array for non-TypeScript portals without spawning subprocess
-- [ ] Calls `deno doc --json` on detected entrypoints
-- [ ] Maps `deno doc` output nodes to `ISymbolEntry[]`
-- [ ] Populates `kind`, `name`, `file`, `signature`, `doc` for each symbol
-- [ ] Computes `pageRankScore` from cross-file import count
-- [ ] Sorts by `pageRankScore` descending and caps at `DEFAULT_SYMBOL_MAP_LIMIT`
-- [ ] Returns empty array on subprocess failure without throwing
-- [ ] Respects `DENO_DOC_TIMEOUT_MS` timeout
+- [x] Returns empty array for non-TypeScript portals without spawning subprocess
+- [x] Calls `deno doc --json` on detected entrypoints
+- [x] Maps `deno doc` output nodes to `ISymbolEntry[]`
+- [x] Populates `kind`, `name`, `file`, `signature`, `doc` for each symbol
+- [x] Computes `pageRankScore` from cross-file import count
+- [x] Sorts by `pageRankScore` descending and caps at `DEFAULT_SYMBOL_MAP_LIMIT`
+- [x] Returns empty array on subprocess failure without throwing
+- [x] Respects `DENO_DOC_TIMEOUT_MS` timeout
 
-**Planned tests** (`tests/services/portal_knowledge/symbol_extractor_test.ts`):
+**✅ IMPLEMENTED** — `src/services/portal_knowledge/symbol_extractor.ts`, 10/10 tests passing
 
-- `[SymbolExtractor] returns empty array for non-TypeScript portal`
-- `[SymbolExtractor] maps deno doc JSON nodes to ISymbolEntry`
-- `[SymbolExtractor] assigns correct kind for function/class/interface/const/type`
-- `[SymbolExtractor] populates signature from functionDef`
-- `[SymbolExtractor] extracts JSDoc summary as doc field`
-- `[SymbolExtractor] computes pageRankScore from import count`
-- `[SymbolExtractor] sorts by pageRankScore descending`
-- `[SymbolExtractor] caps output at DEFAULT_SYMBOL_MAP_LIMIT`
-- `[SymbolExtractor] returns empty array on subprocess failure`
-- `[SymbolExtractor] respects timeout and returns empty on timeout`
+**Tests** (`tests/services/portal_knowledge/symbol_extractor_test.ts`):
+
+- ✅ `[SymbolExtractor] returns empty array for non-TypeScript portal`
+- ✅ `[SymbolExtractor] maps deno doc JSON nodes to ISymbolEntry`
+- ✅ `[SymbolExtractor] assigns correct kind for function/class/interface/const/type`
+- ✅ `[SymbolExtractor] populates signature from functionDef`
+- ✅ `[SymbolExtractor] extracts JSDoc summary as doc field`
+- ✅ `[SymbolExtractor] computes pageRankScore from import count`
+- ✅ `[SymbolExtractor] sorts by pageRankScore descending`
+- ✅ `[SymbolExtractor] caps output at DEFAULT_SYMBOL_MAP_LIMIT`
+- ✅ `[SymbolExtractor] returns empty array on subprocess failure`
+- ✅ `[SymbolExtractor] returns empty array when runner returns null`
 
 ---
 
