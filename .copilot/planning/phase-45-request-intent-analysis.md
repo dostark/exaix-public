@@ -1174,6 +1174,8 @@ The actual `AmbiguitySchema` only contains `description` and `impact`. **Impact:
 
 > **To fix:** Add `interpretations: z.array(z.string()).default([])` and `clarificationQuestion: z.string().optional()` to `AmbiguitySchema`. Update `LlmAnalyzer` prompt template JSON spec to include both fields. Heuristic analyzer can leave `interpretations: []` and `clarificationQuestion: undefined` (fields are optional or default-empty). Add regression tests for both fields.
 
+> **Downstream phases affected:** Phase 47 Q&A clarification flow, Phase 49 reflexive agent critique loop.
+
 ---
 
 #### Gap 3: `DEFAULT_ANALYZER_MODE` constant is ignored — `RequestProcessor` defaults to `HEURISTIC` instead of `HYBRID`
@@ -1211,7 +1213,7 @@ Step 16 specifies adding a `[request_analysis]` TOML block with explicit default
 
 #### Gap 5: `enabled` and `persist_analysis` TOML fields are absent from ConfigSchema
 
-The [Detailed Design](#16-add-toml-configuration-for-request-analysis) TOML snippet lists `enabled = true` and `persist_analysis = true`, but `ConfigSchema.request_analysis` only contains `mode`, `actionability_threshold`, and `infer_acceptance_criteria`. There is no way to disable analysis for performance-sensitive deployments, and no way to suppress `_analysis.json` sidecar creation without code changes. **Impact:** operators cannot tune the analyzer to their environment; persistence always runs even in test or CI contexts where it wastes I/O.
+The Detailed Design (Step 16) TOML snippet lists `enabled = true` and `persist_analysis = true`, but `ConfigSchema.request_analysis` only contains `mode`, `actionability_threshold`, and `infer_acceptance_criteria`. There is no way to disable analysis for performance-sensitive deployments, and no way to suppress `_analysis.json` sidecar creation without code changes. **Impact:** operators cannot tune the analyzer to their environment; persistence always runs even in test or CI contexts where it wastes I/O.
 
 > **To fix:** Add `enabled: z.boolean().default(true)` and `persist_analysis: z.boolean().default(true)` to the `request_analysis` schema block. Thread `config.request_analysis.enabled` into `RequestProcessor.process()` to skip the `analyzer.analyze()` call entirely when disabled. Thread `persist_analysis` into the `saveAnalysis()` call guard.
 
@@ -1227,7 +1229,7 @@ The [Detailed Design](#16-add-toml-configuration-for-request-analysis) TOML snip
 
 #### Gap 7: `hybrid` mode is unreachable from `exoctl request analyze`
 
-`request_actions.ts` maps the CLI engine option as: `options.engine === AnalysisMode.LLM → LLM, else HEURISTIC`. The `hybrid` value is never produced by the CLI mapping. Since `hybrid` is the recommended default and arguably the most useful mode (saves LLM cost but catches vague requests), having it unreachable from the explicit CLI command is counterproductive. **Impact:** developers wanting to preview their hybrid-mode results for a specific request cannot do so without modifying code.
+`request_actions.ts` maps the CLI engine option as: `options.engine === AnalysisMode.LLM` → `LLM`, else `HEURISTIC`. The `hybrid` value is never produced by the CLI mapping. Since `hybrid` is the recommended default and arguably the most useful mode (saves LLM cost but catches vague requests), having it unreachable from the explicit CLI command is counterproductive. **Impact:** developers wanting to preview their hybrid-mode results for a specific request cannot do so without modifying code.
 
 > **To fix:** Update the CLI engine mapping to pass `options.engine as AnalysisMode` directly (trusting the string value), or add `hybrid` to the recognized option values. Add `--mode heuristic|llm|hybrid` as an explicit option in the analyze action binding (distinct from `--engine` which may have different semantics).
 
@@ -1259,7 +1261,7 @@ Step 17 specifies a full pipeline E2E test file with 5 test cases:
 - `[E2E] plan metadata includes request analysis`
 - `[E2E] flow request receives analysis context`
 
-The file does not exist in `tests/integration/`. The integration test suite (tests 01–30) has no test that exercises the analysis pipeline end-to-end through `TestEnvironment`. The only analysis-related integration coverage is in `tests/services/request_processor_analysis_test.ts`, which uses unit-level mocks — not a real workspace with a real file write-read cycle. **Impact:** the end-to-end data flow (request file → `_analysis.json` written → plan with embedded analysis → loadable) is completely untested; regressions in this path will go undetected until Phase 48 is integrated.
+The file does not exist in `tests/integration/`. The integration test suite (tests 01–30) has no test that exercises the analysis pipeline end-to-end through `TestEnvironment`. The only analysis-related integration coverage is in `tests/services/request_processor_analysis_test.ts`, which uses unit-level mocks — not a real workspace with a real file write-read cycle. **Impact:** the end-to-end data flow (request file to `_analysis.json` written to plan with embedded analysis to loadable) is completely untested; regressions in this path will go undetected until Phase 48 is integrated.
 
 ---
 
@@ -1272,7 +1274,7 @@ Step 16 specifies a config schema test file in `tests/shared/schemas/` (document
 - `[ConfigSchema] rejects invalid mode value`
 - `[ConfigSchema] rejects actionability_threshold outside 0-100`
 
-The file does not exist in `tests/schemas/`. The `request_analysis` ConfigSchema block is tested only indirectly (via other config tests that hit the full schema). **Impact:** Gaps 4 and 5 above (missing TOML section, missing `enabled`/`persist_analysis` fields) may remain undetected because there is no dedicated config-level test gate for this feature.
+The file does not exist in `tests/schemas/`. The `request_analysis` ConfigSchema block is tested only indirectly via other config tests that hit the full schema. **Impact:** Gaps 4 and 5 above (missing TOML section, missing `enabled`/`persist_analysis` fields) may remain undetected because there is no dedicated config-level test gate for this feature.
 
 ---
 
