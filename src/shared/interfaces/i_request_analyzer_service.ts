@@ -54,6 +54,12 @@ export interface IRequestAnalysisContext {
   filePaths?: string[];
   /** Tags already extracted from frontmatter. */
   tags?: string[];
+  /** Absolute path to the originating request file, used for activity journal targeting. */
+  requestFilePath?: string;
+  /** Trace ID carried from the request frontmatter, for correlated logging. */
+  traceId?: string;
+  /** Analysis mode override for this specific context (overrides config). */
+  mode?: AnalysisMode;
 }
 
 /**

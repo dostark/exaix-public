@@ -12,6 +12,7 @@ import { McpToolName } from "../enums.ts";
 import { PlanStatus } from "../status/plan_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../constants.ts";
 import { JSONValueSchema } from "../types/json.ts";
+import { RequestAnalysisSchema } from "./request_analysis.ts";
 
 /**
  * Zod schema for plan frontmatter to ensure type safety during parsing.
@@ -47,7 +48,7 @@ export const PlanFrontmatterSchema = z.object({
   rejection_reason: z.string().optional(),
   reviewed_by: z.string().optional(),
   skills: z.string().optional(),
-  request_analysis: z.record(z.any()).optional(),
+  request_analysis: RequestAnalysisSchema.optional(),
   subject: z.string().optional(),
 }).passthrough();
 

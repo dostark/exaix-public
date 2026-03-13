@@ -279,6 +279,12 @@ export const ConfigSchema = z.object({
   /** Request intent analysis configuration (Phase 45) */
   request_analysis: z.object({
     /**
+     * Whether request analysis runs at all.
+     * Set to false to skip analysis entirely (for performance or testing).
+     */
+    enabled: z.boolean().default(true),
+
+    /**
      * Analysis strategy: heuristic, llm, or hybrid.
      * Default depends on environment (usually hybrid in production).
      */
@@ -289,10 +295,18 @@ export const ConfigSchema = z.object({
 
     /** Whether to infer acceptance criteria from imperatives. */
     infer_acceptance_criteria: z.boolean().default(true),
+
+    /**
+     * Whether to write the analysis result to a sibling `_analysis.json` file.
+     * Disable to run analysis in-memory only (useful in read-only environments).
+     */
+    persist_analysis: z.boolean().default(true),
   }).optional().default({
+    enabled: true,
     mode: AnalysisMode.HYBRID,
     actionability_threshold: 60,
     infer_acceptance_criteria: true,
+    persist_analysis: true,
   }),
   /** Rate limiting configuration for cost exhaustion attack prevention */
   rate_limiting: z.object({

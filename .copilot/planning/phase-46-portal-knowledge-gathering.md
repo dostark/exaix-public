@@ -1,6 +1,6 @@
 # Phase 46: Portal Codebase Knowledge Gathering
 
-## Version: 1.0
+## Version: 1.1
 
 ## Status: PLANNING
 

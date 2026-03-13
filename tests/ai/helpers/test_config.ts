@@ -154,6 +154,8 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       memory_critical_percent: 95,
     },
     request_analysis: {
+      enabled: true,
+      persist_analysis: true,
       mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,

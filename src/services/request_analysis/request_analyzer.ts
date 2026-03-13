@@ -31,7 +31,13 @@ import {
 import { AnalysisMode } from "../../shared/types/request.ts";
 import { analyzeHeuristic } from "./heuristic_analyzer.ts";
 import { LlmAnalyzer } from "./llm_analyzer.ts";
-import { DEFAULT_ACTIONABILITY_THRESHOLD } from "../../shared/constants.ts";
+import {
+  ANALYZER_VERSION,
+  DEFAULT_ACTIONABILITY_THRESHOLD,
+  HEURISTIC_SCORE_AMBIGUITY_PENALTY,
+  HEURISTIC_SCORE_BASELINE,
+  HEURISTIC_SCORE_COMPLEXITY_BONUS,
+} from "../../shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,11 +48,11 @@ import { DEFAULT_ACTIONABILITY_THRESHOLD } from "../../shared/constants.ts";
  * Uses ambiguity count and complexity as a proxy (no real score from heuristic).
  */
 function heuristicActionabilityScore(partial: Partial<IRequestAnalysis>): number {
-  let score = 70; // baseline
+  let score = HEURISTIC_SCORE_BASELINE;
   const ambiguities = partial.ambiguities ?? [];
-  score -= ambiguities.length * 10;
-  if (partial.complexity === RequestAnalysisComplexity.SIMPLE) score += 20;
-  if (partial.complexity === RequestAnalysisComplexity.EPIC) score -= 20;
+  score -= ambiguities.length * HEURISTIC_SCORE_AMBIGUITY_PENALTY;
+  if (partial.complexity === RequestAnalysisComplexity.SIMPLE) score += HEURISTIC_SCORE_COMPLEXITY_BONUS;
+  if (partial.complexity === RequestAnalysisComplexity.EPIC) score -= HEURISTIC_SCORE_COMPLEXITY_BONUS;
   return Math.max(0, Math.min(100, score));
 }
 
@@ -86,6 +92,7 @@ function completeFromHeuristic(
       analyzedAt: new Date().toISOString(),
       durationMs,
       mode: mode,
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }
@@ -155,7 +162,7 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
       },
     };
 
-    this._logActivity(requestText, result);
+    this._logActivity(requestText, result, context);
     return result;
   }
 
@@ -190,13 +197,13 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
     }
   }
 
-  private _logActivity(requestText: string, result: IRequestAnalysis): void {
+  private _logActivity(requestText: string, result: IRequestAnalysis, context?: IRequestAnalysisContext): void {
     if (!this.db) return;
     try {
       this.db.logActivity(
         "RequestAnalyzer",
         "request.analyzed",
-        null,
+        context?.requestFilePath ?? null,
         {
           mode: result.metadata.mode,
           complexity: result.complexity,

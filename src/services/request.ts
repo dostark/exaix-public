@@ -242,6 +242,12 @@ export class RequestService {
     if (!filename) throw new Error(`Request not found: ${requestId}`);
     const path = join(this.requestsDir, filename);
 
+    // Return cached analysis unless caller explicitly requests a fresh run
+    if (!options.force) {
+      const cached = await loadAnalysis(path);
+      if (cached) return cached;
+    }
+
     // Read request body
     const content = await Deno.readTextFile(path);
     const body = content.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();

@@ -111,7 +111,7 @@ Deno.test("handleRequestShow: includes analysis when present", async () => {
         analysis: {
           complexity: "medium",
           actionabilityScore: 80,
-          ambiguities: [{ description: "A bit vague", impact: "low" }],
+          ambiguities: [{ description: "A bit vague", impact: "low", interpretations: [] }],
           metadata: { analyzedAt: "now", durationMs: 123, mode: "heuristic" },
           goals: [],
           requirements: [],
@@ -151,9 +151,9 @@ Deno.test("handleRequestAnalyze: trigger and display analysis", async () => {
       Promise.resolve({
         complexity: "complex",
         actionabilityScore: 42,
-        ambiguities: [{ description: "Confusing", impact: "high" }],
+        ambiguities: [{ description: "Confusing", impact: "high", interpretations: [] }],
         goals: [{ description: "Win", priority: 1, explicit: true }],
-        requirements: [{ description: "Fast", confidence: 1 }],
+        requirements: [{ description: "Fast", confidence: 1, type: "functional", explicit: true }],
         metadata: { analyzedAt: "now", durationMs: 500, mode },
         constraints: [],
         acceptanceCriteria: [],
@@ -180,7 +180,7 @@ Deno.test("handleRequestAnalyze: trigger and display analysis", async () => {
   assertEquals(calls[1].a, "request.ambiguities");
 });
 
-Deno.test("handleRequestAnalyze: default to heuristic", async () => {
+Deno.test("handleRequestAnalyze: default to hybrid (DEFAULT_ANALYZER_MODE)", async () => {
   const { display, calls } = createDisplay();
   const requestCommands = {
     analyze: (_id: string, mode: string) =>
@@ -193,7 +193,7 @@ Deno.test("handleRequestAnalyze: default to heuristic", async () => {
         metadata: { analyzedAt: "now", durationMs: 10, mode },
         constraints: [],
         acceptanceCriteria: [],
-        taskType: "fix",
+        taskType: "feature",
         tags: [],
         referencedFiles: [],
       }),
@@ -209,6 +209,43 @@ Deno.test("handleRequestAnalyze: default to heuristic", async () => {
   assertEquals(calls.length, 1);
   assertEquals(calls[0].a, "request.analyzed");
   if (calls[0].c) {
-    assertEquals(calls[0].c.mode, "heuristic");
+    assertEquals(calls[0].c.mode, "hybrid");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Step 22: hybrid mode engine routes to HYBRID, not HEURISTIC
+// ---------------------------------------------------------------------------
+
+Deno.test("handleRequestAnalyze: hybrid engine routes to HYBRID mode", async () => {
+  const { display, calls } = createDisplay();
+  const requestCommands = {
+    analyze: (_id: string, mode: string) =>
+      Promise.resolve({
+        complexity: "medium",
+        actionabilityScore: 70,
+        ambiguities: [],
+        goals: [],
+        requirements: [],
+        metadata: { analyzedAt: "now", durationMs: 20, mode },
+        constraints: [],
+        acceptanceCriteria: [],
+        taskType: "feature",
+        tags: [],
+        referencedFiles: [],
+      }),
+  };
+
+  const context: IRequestActionContext = {
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
+    display,
+  };
+
+  await handleRequestAnalyze(context, "trace-5", { engine: "hybrid" });
+
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0].a, "request.analyzed");
+  if (calls[0].c) {
+    assertEquals(calls[0].c.mode, "hybrid");
   }
 });

@@ -20,6 +20,7 @@ import {
 } from "../../shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
 import type { IRequestAnalysisContext } from "../../shared/interfaces/i_request_analyzer_service.ts";
+import { ANALYZER_VERSION } from "../../shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // Analysis prompt template
@@ -36,10 +37,10 @@ REQUEST:
 Respond with ONLY a valid JSON object matching this exact structure (no markdown, no explanation):
 {
   "goals": [{ "description": "string", "explicit": boolean, "priority": number (≥1) }],
-  "requirements": [{ "description": "string", "confidence": number (0.0-1.0) }],
+  "requirements": [{ "description": "string", "confidence": number (0.0-1.0), "type": "functional|non-functional|constraint", "explicit": boolean }],
   "constraints": ["string"],
   "acceptanceCriteria": ["string"],
-  "ambiguities": [{ "description": "string", "impact": "low, medium, or high" }],
+  "ambiguities": [{ "description": "string", "impact": "low|medium|high", "interpretations": ["string"], "clarificationQuestion": "string (optional, omit if unknown)" }],
   "actionabilityScore": number (0-100, higher = clearer/more actionable),
   "complexity": "simple, medium, complex, or epic",
   "taskType": "feature, bugfix, refactor, test, docs, analysis, or unknown",
@@ -48,7 +49,8 @@ Respond with ONLY a valid JSON object matching this exact structure (no markdown
   "metadata": {
     "analyzedAt": "ISO8601 timestamp",
     "durationMs": 0,
-    "mode": "${AnalysisMode.LLM}"
+    "mode": "${AnalysisMode.LLM}",
+    "analyzerVersion": "${ANALYZER_VERSION}"
   }
 }
 
@@ -101,6 +103,7 @@ function buildFallback(requestText: string): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
       mode: AnalysisMode.LLM,
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

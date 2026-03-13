@@ -46,9 +46,10 @@ export class RequestCommands extends BaseCommand {
    */
   async analyze(
     idOrFilename: string,
-    mode: AnalysisMode = AnalysisMode.HEURISTIC,
+    mode: AnalysisMode = AnalysisMode.HYBRID,
+    force?: boolean,
   ): Promise<IRequestAnalysis> {
-    return await this.showHandler.analyze(idOrFilename, mode);
+    return await this.showHandler.analyze(idOrFilename, mode, force);
   }
 
   /**

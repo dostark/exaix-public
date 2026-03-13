@@ -19,7 +19,7 @@ import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
-import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
+import { DEFAULT_ANALYZER_MODE, PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
@@ -120,7 +120,7 @@ export class RequestProcessor {
     this.requestParser = new RequestParser(this.logger);
     this.statusManager = new StatusManager(this.logger);
     this.analyzer = testAnalyzer ?? new RequestAnalyzer({
-      mode: config.request_analysis?.mode ?? AnalysisMode.HEURISTIC,
+      mode: (config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE) as AnalysisMode,
       actionabilityThreshold: config.request_analysis?.actionability_threshold,
       inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
     });
@@ -163,12 +163,19 @@ export class RequestProcessor {
     const pipeline = this.createRequestProcessingPipeline();
 
     // Run analysis before pipeline so both agent and flow paths benefit
-    const analysis = await this.analyzer.analyze(body, {
-      agentId: frontmatter.agent ?? frontmatter.flow,
-      priority: frontmatter.priority,
-    }).catch(() => undefined);
+    // Skip if analysis is disabled in config
+    const analysisEnabled = this.config.request_analysis?.enabled !== false;
+    const persistAnalysis = this.config.request_analysis?.persist_analysis !== false;
+    const analysisMode = (this.config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE) as AnalysisMode;
+    const analysis = analysisEnabled
+      ? await this.analyzer.analyze(body, {
+        agentId: frontmatter.agent ?? frontmatter.flow,
+        priority: frontmatter.priority,
+        mode: analysisMode,
+      }).catch(() => undefined)
+      : undefined;
 
-    if (analysis) {
+    if (analysis && persistAnalysis) {
       await saveAnalysis(filePath, analysis).catch(() => {});
     }
 

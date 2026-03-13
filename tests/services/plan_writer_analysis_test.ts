@@ -20,7 +20,7 @@ import { AnalysisMode } from "../../src/shared/types/request.ts";
 function createMockAnalysis(): IRequestAnalysis {
   return {
     goals: [{ description: "test goal", explicit: true, priority: 1 }],
-    requirements: [{ description: "must pass", confidence: 0.9 }],
+    requirements: [{ description: "must pass", confidence: 0.9, type: "functional", explicit: true }],
     constraints: [],
     acceptanceCriteria: ["it works"],
     ambiguities: [],
@@ -33,6 +33,7 @@ function createMockAnalysis(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 42,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 }

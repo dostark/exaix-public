@@ -91,6 +91,7 @@ function detectAmbiguities(text: string): IAmbiguity[] {
     ambiguities.push({
       description: `Hedging language detected: "${hedgingFound.slice(0, 3).join('", "')}"`,
       impact: AmbiguityImpact.MEDIUM,
+      interpretations: [],
     });
   }
 
@@ -100,6 +101,7 @@ function detectAmbiguities(text: string): IAmbiguity[] {
     ambiguities.push({
       description: `Request contains ${questionCount} unresolved question(s)`,
       impact: questionCount > 2 ? AmbiguityImpact.HIGH : AmbiguityImpact.MEDIUM,
+      interpretations: [],
     });
   }
 
@@ -110,6 +112,7 @@ function detectAmbiguities(text: string): IAmbiguity[] {
     ambiguities.push({
       description: `Vague pronoun references: "${vagueFound.slice(0, 2).join('", "')}"`,
       impact: AmbiguityImpact.HIGH,
+      interpretations: [],
     });
   }
 

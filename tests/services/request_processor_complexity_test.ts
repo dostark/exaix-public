@@ -71,6 +71,7 @@ function createTestAnalysis(complexity: RequestAnalysisComplexity): IRequestAnal
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 }

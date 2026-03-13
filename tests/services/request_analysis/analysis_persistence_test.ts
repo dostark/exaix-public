@@ -20,7 +20,7 @@ import { AnalysisMode } from "../../../src/shared/types/request.ts";
 function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalysis {
   return {
     goals: [{ description: "Add caching", explicit: true, priority: 1 }],
-    requirements: [{ description: "Must be atomic", confidence: 0.95 }],
+    requirements: [{ description: "Must be atomic", confidence: 0.95, type: "functional", explicit: true }],
     constraints: ["No new deps"],
     acceptanceCriteria: ["Tests pass"],
     ambiguities: [],
@@ -33,6 +33,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
       analyzedAt: new Date().toISOString(),
       durationMs: 12,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
     ...overrides,
   };

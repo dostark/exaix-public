@@ -645,6 +645,18 @@ export const DEFAULT_ACTIONABILITY_THRESHOLD = 60;
 /** Default analysis mode when not configured. */
 export const DEFAULT_ANALYZER_MODE = "hybrid";
 
+/** Semantic version of the request analyzer. Bump on breaking schema changes. */
+export const ANALYZER_VERSION = "1.0.0";
+
+/** Baseline actionability score before bonuses/penalties are applied. */
+export const HEURISTIC_SCORE_BASELINE = 70;
+
+/** Actionability score penalty per ambiguity signal detected. */
+export const HEURISTIC_SCORE_AMBIGUITY_PENALTY = 10;
+
+/** Actionability score bonus awarded when complexity signals are detected. */
+export const HEURISTIC_SCORE_COMPLEXITY_BONUS = 20;
+
 /** Minimum character count for a request to be classified as anything above SIMPLE. */
 export const ANALYSIS_SIMPLE_MAX_CHARS = 200;
 

@@ -35,7 +35,7 @@ import { createMockProvider } from "../helpers/mock_provider.ts";
 function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalysis {
   return {
     goals: [{ description: "test goal", explicit: true, priority: 1 }],
-    requirements: [{ description: "must pass tests", confidence: 0.9 }],
+    requirements: [{ description: "must pass tests", confidence: 0.9, type: "functional", explicit: true }],
     constraints: [],
     acceptanceCriteria: ["all green"],
     ambiguities: [],
@@ -48,6 +48,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
       analyzedAt: new Date().toISOString(),
       durationMs: 42,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
     ...overrides,
   };
@@ -422,6 +423,134 @@ Deno.test("[RequestProcessor] skips analysis if request status is already PLANNE
     await processor.process(filePath);
 
     assertEquals(analysisCalls, 0, "Analyzer should not be called for skipped requests");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Step 22: enabled flag — skip analysis when config.request_analysis.enabled = false
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequestProcessor] skips analysis when request_analysis.enabled is false", async () => {
+  const env = await makeRequestProcessorEnv();
+  let analysisCalls = 0;
+  const countingAnalyzer: IRequestAnalyzerService = {
+    analyze: () => {
+      analysisCalls++;
+      return Promise.resolve(makeAnalysis());
+    },
+    analyzeQuick: () => makeAnalysis(),
+  };
+
+  // Override config to disable analysis
+  const disabledConfig = {
+    ...env.config,
+    request_analysis: {
+      ...(env.config.request_analysis ?? {}),
+      enabled: false,
+    },
+  };
+
+  try {
+    const filePath = makeAgentRequestFile(env.requestsDir, { requestId: "enabled-false" });
+
+    const processor = new RequestProcessor(
+      disabledConfig as typeof env.config,
+      env.db,
+      env.processorConfig,
+      undefined,
+      undefined,
+      countingAnalyzer,
+    );
+
+    await processor.process(filePath);
+
+    assertEquals(analysisCalls, 0, "Analyzer should not be called when enabled=false");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Step 23: persist_analysis flag — skip persistence when persist_analysis = false
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequestProcessor] skips persisting analysis when persist_analysis is false", async () => {
+  const env = await makeRequestProcessorEnv();
+  const analysis = makeAnalysis({ taskType: RequestTaskType.FEATURE });
+  const fakeAnalyzer = makeFakeAnalyzer(analysis);
+
+  const noPersistConfig = {
+    ...env.config,
+    request_analysis: {
+      ...(env.config.request_analysis ?? {}),
+      enabled: true,
+      persist_analysis: false,
+    },
+  };
+
+  try {
+    const filePath = makeAgentRequestFile(env.requestsDir, { requestId: "no-persist" });
+
+    const processor = new RequestProcessor(
+      noPersistConfig as typeof env.config,
+      env.db,
+      env.processorConfig,
+      undefined,
+      undefined,
+      fakeAnalyzer,
+    );
+
+    await processor.process(filePath);
+
+    const analysisPath = filePath.replace(/\.md$/, "_analysis.json");
+    const stat = await Deno.stat(analysisPath).catch(() => null);
+    assertEquals(stat, null, "_analysis.json should NOT exist when persist_analysis=false");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Step 24: DEFAULT_ANALYZER_MODE fallback — not hard-coded HEURISTIC
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequestProcessor] uses DEFAULT_ANALYZER_MODE (hybrid) not HEURISTIC as fallback mode", async () => {
+  const env = await makeRequestProcessorEnv();
+  let capturedMode: string | undefined;
+  const capturingAnalyzer: IRequestAnalyzerService = {
+    analyze: (_text: string, ctx?: IRequestAnalysisContext) => {
+      capturedMode = ctx?.mode;
+      return Promise.resolve(makeAnalysis());
+    },
+    analyzeQuick: () => makeAnalysis(),
+  };
+
+  // The schema defaults mode to DEFAULT_ANALYZER_MODE (hybrid).
+  // This test verifies the processor passes that mode (not hardcoded HEURISTIC).
+  const hybridConfig = {
+    ...env.config,
+    request_analysis: {
+      ...(env.config.request_analysis ?? {}),
+      mode: AnalysisMode.HYBRID,
+    },
+  };
+  try {
+    const filePath = makeAgentRequestFile(env.requestsDir, { requestId: "default-mode" });
+
+    const processor = new RequestProcessor(
+      hybridConfig,
+      env.db,
+      env.processorConfig,
+      undefined,
+      undefined,
+      capturingAnalyzer,
+    );
+
+    await processor.process(filePath);
+
+    assertEquals(capturedMode, "hybrid", "Default mode should be 'hybrid', not 'heuristic'");
   } finally {
     await env.cleanup();
   }

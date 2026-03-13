@@ -45,6 +45,7 @@ export interface RequestListOptions {
 export interface RequestAnalyzeOptions {
   engine?: string;
   json?: boolean;
+  force?: boolean;
 }
 
 /**
@@ -58,8 +59,8 @@ export async function handleRequestAnalyze(
   const { requestCommands, display } = context;
 
   try {
-    const mode = options.engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC;
-    const analysis = await requestCommands.analyze(id, mode);
+    const mode = (options.engine as AnalysisMode) ?? AnalysisMode.HYBRID;
+    const analysis = await requestCommands.analyze(id, mode, options.force);
 
     if (options.json) {
       console.log(JSON.stringify(analysis, null, 2));

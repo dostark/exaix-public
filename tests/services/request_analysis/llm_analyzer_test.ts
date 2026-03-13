@@ -19,7 +19,7 @@ import { AnalysisMode } from "../../../src/shared/types/request.ts";
 
 const validAnalysisJson = JSON.stringify({
   goals: [{ description: "Add unit tests", explicit: true, priority: 1 }],
-  requirements: [{ description: "Cover all public methods", confidence: 0.9 }],
+  requirements: [{ description: "Cover all public methods", confidence: 0.9, type: "functional", explicit: true }],
   constraints: ["No new dependencies"],
   acceptanceCriteria: ["All tests pass"],
   ambiguities: [],
@@ -180,6 +180,46 @@ Deno.test("[LlmAnalyzer] populates metadata.durationMs", async () => {
 
   assertEquals(typeof result.metadata.durationMs, "number");
   assertEquals(result.metadata.durationMs >= 0, true);
+});
+
+// ---------------------------------------------------------------------------
+// Step 21: Prompt template references new field names
+// ---------------------------------------------------------------------------
+
+Deno.test("[LlmAnalyzer] prompt template references type, interpretations, and clarificationQuestion", async () => {
+  let capturedPrompt = "";
+  const capturingProvider = {
+    id: "capturing",
+    generate: async (prompt: string) => {
+      capturedPrompt = prompt;
+      await Promise.resolve();
+      return validAnalysisJson;
+    },
+  };
+  const validator = createOutputValidator({ autoRepair: false });
+  const analyzer = new LlmAnalyzer(capturingProvider, validator);
+
+  await analyzer.analyze("Implement the new module.");
+
+  assertStringIncludes(capturedPrompt, "type");
+  assertStringIncludes(capturedPrompt, "interpretations");
+  assertStringIncludes(capturedPrompt, "clarificationQuestion");
+});
+
+// ---------------------------------------------------------------------------
+// Step 25: analyzerVersion in output metadata
+// ---------------------------------------------------------------------------
+
+Deno.test("[LlmAnalyzer] output includes analyzerVersion in metadata", async () => {
+  const provider = new MockProvider(validAnalysisJson);
+  const validator = createOutputValidator({ autoRepair: false });
+  const analyzer = new LlmAnalyzer(provider, validator);
+
+  const result = await analyzer.analyze("Add a new feature.");
+
+  assertExists(result.metadata.analyzerVersion);
+  assertEquals(typeof result.metadata.analyzerVersion, "string");
+  assertEquals(result.metadata.analyzerVersion.length > 0, true);
 });
 
 Deno.test("[LlmAnalyzer] includes high-impact ambiguity in prompt for ambiguous requests", async () => {

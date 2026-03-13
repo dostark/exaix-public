@@ -30,11 +30,14 @@ const validGoal = {
 const validRequirement = {
   description: "All existing tests must continue to pass",
   confidence: 0.9,
+  type: "functional" as const,
+  explicit: true,
 };
 
 const validAmbiguity = {
   description: "Unclear which test framework to use",
   impact: AmbiguityImpact.MEDIUM,
+  interpretations: [] as string[],
 };
 
 const validAnalysis = {
@@ -187,6 +190,95 @@ Deno.test("[RequestAnalysisSchema] validates all taskType enum values", () => {
   for (const taskType of Object.values(RequestTaskType)) {
     const result = RequestAnalysisSchema.safeParse({ ...validAnalysis, taskType });
     assertEquals(result.success, true, `taskType=${taskType} should be valid`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Step 21: RequirementSchema — new type / explicit fields
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequirementSchema] accepts type: functional / non-functional / constraint", () => {
+  for (const type of ["functional", "non-functional", "constraint"] as const) {
+    const r = RequirementSchema.safeParse({ description: "x", confidence: 0.9, type, explicit: true });
+    assertEquals(r.success, true, `type=${type} should be valid`);
+    if (r.success) assertEquals(r.data.type, type);
+  }
+});
+
+Deno.test("[RequirementSchema] defaults type to functional when absent", () => {
+  const r = RequirementSchema.safeParse({ description: "x", confidence: 0.9 });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.type, "functional");
+});
+
+Deno.test("[RequirementSchema] defaults explicit to true when absent", () => {
+  const r = RequirementSchema.safeParse({ description: "x", confidence: 0.9 });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.explicit, true);
+});
+
+Deno.test("[RequirementSchema] rejects invalid type value", () => {
+  const r = RequirementSchema.safeParse({ description: "x", confidence: 0.9, type: "optional" });
+  assertEquals(r.success, false);
+});
+
+// ---------------------------------------------------------------------------
+// Step 21: AmbiguitySchema — new interpretations / clarificationQuestion fields
+// ---------------------------------------------------------------------------
+
+Deno.test("[AmbiguitySchema] accepts interpretations array", () => {
+  const r = AmbiguitySchema.safeParse({
+    description: "x",
+    impact: AmbiguityImpact.LOW,
+    interpretations: ["option A", "option B"],
+  });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.interpretations, ["option A", "option B"]);
+});
+
+Deno.test("[AmbiguitySchema] interpretations defaults to empty array when absent", () => {
+  const r = AmbiguitySchema.safeParse({ description: "x", impact: AmbiguityImpact.MEDIUM });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.interpretations, []);
+});
+
+Deno.test("[AmbiguitySchema] accepts optional clarificationQuestion string", () => {
+  const r = AmbiguitySchema.safeParse({
+    description: "x",
+    impact: AmbiguityImpact.HIGH,
+    interpretations: [],
+    clarificationQuestion: "What exactly do you mean?",
+  });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.clarificationQuestion, "What exactly do you mean?");
+});
+
+Deno.test("[AmbiguitySchema] clarificationQuestion absent when not provided", () => {
+  const r = AmbiguitySchema.safeParse({ description: "x", impact: AmbiguityImpact.LOW });
+  assertEquals(r.success, true);
+  if (r.success) assertEquals(r.data.clarificationQuestion, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// Step 25: RequestTaskType — BUGFIX is canonical, FIX variant removed
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequestTaskType] does not contain FIX variant — BUGFIX is canonical", () => {
+  assertEquals(Object.values(RequestTaskType).includes("fix" as RequestTaskType), false);
+  assertEquals(Object.values(RequestTaskType).includes(RequestTaskType.BUGFIX), true);
+});
+
+// ---------------------------------------------------------------------------
+// Step 25: RequestAnalysisMetadataSchema includes analyzerVersion
+// ---------------------------------------------------------------------------
+
+Deno.test("[RequestAnalysisMetadataSchema] includes analyzerVersion field with string type", () => {
+  const r = RequestAnalysisSchema.safeParse(validAnalysis);
+  assertEquals(r.success, true);
+  if (r.success) {
+    assertExists(r.data.metadata.analyzerVersion);
+    assertEquals(typeof r.data.metadata.analyzerVersion, "string");
+    assertEquals(r.data.metadata.analyzerVersion.length > 0, true);
   }
 });
 

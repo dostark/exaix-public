@@ -35,7 +35,6 @@ export enum RequestAnalysisComplexity {
  * Classification of the type of task a request describes.
  */
 export enum RequestTaskType {
-  FIX = "fix",
   BUGFIX = "bugfix",
   FEATURE = "feature",
   REFACTOR = "refactor",
@@ -91,6 +90,22 @@ export const RequirementSchema = z.object({
    * Lower values indicate inferred or ambiguous requirements.
    */
   confidence: z.number().min(0).max(1),
+  /**
+   * Requirement classification.
+   * - functional: describes what the system must do
+   * - non-functional: describes quality attributes (perf, security, …)
+   * - constraint: an external restriction the solution must respect
+   */
+  type: z.union([
+    z.literal("functional"),
+    z.literal("non-functional"),
+    z.literal("constraint"),
+  ]).default("functional"),
+  /**
+   * Whether this requirement was stated explicitly in the request text,
+   * or inferred by the analyzer.
+   */
+  explicit: z.boolean().default(true),
 });
 
 export type IRequirement = z.infer<typeof RequirementSchema>;
@@ -103,6 +118,16 @@ export const AmbiguitySchema = z.object({
   description: z.string().min(1),
   /** Estimated impact if this ambiguity is not resolved. */
   impact: z.nativeEnum(AmbiguityImpact),
+  /**
+   * Possible interpretations of the ambiguous element.
+   * Empty array means no distinct interpretations have been identified yet.
+   */
+  interpretations: z.array(z.string()).default([]),
+  /**
+   * A clarifying question the requester could answer to resolve this ambiguity.
+   * Absent when no specific question has been formulated.
+   */
+  clarificationQuestion: z.string().optional(),
 });
 
 export type IAmbiguity = z.infer<typeof AmbiguitySchema>;
@@ -117,6 +142,8 @@ export const RequestAnalysisMetadataSchema = z.object({
   durationMs: z.number().nonnegative(),
   /** Analysis strategy that produced this result. */
   mode: z.nativeEnum(AnalysisMode),
+  /** Semantic version of the analyzer that produced this result. */
+  analyzerVersion: z.string().default("1.0.0"),
 });
 
 export type IRequestAnalysisMetadata = z.infer<typeof RequestAnalysisMetadataSchema>;

@@ -918,6 +918,8 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
     cost_tracking: { batch_delay_ms: 0, max_batch_size: 0, rates: {} },
     health: { check_timeout_ms: 0, cache_ttl_ms: 0, memory_warn_percent: 0, memory_critical_percent: 0 },
     request_analysis: {
+      enabled: true,
+      persist_analysis: true,
       mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,

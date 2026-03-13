@@ -25,8 +25,8 @@ Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", as
     goals: [
       { description: "Implement TUI check", explicit: true, priority: 1 },
     ],
-    requirements: [{ description: "Req 1", confidence: 0.9 }],
-    ambiguities: [{ description: "Ambiguity 1", impact: AmbiguityImpact.LOW }],
+    requirements: [{ description: "Req 1", confidence: 0.9, type: "functional", explicit: true }],
+    ambiguities: [{ description: "Ambiguity 1", impact: AmbiguityImpact.LOW, interpretations: [] }],
     referencedFiles: ["src/main.ts"],
     tags: ["tui"],
     constraints: [],
@@ -35,6 +35,7 @@ Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", as
       analyzedAt: new Date().toISOString(),
       durationMs: 100,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 
@@ -94,6 +95,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats analysis correctly",
       analyzedAt: new Date().toISOString(),
       durationMs: 50,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 
@@ -124,6 +126,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats complexity badge wit
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 
@@ -146,6 +149,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats complexity badge wit
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
     },
   };
 
@@ -167,7 +171,12 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats actionability score 
       tags: [],
       constraints: [],
       acceptanceCriteria: [],
-      metadata: { analyzedAt: new Date().toISOString(), durationMs: 0, mode: AnalysisMode.HEURISTIC },
+      metadata: {
+        analyzedAt: new Date().toISOString(),
+        durationMs: 0,
+        mode: AnalysisMode.HEURISTIC,
+        analyzerVersion: "1.0.0",
+      },
     };
     const lines = RequestFormatter.formatAnalysisSection(analysis);
     const output = lines.join("\n");
@@ -187,13 +196,18 @@ Deno.test("RequestFormatter.formatAnalysisSection - shows ambiguity summary", ()
     goals: [],
     requirements: [],
     ambiguities: [
-      { description: "What is the target platform?", impact: AmbiguityImpact.HIGH },
+      { description: "What is the target platform?", impact: AmbiguityImpact.HIGH, interpretations: [] },
     ],
     referencedFiles: [],
     tags: [],
     constraints: [],
     acceptanceCriteria: [],
-    metadata: { analyzedAt: new Date().toISOString(), durationMs: 0, mode: AnalysisMode.HEURISTIC },
+    metadata: {
+      analyzedAt: new Date().toISOString(),
+      durationMs: 0,
+      mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
+    },
   };
 
   const lines = RequestFormatter.formatAnalysisSection(analysis);
