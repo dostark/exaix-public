@@ -376,6 +376,13 @@ fast = ["google", "openai"]
 local_first = ["local", "default"]
 
 
+[request_analysis]
+enabled = true
+mode = "hybrid"                  # heuristic | llm | hybrid
+actionability_threshold = 60     # 0–100; below this hybrid mode escalates to LLM
+infer_acceptance_criteria = true
+persist_analysis = true          # write _analysis.json alongside each request file
+
 # ---------------------------------------------------------------------------
 # Notes
 # - Copy this file to the repository root as `exo.config.toml` or pass a path

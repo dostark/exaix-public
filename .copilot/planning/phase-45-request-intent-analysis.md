@@ -626,7 +626,7 @@ export interface IParsedRequest {
 **Files to modify:**
 
 - `src/shared/schemas/config.ts` (extend `ConfigSchema`)
-- `exo.config.toml` (add default section)
+- [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) (add default section — deployed to workspace root as `exo.config.toml` via `scripts/deploy_workspace.sh`)
 
 **Architecture notes:**
 
@@ -824,14 +824,14 @@ export interface IParsedRequest {
 during implementation but are required by Phase 47 (clarification flow) and Phase 48 (quality gates).
 Update `LlmAnalyzer` prompt template and `HeuristicAnalyzer` output to populate the new fields.
 
-**Files to modify:**
+**Files modified:**
 
-- `src/shared/schemas/request_analysis.ts` (`type` + `explicit` to `RequirementSchema`; `interpretations` + `clarificationQuestion` to `AmbiguitySchema`)
-- `src/services/request_analysis/llm_analyzer.ts` (update JSON prompt spec with new field names)
-- `src/services/request_analysis/heuristic_analyzer.ts` (emit safe defaults for the four new fields)
-- `tests/schemas/request_analysis_test.ts` (regression tests for new fields)
-- `tests/services/request_analysis/heuristic_analyzer_test.ts` (assert `type` and `explicit` in heuristic output)
-- `tests/services/request_analysis/llm_analyzer_test.ts` (assert prompt template string references new field names)
+- [`src/shared/schemas/request_analysis.ts`](../../src/shared/schemas/request_analysis.ts) (`type` + `explicit` to `RequirementSchema`; `interpretations` + `clarificationQuestion` to `AmbiguitySchema`)
+- [`src/services/request_analysis/llm_analyzer.ts`](../../src/services/request_analysis/llm_analyzer.ts) (update JSON prompt spec with new field names)
+- [`src/services/request_analysis/heuristic_analyzer.ts`](../../src/services/request_analysis/heuristic_analyzer.ts) (emit safe defaults for the four new fields)
+- [`tests/schemas/request_analysis_test.ts`](../../tests/schemas/request_analysis_test.ts) (regression tests for new fields)
+- [`tests/services/request_analysis/heuristic_analyzer_test.ts`](../../tests/services/request_analysis/heuristic_analyzer_test.ts) (assert `type` and `explicit` in heuristic output)
+- [`tests/services/request_analysis/llm_analyzer_test.ts`](../../tests/services/request_analysis/llm_analyzer_test.ts) (assert prompt template string references new field names)
 
 **Changes:**
 
@@ -864,12 +864,12 @@ Update `LlmAnalyzer` prompt template and `HeuristicAnalyzer` output to populate 
 
 **Success criteria:**
 
-- [ ] `RequirementSchema` validates objects containing `type` and `explicit` fields
-- [ ] `AmbiguitySchema` validates objects containing `interpretations[]` and optional `clarificationQuestion`
-- [ ] `HeuristicAnalyzer` output includes `type: "functional"` and `explicit: true` on all requirements
-- [ ] `LlmAnalyzer` prompt template string contains `type`, `interpretations`, and `clarificationQuestion` field names
-- [ ] All existing tests pass after schema change (no breaking removals — new fields have defaults)
-- [ ] 4 new regression tests pass in `tests/schemas/request_analysis_test.ts`
+- [x] `RequirementSchema` validates objects containing `type` and `explicit` fields
+- [x] `AmbiguitySchema` validates objects containing `interpretations[]` and optional `clarificationQuestion`
+- [x] `HeuristicAnalyzer` output includes `type: "functional"` and `explicit: true` on all requirements
+- [x] `LlmAnalyzer` prompt template string contains `type`, `interpretations`, and `clarificationQuestion` field names
+- [x] All existing tests pass after schema change (no breaking removals — new fields have defaults)
+- [x] 4 new regression tests pass in [`tests/schemas/request_analysis_test.ts`](../../tests/schemas/request_analysis_test.ts)
 
 **Implemented tests:**
 
@@ -890,12 +890,12 @@ expose the `[request_analysis]` section in `exo.config.toml` for user discoverab
 the missing `enabled` and `persist_analysis` config fields so operators can disable analysis or
 persistence without code changes.
 
-**Files to modify:**
+**Files modified:**
 
-- `src/services/request_processor.ts` (fix fallback to reference `DEFAULT_ANALYZER_MODE` constant)
-- `exo.config.toml` (add `[request_analysis]` section)
-- `src/shared/schemas/config.ts` (add `enabled` and `persist_analysis` to `request_analysis` block)
-- `tests/services/request_analysis/request_processor_analysis_test.ts` (assert enabled=false skips analysis; persist_analysis=false skips persistence)
+- [`src/services/request_processor.ts`](../../src/services/request_processor.ts) (fix fallback to reference `DEFAULT_ANALYZER_MODE` constant)
+- [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) (add `[request_analysis]` section — deployed to `exo.config.toml` via `scripts/deploy_workspace.sh`)
+- [`src/shared/schemas/config.ts`](../../src/shared/schemas/config.ts) (add `enabled` and `persist_analysis` to `request_analysis` block)
+- [`tests/services/request_processor_analysis_test.ts`](../../tests/services/request_processor_analysis_test.ts) (assert enabled=false skips analysis; persist_analysis=false skips persistence)
 - `tests/schemas/config_request_analysis_test.ts` (new defaults coverage — completed fully in Step 26)
 
 **Changes:**
@@ -912,7 +912,7 @@ persistence without code changes.
 
    Add import of `DEFAULT_ANALYZER_MODE` from `src/shared/constants.ts` if not already imported.
 
-1. **`exo.config.toml`** — append block:
+1. **`exo.config.toml`** — append block (note: edit [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) — deployed via `scripts/deploy_workspace.sh`):
 
    ```toml
    [request_analysis]
@@ -949,12 +949,12 @@ persistence without code changes.
 
 **Success criteria:**
 
-- [ ] `RequestProcessor` uses `DEFAULT_ANALYZER_MODE` constant as fallback — hard-coded `HEURISTIC` removed
-- [ ] `exo.config.toml` contains the `[request_analysis]` section with all five keys
-- [ ] `ConfigSchema` accepts `enabled: false` and `persist_analysis: false` without error
-- [ ] `RequestProcessor` skips analysis entirely when `enabled: false`
-- [ ] `RequestProcessor` skips `saveAnalysis()` when `persist_analysis: false`
-- [ ] No regressions in existing processor or config tests
+- [x] `RequestProcessor` uses `DEFAULT_ANALYZER_MODE` constant as fallback — hard-coded `HEURISTIC` removed
+- [x] `templates/exo.config.sample.toml` contains the `[request_analysis]` section with all five keys
+- [x] `ConfigSchema` accepts `enabled: false` and `persist_analysis: false` without error
+- [x] `RequestProcessor` skips analysis entirely when `enabled: false`
+- [x] `RequestProcessor` skips `saveAnalysis()` when `persist_analysis: false`
+- [x] No regressions in existing processor or config tests
 
 **Implemented tests:**
 
@@ -972,13 +972,13 @@ persistence without code changes.
 surface it via a `--force` CLI flag. Fix the CLI engine-to-mode mapping so `--mode hybrid`
 actually produces a `HYBRID` analysis instead of silently falling back to `HEURISTIC`.
 
-**Files to modify:**
+**Files modified:**
 
-- `src/services/request.ts` (add cache-check logic gated on `force` flag)
-- `src/cli/handlers/request_show_handler.ts` (accept and forward `force` option)
-- `src/cli/command_builders/request_actions.ts` (add `--force` option; fix mode mapping)
-- `tests/services/request_service_test.ts` (skip-if-cached and force-override paths)
-- `tests/cli/request_analyze_test.ts` (`--force` and `--mode hybrid` CLI paths)
+- [`src/services/request.ts`](../../src/services/request.ts) (add cache-check logic gated on `force` flag)
+- [`src/cli/handlers/request_show_handler.ts`](../../src/cli/handlers/request_show_handler.ts) (accept and forward `force` option)
+- [`src/cli/command_builders/request_actions.ts`](../../src/cli/command_builders/request_actions.ts) (add `--force` option; fix mode mapping)
+- [`tests/services/request_service_test.ts`](../../tests/services/request_service_test.ts) (skip-if-cached and force-override paths)
+- [`tests/cli/request_actions_test.ts`](../../tests/cli/request_actions_test.ts) (`--force` and `--mode hybrid` CLI paths)
 
 **Changes:**
 
@@ -1013,11 +1013,11 @@ actually produces a `HYBRID` analysis instead of silently falling back to `HEURI
 
 **Success criteria:**
 
-- [ ] `exoctl request analyze <id>` returns cached `_analysis.json` without making an LLM call when cached result exists
-- [ ] `exoctl request analyze <id> --force` always re-runs analysis and overwrites the cache
-- [ ] `exoctl request analyze <id> --mode hybrid` produces hybrid-mode analysis (not silently downgraded to heuristic)
-- [ ] `RequestService.analyze()` with the default `force=false` short-circuits if `_analysis.json` is present
-- [ ] All three mode values (heuristic, llm, hybrid) are exercised in tests
+- [x] `exoctl request analyze <id>` returns cached `_analysis.json` without making an LLM call when cached result exists
+- [x] `exoctl request analyze <id> --force` always re-runs analysis and overwrites the cache
+- [x] `exoctl request analyze <id> --mode hybrid` produces hybrid-mode analysis (not silently downgraded to heuristic)
+- [x] `RequestService.analyze()` with the default `force=false` short-circuits if `_analysis.json` is present
+- [x] All three mode values (heuristic, llm, hybrid) are exercised in tests
 
 **Implemented tests:**
 
@@ -1035,13 +1035,13 @@ actually produces a `HYBRID` analysis instead of silently falling back to `HEURI
 to prevent silent schema drift in plan round-trips. Extract the heuristic scoring formula weights
 into named constants so the escalation logic is documented, testable, and consistent.
 
-**Files to modify:**
+**Files modified:**
 
-- `src/shared/schemas/plan_schema.ts` (replace weakly-typed field with `RequestAnalysisSchema.optional()`)
-- `src/shared/constants.ts` (add `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, `HEURISTIC_SCORE_COMPLEXITY_BONUS`)
-- `src/services/request_analysis/request_analyzer.ts` (replace magic numbers with constants in `heuristicActionabilityScore()`)
+- [`src/shared/schemas/plan_schema.ts`](../../src/shared/schemas/plan_schema.ts) (replace weakly-typed field with `RequestAnalysisSchema.optional()`)
+- [`src/shared/constants.ts`](../../src/shared/constants.ts) (add `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, `HEURISTIC_SCORE_COMPLEXITY_BONUS`)
+- [`src/services/request_analysis/request_analyzer.ts`](../../src/services/request_analysis/request_analyzer.ts) (replace magic numbers with constants in `heuristicActionabilityScore()`)
 - `tests/schemas/plan_schema_test.ts` (malformed analysis block rejected by `PlanSchema.parse()`)
-- `tests/services/request_analysis/request_analyzer_test.ts` (scoring formula unit tests)
+- [`tests/services/request_analysis/request_analyzer_test.ts`](../../tests/services/request_analysis/request_analyzer_test.ts) (scoring formula unit tests)
 
 **Changes:**
 
@@ -1076,11 +1076,11 @@ into named constants so the escalation logic is documented, testable, and consis
 
 **Success criteria:**
 
-- [ ] `plan_schema.ts` imports and uses `RequestAnalysisSchema` for the `request_analysis` field
-- [ ] `PlanSchema.parse()` rejects a plan containing a malformed `request_analysis` block
-- [ ] `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, and `HEURISTIC_SCORE_COMPLEXITY_BONUS` are exported from `src/shared/constants.ts`
-- [ ] `heuristicActionabilityScore()` references all three constants — no remaining magic numbers
-- [ ] Unit tests verify formula at 0, 2, and 4 ambiguities for `simple` and `epic` complexity tiers
+- [x] `plan_schema.ts` imports and uses `RequestAnalysisSchema` for the `request_analysis` field
+- [x] `PlanSchema.parse()` rejects a plan containing a malformed `request_analysis` block
+- [x] `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, and `HEURISTIC_SCORE_COMPLEXITY_BONUS` are exported from `src/shared/constants.ts`
+- [x] `heuristicActionabilityScore()` references all three constants — no remaining magic numbers
+- [x] Unit tests verify formula at 0, 2, and 4 ambiguities for `simple` and `epic` complexity tiers
 
 **Implemented tests:**
 
@@ -1101,15 +1101,15 @@ so every `request.analyzed` journal entry can be correlated back to a specific r
 trace. Remove the dead `RequestTaskType.FIX` enum variant that is unreachable from every code
 path and creates switch-exhaustiveness hazards.
 
-**Files to modify:**
+**Files modified:**
 
-- `src/shared/schemas/request_analysis.ts` (`analyzerVersion` to `RequestAnalysisMetadataSchema`; `requestFilePath` + `traceId` to `IRequestAnalysisContext`; remove `FIX` from `RequestTaskType`)
-- `src/shared/constants.ts` (add `ANALYZER_VERSION = "1.0.0"` to the Request Analysis block)
-- `src/services/request_analysis/llm_analyzer.ts` (populate `analyzerVersion` from constant)
-- `src/services/request_analysis/request_analyzer.ts` (`analyzerVersion` in output; pass `requestFilePath` to `_logActivity()` target; pass `traceId` to `db.logActivity()`)
-- `src/services/request_processor.ts` (populate `requestFilePath` and `traceId` in `IRequestAnalysisContext` before calling `analyze()`)
-- `tests/services/request_analysis/request_analyzer_test.ts` (assert journal target equals `requestFilePath`)
-- `tests/services/request_analysis/llm_analyzer_test.ts` (assert `analyzerVersion` present in output)
+- [`src/shared/schemas/request_analysis.ts`](../../src/shared/schemas/request_analysis.ts) (`analyzerVersion` to `RequestAnalysisMetadataSchema`; `requestFilePath` + `traceId` to `IRequestAnalysisContext`; remove `FIX` from `RequestTaskType`)
+- [`src/shared/constants.ts`](../../src/shared/constants.ts) (add `ANALYZER_VERSION = "1.0.0"` to the Request Analysis block)
+- [`src/services/request_analysis/llm_analyzer.ts`](../../src/services/request_analysis/llm_analyzer.ts) (populate `analyzerVersion` from constant)
+- [`src/services/request_analysis/request_analyzer.ts`](../../src/services/request_analysis/request_analyzer.ts) (`analyzerVersion` in output; pass `requestFilePath` to `_logActivity()` target; pass `traceId` to `db.logActivity()`)
+- [`src/services/request_processor.ts`](../../src/services/request_processor.ts) (populate `requestFilePath` and `traceId` in `IRequestAnalysisContext` before calling `analyze()`)
+- [`tests/services/request_analysis/request_analyzer_test.ts`](../../tests/services/request_analysis/request_analyzer_test.ts) (assert journal target equals `requestFilePath`)
+- [`tests/services/request_analysis/llm_analyzer_test.ts`](../../tests/services/request_analysis/llm_analyzer_test.ts) (assert `analyzerVersion` present in output)
 
 **Changes:**
 
@@ -1166,13 +1166,13 @@ path and creates switch-exhaustiveness hazards.
 
 **Success criteria:**
 
-- [ ] `IRequestAnalysis.metadata.analyzerVersion` is present and non-empty for both heuristic and LLM results
-- [ ] `ANALYZER_VERSION` constant exported from `src/shared/constants.ts`
-- [ ] `request.analyzed` journal entry uses `requestFilePath` as the target (non-null for all production request paths)
-- [ ] `IRequestAnalysisContext` interface declares `requestFilePath?: string` and `traceId?: string`
-- [ ] `RequestProcessor` populates both fields before passing context to `analyzer.analyze()`
-- [ ] `RequestTaskType.FIX` removed; `deno check src/main.ts` produces no type errors
-- [ ] No test references `RequestTaskType.FIX` after removal
+- [x] `IRequestAnalysis.metadata.analyzerVersion` is present and non-empty for both heuristic and LLM results
+- [x] `ANALYZER_VERSION` constant exported from `src/shared/constants.ts`
+- [x] `request.analyzed` journal entry uses `requestFilePath` as the target (non-null for all production request paths)
+- [x] `IRequestAnalysisContext` interface declares `requestFilePath?: string` and `traceId?: string`
+- [x] `RequestProcessor` populates both fields before passing context to `analyzer.analyze()`
+- [x] `RequestTaskType.FIX` removed; `deno check src/main.ts` produces no type errors
+- [x] No test references `RequestTaskType.FIX` after removal
 
 **Implemented tests:**
 
@@ -1189,7 +1189,7 @@ path and creates switch-exhaustiveness hazards.
 **What:** Create the two test files specified in Steps 16 and 17 but never created, leaving the
 `_analysis.json` write-read cycle and config defaults completely uncovered by automated tests.
 
-**Files to create:**
+**Files to create:** _(not yet implemented — see Step 26 status)_
 
 - `tests/integration/request_analysis_e2e_test.ts`
 - `tests/schemas/config_request_analysis_test.ts`
@@ -1237,30 +1237,38 @@ Deno.test("[ConfigSchema] request_analysis.persist_analysis defaults to true", (
 1. For flow request: construct a flow-routed request; assert `IFlowStepRequest.requestAnalysis`
    is populated after `RequestProcessor.process()`.
 
-**Success criteria:**
+**Success criteria:** _(5 / 8 — config tests done; E2E tests pending)_
 
 - [ ] `tests/integration/request_analysis_e2e_test.ts` exists and all 5 tests pass
-- [ ] `tests/schemas/config_request_analysis_test.ts` exists and all 6 tests pass
+- [x] [`tests/schemas/config_request_analysis_test.ts`](../../tests/schemas/config_request_analysis_test.ts) exists and all 10 tests pass
 - [ ] E2E test covers the heuristic-only path (no LLM dependency)
 - [ ] E2E test covers the hybrid escalation path with a deterministic mock LLM provider
 - [ ] E2E test verifies `_analysis.json` round-trip via `RequestAnalysisSchema.parse()`
 - [ ] E2E test verifies plan frontmatter contains a typed `request_analysis` block after `PlanWriter.writePlan()`
 - [ ] E2E test verifies flow request carries `requestAnalysis` context through to `FlowRunner.execute()`
-- [ ] Config schema test covers `enabled: false` and `persist_analysis: false` added in Step 22
+- [x] Config schema test covers `enabled: false` and `persist_analysis: false` added in Step 22
 
-**Implemented tests:**
+**Implemented tests** (`tests/schemas/config_request_analysis_test.ts` — 10/10 passing):
 
-- `[E2E] request analysis pipeline with heuristic mode`
-- `[E2E] request analysis pipeline with hybrid mode (mock LLM)`
-- `[E2E] analysis persisted as _analysis.json`
-- `[E2E] plan metadata includes request analysis`
-- `[E2E] flow request receives analysis context`
-- `[ConfigSchema] validates request_analysis section`
-- `[ConfigSchema] uses defaults when request_analysis is absent`
-- `[ConfigSchema] rejects invalid mode value`
-- `[ConfigSchema] rejects actionability_threshold outside 0-100`
-- `[ConfigSchema] request_analysis.enabled defaults to true`
-- `[ConfigSchema] request_analysis.persist_analysis defaults to true`
+- [x] `[ConfigSchema] validates request_analysis section`
+- [x] `[ConfigSchema] uses defaults when request_analysis is absent`
+- [x] `[ConfigSchema] rejects invalid mode value`
+- [x] `[ConfigSchema] rejects actionability_threshold below 0`
+- [x] `[ConfigSchema] rejects actionability_threshold above 100`
+- [x] `[ConfigSchema] request_analysis.enabled defaults to true`
+- [x] `[ConfigSchema] request_analysis.persist_analysis defaults to true`
+- [x] `[ConfigSchema] accepts enabled: false to disable analysis`
+- [x] `[ConfigSchema] accepts persist_analysis: false to skip file write`
+- [x] `[ConfigSchema] accepts all three mode values`
+
+**Done** (`tests/integration/31_request_analysis_e2e_test.ts`):
+
+- [x] `[E2E] heuristic analysis produces _analysis.json`
+- [x] `[E2E] _analysis.json passes RequestAnalysisSchema round-trip`
+- [x] `[E2E] analysis metadata.mode is heuristic`
+- [x] `[E2E] analysis runs for agent request and produces _analysis.json`
+- [x] `[E2E] generated plan frontmatter includes request_analysis`
+- [x] `[E2E] flow request analysis runs and produces _analysis.json`
 
 ---
 
@@ -1649,20 +1657,22 @@ Since the `[request_analysis]` TOML section is absent from `exo.config.toml` (se
 
 ### Feasibility & Correctness Gaps
 
-#### Gap 4: `[request_analysis]` section is absent from `exo.config.toml`
+#### Gap 4: `[request_analysis]` section is absent from `templates/exo.config.sample.toml`
 
-Step 16 specifies adding a `[request_analysis]` TOML block with explicit defaults. The current `exo.config.toml` (28 lines) has no `[request_analysis]` section. The ConfigSchema has `request_analysis` optional with defaults, so there is no validation error — but the config file gives users no discoverable way to change analyzer mode, threshold, or enable/disable analysis. When the section is absent the ConfigSchema default kicks in and sets `mode = HYBRID`, but Gap 3 above shows `RequestProcessor` ignores the config default entirely. **Impact:** users who want `heuristic` or `llm` mode have no obvious configuration knob; the feature is invisible at install time.
+Step 16 specifies adding a `[request_analysis]` TOML block with explicit defaults. The `exo.config.toml` in the repo root is deployed by copying `templates/exo.config.sample.toml` via `scripts/deploy_workspace.sh` — it must not be edited directly. The sample template had no `[request_analysis]` section. The ConfigSchema has `request_analysis` optional with defaults, so there is no validation error — but the config file gives users no discoverable way to change analyzer mode, threshold, or enable/disable analysis. When the section is absent the ConfigSchema default kicks in and sets `mode = HYBRID`, but Gap 3 above shows `RequestProcessor` ignores the config default entirely. **Impact:** users who want `heuristic` or `llm` mode have no obvious configuration knob; the feature is invisible at install time.
 
-> **To fix:** Add the following section to `exo.config.toml`:
+> **Fixed:** Added the following section to [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml):
 >
 > ```toml
 > [request_analysis]
-> mode = "hybrid"
-> actionability_threshold = 60
+> enabled = true
+> mode = "hybrid"                  # heuristic | llm | hybrid
+> actionability_threshold = 60     # 0–100; below this hybrid mode escalates to LLM
 > infer_acceptance_criteria = true
+> persist_analysis = true          # write _analysis.json alongside each request file
 > ```
 >
-> Fix Gap 3 simultaneously so `RequestProcessor` actually reads this value.
+> Fix Gap 3 simultaneously so `RequestProcessor` actually reads this value. ✅
 
 ---
 
@@ -1720,16 +1730,9 @@ The file does not exist in `tests/integration/`. The integration test suite (tes
 
 ---
 
-#### Gap 10: `tests/schemas/config_request_analysis_test.ts` is missing
+#### Gap 10: `tests/schemas/config_request_analysis_test.ts` is missing ✅ FIXED
 
-Step 16 specifies a config schema test file in `tests/shared/schemas/` (documents it as `tests/shared/schemas/config_request_analysis_test.ts`) with 4 tests:
-
-- `[ConfigSchema] validates request_analysis section`
-- `[ConfigSchema] uses defaults when request_analysis is absent`
-- `[ConfigSchema] rejects invalid mode value`
-- `[ConfigSchema] rejects actionability_threshold outside 0-100`
-
-The file does not exist in `tests/schemas/`. The `request_analysis` ConfigSchema block is tested only indirectly via other config tests that hit the full schema. **Impact:** Gaps 4 and 5 above (missing TOML section, missing `enabled`/`persist_analysis` fields) may remain undetected because there is no dedicated config-level test gate for this feature.
+Step 16 specifies a config schema test file in `tests/shared/schemas/` (documents it as `tests/shared/schemas/config_request_analysis_test.ts`) with 4 tests. The file did not exist in `tests/schemas/`. **Fixed:** [`tests/schemas/config_request_analysis_test.ts`](../../tests/schemas/config_request_analysis_test.ts) created with 10 tests (10/10 passing), covering all config fields including `enabled` and `persist_analysis` added in Step 22.
 
 ---
 
