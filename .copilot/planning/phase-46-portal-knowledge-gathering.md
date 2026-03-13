@@ -125,6 +125,25 @@ export interface ICodeConvention {
   examples: string[];
   /** Category */
   category: "naming" | "structure" | "testing" | "imports" | "error-handling" | "typing" | "other";
+  /** Number of files or patterns that provide evidence for this convention */
+  evidenceCount: number;
+  /** Confidence level based on evidence strength: low = 1–2, medium = 3–9, high = 10+ */
+  confidence: "low" | "medium" | "high";
+}
+
+export interface IMonorepoPackage {
+  /** Package name (from package.json "name" field or directory name) */
+  name: string;
+  /** Package path relative to portal root */
+  path: string;
+  /** Primary language for this package (from dominant file extension within sub-tree) */
+  primaryLanguage: string;
+  /** Detected framework for this package */
+  framework?: string;
+  /** Architecture layers local to this package */
+  layers: IArchitectureLayer[];
+  /** Conventions specific to this package (may differ from root conventions) */
+  conventions: ICodeConvention[];
 }
 
 export interface IDependencyInfo {
@@ -154,6 +173,9 @@ export interface IPortalKnowledge {
   conventions: ICodeConvention[];
   /** Dependency information */
   dependencies: IDependencyInfo[];
+
+  /** Per-package breakdown for monorepos; empty array for single-project portals */
+  packages?: IMonorepoPackage[];
 
   /** Language/framework detected */
   techStack: {
@@ -240,7 +262,7 @@ The service uses a layered analysis pipeline, with each strategy contributing to
   - `tests/`, `test/`, `__tests__/`, `spec/` → test layer
   - `src/services/`, `src/controllers/`, `src/models/`, `src/routes/` → architecture layers
   - `migrations/`, `scripts/`, `docs/` → supporting layers
-- Detect monorepo vs. single-project structure
+- Detect monorepo vs. single-project structure; when detected, populate `packages[]` with one `IMonorepoPackage` entry per detected sub-package (each with its own `name`, `path`, `primaryLanguage`, `layers`, `conventions`); root-level `layers` and `conventions` reflect the workspace root only
 
 #### Strategy 2: Config File Parsing (No LLM)
 
@@ -309,7 +331,7 @@ Format as Markdown suitable for a developer onboarding document.
 
 | Mode | LLM Calls | Files Read | Duration | Use Case |
 | ------ | ----------- | ------------ | ---------- | ---------- |
-| `quick` | 0 | 0 (structure + configs only) | <5s | Post-mount default; basic orientation |
+| `quick` | 0 | 0 (structure + configs only) | <5s | Post-mount default; **basic structural orientation only** (file tree, dependency list, naming patterns — does not produce architectural understanding; run `exoctl portal analyze` before first agent use for full analysis — addresses Gap 14) |
 | `standard` | 1 | Up to 20 key files | ~15s | Pre-execution default; architecture inference |
 | `deep` | 2-3 | Up to 50 files | ~60s | Manual `exoctl portal analyze`; full convention mapping |
 
@@ -323,7 +345,7 @@ Memory/Projects/{portal}/
   ├── overview.md          ← Updated: replaced with architectureOverview from analysis
   ├── patterns.md          ← Updated: populated with detected conventions and patterns
   ├── decisions.md         ← Existing: only from MissionReporter (not auto-populated)
-  ├── references.md        ← Updated: populated with key files and dependencies
+  ├── references.md        ← Untouched: owned exclusively by `MissionReporter`; `knowledge.json` is the sole source for architectural reference data (see Gap 5)
   └── knowledge.json       ← NEW: full IPortalKnowledge for programmatic access
 ```
 
@@ -333,8 +355,8 @@ Mapping from `IPortalKnowledge` to `IProjectMemory`:
 | ------------------------ | ----------------------- | ---------------- |
 | `architectureOverview` | `overview` | Direct Markdown |
 | `conventions` | `patterns[]` | Map to `IPattern` (name, description, examples, tags) |
-| `keyFiles` | `references[]` | Map to `IReference` (type=FILE, path, description) |
-| `dependencies[].keyDependencies` | `references[]` | Map to `IReference` (type=LIBRARY, name, purpose) |
+| `keyFiles` | `knowledge.json` only | Stored in `IPortalKnowledge.keyFiles`; not mapped to `references.md` — see Gap 5 |
+| `dependencies[].keyDependencies` | `knowledge.json` only | Stored in `IPortalKnowledge.dependencies`; not mapped to `references.md` — see Gap 5 |
 
 The `knowledge.json` file stores the complete `IPortalKnowledge` object for programmatic access by other services.
 
@@ -432,8 +454,9 @@ Portal knowledge feeds into enhanced reflexive agent critique:
 Knowledge becomes stale when:
 
 - Time exceeds `staleness` threshold (default: 1 week)
-- A `MissionReporter` records significant changes to portal files
-- User force-triggers re-analysis
+- User force-triggers re-analysis via `exoctl portal analyze --force`
+
+> **Note (Gap 6 resolution):** `MissionReporter`-triggered invalidation has no implementation path in Phase 46 and has been removed. Staleness in this phase is time-based only. `MissionReporter` integration may be added in a later phase.
 
 Incremental updates:
 
@@ -457,10 +480,12 @@ Incremental updates:
 **Architecture notes:**
 
 - Follow project schema convention: `XxxSchema` naming, `z.infer<typeof XxxSchema>` for types
-- Sub-schemas: `FileSignificanceSchema`, `ArchitectureLayerSchema`, `CodeConventionSchema`, `DependencyInfoSchema`, `PortalKnowledgeSchema`
+- Sub-schemas: `FileSignificanceSchema`, `ArchitectureLayerSchema`, `CodeConventionSchema`, `MonorepoPackageSchema`, `DependencyInfoSchema`, `PortalKnowledgeSchema`
 - Enum values (`role`, `category`, `mode`) as Zod native enums
+- `CodeConventionSchema` includes `evidenceCount` (positive integer) and `confidence` (`"low" | "medium" | "high"` Zod native enum) — addresses Gap 11
+- `MonorepoPackageSchema` added with per-package `layers` and `conventions`; `PortalKnowledgeSchema` includes optional `packages` field (`z.array(MonorepoPackageSchema).optional()`) — addresses Gap 8
 - `gatheredAt` as ISO string, `version` as positive integer
-- Export both schemas and inferred types (`IPortalKnowledge`, `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IDependencyInfo`)
+- Export both schemas and inferred types (`IPortalKnowledge`, `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IMonorepoPackage`, `IDependencyInfo`)
 
 **Success criteria:**
 
@@ -497,7 +522,7 @@ Incremental updates:
 
 - Follow interface naming convention: `IPortalKnowledgeService` with method signatures only
 - Co-locate `IPortalKnowledgeConfig` in the same file (matches project pattern)
-- Methods: `analyze(portalAlias, portalPath, mode?) → Promise<IPortalKnowledge>`, `getOrAnalyze(portalAlias, portalPath) → Promise<IPortalKnowledge>`, `isStale(portalAlias) → Promise<boolean>`, `updateKnowledge(portalAlias, portalPath, changedFiles?) → Promise<IPortalKnowledge>`
+- Methods: `analyze(portalAlias, portalPath, mode?) → Promise<IPortalKnowledge>`, `getOrAnalyze(portalAlias, portalPath) → Promise<IPortalKnowledge>`, `isStale(portalAlias) → Promise<boolean>`, `updateKnowledge(portalAlias, portalPath, changedFiles?) → Promise<IPortalKnowledge>` (**CLI-only** in Phase 46 — no automatic runtime trigger; serves `exoctl portal analyze [--force]`; `changedFiles` parameter reserved for a future automatic-integration phase — addresses Gap 13)
 - Config: `autoAnalyzeOnMount`, `defaultMode`, `quickScanLimit`, `maxFilesToRead`, `ignorePatterns`, `staleness`, `useLlmInference`
 
 **Success criteria:**
@@ -523,6 +548,11 @@ Incremental updates:
 
 - Follow existing sectioned pattern in `constants.ts` (header comment + grouped constants)
 - Constants: `DEFAULT_QUICK_SCAN_LIMIT = 200`, `DEFAULT_MAX_FILES_TO_READ = 50`, `DEFAULT_KNOWLEDGE_STALENESS_HOURS = 168`, `DEFAULT_PORTAL_KNOWLEDGE_MODE = "quick"`, `DEFAULT_IGNORE_PATTERNS` (array of common ignore dirs), entrypoint file names, config file names and extensions, architecture-layer directory name mappings, role keyword maps
+- **New constants (addresses Gaps §7, §9, §12):**
+  - `PORTAL_KNOWLEDGE_PRIORITY_PATTERNS` — file name/path patterns always included before the scan cap applies (entrypoints, root-level configs); used by `DirectoryAnalyzer` for priority-first traversal (Gap 7)
+  - `ARCHITECTURE_INFERRER_TOKEN_BUDGET = 8_000` — max total assembled prompt tokens sent to LLM in `ArchitectureInferrer` (Gap 9)
+  - `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS = 200` — max lines per file before truncation in prompt assembly (Gap 9)
+  - `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES = 60` — max lines for the `PORTAL_KNOWLEDGE_KEY` Markdown summary injected into agent prompts (Gap 12)
 - No magic numbers in strategy or service code — all from constants
 
 **Success criteria:**
@@ -548,17 +578,18 @@ Incremental updates:
 - Pure function module, no class — export `analyzeDirectory(portalPath, ignorePatterns, scanLimit) → Partial<IPortalKnowledge>`
 - Zero LLM/provider/network dependencies — sandboxed-safe
 - Implements: recursive directory walk (respecting `ignorePatterns`), extension distribution tally, total file/directory counts, architecture layer detection from well-known directory names (`src/services/`, `src/controllers/`, `tests/`, `migrations/`, etc.), monorepo detection (multiple `package.json`/`deno.json` at non-root)
-- Returns partial knowledge: `stats`, `layers`, partial `techStack.primaryLanguage` (from dominant extension)
-- Respects `scanLimit` by capping files scanned
+- Returns partial knowledge: `stats`, `layers`, `packages[]` (if monorepo detected), partial `techStack.primaryLanguage` (from dominant extension)
+- **Priority-first traversal (addresses Gap 7):** files matching `PORTAL_KNOWLEDGE_PRIORITY_PATTERNS` (root configs, entrypoints) are collected first regardless of `scanLimit`; remaining quota filled via BFS of `src/` and equivalent source roots — avoids biased samples that miss architecturally significant files
+- Respects `scanLimit` with priority-first budget: priority files counted toward cap; BFS halts when cap is reached
 
 **Success criteria:**
 
 - [ ] Walks directory tree and collects file statistics
 - [ ] Respects `ignorePatterns` (skips `node_modules/`, `.git/`, etc.)
-- [ ] Respects `scanLimit` — stops scanning after limit reached
+- [ ] Respects `scanLimit` with priority-first traversal: priority files (configs, entrypoints) collected first, then BFS fills remaining quota
 - [ ] Builds `extensionDistribution` correctly
 - [ ] Detects architecture layers from standard directory names
-- [ ] Detects monorepo vs. single-project structure
+- [ ] Detects monorepo vs. single-project structure and populates `packages[]` with per-package entries
 - [ ] Identifies `primaryLanguage` from dominant file extension
 - [ ] Handles empty directories gracefully
 - [ ] Handles symlinks safely (no infinite loops)
@@ -572,7 +603,7 @@ Incremental updates:
 - `[DirectoryAnalyzer] respects scanLimit`
 - `[DirectoryAnalyzer] detects architecture layers from standard directories`
 - `[DirectoryAnalyzer] detects primary language from extension distribution`
-- `[DirectoryAnalyzer] detects monorepo structure`
+- `[DirectoryAnalyzer] detects monorepo structure and populates packages[] entries`
 - `[DirectoryAnalyzer] handles empty directory`
 - `[DirectoryAnalyzer] handles missing directory gracefully`
 
@@ -701,6 +732,9 @@ Incremental updates:
 - `[PatternDetector] assigns correct categories`
 - `[PatternDetector] works in heuristic-only mode`
 - `[PatternDetector] detects import patterns when reading file contents`
+- `[PatternDetector] sets evidenceCount to number of matching files per convention`
+- `[PatternDetector] assigns confidence low for 1-2 evidence files`
+- `[PatternDetector] assigns confidence high for 10+ evidence files`
 
 ---
 
@@ -717,20 +751,23 @@ Incremental updates:
 - Class `ArchitectureInferrer` with constructor DI: `constructor(provider: IModelProvider, validator: OutputValidator)`
 - Uses `OutputValidator.validate()` to parse LLM response
 - Input: directory tree string, key files list, config contents, detected patterns, dependency info
-- Output: `architectureOverview` (Markdown string), refined `layers` array
+- Output: `architectureOverview` (Markdown string) **only** — `layers` are populated exclusively by Strategy 1 (heuristic directory analysis) and are never overwritten by LLM output; this avoids requiring the LLM to emit structured JSON alongside Markdown in a single call (see Gap 3)
 - Prompt template as a private constant (matches `ReflexiveAgent` pattern)
 - Only runs in `standard` and `deep` modes (never in `quick`)
 - Falls back to empty overview on LLM failure
+- **Token budget (addresses Gap 9):** per-file content truncated to `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS` (200) lines before inclusion; directory tree capped at 200 paths; total assembled prompt must not exceed `ARCHITECTURE_INFERRER_TOKEN_BUDGET` (8,000) tokens — files exceeding the remaining budget are omitted in priority order (low-significance files first). Constants defined in Step 3.
 
 **Success criteria:**
 
 - [ ] Calls `provider.generate()` with structured architecture analysis prompt
 - [ ] Validates LLM response with expected output format
 - [ ] Returns Markdown architecture overview
-- [ ] Returns refined architecture layers
+- [ ] Does **not** override `layers` populated by heuristic Strategy 1 pass
 - [ ] Falls back to empty overview on LLM failure
 - [ ] Prompt includes all input signals (tree, key files, configs, patterns, deps)
-- [ ] Uses reasonable token budget (`temperature: 0`)
+- [ ] Truncates per-file content to `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS` (200) lines before prompt assembly
+- [ ] Caps total assembled prompt at `ARCHITECTURE_INFERRER_TOKEN_BUDGET` (8,000) tokens; omits low-significance files when over budget
+- [ ] Uses `temperature: 0` for deterministic output
 
 **Planned tests** (`tests/services/portal_knowledge/architecture_inferrer_test.ts`):
 
@@ -740,6 +777,8 @@ Incremental updates:
 - `[ArchitectureInferrer] handles LLM failure gracefully`
 - `[ArchitectureInferrer] returns empty overview on invalid LLM output`
 - `[ArchitectureInferrer] uses OutputValidator for response parsing`
+- `[ArchitectureInferrer] truncates long files to ARCHITECTURE_INFERRER_MAX_FILE_TOKENS lines`
+- `[ArchitectureInferrer] stays within ARCHITECTURE_INFERRER_TOKEN_BUDGET on large input sets`
 
 ---
 
@@ -762,8 +801,8 @@ Incremental updates:
   - `deep`: All 5 strategies with higher file read cap — 2–3 LLM calls
 - Merges results from all strategies into a single `IPortalKnowledge` object
 - `isStale()`: compares `gatheredAt` against `staleness` threshold
-- `getOrAnalyze()`: loads cached knowledge, re-analyzes if stale or missing
-- `updateKnowledge()`: incremental — compare file tree with previous stats, only re-scan changed areas
+- **`getOrAnalyze()` three code paths (addresses Gap 10):** (1) fresh cache → return immediately; (2) stale cache → return stale knowledge **immediately** then fire async background re-analysis (updates cache when complete, never blocks the request); (3) no cache → analyze synchronously before returning. Prevents user-visible latency spikes after each staleness window.
+- **`updateKnowledge()` is CLI-only in Phase 46 (addresses Gap 13):** invoked by `exoctl portal analyze [--force]`; performs a full `analyze()` call with `defaultMode`; **no automatic runtime trigger** — all runtime staleness is handled by `getOrAnalyze()` async background path; `changedFiles` parameter reserved for a future automatic-integration phase
 - Logs `portal.analyzed` activity to journal via `db.logActivity()`
 - Populates `metadata.durationMs`, `metadata.filesScanned`, `metadata.filesRead`
 
@@ -775,7 +814,8 @@ Incremental updates:
 - [ ] Results merged into a single valid `IPortalKnowledge`
 - [ ] `isStale()` correctly compares timestamps against threshold
 - [ ] `getOrAnalyze()` returns cached knowledge when fresh
-- [ ] `getOrAnalyze()` re-analyzes when stale or missing
+- [ ] `getOrAnalyze()` returns stale knowledge immediately when stale, fires async background re-analysis
+- [ ] `getOrAnalyze()` analyzes synchronously when knowledge is entirely missing
 - [ ] Logs `portal.analyzed` to activity journal
 - [ ] Populates all metadata fields accurately
 - [ ] Implements `IPortalKnowledgeService` interface contract
@@ -790,8 +830,9 @@ Incremental updates:
 - `[PortalKnowledgeService] isStale returns true beyond threshold`
 - `[PortalKnowledgeService] isStale returns false within threshold`
 - `[PortalKnowledgeService] getOrAnalyze returns cached when fresh`
-- `[PortalKnowledgeService] getOrAnalyze re-analyzes when stale`
-- `[PortalKnowledgeService] getOrAnalyze analyzes when missing`
+- `[PortalKnowledgeService] getOrAnalyze returns stale knowledge immediately without blocking`
+- `[PortalKnowledgeService] getOrAnalyze triggers async background re-analysis when stale`
+- `[PortalKnowledgeService] getOrAnalyze analyzes synchronously when missing`
 - `[PortalKnowledgeService] logs portal.analyzed activity`
 - `[PortalKnowledgeService] populates metadata.durationMs`
 - `[PortalKnowledgeService] handles LLM failure in standard mode gracefully`
@@ -811,8 +852,8 @@ Incremental updates:
 
 - Export functions: `saveKnowledge(portalAlias, knowledge, memoryBank)` and `loadKnowledge(portalAlias, memoryBank) → IPortalKnowledge | null`
 - `saveKnowledge` performs two operations:
-  1. Write `knowledge.json` (full `IPortalKnowledge` serialized, atomic write)
-  1.
+  1. **Atomic write of `knowledge.json`**: serialize full `IPortalKnowledge` to a `.tmp` file then rename — `knowledge.json` is the sole source for all architectural reference data
+  1. **Conditional Markdown updates via `MemoryBankService`**: update `overview.md` (from `architectureOverview`) and `patterns.md` (from `conventions[]`) **only if** those files do not already contain the `<!-- mission-reported -->` sentinel header; skip any file where the sentinel is present to avoid overwriting `MissionReporter`-produced content. `references.md` is **never written** by `PortalKnowledgeService` — that file is exclusively owned by `MissionReporter` (see Gap 5)
 - `loadKnowledge` reads `knowledge.json`, validates against `PortalKnowledgeSchema`
 - Uses `MemoryBankService` APIs for Markdown file updates (avoids direct file writes)
 - Atomic write for `knowledge.json` (write to `.tmp` then rename)
@@ -820,9 +861,11 @@ Incremental updates:
 **Success criteria:**
 
 - [ ] Writes `knowledge.json` atomically under `Memory/Projects/{portal}/`
-- [ ] Maps `architectureOverview` to `overview.md` via `MemoryBankService`
-- [ ] Maps `conventions` to `IPattern` entries in `patterns.md`
-- [ ] Maps `keyFiles` and key dependencies to `IReference` entries in `references.md`
+- [ ] Maps `architectureOverview` to `overview.md` via `MemoryBankService` (when no sentinel)
+- [ ] Maps `conventions` to `IPattern` entries in `patterns.md` (when no sentinel)
+- [ ] Checks for `<!-- mission-reported -->` sentinel header before any Markdown write
+- [ ] Skips Markdown file update when sentinel header is present
+- [ ] Never writes to `references.md` (owned by `MissionReporter` only)
 - [ ] `loadKnowledge` validates against `PortalKnowledgeSchema`
 - [ ] Returns `null` for missing or invalid `knowledge.json`
 - [ ] Does not overwrite `decisions.md` (only `MissionReporter` writes there)
@@ -880,17 +923,19 @@ Incremental updates:
 
 **Files to modify:**
 
-- `src/services/request_processor.ts` (extend `IRequestProcessingContext` with `portalKnowledge?` field; resolve in `process()` alongside `analysis`; inject into agent prompt context via `PORTAL_KNOWLEDGE_KEY`)
+- `src/services/request_processor.ts` (extend `IRequestProcessingContext` with `portalKnowledge?` field; resolve in `process()` alongside `analysis`; inject into agent prompt context via `PORTAL_KNOWLEDGE_KEY`; **add `PortalKnowledgeService` as a new optional constructor parameter and update all instantiation sites** — addresses Gap 2)
 - `src/flows/flow_runner.ts` (add `portalKnowledge?: IPortalKnowledge` to `IFlowRunner.execute()` request params and internal type — see Flow Request Coverage section below)
 
 **Architecture notes:**
 
 - Resolve knowledge in `process()` immediately after the `analysis` resolution block, before `pipeline.execute()` — mirrors the existing pattern exactly
-- If `frontmatter.portal` is set, call `portalKnowledgeService.getOrAnalyze(portal, portalPath)` wrapped in `.catch(() => undefined)`
+- Before calling `getOrAnalyze()`, resolve `portalPath` inline: `const portalPath = this.config.portals?.find(p => p.alias === portal)?.path` — `RequestProcessor` already holds `config`; no new shared utility is needed (addresses Gap 1). Skip knowledge resolution if `portalPath` is undefined.
+- If `frontmatter.portal` is set and `portalPath` is resolved, call `portalKnowledgeService.getOrAnalyze(portal, portalPath)` wrapped in `.catch(() => undefined)`
 - Add `portalKnowledge?: IPortalKnowledge` to `IRequestProcessingContext` (parallel to `analysis?: IRequestAnalysis`); store result there
 - Pass `portalKnowledge` as a parameter to `processAgentRequest()` and `processFlowRequest()` (parallel to `analysis`)
 - **Do not** attempt to add `IPortalKnowledge` to `IParsedRequest.context` (`IRequestContextContext`) — that type is a string/primitive record and cannot hold the schema. Instead, inject a Markdown-formatted summary string under `PORTAL_KNOWLEDGE_KEY` constant (following the `PORTAL_CONTEXT_KEY` pattern in `agent_runner.ts`) for prompt injection; the full object lives on `IRequestProcessingContext`
-- `getOrAnalyze()` returns cached knowledge when fresh, re-analyzes with `standard` mode if stale
+- **`PORTAL_KNOWLEDGE_KEY` summary format (addresses Gap 12):** cap at `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES` (60) lines ≈ 800 tokens; include in order: (1) architecture overview first 20 lines, (2) top-5 key files sorted by role significance, (3) top-5 conventions sorted by `evidenceCount` descending; exclude stats, full dependency list, and monorepo package details. Constant defined in Step 3.
+- `getOrAnalyze()` returns **stale knowledge immediately** and fires async background re-analysis when stale; analyzes synchronously when missing (addresses Gap 10)
 - Non-blocking for execution: if knowledge gathering fails, proceed without it
 
 **Success criteria:**
@@ -900,7 +945,9 @@ Incremental updates:
 - [ ] Both agent and flow paths receive knowledge
 - [ ] Agent prompts receive a Markdown summary via `PORTAL_KNOWLEDGE_KEY` in `IParsedRequest.context`
 - [ ] Uses cached knowledge when fresh (no re-analysis overhead)
-- [ ] Re-analyzes with `standard` mode when stale
+- [ ] Returns stale knowledge immediately; async background re-analysis fires without blocking the request
+- [ ] `PORTAL_KNOWLEDGE_KEY` summary capped at `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES` lines
+- [ ] Summary includes architecture overview (20 lines) + top-5 key files + top-5 conventions only
 - [ ] Proceeds without knowledge on failure
 
 **Planned tests** (`tests/services/request_processor_knowledge_test.ts`):
@@ -912,6 +959,8 @@ Incremental updates:
 - `[RequestProcessor] uses cached knowledge when fresh`
 - `[RequestProcessor] proceeds without knowledge on failure`
 - `[RequestProcessor] passes knowledge to flow processing path`
+- `[RequestProcessor] clamps PORTAL_KNOWLEDGE_KEY summary to PORTAL_KNOWLEDGE_PROMPT_MAX_LINES`
+- `[RequestProcessor] returns stale knowledge immediately without blocking on re-analysis`
 
 ---
 
@@ -1305,7 +1354,7 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 | ------ | ----------- |
 | Analysis is slow for large codebases | `quick` mode (no LLM, structure-only) is default post-mount; `ignorePatterns` exclude heavy directories; file caps per mode |
 | LLM-based architecture inference is inaccurate | Heuristic strategies provide a factual baseline; LLM only augments, doesn't replace; patterns flagged with confidence |
-| Knowledge goes stale after codebase changes | Staleness detection; `MissionReporter` triggers incremental updates; manual re-analysis via CLI |
+| Knowledge goes stale after codebase changes | Time-based staleness detection (`staleness` threshold, default 1 week); manual re-analysis via `exoctl portal analyze --force`; `MissionReporter` integration deferred to a later phase (see Gap 6) |
 | Storage overhead for large portals | `knowledge.json` is a single file; `IProjectMemory` files are Markdown; total overhead is negligible |
 | Over-analysis of trivial portals | Configurable mode; `quick` is lightweight; `autoAnalyzeOnMount` can be disabled |
 | Privacy: reading portal source code | Already within ExoFrame's security model — portals are explicitly mounted by the user; analysis respects `PathResolver` and sandbox modes |
@@ -1370,25 +1419,37 @@ The following questions were raised during design and have been resolved:
 
 Step 12 calls `portalKnowledgeService.getOrAnalyze(portal, portalPath)` from `RequestProcessor.process()`, but `portalPath` is not available there. The alias → filesystem path mapping lives in `RequestRouter.buildPortalContext()`, which reads `this.config.portals`. This lookup needs to be extracted to a shared utility and called explicitly in `process()`. It is a straightforward fix but will be a blocking compile error if overlooked.
 
+> **✅ Addressed in [Step 12](#step-12-wire-pre-execution-trigger-in-requestprocessor):** `RequestProcessor` already holds `config`; portal path resolved inline via `this.config.portals?.find(p => p.alias === portal)?.path` — no shared utility needed. Added to Step 12 architecture notes.
+
 #### Gap 2: `RequestProcessor` constructor DI is not addressed in Step 12
 
 Step 12 lists two files to modify but does not mention that `PortalKnowledgeService` must be injected into `RequestProcessor`'s constructor (currently: `config, db, processorConfig, testProvider?, costTracker?, testAnalyzer?`). The instantiation site(s) also need updating. This should be called out explicitly in Step 12's "Files to modify" and architecture notes.
+
+> **✅ Addressed in [Step 12](#step-12-wire-pre-execution-trigger-in-requestprocessor):** Constructor DI for `PortalKnowledgeService` and instantiation site updates now explicitly called out in Step 12's files list and architecture notes.
 
 #### Gap 3: `ArchitectureInferrer` produces two incompatible output types from one LLM call
 
 Step 8 says the LLM returns both an `architectureOverview` (Markdown string) and a refined `layers` array (`IArchitectureLayer[]`). The prompt template only asks for Markdown. Getting structured `IArchitectureLayer[]` from a Markdown-producing prompt requires either: (a) a second LLM call, (b) asking the LLM to produce JSON with an embedded Markdown field, or (c) post-processing regex on the Markdown. None of these are specified. `OutputValidator` cannot help without a defined output schema. **Simplest fix:** have `ArchitectureInferrer` produce only `architectureOverview` (Markdown) and leave `layers` as-is from the heuristic pass.
 
+> **✅ Addressed in [Step 8](#step-8-implement-architecture-inferrer-strategy-5--llm):** Step 8 now specifies Markdown-only LLM output for `architectureOverview`; `layers` remain from the Strategy 1 heuristic pass and are never overwritten. Reflected in Step 8 architecture notes and success criteria.
+
 #### Gap 4: Concurrent write races on `IProjectMemory` files
 
 `saveKnowledge()` writes to `overview.md`, `patterns.md`, and `references.md`. `MissionReporter` also writes to these same files after execution. If a request triggers both a `getOrAnalyze()` re-analysis and a `MissionReporter` update in overlapping timing, the writes race. The plan specifies atomic writes for `knowledge.json` but says nothing about the Markdown files. **Simplest mitigation:** `saveKnowledge()` checks for a sentinel header marker before writing and skips a file if mission-reported content is already present; document this in Step 10.
+
+> **✅ Addressed in [Step 10](#step-10-implement-knowledge-persistence-memory-bank-mapping):** `saveKnowledge()` now specified to check for `<!-- mission-reported -->` sentinel header before writing `overview.md` or `patterns.md`; skips write if sentinel is present. Added to Step 10 architecture notes and success criteria.
 
 #### Gap 5: `references.md` ownership conflict is a data integrity problem
 
 The plan maps `keyFiles` + key dependencies to `references.md` via `MemoryBankService`. But `MissionReporter` also writes references (files consulted during a mission). These are semantically different categories: architectural significance vs. mission-specific context. Overwriting `references.md` on every knowledge refresh destroys mission history. **Two options:** (a) separate namespacing within the file (e.g., `## Architecture` section vs. `## Mission History` section), or (b) keep `knowledge.json` as the sole source for architectural references and never touch `references.md`. Option (b) is simpler and avoids all ownership ambiguity.
 
+> **✅ Addressed in [Step 10](#step-10-implement-knowledge-persistence-memory-bank-mapping):** Option (b) adopted — `PortalKnowledgeService` never writes to `references.md`; architectural references live exclusively in `knowledge.json`. Reflected in Step 10 architecture notes, success criteria, and the persistence mapping table in [§5 Persistence in Memory Bank](#5-persistence-in-memory-bank).
+
 #### Gap 6: `MissionReporter` → `PortalKnowledgeService` staleness trigger has no implementation path
 
 The Risks section and Staleness section both state "MissionReporter triggers incremental updates." But `MissionReporter` has no reference to `PortalKnowledgeService`, and no event/hook/observer mechanism is described anywhere in the plan. Either this is dead text (staleness is time-based only), or the coupling needs a concrete mechanism (event bus, callback, or direct injection). **Resolution:** remove the claim from Risks/Staleness and replace with "staleness is time-based; `MissionReporter` may trigger an explicit `updateKnowledge()` call if that integration is added in a later phase."
+
+> **✅ Addressed in [§8 Staleness and Incremental Updates](#8-staleness-and-incremental-updates) and [Risks & Mitigations](#risks--mitigations):** `MissionReporter` trigger claim removed from both sections. Phase 46 staleness is time-based only; `MissionReporter` integration explicitly deferred to a later phase.
 
 ---
 
@@ -1398,17 +1459,25 @@ The Risks section and Staleness section both state "MissionReporter triggers inc
 
 A mid-size Node.js or Rails project has 500–2,000 source files. Scanning only 200 means traversal order determines what is analyzed. BFS from root hits config files first (good), but DFS may stop mid-way through `src/controllers/` (bad). The plan does not specify traversal order, making the 200-file cap non-reproducible across runs. **Fix:** the cap should apply *after* heuristic prioritization — scan root configs and Strategy-3-pattern files first, then fill remaining capacity with a BFS of `src/`.
 
+> **✅ Addressed in [Step 4](#step-4-implement-directory-structure-analyzer-strategy-1) and [Step 3](#step-3-add-portal-knowledge-constants):** Priority-first traversal specified in Step 4 architecture notes and success criteria; `PORTAL_KNOWLEDGE_PRIORITY_PATTERNS` constant for pre-selection added to Step 3.
+
 #### Gap 8: Monorepo architecture is incompatible with the flat `IPortalKnowledge` schema
 
 `IPortalKnowledge` has a single `techStack.primaryLanguage`, single `layers[]`, and single `conventions[]`. A 20-package monorepo (Nx, Turborepo, Lerna) has per-package languages, layers, and conventions. The plan notes "detects monorepo vs single-project structure" in Strategy 1 but never defines what `IPortalKnowledge` contains when it IS a monorepo. **Two options:** (a) add an optional `packages: IMonorepoPackage[]` field where each package has its own `layers` and `conventions`, with the top-level fields reflecting the root workspace; or (b) explicitly scope Phase 46 to single-project portals only and document the limitation.
+
+> **✅ Addressed in [Detailed Design §1](#1-iportalknowledge-schema) and [Step 1](#step-1-define-iportalknowledge-zod-schema--types):** Option (a) adopted — `IMonorepoPackage` interface added to the schema with per-package `layers`, `conventions`, `primaryLanguage`, and `framework?`; `IPortalKnowledge.packages?: IMonorepoPackage[]` field added; `MonorepoPackageSchema` added to Step 1; Step 4 (DirectoryAnalyzer) updated to populate `packages[]` on monorepo detection.
 
 #### Gap 9: LLM context window is not budgeted
 
 `standard` mode reads "up to 20 key files" and sends a directory tree string + config file contents + patterns to the LLM. For a large codebase: 20 files × avg 200 lines × ~4 tokens/line = ~16,000 tokens for file content alone, plus ~1,500 tokens for a 200-directory tree, plus config files and boilerplate. This can approach or exceed 20,000 tokens — beyond many models' effective context and expensive on all of them. No file-length capping, chunking, or content summarization strategy is described. `ArchitectureInferrer` needs an explicit token budget (e.g., 8,000 tokens max input) with per-file truncation logic.
 
+> **✅ Addressed in [Step 8](#step-8-implement-architecture-inferrer-strategy-5--llm) and [Step 3](#step-3-add-portal-knowledge-constants):** `ARCHITECTURE_INFERRER_TOKEN_BUDGET = 8_000` and `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS = 200` constants added to Step 3; Step 8 architecture notes, success criteria, and planned tests now specify per-file truncation and total prompt cap; low-significance files omitted first when over budget.
+
 #### Gap 10: Standard mode re-analysis blocks the first request after each staleness window
 
 Default staleness is 168 hours (1 week). The first request every week on a stale portal triggers `standard` mode re-analysis: 1 LLM call + reading 20 files, estimated ~15 seconds of user-visible latency before the agent starts. The plan says "Non-blocking for execution: if knowledge gathering fails, proceed without it" — but does not define whether `getOrAnalyze()` blocks until re-analysis completes or returns stale knowledge immediately. **Recommended resolution:** `getOrAnalyze()` returns stale (but available) knowledge immediately and fires re-analysis asynchronously, updating the cache in the background. Must be specified explicitly in Step 9 (`getOrAnalyze()` design) and Step 12.
+
+> **✅ Addressed in [Step 9](#step-9-implement-portalknowledgeservice-orchestrator) and [Step 12](#step-12-wire-pre-execution-trigger-in-requestprocessor):** `getOrAnalyze()` now specifies three explicit code paths — stale cache returns knowledge immediately and fires async background re-analysis; Steps 9 and 12 architecture notes, success criteria, and planned tests all updated.
 
 ---
 
@@ -1418,17 +1487,25 @@ Default staleness is 168 hours (1 week). The first request every week on a stale
 
 Detecting `*_service.ts` files confirms a naming *convention*, not an architectural pattern. An agent told "this project uses the service pattern" may interpret that as constructor injection, functional services, singleton services, or something else. The `ICodeConvention` structure has no way to distinguish "3 files named this way" from "300 files named this way." **Missing fields:** add `evidenceCount: number` and `confidence: "low" | "medium" | "high"` to `ICodeConvention`. This lets downstream consumers (Phase 47 Q&A, Phase 49 critique) calibrate how strongly to enforce a convention and avoids surfacing noise as fact.
 
+> **✅ Addressed in [Detailed Design §1](#1-iportalknowledge-schema), [Step 1](#step-1-define-iportalknowledge-zod-schema--types), and [Step 7](#step-7-implement-pattern-detector-strategy-4--heuristic-pass):** `evidenceCount: number` and `confidence: "low" | "medium" | "high"` added to `ICodeConvention` interface and `CodeConventionSchema`; Step 7 architecture notes, success criteria, and planned tests fully updated.
+
 #### Gap 12: The Markdown summary injected into agent prompts has no defined format or token cap
 
 Step 12 says "inject a Markdown-formatted summary string under `PORTAL_KNOWLEDGE_KEY`", following the `PORTAL_CONTEXT_KEY` pattern. But `PORTAL_CONTEXT_KEY` injects a short string (alias + path). A full portal knowledge summary — architecture overview + key files + conventions + dependencies — can be 3,000–8,000 tokens, added to *every* portal-bound agent prompt. No summarization logic, section-inclusion criteria, or token cap is defined. This is the most likely source of regression (token cost spikes, context pollution). Step 12 must specify: maximum token budget for the summary, which sections to include (architecture overview only? top-N key files?), and whether the format is configurable.
+
+> **✅ Addressed in [Step 12](#step-12-wire-pre-execution-trigger-in-requestprocessor) and [Step 3](#step-3-add-portal-knowledge-constants):** `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES = 60` constant added to Step 3; Step 12 architecture notes specify: architecture overview (first 20 lines) + top-5 key files by role + top-5 conventions by `evidenceCount`; summary format and token cap added to success criteria and planned tests.
 
 #### Gap 13: Incremental update has no trigger mechanism — documentation contradicts reality
 
 The `updateKnowledge()` method "compares directory tree with previous stats — only re-scans changed areas." But detecting what changed requires walking the current directory tree, which is essentially a full scan anyway (O(N) on file count regardless). And as noted in Gap 6, the trigger is undefined: `MissionReporter` coupling is asserted but unimplemented. In practice, incremental updates can only fire via explicit CLI call (`--force`) or the time-based staleness check. The plan should stop describing incremental updates as a runtime feature and either (a) remove `updateKnowledge()` from the public interface (it can be a future enhancement), or (b) document it as CLI-only with no automatic trigger in Phase 46.
 
+> **✅ Addressed in [Step 2](#step-2-define-iportalknowledgeservice-interface) and [Step 9](#step-9-implement-portalknowledgeservice-orchestrator):** Option (b) adopted — `updateKnowledge()` scoped as CLI-only in both the interface description and Step 9 architecture notes; `changedFiles` parameter reserved for a future automatic-integration phase; all runtime staleness handled by `getOrAnalyze()` async background path.
+
 #### Gap 14: `quick` mode post-mount does not actually solve the bootstrapping problem
 
 The plan claims to solve "first execution is knowledge-free." But `quick` mode (no LLM, structure + configs only) gives agents a file tree, dependency list, and naming pattern hints — marginally better than the current empty state, but not architectural understanding. An agent asked to "add a new API endpoint" still does not know the routing convention, middleware stack, response format, or where controllers live. The real bootstrapping value comes from `standard` mode LLM inference, which only runs pre-execution (not at mount time). **Recommendation:** scope the Executive Summary's claim to "basic structural orientation" for `quick` mode, and call out that `standard` mode pre-execution analysis provides the architectural understanding needed before the first agent run.
+
+> **✅ Addressed in [Analysis Mode Comparison](#4-analysis-mode-comparison):** `quick` mode description updated to "basic structural orientation only — does not produce architectural understanding"; explicit note to run `exoctl portal analyze` (standard mode) before first agent use added to the mode table.
 
 ---
 
