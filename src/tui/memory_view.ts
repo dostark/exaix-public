@@ -389,23 +389,27 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
   // ===== Actions =====
 
-  /**
-   * Open approve dialog for selected pending proposal
-   */
-  async approveSelectedProposal(): Promise<void> {
+  private async fetchPendingProposal(action: string) {
     const node = this.findNodeById(this.state.selectedNodeId);
     if (!node || !node.id.startsWith("pending:")) {
-      this.statusMessage = "Select a pending proposal to approve";
-      return;
+      this.statusMessage = `Select a pending proposal to ${action}`;
+      return null;
     }
-
     const proposalId = node.id.replace("pending:", "");
     const proposal = await this.service.getPending(proposalId);
     if (!proposal) {
       this.statusMessage = "Proposal not found";
-      return;
+      return null;
     }
+    return proposal;
+  }
 
+  /**
+   * Open approve dialog for selected pending proposal
+   */
+  async approveSelectedProposal(): Promise<void> {
+    const proposal = await this.fetchPendingProposal("approve");
+    if (!proposal) return;
     this.state.activeDialog = new ConfirmApproveDialog(proposal);
   }
 
@@ -413,19 +417,8 @@ export class MemoryViewTuiSession extends TuiSessionBase {
    * Open reject dialog for selected pending proposal
    */
   async rejectSelectedProposal(): Promise<void> {
-    const node = this.findNodeById(this.state.selectedNodeId);
-    if (!node || !node.id.startsWith("pending:")) {
-      this.statusMessage = "Select a pending proposal to reject";
-      return;
-    }
-
-    const proposalId = node.id.replace("pending:", "");
-    const proposal = await this.service.getPending(proposalId);
-    if (!proposal) {
-      this.statusMessage = "Proposal not found";
-      return;
-    }
-
+    const proposal = await this.fetchPendingProposal("reject");
+    if (!proposal) return;
     this.state.activeDialog = new ConfirmRejectDialog(proposal);
   }
 

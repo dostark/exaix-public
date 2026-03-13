@@ -28,6 +28,16 @@ export function getWorkspaceArchiveDir(context: ICommandContext): string {
   );
 }
 
+/** Core frontmatter fields shared across request list and show handlers. */
+export const REQUEST_CORE_FIELDS: Array<{ key: string; fallback: string }> = [
+  { key: "trace_id", fallback: "" },
+  { key: "priority", fallback: "normal" },
+  { key: "agent", fallback: "default" },
+  { key: "created", fallback: "" },
+  { key: "created_by", fallback: "unknown" },
+  { key: "source", fallback: "unknown" },
+];
+
 export function getWorkspaceRejectedDir(context: ICommandContext): string {
   const config = context.config.getAll();
   return join(

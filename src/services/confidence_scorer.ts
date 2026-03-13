@@ -164,19 +164,23 @@ export class ConfidenceScorer {
     db?: DatabaseService;
   };
 
-  private metrics: IConfidenceMetrics = {
-    totalAssessments: 0,
-    averageScore: 0,
-    flaggedCount: 0,
-    flaggedRate: 0,
-    levelDistribution: {
-      [ConfidenceAssessmentLevel.VERY_HIGH]: 0,
-      [ConfidenceAssessmentLevel.HIGH]: 0,
-      [ConfidenceAssessmentLevel.MEDIUM]: 0,
-      [ConfidenceAssessmentLevel.LOW]: 0,
-      [ConfidenceAssessmentLevel.VERY_LOW]: 0,
-    },
-  };
+  private metrics: IConfidenceMetrics = this.emptyMetrics();
+
+  private emptyMetrics(): IConfidenceMetrics {
+    return {
+      totalAssessments: 0,
+      averageScore: 0,
+      flaggedCount: 0,
+      flaggedRate: 0,
+      levelDistribution: {
+        [ConfidenceAssessmentLevel.VERY_HIGH]: 0,
+        [ConfidenceAssessmentLevel.HIGH]: 0,
+        [ConfidenceAssessmentLevel.MEDIUM]: 0,
+        [ConfidenceAssessmentLevel.LOW]: 0,
+        [ConfidenceAssessmentLevel.VERY_LOW]: 0,
+      },
+    };
+  }
 
   private scoreSum = 0;
 
@@ -383,19 +387,7 @@ export class ConfidenceScorer {
   }
 
   resetMetrics(): void {
-    this.metrics = {
-      totalAssessments: 0,
-      averageScore: 0,
-      flaggedCount: 0,
-      flaggedRate: 0,
-      levelDistribution: {
-        [ConfidenceAssessmentLevel.VERY_HIGH]: 0,
-        [ConfidenceAssessmentLevel.HIGH]: 0,
-        [ConfidenceAssessmentLevel.MEDIUM]: 0,
-        [ConfidenceAssessmentLevel.LOW]: 0,
-        [ConfidenceAssessmentLevel.VERY_LOW]: 0,
-      },
-    };
+    this.metrics = this.emptyMetrics();
     this.scoreSum = 0;
   }
 

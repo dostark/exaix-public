@@ -42,3 +42,17 @@ export interface ICliApplicationContext {
   requests?: IRequestService;
   plans?: IPlanService;
 }
+
+export type {
+  IArchiveService,
+  IContextCardGeneratorService,
+  IFlowValidatorService,
+  IMemoryBankService,
+  IMemoryEmbeddingService,
+  IMemoryExtractorService,
+  IMemoryService,
+  IPlanService,
+  IPortalService,
+  IRequestService,
+  ISkillsService,
+};

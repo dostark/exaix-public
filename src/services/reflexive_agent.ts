@@ -178,21 +178,25 @@ export class ReflexiveAgent {
     agentRunnerConfig: IAgentRunnerConfig;
   };
 
-  public metrics: IReflexionMetrics = {
-    totalExecutions: 0,
-    totalIterations: 0,
-    averageIterationsPerExecution: 0,
-    earlyExitCount: 0,
-    earlyExitRate: 0,
-    qualityDistribution: {
-      [CritiqueQuality.EXCELLENT]: 0,
-      [CritiqueQuality.GOOD]: 0,
-      [CritiqueQuality.ACCEPTABLE]: 0,
-      [CritiqueQuality.NEEDS_IMPROVEMENT]: 0,
-      [CritiqueQuality.POOR]: 0,
-    },
-    issueTypeDistribution: {},
-  };
+  public metrics: IReflexionMetrics = this.emptyMetrics();
+
+  private emptyMetrics(): IReflexionMetrics {
+    return {
+      totalExecutions: 0,
+      totalIterations: 0,
+      averageIterationsPerExecution: 0,
+      earlyExitCount: 0,
+      earlyExitRate: 0,
+      qualityDistribution: {
+        [CritiqueQuality.EXCELLENT]: 0,
+        [CritiqueQuality.GOOD]: 0,
+        [CritiqueQuality.ACCEPTABLE]: 0,
+        [CritiqueQuality.NEEDS_IMPROVEMENT]: 0,
+        [CritiqueQuality.POOR]: 0,
+      },
+      issueTypeDistribution: {},
+    };
+  }
 
   constructor(modelProvider: IModelProvider, config: IReflexiveAgentConfig = {}) {
     const {
@@ -451,21 +455,7 @@ export class ReflexiveAgent {
   }
 
   resetMetrics(): void {
-    this.metrics = {
-      totalExecutions: 0,
-      totalIterations: 0,
-      averageIterationsPerExecution: 0,
-      earlyExitCount: 0,
-      earlyExitRate: 0,
-      qualityDistribution: {
-        [CritiqueQuality.EXCELLENT]: 0,
-        [CritiqueQuality.GOOD]: 0,
-        [CritiqueQuality.ACCEPTABLE]: 0,
-        [CritiqueQuality.NEEDS_IMPROVEMENT]: 0,
-        [CritiqueQuality.POOR]: 0,
-      },
-      issueTypeDistribution: {},
-    };
+    this.metrics = this.emptyMetrics();
   }
 
   public updateMetrics(critique: ICritique): void {

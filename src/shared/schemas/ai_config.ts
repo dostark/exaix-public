@@ -124,6 +124,19 @@ export const DEFAULT_AI_CONFIG: AiConfig = {
 // Dynamic import required for registry initialization (documented in CODE_STYLE.md)
 // This must remain a dynamic import because the module is only needed at runtime for registry setup.
 const dynamicImport = (specifier: string) => import(specifier);
+
+function buildProviderRecord<T>(mapper: (providerType: string) => T): Record<string, T> {
+  if (ProviderRegistry.getSupportedProviders().length === 0) {
+    dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
+      mod.initializeRegistry()
+    );
+  }
+  const result: Record<string, T> = {};
+  for (const providerType of ProviderRegistry.getSupportedProviders()) {
+    result[providerType] = mapper(providerType);
+  }
+  return result;
+}
 /**
  * @module AIConfigSchema
  * @path src/config/ai_config.ts
@@ -137,19 +150,7 @@ const dynamicImport = (specifier: string) => import(specifier);
  * Default models for each provider - now registry-driven
  */
 export function getDefaultModels(): Record<string, string> {
-  // Initialize registry if needed
-  let _registryPromise: Promise<void> | undefined;
-  if (ProviderRegistry.getSupportedProviders().length === 0) {
-    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
-      mod.initializeRegistry()
-    );
-  }
-
-  const models: Record<string, string> = {};
-  for (const providerType of ProviderRegistry.getSupportedProviders()) {
-    models[providerType] = getDefaultModelForProvider(providerType);
-  }
-  return models;
+  return buildProviderRecord(getDefaultModelForProvider);
 }
 
 /**
@@ -171,19 +172,7 @@ function getDefaultModelForProvider(providerType: string): string {
  * Default API endpoints for each provider - now registry-driven
  */
 export function getDefaultEndpoints(): Record<string, string> {
-  // Initialize registry if needed
-  let _registryPromise: Promise<void> | undefined;
-  if (ProviderRegistry.getSupportedProviders().length === 0) {
-    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
-      mod.initializeRegistry()
-    );
-  }
-
-  const endpoints: Record<string, string> = {};
-  for (const providerType of ProviderRegistry.getSupportedProviders()) {
-    endpoints[providerType] = getDefaultEndpointForProvider(providerType);
-  }
-  return endpoints;
+  return buildProviderRecord(getDefaultEndpointForProvider);
 }
 
 /**
@@ -205,19 +194,7 @@ function getDefaultEndpointForProvider(providerType: string): string {
  * Default retry configuration per provider - now registry-driven
  */
 export function getDefaultRetryConfig(): Record<string, { maxAttempts: number; backoffBaseMs: number }> {
-  // Initialize registry if needed
-  let _registryPromise: Promise<void> | undefined;
-  if (ProviderRegistry.getSupportedProviders().length === 0) {
-    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
-      mod.initializeRegistry()
-    );
-  }
-
-  const retryConfig: Record<string, { maxAttempts: number; backoffBaseMs: number }> = {};
-  for (const providerType of ProviderRegistry.getSupportedProviders()) {
-    retryConfig[providerType] = getDefaultRetryConfigForProvider(providerType);
-  }
-  return retryConfig;
+  return buildProviderRecord(getDefaultRetryConfigForProvider);
 }
 
 /**

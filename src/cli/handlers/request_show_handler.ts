@@ -14,7 +14,7 @@ import { type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts"
 import { type IRequestShowResult } from "../../shared/types/request.ts";
 import { coerceRequestStatus } from "../../shared/status/request_status.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
-import { getWorkspaceRequestsDir } from "./request_paths.ts";
+import { getWorkspaceRequestsDir, REQUEST_CORE_FIELDS } from "./request_paths.ts";
 
 export class RequestShowHandler extends BaseCommand {
   private workspaceRequestsDir: string;
@@ -72,16 +72,7 @@ export class RequestShowHandler extends BaseCommand {
       status: coerceRequestStatus(String(matchingFrontmatter.status || "")),
     };
 
-    const fields = [
-      { key: "trace_id", fallback: "" },
-      { key: "priority", fallback: "normal" },
-      { key: "agent", fallback: "default" },
-      { key: "created", fallback: "" },
-      { key: "created_by", fallback: "unknown" },
-      { key: "source", fallback: "unknown" },
-    ];
-
-    for (const field of fields) {
+    for (const field of REQUEST_CORE_FIELDS) {
       metadata[field.key] = String(matchingFrontmatter[field.key] || field.fallback);
     }
 

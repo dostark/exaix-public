@@ -12,7 +12,12 @@ import { exists } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import { type IRequestEntry } from "../../shared/types/request.ts";
 import { coerceRequestStatus, type RequestStatusType } from "../../shared/status/request_status.ts";
-import { getWorkspaceArchiveDir, getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./request_paths.ts";
+import {
+  getWorkspaceArchiveDir,
+  getWorkspaceRejectedDir,
+  getWorkspaceRequestsDir,
+  REQUEST_CORE_FIELDS,
+} from "./request_paths.ts";
 
 export class RequestListHandler extends BaseCommand {
   private workspaceRequestsDir: string;
@@ -98,16 +103,7 @@ export class RequestListHandler extends BaseCommand {
       status: status,
     };
 
-    const fields = [
-      { key: "trace_id", fallback: "" },
-      { key: "priority", fallback: "normal" },
-      { key: "agent", fallback: "default" },
-      { key: "created", fallback: "" },
-      { key: "created_by", fallback: "unknown" },
-      { key: "source", fallback: "unknown" },
-    ];
-
-    for (const field of fields) {
+    for (const field of REQUEST_CORE_FIELDS) {
       entry[field.key] = String(frontmatter[field.key] || field.fallback);
     }
 

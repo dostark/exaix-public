@@ -9,6 +9,13 @@
 
 import type { IDecision, IPattern } from "../../shared/schemas/memory_bank.ts";
 
+function parseTags(lines: string[]): string[] | undefined {
+  const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
+  if (!tagsLine) return undefined;
+  const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
+  return tagsMatch ? tagsMatch[1].split(", ").map((t) => t.trim()) : undefined;
+}
+
 /**
  * Parse patterns from markdown content
  */
@@ -44,15 +51,7 @@ export function parsePatterns(content: string): IPattern[] {
       }
     }
 
-    // Parse tags
-    let tags: string[] | undefined;
-    const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
-    if (tagsLine) {
-      const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
-      if (tagsMatch) {
-        tags = tagsMatch[1].split(", ").map((t) => t.trim());
-      }
-    }
+    const tags = parseTags(lines);
 
     if (name && description) {
       patterns.push({
@@ -103,15 +102,7 @@ export function parseDecisions(content: string): IDecision[] {
         }
       }
 
-      // Parse tags
-      let tags: string[] | undefined;
-      const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
-      if (tagsLine) {
-        const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
-        if (tagsMatch) {
-          tags = tagsMatch[1].split(", ").map((t) => t.trim());
-        }
-      }
+      const tags = parseTags(lines);
 
       decisions.push({
         date,

@@ -130,6 +130,19 @@ export class HealthCheckService {
     this.checkBreakers.set(check.name, new CircuitBreaker(opts));
   }
 
+  private async runWithTimeout<T>(op: () => Promise<T>, errorMessage: string): Promise<T> {
+    let timer: number | undefined;
+    try {
+      const p = op();
+      const timeoutP = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(errorMessage)), this.checkTimeoutMs);
+      });
+      return await Promise.race([p, timeoutP]);
+    } finally {
+      if (typeof timer !== "undefined") clearTimeout(timer);
+    }
+  }
+
   /**
    * Perform all registered health checks and return overall status
    */
@@ -148,21 +161,11 @@ export class HealthCheckService {
           const breaker = this.checkBreakers.get(name);
 
           // Build a timed execution promise that enforces the check timeout and clears the timer
-          const timedExecution = async () => {
-            let timer: number | undefined;
-            try {
-              const p = check.check();
-              const timeoutP = new Promise<never>((_, reject) => {
-                timer = setTimeout(
-                  () => reject(new Error(`Health check '${name}' timed out after ${this.checkTimeoutMs}ms`)),
-                  this.checkTimeoutMs,
-                );
-              });
-              return await Promise.race([p, timeoutP]);
-            } finally {
-              if (typeof timer !== "undefined") clearTimeout(timer);
-            }
-          };
+          const timedExecution = () =>
+            this.runWithTimeout(
+              () => check.check(),
+              `Health check '${name}' timed out after ${this.checkTimeoutMs}ms`,
+            );
 
           const result = breaker ? await breaker.execute(() => timedExecution()) : await timedExecution();
 
@@ -232,21 +235,11 @@ export class HealthCheckService {
 
     try {
       const breaker = this.checkBreakers.get(providerName);
-      const timed = async () => {
-        let timer: number | undefined;
-        try {
-          const p = check.check();
-          const timeoutP = new Promise<never>((_, reject) => {
-            timer = setTimeout(
-              () => reject(new Error(`Provider health check timed out after ${this.checkTimeoutMs}ms`)),
-              this.checkTimeoutMs,
-            );
-          });
-          return await Promise.race([p, timeoutP]);
-        } finally {
-          if (typeof timer !== "undefined") clearTimeout(timer);
-        }
-      };
+      const timed = () =>
+        this.runWithTimeout(
+          () => check.check(),
+          `Provider health check timed out after ${this.checkTimeoutMs}ms`,
+        );
 
       const result = breaker ? await breaker.execute(() => timed()) : await timed();
 

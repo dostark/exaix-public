@@ -34,6 +34,18 @@ export class MemoryCommands extends BaseCommand {
     this.formatter = new MemoryFormatter();
   }
 
+  private formatOutput<T>(format: OutputFormat, data: T, mdFn: (d: T) => string, tableFn: (d: T) => string): string {
+    switch (format) {
+      case UIOutputFormat.JSON:
+        return JSON.stringify(data, null, 2);
+      case UIOutputFormat.MARKDOWN:
+        return mdFn(data);
+      case UIOutputFormat.TABLE:
+      default:
+        return tableFn(data);
+    }
+  }
+
   // ===== Memory List Command =====
 
   /**
@@ -309,15 +321,12 @@ export class MemoryCommands extends BaseCommand {
       return "Global memory not initialized. Run 'exoctl memory global init' first.";
     }
 
-    switch (format) {
-      case UIOutputFormat.JSON:
-        return JSON.stringify(globalMem, null, 2);
-      case UIOutputFormat.MARKDOWN:
-        return this.formatter.formatGlobalShowMarkdown(globalMem);
-      case UIOutputFormat.TABLE:
-      default:
-        return this.formatter.formatGlobalShowTable(globalMem);
-    }
+    return this.formatOutput(
+      format,
+      globalMem,
+      (d) => this.formatter.formatGlobalShowMarkdown(d),
+      (d) => this.formatter.formatGlobalShowTable(d),
+    );
   }
 
   /**
@@ -363,15 +372,12 @@ export class MemoryCommands extends BaseCommand {
       return "Global memory not initialized. Run 'exoctl memory global init' first.";
     }
 
-    switch (format) {
-      case UIOutputFormat.JSON:
-        return JSON.stringify(globalMem.statistics, null, 2);
-      case UIOutputFormat.MARKDOWN:
-        return this.formatter.formatGlobalStatsMarkdown(globalMem.statistics);
-      case UIOutputFormat.TABLE:
-      default:
-        return this.formatter.formatGlobalStatsTable(globalMem.statistics);
-    }
+    return this.formatOutput(
+      format,
+      globalMem.statistics,
+      (d) => this.formatter.formatGlobalStatsMarkdown(d),
+      (d) => this.formatter.formatGlobalStatsTable(d),
+    );
   }
 
   /**

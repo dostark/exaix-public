@@ -105,6 +105,23 @@ export class PortalService {
     }
   }
 
+  private async resolvePortalPaths(alias: string): Promise<{ symlinkPath: string; contextCardPath: string }> {
+    const symlinkPath = join(this.portalsDir, alias);
+    const contextCardPath = join(
+      this.config.system.root!,
+      this.config.paths.memory!,
+      "Projects",
+      alias,
+      "portal.md",
+    );
+    try {
+      await Deno.lstat(symlinkPath);
+    } catch {
+      throw new Error(`Portal '${alias}' not found`);
+    }
+    return { symlinkPath, contextCardPath };
+  }
+
   async list(): Promise<IPortalInfo[]> {
     const portals: IPortalInfo[] = [];
 
@@ -158,20 +175,7 @@ export class PortalService {
   }
 
   async show(alias: string): Promise<IPortalDetails> {
-    const symlinkPath = join(this.portalsDir, alias);
-    const contextCardPath = join(
-      this.config.system.root!,
-      this.config.paths.memory!,
-      "Projects",
-      alias,
-      "portal.md",
-    );
-
-    try {
-      await Deno.lstat(symlinkPath);
-    } catch {
-      throw new Error(`Portal '${alias}' not found`);
-    }
+    const { symlinkPath, contextCardPath } = await this.resolvePortalPaths(alias);
 
     let targetPath: string;
     let status: PortalStatus;
@@ -211,20 +215,7 @@ export class PortalService {
   }
 
   async remove(alias: string, options?: { keepCard?: boolean }): Promise<void> {
-    const symlinkPath = join(this.portalsDir, alias);
-    const contextCardPath = join(
-      this.config.system.root!,
-      this.config.paths.memory!,
-      "Projects",
-      alias,
-      "portal.md",
-    );
-
-    try {
-      await Deno.lstat(symlinkPath);
-    } catch {
-      throw new Error(`Portal '${alias}' not found`);
-    }
+    const { symlinkPath, contextCardPath } = await this.resolvePortalPaths(alias);
 
     await Deno.remove(symlinkPath);
     await this.configService.removePortal(alias);

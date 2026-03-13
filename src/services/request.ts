@@ -34,6 +34,15 @@ export class RequestService {
     this.requestsDir = join(root, workspace, config.paths.requests!);
   }
 
+  private parseFrontmatter(raw: string): Record<string, string> {
+    const fm: Record<string, string> = {};
+    raw.split("\n").forEach((line) => {
+      const parts = line.split(":");
+      if (parts.length >= 2) fm[parts[0].trim()] = parts.slice(1).join(":").trim().replace(/"/g, "");
+    });
+    return fm;
+  }
+
   async create(
     description: string,
     options: IRequestOptions = {},
@@ -130,11 +139,7 @@ export class RequestService {
       const match = content.match(/^---\n([\s\S]*?)\n---\n/);
       if (!match) continue;
 
-      const fm: Record<string, string> = {};
-      match[1].split("\n").forEach((line) => {
-        const parts = line.split(":");
-        if (parts.length >= 2) fm[parts[0].trim()] = parts.slice(1).join(":").trim().replace(/"/g, "");
-      });
+      const fm = this.parseFrontmatter(match[1]);
 
       if (status && fm.status !== status) continue;
 
@@ -176,11 +181,7 @@ export class RequestService {
       };
     }
 
-    const fm: Record<string, string> = {};
-    match[1].split("\n").forEach((line) => {
-      const parts = line.split(":");
-      if (parts.length >= 2) fm[parts[0].trim()] = parts.slice(1).join(":").trim().replace(/"/g, "");
-    });
+    const fm = this.parseFrontmatter(match[1]);
 
     return {
       metadata: {

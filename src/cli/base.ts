@@ -7,18 +7,20 @@
  * @related-files [src/cli/exoctl.ts]
  */
 
-import type { ICliApplicationContext } from "./cli_context.ts";
-import type { IMemoryService } from "../shared/interfaces/i_memory_service.ts";
-import type { IMemoryBankService } from "../shared/interfaces/i_memory_bank_service.ts";
-import type { IMemoryExtractorService } from "../shared/interfaces/i_memory_extractor_service.ts";
-import type { IMemoryEmbeddingService } from "../shared/interfaces/i_memory_embedding_service.ts";
-import type { IArchiveService } from "../shared/interfaces/i_archive_service.ts";
-import type { IFlowValidatorService } from "../shared/interfaces/i_flow_validator_service.ts";
-import type { IContextCardGeneratorService } from "../shared/interfaces/i_context_card_generator_service.ts";
-import type { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
-import type { IPortalService } from "../shared/interfaces/i_portal_service.ts";
-import type { IRequestService } from "../shared/interfaces/i_request_service.ts";
-import type { IPlanService } from "../shared/interfaces/i_plan_service.ts";
+import type {
+  IArchiveService,
+  ICliApplicationContext,
+  IContextCardGeneratorService,
+  IFlowValidatorService,
+  IMemoryBankService,
+  IMemoryEmbeddingService,
+  IMemoryExtractorService,
+  IMemoryService,
+  IPlanService,
+  IPortalService,
+  IRequestService,
+  ISkillsService,
+} from "./cli_context.ts";
 
 export interface ICommandContext extends ICliApplicationContext {}
 

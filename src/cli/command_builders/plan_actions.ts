@@ -8,6 +8,7 @@
  */
 
 import type { PlanCommands } from "../commands/plan_commands.ts";
+import { addTokenFields } from "./display_helpers.ts";
 import { PlanStatus } from "../../shared/status/plan_status.ts";
 import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
@@ -115,24 +116,7 @@ export async function handlePlanShow(
     if (metadata.request_created_by) {
       displayData.created_by = metadata.request_created_by;
     }
-    if (metadata.input_tokens !== undefined) {
-      displayData.input_tokens = metadata.input_tokens;
-    }
-    if (metadata.output_tokens !== undefined) {
-      displayData.output_tokens = metadata.output_tokens;
-    }
-    if (metadata.total_tokens !== undefined) {
-      displayData.total_tokens = metadata.total_tokens;
-    }
-    if (metadata.token_provider !== undefined) {
-      displayData.token_provider = metadata.token_provider;
-    }
-    if (metadata.token_model !== undefined) {
-      displayData.token_model = metadata.token_model;
-    }
-    if (metadata.token_cost_usd !== undefined) {
-      displayData.token_cost_usd = metadata.token_cost_usd;
-    }
+    addTokenFields(displayData, metadata);
 
     display.info("plan.show", metadata.id, toSafeJson(displayData) as Record<string, JSONValue>);
     display.info("plan.content", id, { content: content });

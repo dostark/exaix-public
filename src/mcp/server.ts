@@ -492,6 +492,23 @@ export class MCPServer {
     };
   }
 
+  /** Build a standard JSONRPC success response. */
+  private successResponse(request: JSONRPCRequest, result: unknown): JSONRPCResponse {
+    return { jsonrpc: "2.0", id: request.id, result: result as JSONRPCResponse["result"] };
+  }
+
+  /** Build a standard JSONRPC internal-error response from a caught exception. */
+  private errorResponse(request: JSONRPCRequest, error: unknown): JSONRPCResponse {
+    return {
+      jsonrpc: "2.0",
+      id: request.id,
+      error: {
+        code: -32603,
+        message: error instanceof Error ? error.message : String(error),
+      },
+    };
+  }
+
   /**
    * Handles resources/list request
    * Returns all portal resources as URIs
@@ -507,22 +524,9 @@ export class MCPServer {
         extensions: ["ts", "tsx", "js", "jsx", "py", "rs", "go", "md", "json", "toml"],
       });
 
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        result: {
-          resources,
-        },
-      };
+      return this.successResponse(request, { resources });
     } catch (error) {
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        error: {
-          code: -32603,
-          message: error instanceof Error ? error.message : String(error),
-        },
-      };
+      return this.errorResponse(request, error);
     }
   }
 
@@ -578,22 +582,9 @@ export class MCPServer {
         },
       );
 
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        result: {
-          contents: result.content,
-        },
-      };
+      return this.successResponse(request, { contents: result.content });
     } catch (error) {
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        error: {
-          code: -32603,
-          message: error instanceof Error ? error.message : String(error),
-        },
-      };
+      return this.errorResponse(request, error);
     }
   }
 
@@ -646,20 +637,9 @@ export class MCPServer {
         };
       }
 
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        result,
-      };
+      return this.successResponse(request, result);
     } catch (error) {
-      return {
-        jsonrpc: "2.0",
-        id: request.id,
-        error: {
-          code: -32603,
-          message: error instanceof Error ? error.message : String(error),
-        },
-      };
+      return this.errorResponse(request, error);
     }
   }
 

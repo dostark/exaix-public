@@ -8,6 +8,7 @@
  */
 
 import type { RequestCommands } from "../commands/request_commands.ts";
+import { addTokenFields } from "./display_helpers.ts";
 import { RequestPriority } from "../../shared/enums.ts";
 import { RequestStatus } from "../../shared/status/request_status.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
@@ -102,20 +103,22 @@ export async function handleRequestCreate(
   const { requestCommands, display } = context;
 
   try {
+    const createOptions = {
+      agent: options.flow ? undefined : options.agent,
+      priority: options.priority as RequestPriority,
+      portal: options.portal,
+      target_branch: options.targetBranch,
+      model: options.model,
+      flow: options.flow,
+      skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
+      subject: options.subject,
+      analyze: options.analyze,
+      analysis_engine: options.engine as AnalysisMode,
+    };
+
     // Handle file input
     if (options.file) {
-      const result = await requestCommands.createFromFile(options.file, {
-        agent: options.flow ? undefined : options.agent,
-        priority: options.priority as RequestPriority,
-        portal: options.portal,
-        target_branch: options.targetBranch,
-        model: options.model,
-        flow: options.flow,
-        skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
-        subject: options.subject,
-        analyze: options.analyze,
-        analysis_engine: options.engine as AnalysisMode,
-      });
+      const result = await requestCommands.createFromFile(options.file, createOptions);
       printRequestResult(context, result, !!options.json, !!options.dryRun);
       return;
     }
@@ -129,18 +132,7 @@ export async function handleRequestCreate(
     }
 
     // Create request
-    const result = await requestCommands.create(description, {
-      agent: options.flow ? undefined : options.agent,
-      priority: options.priority as RequestPriority,
-      portal: options.portal,
-      target_branch: options.targetBranch,
-      model: options.model,
-      flow: options.flow,
-      skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
-      subject: options.subject,
-      analyze: options.analyze,
-      analysis_engine: options.engine as AnalysisMode,
-    });
+    const result = await requestCommands.create(description, createOptions);
 
     if (options.dryRun) {
       display.info("cli.dry_run", "request", { would_create: result.filename });
@@ -220,24 +212,7 @@ export async function handleRequestShow(
       created: `${metadata.created_by} @ ${metadata.created}`,
     };
 
-    if (metadata.input_tokens !== undefined) {
-      displayData.input_tokens = metadata.input_tokens;
-    }
-    if (metadata.output_tokens !== undefined) {
-      displayData.output_tokens = metadata.output_tokens;
-    }
-    if (metadata.total_tokens !== undefined) {
-      displayData.total_tokens = metadata.total_tokens;
-    }
-    if (metadata.token_provider !== undefined) {
-      displayData.token_provider = metadata.token_provider;
-    }
-    if (metadata.token_model !== undefined) {
-      displayData.token_model = metadata.token_model;
-    }
-    if (metadata.token_cost_usd !== undefined) {
-      displayData.token_cost_usd = metadata.token_cost_usd;
-    }
+    addTokenFields(displayData, metadata);
     if (metadata.error !== undefined) {
       displayData.error = metadata.error;
     }
