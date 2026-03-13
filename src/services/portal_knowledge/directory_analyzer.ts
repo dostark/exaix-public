@@ -23,7 +23,8 @@ import type { IArchitectureLayer, IMonorepoPackage, IPortalKnowledge } from "../
 // Internal types
 // ---------------------------------------------------------------------------
 
-interface WalkResult {
+/** Result of a portal directory walk. */
+export interface IWalkResult {
   files: string[];
   directories: Set<string>;
   extensionDistribution: Record<string, number>;
@@ -159,7 +160,7 @@ function detectMonorepoPackages(
 // BFS walker helpers
 // ---------------------------------------------------------------------------
 
-function recordFile(result: WalkResult, relPath: string, name: string): void {
+function recordFile(result: IWalkResult, relPath: string, name: string): void {
   result.files.push(relPath);
   const ext = getExtension(name);
   if (ext) result.extensionDistribution[ext] = (result.extensionDistribution[ext] ?? 0) + 1;
@@ -169,7 +170,7 @@ function processEntry(
   entry: Deno.DirEntry,
   rel: string,
   allIgnore: string[],
-  result: WalkResult,
+  result: IWalkResult,
   visitedDirs: Set<string>,
   queue: string[],
 ): void {
@@ -192,7 +193,7 @@ function processEntry(
 }
 
 /** Phase 1: collect root-level priority files (config/entrypoints) first. */
-async function collectPriorityFiles(root: string, result: WalkResult, scanLimit: number): Promise<boolean> {
+async function collectPriorityFiles(root: string, result: IWalkResult, scanLimit: number): Promise<boolean> {
   try {
     for await (const entry of Deno.readDir(root)) {
       if (entry.isFile && isPriority(entry.name) && result.files.length < scanLimit) {
@@ -209,13 +210,13 @@ async function collectPriorityFiles(root: string, result: WalkResult, scanLimit:
 // BFS walker
 // ---------------------------------------------------------------------------
 
-async function walkDirectory(
+export async function walkDirectory(
   root: string,
   ignorePatterns: string[],
   scanLimit: number,
-): Promise<WalkResult> {
+): Promise<IWalkResult> {
   const allIgnore = [...DEFAULT_IGNORE_PATTERNS, ...ignorePatterns];
-  const result: WalkResult = {
+  const result: IWalkResult = {
     files: [],
     directories: new Set<string>(),
     extensionDistribution: {},

@@ -871,7 +871,7 @@ Incremental updates:
 
 ---
 
-### Step 9: Implement `PortalKnowledgeService` (Orchestrator)
+### Step 9: Implement `PortalKnowledgeService` (Orchestrator) ✅ IMPLEMENTED
 
 **What:** Create `src/services/portal_knowledge/portal_knowledge_service.ts` — the main service that orchestrates all **six** analysis strategies based on configured mode, merges results, and manages staleness.
 
@@ -897,36 +897,36 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `quick` mode runs only Strategies 1–3 (no LLM calls, no symbol extraction)
-- [ ] `standard` mode runs all 6 strategies with 1 LLM call (+`deno doc` for TS)
-- [ ] `deep` mode runs all 6 strategies with higher caps
-- [ ] `standard` mode runs Strategy 6 (symbol extractor) for TS portals
-- [ ] `quick` mode skips Strategy 6 symbol extraction
-- [ ] Results merged into a single valid `IPortalKnowledge`
-- [ ] `isStale()` correctly compares timestamps against threshold
-- [ ] `getOrAnalyze()` returns cached knowledge when fresh
-- [ ] `getOrAnalyze()` returns stale knowledge immediately when stale, fires async background re-analysis
-- [ ] `getOrAnalyze()` analyzes synchronously when knowledge is entirely missing
-- [ ] Logs `portal.analyzed` to activity journal
-- [ ] Populates all metadata fields accurately
-- [ ] Implements `IPortalKnowledgeService` interface contract
-- [ ] Exported through `src/services/portal_knowledge/mod.ts` barrel
+- [x] `quick` mode runs only Strategies 1–3 (no LLM calls, no symbol extraction)
+- [x] `standard` mode runs all 6 strategies with 1 LLM call (+`deno doc` for TS)
+- [x] `deep` mode runs all 6 strategies with higher caps
+- [x] `standard` mode runs Strategy 6 (symbol extractor) for TS portals
+- [x] `quick` mode skips Strategy 6 symbol extraction
+- [x] Results merged into a single valid `IPortalKnowledge`
+- [x] `isStale()` correctly compares timestamps against threshold
+- [x] `getOrAnalyze()` returns cached knowledge when fresh
+- [x] `getOrAnalyze()` returns stale knowledge immediately when stale, fires async background re-analysis
+- [x] `getOrAnalyze()` analyzes synchronously when knowledge is entirely missing
+- [x] Logs `portal.analyzed` to activity journal
+- [x] Populates all metadata fields accurately
+- [x] Implements `IPortalKnowledgeService` interface contract
+- [x] Exported through `src/services/portal_knowledge/mod.ts` barrel
 
 **Planned tests** (`tests/services/portal_knowledge/portal_knowledge_service_test.ts`):
 
-- `[PortalKnowledgeService] quick mode avoids LLM calls`
-- `[PortalKnowledgeService] standard mode includes LLM architecture inference`
-- `[PortalKnowledgeService] deep mode uses higher file read caps`
-- `[PortalKnowledgeService] merges all strategy results correctly`
-- `[PortalKnowledgeService] isStale returns true beyond threshold`
-- `[PortalKnowledgeService] isStale returns false within threshold`
-- `[PortalKnowledgeService] getOrAnalyze returns cached when fresh`
-- `[PortalKnowledgeService] getOrAnalyze returns stale knowledge immediately without blocking`
-- `[PortalKnowledgeService] getOrAnalyze triggers async background re-analysis when stale`
-- `[PortalKnowledgeService] getOrAnalyze analyzes synchronously when missing`
-- `[PortalKnowledgeService] logs portal.analyzed activity`
-- `[PortalKnowledgeService] populates metadata.durationMs`
-- `[PortalKnowledgeService] handles LLM failure in standard mode gracefully`
+- ✅ `[PortalKnowledgeService] quick mode avoids LLM calls`
+- ✅ `[PortalKnowledgeService] standard mode includes LLM architecture inference`
+- ✅ `[PortalKnowledgeService] deep mode uses higher file read caps`
+- ✅ `[PortalKnowledgeService] merges all strategy results correctly`
+- ✅ `[PortalKnowledgeService] isStale returns true beyond threshold`
+- ✅ `[PortalKnowledgeService] isStale returns false within threshold`
+- ✅ `[PortalKnowledgeService] getOrAnalyze returns cached when fresh`
+- ✅ `[PortalKnowledgeService] getOrAnalyze returns stale knowledge immediately without blocking`
+- ✅ `[PortalKnowledgeService] getOrAnalyze triggers async background re-analysis when stale`
+- ✅ `[PortalKnowledgeService] getOrAnalyze analyzes synchronously when missing`
+- ✅ `[PortalKnowledgeService] logs portal.analyzed activity`
+- ✅ `[PortalKnowledgeService] populates metadata.durationMs`
+- ✅ `[PortalKnowledgeService] handles LLM failure in standard mode gracefully`
 
 ---
 

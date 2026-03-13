@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-13T16:11:45.497Z",
+  "generated_at": "2026-03-13T18:27:52.110Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -367,6 +367,30 @@
       "chunks": [
         ".copilot/chunks/fix.md.chunk0.txt",
         ".copilot/chunks/fix.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/tdd-phase-steps.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "TDD Red-Green-Refactor Phase Steps (#next-steps)",
+      "short_summary": "Prompt for iterating through .copilot/planning/ steps one-by-one using TDD red-green-refactor with CI gates and commits.",
+      "version": "0.1",
+      "topics": [
+        "tdd",
+        "red-green-refactor",
+        "planning",
+        "steps",
+        "ci",
+        "commits"
+      ],
+      "chunks": [
+        ".copilot/chunks/tdd-phase-steps.md.chunk0.txt",
+        ".copilot/chunks/tdd-phase-steps.md.chunk1.txt",
+        ".copilot/chunks/tdd-phase-steps.md.chunk2.txt",
+        ".copilot/chunks/tdd-phase-steps.md.chunk3.txt",
+        ".copilot/chunks/tdd-phase-steps.md.chunk4.txt",
+        ".copilot/chunks/tdd-phase-steps.md.chunk5.txt"
       ]
     },
     {
