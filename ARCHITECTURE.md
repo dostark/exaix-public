@@ -417,6 +417,9 @@ Key modules:
   - Defines the JSON schema for LLM plan output (title/description + numbered steps + optional metadata).
 - `src/schemas/mcp.ts`
   - Defines MCP tool argument schemas and MCP server configuration schema.
+- `src/shared/schemas/portal_knowledge.ts` (`PortalKnowledgeSchema`)
+  - Validates `IPortalKnowledge` objects produced by `PortalKnowledgeService` (Phase 46).
+  - Sub-schemas: `FileSignificanceSchema`, `ArchitectureLayerSchema`, `CodeConventionSchema`, `DependencyInfoSchema`, `SymbolEntrySchema`, `MonorepoPackageSchema`.
 - `src/shared/schemas/request_analysis.ts` (`RequestAnalysisSchema`)
   - Validates `IRequestAnalysis` objects used for persistence and runtime context.
   - Enforces field structure for goals, requirements, constraints, and ambiguity analysis.

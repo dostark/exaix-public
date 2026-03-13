@@ -24,6 +24,7 @@ export * from "./i_memory_extractor_service.ts";
 export * from "./i_memory_service.ts";
 export * from "./i_notification_service.ts";
 export * from "./i_plan_service.ts";
+export * from "./i_portal_knowledge_service.ts";
 export * from "./i_portal_service.ts";
 export * from "./i_request_analyzer_service.ts";
 export * from "./i_request_service.ts";

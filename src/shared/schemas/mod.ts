@@ -16,6 +16,7 @@ export * from "./flow.ts";
 export * from "./mcp.ts";
 export * from "./memory_bank.ts";
 export * from "./plan_schema.ts";
+export * from "./portal_knowledge.ts";
 export * from "./request.ts";
 export * from "./request_analysis.ts";
 export * from "./review.ts";

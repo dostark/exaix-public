@@ -1184,3 +1184,15 @@ export enum DaemonAction {
   STOP = "stop",
   RESTART = "restart",
 }
+
+/**
+ * Analysis depth for portal codebase knowledge gathering.
+ */
+export enum PortalAnalysisMode {
+  /** Directory scan + config parsing only — no LLM (<5 s). */
+  QUICK = "quick",
+  /** Adds architecture inference (1 LLM call) + symbol extraction (~15 s). */
+  STANDARD = "standard",
+  /** Full convention mapping + complete symbol index (~60 s). */
+  DEEP = "deep",
+}
