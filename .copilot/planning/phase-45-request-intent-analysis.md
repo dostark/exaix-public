@@ -1,5 +1,7 @@
 # Phase 45: Request Intent Analysis & Pre-Processing
 
+## Version: 1.1
+
 ## Status: COMPLETED
 
 Introduce a `RequestAnalyzer` service that extracts structured intent, requirements, and constraints from raw request text before agent execution — closing the largest gap in ExoFrame's quality pipeline.
@@ -1118,3 +1120,237 @@ All 58 related tests (covering schemas, services, TUI, CLI, and E2E integration)
 - **Phase 46:** Codebase Knowledge Integration — Use `IPortalKnowledge` to enhance file reference validation and convention conflict detection during analysis.
 - **Phase 48:** Specification-Driven Quality Gates — Use the extracted goals and requirements to drive dynamic acceptance criteria verification.
 - **Phase 49:** Analysis-Aware Reflexive Agent — Enable the reflexive agent to use the `IRequestAnalysis` object for more accurate self-correction and plan verification.
+
+---
+
+## Resolved Design Decisions
+
+The following questions from the [Open Questions](#open-questions) section were answered during implementation:
+
+| Question | Decision |
+| -------- | --------- |
+| Should analysis be persisted as `_analysis.json`? | **Yes** — `saveAnalysis()` writes atomically alongside the request file. `loadAnalysis()` validates on read via `RequestAnalysisSchema`. |
+| Should analysis results be visible in CLI/TUI? | **Yes** — `exoctl request show` displays analysis section; TUI Request Manager Detail View shows complexity badge, actionability bar, goals, ambiguities. |
+| What is the right actionability threshold? | **60** — `DEFAULT_ACTIONABILITY_THRESHOLD = 60` in `src/shared/constants.ts`. Hybrid mode escalates to LLM when heuristic score is below 60. |
+| Should the `product-manager` agent be usable as the LLM analyzer? | **Not implemented** — `LlmAnalyzer` uses a hard-coded prompt template. Blueprint-based LLM analysis deferred to a future phase. |
+
+---
+
+## Gap Analysis & Critique
+
+> **Status:** Identified — targeting Phase 45 backfill before Phase 48 implementation begins.
+> Critical architectural gaps (§1–§3) must be resolved before Phase 48/49 integration as they cause schema drift and incorrect requirement classification. Feasibility and correctness gaps (§4–§9) affect usability and runtime behaviour. Testing gaps (§10–§11) leave integration paths uncovered. Conceptual gaps (§12–§14) produce invisible quality cliffs or information loss in the audit trail.
+
+---
+
+### Critical Architectural Gaps
+
+#### Gap 1: `IRequirement` schema is missing `type` and `explicit` fields
+
+The [Detailed Design §1](#1-irequestanalysis-schema) specifies:
+
+```typescript
+type: "functional" | "non-functional" | "constraint";
+explicit: boolean;
+confidence: number;
+```
+
+The actual `RequirementSchema` in `src/shared/schemas/request_analysis.ts` only contains `description` and `confidence`. The `type` and `explicit` fields were dropped during implementation without a design update. **Impact:** Phase 48 quality gates cannot categorize requirements as functional vs. non-functional; the acceptance-criteria-to-requirement mapping used by the specification-driven evaluation loop has no signal to work with. The Phase 49 reflexive agent plan doc explicitly references `IRequirement.type` for critique weighting.
+
+> **To fix:** Add `type: z.union([z.literal("functional"), z.literal("non-functional"), z.literal("constraint")])` and `explicit: z.boolean()` to `RequirementSchema`. Update `LlmAnalyzer` prompt template to instruct the LLM to populate both fields. Update `heuristic_analyzer.ts` to emit `type: "functional"` and `explicit: true` for all heuristic requirements (conservative safe default). Add regression tests in `tests/schemas/request_analysis_test.ts` and `tests/services/request_analysis/heuristic_analyzer_test.ts`.
+
+---
+
+#### Gap 2: `IAmbiguity` schema is missing `interpretations` and `clarificationQuestion` fields
+
+The [Detailed Design §1](#1-irequestanalysis-schema) specifies:
+
+```typescript
+interpretations: string[];
+clarificationQuestion?: string;
+```
+
+The actual `AmbiguitySchema` only contains `description` and `impact`. **Impact:** Phase 47 (clarification flow) and Phase 49 (reflexive agent critique) plan to iterate over `ambiguities[]` and surface the `clarificationQuestion` to the user or agent. Without these fields the clarification flow has no question text to show, forcing every downstream consumer to reconstruct questions from the ambiguity description — defeating the purpose of structured extraction.
+
+> **To fix:** Add `interpretations: z.array(z.string()).default([])` and `clarificationQuestion: z.string().optional()` to `AmbiguitySchema`. Update `LlmAnalyzer` prompt template JSON spec to include both fields. Heuristic analyzer can leave `interpretations: []` and `clarificationQuestion: undefined` (fields are optional or default-empty). Add regression tests for both fields.
+
+---
+
+#### Gap 3: `DEFAULT_ANALYZER_MODE` constant is ignored — `RequestProcessor` defaults to `HEURISTIC` instead of `HYBRID`
+
+`src/shared/constants.ts` defines `DEFAULT_ANALYZER_MODE = "hybrid"` (line 646), correctly capturing the design decision that `hybrid` should be the production default. However, `src/services/request_processor.ts` constructs the analyzer with:
+
+```typescript
+mode: config.request_analysis?.mode ?? AnalysisMode.HEURISTIC,
+```
+
+Since the `[request_analysis]` TOML section is absent from `exo.config.toml` (see Gap 4), `config.request_analysis` is `undefined`, and every production `RequestProcessor` runs in `HEURISTIC` mode — never calling the LLM even for severely underspecified requests. The `DEFAULT_ANALYZER_MODE` constant is declared but never referenced. **Impact:** vague requests receive the same heuristic analysis as clear ones; the accuracy advantage of hybrid mode is silently lost.
+
+> **To fix:** Change the fallback from `AnalysisMode.HEURISTIC` to `AnalysisMode.HYBRID as AnalysisMode` (or reference the string constant). Or, preferably, ensure `[request_analysis]` is present in `exo.config.toml` so `config.request_analysis.mode` always resolves. Ref Gap 4 below.
+
+---
+
+### Feasibility & Correctness Gaps
+
+#### Gap 4: `[request_analysis]` section is absent from `exo.config.toml`
+
+Step 16 specifies adding a `[request_analysis]` TOML block with explicit defaults. The current `exo.config.toml` (28 lines) has no `[request_analysis]` section. The ConfigSchema has `request_analysis` optional with defaults, so there is no validation error — but the config file gives users no discoverable way to change analyzer mode, threshold, or enable/disable analysis. When the section is absent the ConfigSchema default kicks in and sets `mode = HYBRID`, but Gap 3 above shows `RequestProcessor` ignores the config default entirely. **Impact:** users who want `heuristic` or `llm` mode have no obvious configuration knob; the feature is invisible at install time.
+
+> **To fix:** Add the following section to `exo.config.toml`:
+>
+> ```toml
+> [request_analysis]
+> mode = "hybrid"
+> actionability_threshold = 60
+> infer_acceptance_criteria = true
+> ```
+>
+> Fix Gap 3 simultaneously so `RequestProcessor` actually reads this value.
+
+---
+
+#### Gap 5: `enabled` and `persist_analysis` TOML fields are absent from ConfigSchema
+
+The [Detailed Design](#16-add-toml-configuration-for-request-analysis) TOML snippet lists `enabled = true` and `persist_analysis = true`, but `ConfigSchema.request_analysis` only contains `mode`, `actionability_threshold`, and `infer_acceptance_criteria`. There is no way to disable analysis for performance-sensitive deployments, and no way to suppress `_analysis.json` sidecar creation without code changes. **Impact:** operators cannot tune the analyzer to their environment; persistence always runs even in test or CI contexts where it wastes I/O.
+
+> **To fix:** Add `enabled: z.boolean().default(true)` and `persist_analysis: z.boolean().default(true)` to the `request_analysis` schema block. Thread `config.request_analysis.enabled` into `RequestProcessor.process()` to skip the `analyzer.analyze()` call entirely when disabled. Thread `persist_analysis` into the `saveAnalysis()` call guard.
+
+---
+
+#### Gap 6: `--force` flag on `exoctl request analyze` is never propagated to the CLI layer
+
+`IRequestService.analyze()` accepts `options: { mode?: AnalysisMode; force?: boolean }` and `RequestService.analyze()` has the signature — but the `force` parameter is never checked in the service body (the `analyze()` implementation always calls `saveAnalysis()` unconditionally). Worse, `src/cli/handlers/request_show_handler.ts` (line 32–34) calls `this.requests.analyze(idOrFilename, { mode })` without ever passing `force`. `src/cli/command_builders/request_actions.ts` maps no CLI option to a `force` flag. **Impact:** `exoctl request analyze <id>` always re-analyzes (which is correct behavior, but the documented "show existing analysis without `--force`" path in Step 15 is never taken), and there is no skip-if-cached path at all.
+
+> **To fix:** (a) In `RequestService.analyze()`, check existing `_analysis.json` via `loadAnalysis(path)` at the start; if present and `!force`, return cached result. (b) In `request_show_handler.ts`, accept and forward a `force` flag. (c) In `request_actions.ts`, add `--force` boolean option to the analyze action binding.
+
+---
+
+#### Gap 7: `hybrid` mode is unreachable from `exoctl request analyze`
+
+`request_actions.ts` maps the CLI engine option as: `options.engine === AnalysisMode.LLM → LLM, else HEURISTIC`. The `hybrid` value is never produced by the CLI mapping. Since `hybrid` is the recommended default and arguably the most useful mode (saves LLM cost but catches vague requests), having it unreachable from the explicit CLI command is counterproductive. **Impact:** developers wanting to preview their hybrid-mode results for a specific request cannot do so without modifying code.
+
+> **To fix:** Update the CLI engine mapping to pass `options.engine as AnalysisMode` directly (trusting the string value), or add `hybrid` to the recognized option values. Add `--mode heuristic|llm|hybrid` as an explicit option in the analyze action binding (distinct from `--engine` which may have different semantics).
+
+---
+
+#### Gap 8: `plan_schema.ts` stores `request_analysis` as `z.record(z.any())` — no schema validation
+
+`src/shared/schemas/plan_schema.ts` line 50:
+
+```typescript
+request_analysis: z.record(z.any()).optional(),
+```
+
+Step 10 says analysis is written into plan frontmatter and should round-trip. But `z.record(z.any())` accepts any object — a corrupted or version-drifted analysis will not produce a validation error when the plan is re-read. **Impact:** plan-level analysis data silently diverges from `IRequestAnalysis` type; Phase 48 reading the plan analysis may receive stale or malformed fields without knowing it.
+
+> **To fix:** Replace `z.record(z.any())` with `RequestAnalysisSchema.optional()` (imported from `src/shared/schemas/request_analysis.ts`). Verify that `tests/services/plan_writer_analysis_test.ts` covers the round-trip with schema validation.
+
+---
+
+### Testing Gaps
+
+#### Gap 9: `tests/integration/request_analysis_e2e_test.ts` is missing
+
+Step 17 specifies a full pipeline E2E test file with 5 test cases:
+
+- `[E2E] request analysis pipeline with heuristic mode`
+- `[E2E] request analysis pipeline with hybrid mode (mock LLM)`
+- `[E2E] analysis persisted as _analysis.json`
+- `[E2E] plan metadata includes request analysis`
+- `[E2E] flow request receives analysis context`
+
+The file does not exist in `tests/integration/`. The integration test suite (tests 01–30) has no test that exercises the analysis pipeline end-to-end through `TestEnvironment`. The only analysis-related integration coverage is in `tests/services/request_processor_analysis_test.ts`, which uses unit-level mocks — not a real workspace with a real file write-read cycle. **Impact:** the end-to-end data flow (request file → `_analysis.json` written → plan with embedded analysis → loadable) is completely untested; regressions in this path will go undetected until Phase 48 is integrated.
+
+---
+
+#### Gap 10: `tests/schemas/config_request_analysis_test.ts` is missing
+
+Step 16 specifies a config schema test file in `tests/shared/schemas/` (documents it as `tests/shared/schemas/config_request_analysis_test.ts`) with 4 tests:
+
+- `[ConfigSchema] validates request_analysis section`
+- `[ConfigSchema] uses defaults when request_analysis is absent`
+- `[ConfigSchema] rejects invalid mode value`
+- `[ConfigSchema] rejects actionability_threshold outside 0-100`
+
+The file does not exist in `tests/schemas/`. The `request_analysis` ConfigSchema block is tested only indirectly (via other config tests that hit the full schema). **Impact:** Gaps 4 and 5 above (missing TOML section, missing `enabled`/`persist_analysis` fields) may remain undetected because there is no dedicated config-level test gate for this feature.
+
+---
+
+### Conceptual Gaps
+
+#### Gap 11: `heuristicActionabilityScore()` proxy formula is undocumented and unvalidated
+
+`src/services/request_analysis/request_analyzer.ts` contains a local function `heuristicActionabilityScore()` with:
+
+```typescript
+let score = 70; // baseline
+score -= ambiguities.length * 10;
+if (partial.complexity === SIMPLE) score += 20;
+if (partial.complexity === EPIC) score -= 20;
+```
+
+This formula is **not in the plan** — the plan treats `actionabilityScore` as a value produced by the analyzer, not an intermediate internal proxy used to decide whether to escalate to LLM. The formula is arbitrary: 4 ambiguities push score to 30 (triggers LLM); 0 ambiguities on a SIMPLE request yields 90 (skips LLM). There are no tests for the scoring edges and no constant for the `-10/ambiguity` weight. **Impact:** the hybrid-mode escalation decision is an invisible quality cliff based on unspecified math. Requests with ≥ 2 ambiguities virtually always trigger LLM; requests with good heuristic complexity rarely do — but this is never surfaced in documentation or tests.
+
+> **To fix:** (a) Extract `HEURISTIC_SCORE_AMBIGUITY_PENALTY = 10` and `HEURISTIC_SCORE_COMPLEXITY_BONUS = 20` to `src/shared/constants.ts` under `// === Request Analysis ===`. (b) Document the formula in `IRequestAnalyzerConfig` jsdoc or the step spec. (c) Add unit tests: `[RequestAnalyzer] heuristic score decreases by 10 per ambiguity`, `[RequestAnalyzer] heuristic score adds 20 for SIMPLE complexity`.
+
+---
+
+#### Gap 12: `request.analyzed` journal entry logs `null` as target — no correlation to request file
+
+`RequestAnalyzer._logActivity()` calls:
+
+```typescript
+this.db.logActivity("RequestAnalyzer", "request.analyzed", null, { ... })
+```
+
+The third parameter is `target: string | null` — `null` means no target is recorded. `IRequestAnalysisContext` does not include `requestId` or `filePath`, so the context passed from `RequestProcessor` (which has both) cannot be relayed to the analyzer. **Impact:** the `request.analyzed` activity record in the journal cannot be correlated to a specific request file in queries like `getActivitiesByTrace(traceId)`. Phase 48 and audit tooling that parse the journal to build per-request analysis history will return empty on this event type.
+
+> **To fix:** Add `requestFilePath?: string` and `traceId?: string` to `IRequestAnalysisContext`. Populate them in `RequestProcessor.process()` before calling `this.analyzer.analyze()`. In `_logActivity()`, pass `context?.requestFilePath ?? null` as target and `context?.traceId` as the `traceId` argument to `db.logActivity()`.
+
+---
+
+#### Gap 13: `metadata.analyzerVersion` from Detailed Design replaced by `metadata.mode` without plan update
+
+The [Detailed Design §1](#1-irequestanalysis-schema) shows the metadata shape as:
+
+```typescript
+metadata: {
+  analyzedAt: string;
+  analyzerVersion: string;    // ← In design but NOT in implementation
+  durationMs: number;
+}
+```
+
+The actual `RequestAnalysisMetadataSchema` has `mode: z.nativeEnum(AnalysisMode)` instead of `analyzerVersion`. Both fields are useful but serve different purposes: `mode` tells consumers which strategy ran, while `analyzerVersion` tracks prompt template version for debugging LLM regressions. **Impact:** when the `LlmAnalyzer` prompt template is updated, there is no embedded version to compare old vs. new analysis results; debugging regressions requires checking git history of the prompt string rather than comparing `analyzerVersion` in saved `_analysis.json` files.
+
+> **To fix:** Add `analyzerVersion: z.string().default("1.0.0")` to `RequestAnalysisMetadataSchema`. Add a constant `ANALYZER_VERSION = "1.0.0"` to `src/shared/constants.ts`. Populate it in both `completeFromHeuristic()` and `LlmAnalyzer.buildFallback()` / result merge paths. Document that `analyzerVersion` should be incremented when the LLM prompt template is changed in a breaking way. The existing `mode` field is also valuable and should be kept.
+
+---
+
+#### Gap 14: `RequestTaskType.FIX` enum value is dead code — never emitted by any code path
+
+`src/shared/schemas/request_analysis.ts` declares:
+
+```typescript
+export enum RequestTaskType {
+  FIX = "fix",
+  BUGFIX = "bugfix",
+  ...
+}
+```
+
+`src/shared/constants.ts` maps `fix` verb → `"bugfix"` string in `ANALYSIS_TASK_TYPE_VERBS`. The `classifyTaskType()` switch in `heuristic_analyzer.ts` has only `case "bugfix": return RequestTaskType.BUGFIX` — no case for `"fix"`. The LLM prompt template says `taskType: "feature, bugfix, refactor, test, docs, analysis, or unknown"` — also enumerating `"bugfix"` but not `"fix"`. Result: `RequestTaskType.FIX` is unreachable from any code path. An LLM that happens to return `"fix"` will fail `RequestAnalysisSchema` validation and fall back to the default, silently. **Impact:** confusing enum with two semantically identical variants; TypeScript switch exhaustiveness checks on `RequestTaskType` break if `FIX` is not handled.
+
+> **To fix:** Either (a) remove `FIX = "fix"` from the enum and update tests/schema, or (b) rename `FIX` to `BUGFIX` and remove the duplicate, or (c) intentionally use `FIX` as the heuristic output and `BUGFIX` only when the LLM or frontmatter explicitly says `bugfix`. Option (a) is simplest; document the decision.
+
+---
+
+### Overall Assessment
+
+Phase 45 correctly delivers the core `RequestAnalyzer` infrastructure and wires it into the pipeline. The service, schema, CLI, TUI, and persistence layers all function. The gaps identified above fall into two clusters:
+
+**Cluster A — Schema completeness (Gaps §1, §2, §13, §14):** The implementation diverged from the Detailed Design in four places during coding. These divergences are not blocking in Phase 45 itself, but they are blocking for Phase 48 (quality gates need `IRequirement.type`) and Phase 47 (clarification flow needs `IAmbiguity.clarificationQuestion`). These should be addressed before those phases start.
+
+**Cluster B — Configuration and CLI correctness (Gaps §3, §4, §5, §6, §7):** The feature defaults to `HEURISTIC` mode in practice, the config is undiscoverable, and `--force`/`--mode hybrid` are non-functional from the CLI. This makes the feature appear weaker than it is and creates confusing test/production parity issues. These should be backfilled in the next sprint.
+
+Gaps §9 and §10 (missing tests) represent uncovered integration paths that will become regressions if not added before Phase 48 is implemented.
