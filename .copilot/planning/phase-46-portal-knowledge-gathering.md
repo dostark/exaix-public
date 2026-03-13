@@ -503,7 +503,7 @@ Incremental updates:
 
 ## Step-by-Step Implementation Plan
 
-### Step 1: Define `IPortalKnowledge` Zod Schema & Types
+### Step 1: Define `IPortalKnowledge` Zod Schema & Types ✅ IMPLEMENTED
 
 **What:** Create the Zod schema and inferred TypeScript types for portal knowledge output in `src/shared/schemas/portal_knowledge.ts`. Register the export in `src/shared/schemas/mod.ts`.
 
@@ -525,27 +525,27 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `PortalKnowledgeSchema.safeParse(validData)` returns `{ success: true }`
-- [ ] `PortalKnowledgeSchema.safeParse(invalidData)` returns `{ success: false }` with meaningful errors
-- [ ] All sub-schemas parseable independently
-- [ ] Schema re-exported through `src/shared/schemas/mod.ts` barrel
-- [ ] No lint or type errors
+- [x] `PortalKnowledgeSchema.safeParse(validData)` returns `{ success: true }`
+- [x] `PortalKnowledgeSchema.safeParse(invalidData)` returns `{ success: false }` with meaningful errors
+- [x] All sub-schemas parseable independently
+- [x] Schema re-exported through `src/shared/schemas/mod.ts` barrel
+- [x] No lint or type errors
 
 **Planned tests** (`tests/shared/schemas/portal_knowledge_test.ts`):
 
-- `[PortalKnowledgeSchema] validates complete valid knowledge object`
-- `[PortalKnowledgeSchema] rejects missing required fields`
-- `[PortalKnowledgeSchema] validates version as positive integer`
-- `[PortalKnowledgeSchema] validates gatheredAt as ISO string`
-- `[FileSignificanceSchema] validates all role enum values`
-- `[CodeConventionSchema] validates all category enum values`
-- `[DependencyInfoSchema] validates packageManager enum values`
-- `[PortalKnowledgeSchema] validates metadata mode enum values`
-- `[PortalKnowledgeSchema] validates stats extensionDistribution as Record`
+- [x] `[PortalKnowledgeSchema] validates complete valid knowledge object`
+- [x] `[PortalKnowledgeSchema] rejects missing required fields`
+- [x] `[PortalKnowledgeSchema] validates version as positive integer`
+- [x] `[PortalKnowledgeSchema] validates gatheredAt as ISO string`
+- [x] `[FileSignificanceSchema] validates all role enum values`
+- [x] `[CodeConventionSchema] validates all category enum values`
+- [x] `[DependencyInfoSchema] validates packageManager enum values`
+- [x] `[PortalKnowledgeSchema] validates metadata mode enum values`
+- [x] `[PortalKnowledgeSchema] validates stats extensionDistribution as Record`
 
 ---
 
-### Step 2: Define `IPortalKnowledgeService` Interface
+### Step 2: Define `IPortalKnowledgeService` Interface ✅ IMPLEMENTED
 
 **What:** Create the service interface in `src/shared/interfaces/i_portal_knowledge_service.ts`. Register in interface barrel `src/shared/interfaces/mod.ts`.
 
@@ -563,15 +563,15 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Interface exported through barrel `src/shared/interfaces/mod.ts`
-- [ ] Interface depends only on types from `src/shared/schemas/` (no concrete service imports)
-- [ ] TypeScript compiles with `deno check`
+- [x] Interface exported through barrel `src/shared/interfaces/mod.ts`
+- [x] Interface depends only on types from `src/shared/schemas/` (no concrete service imports)
+- [x] TypeScript compiles with `deno check`
 
 **Planned tests:** None (interface-only; validated by type system at compile time).
 
 ---
 
-### Step 3: Add Portal Knowledge Constants
+### Step 3: Add Portal Knowledge Constants ✅ IMPLEMENTED
 
 **What:** Add portal knowledge constants to `src/shared/constants.ts` and any new enum values to `src/shared/enums.ts`.
 
@@ -595,15 +595,15 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] All heuristic thresholds/pattern-lists referenced from constants, not inline
-- [ ] Constants grouped under `// === Portal Knowledge ===` section header
-- [ ] No duplicate constant definitions
+- [x] All heuristic thresholds/pattern-lists referenced from constants, not inline
+- [x] Constants grouped under `// === Portal Knowledge ===` section header
+- [x] No duplicate constant definitions
 
 **Planned tests:** None (constants are validated through usage in Step 4–8 tests).
 
 ---
 
-### Step 4: Implement Directory Structure Analyzer (Strategy 1)
+### Step 4: Implement Directory Structure Analyzer (Strategy 1) ✅ IMPLEMENTED
 
 **What:** Create `src/services/portal_knowledge/directory_analyzer.ts` — a standalone module that walks the file tree, builds statistics, and detects architecture layers from directory naming conventions.
 
@@ -622,32 +622,32 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Walks directory tree and collects file statistics
-- [ ] Respects `ignorePatterns` (skips `node_modules/`, `.git/`, etc.)
-- [ ] Respects `scanLimit` with priority-first traversal: priority files (configs, entrypoints) collected first, then BFS fills remaining quota
-- [ ] Builds `extensionDistribution` correctly
-- [ ] Detects architecture layers from standard directory names
-- [ ] Detects monorepo vs. single-project structure and populates `packages[]` with per-package entries
-- [ ] Identifies `primaryLanguage` from dominant file extension
-- [ ] Handles empty directories gracefully
-- [ ] Handles symlinks safely (no infinite loops)
-- [ ] Completes in <5s for typical mid-size projects
+- [x] Walks directory tree and collects file statistics
+- [x] Respects `ignorePatterns` (skips `node_modules/`, `.git/`, etc.)
+- [x] Respects `scanLimit` with priority-first traversal: priority files (configs, entrypoints) collected first, then BFS fills remaining quota
+- [x] Builds `extensionDistribution` correctly
+- [x] Detects architecture layers from standard directory names
+- [x] Detects monorepo vs. single-project structure and populates `packages[]` with per-package entries
+- [x] Identifies `primaryLanguage` from dominant file extension
+- [x] Handles empty directories gracefully
+- [x] Handles symlinks safely (no infinite loops)
+- [x] Completes in <5s for typical mid-size projects
 
 **Planned tests** (`tests/services/portal_knowledge/directory_analyzer_test.ts`):
 
-- `[DirectoryAnalyzer] counts files and directories correctly`
-- `[DirectoryAnalyzer] builds extension distribution`
-- `[DirectoryAnalyzer] respects ignorePatterns`
-- `[DirectoryAnalyzer] respects scanLimit`
-- `[DirectoryAnalyzer] detects architecture layers from standard directories`
-- `[DirectoryAnalyzer] detects primary language from extension distribution`
-- `[DirectoryAnalyzer] detects monorepo structure and populates packages[] entries`
-- `[DirectoryAnalyzer] handles empty directory`
-- `[DirectoryAnalyzer] handles missing directory gracefully`
+- [x] `[DirectoryAnalyzer] counts files and directories correctly`
+- [x] `[DirectoryAnalyzer] builds extension distribution`
+- [x] `[DirectoryAnalyzer] respects ignorePatterns`
+- [x] `[DirectoryAnalyzer] respects scanLimit`
+- [x] `[DirectoryAnalyzer] detects architecture layers from standard directories`
+- [x] `[DirectoryAnalyzer] detects primary language from extension distribution`
+- [x] `[DirectoryAnalyzer] detects monorepo structure and populates packages[] entries`
+- [x] `[DirectoryAnalyzer] handles empty directory`
+- [x] `[DirectoryAnalyzer] handles missing directory gracefully`
 
 ---
 
-### Step 5: Implement Config File Parser (Strategy 2)
+### Step 5: Implement Config File Parser (Strategy 2) ✅ IMPLEMENTED
 
 **What:** Create `src/services/portal_knowledge/config_parser.ts` — a module that reads and parses known config files to extract dependencies, scripts, and conventions.
 
@@ -666,28 +666,28 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Parses `package.json` extracting name, dependencies, devDependencies, scripts
-- [ ] Parses `deno.json` extracting imports, tasks
-- [ ] Parses `tsconfig.json` extracting compiler options and path aliases
-- [ ] Detects test framework from dependencies (jest, vitest, deno test)
-- [ ] Detects build tool from scripts/tasks (vite, webpack, tsc, esbuild)
-- [ ] Detects web framework from dependencies (express, fastify, hono, oak)
-- [ ] Reads `.gitignore` and merges its patterns into `ignorePatterns`
-- [ ] Gracefully skips files that fail to parse
-- [ ] Returns empty result for directories with no recognized config files
+- [x] Parses `package.json` extracting name, dependencies, devDependencies, scripts
+- [x] Parses `deno.json` extracting imports, tasks
+- [x] Parses `tsconfig.json` extracting compiler options and path aliases
+- [x] Detects test framework from dependencies (jest, vitest, deno test)
+- [x] Detects build tool from scripts/tasks (vite, webpack, tsc, esbuild)
+- [x] Detects web framework from dependencies (express, fastify, hono, oak)
+- [x] Reads `.gitignore` and merges its patterns into `ignorePatterns`
+- [x] Gracefully skips files that fail to parse
+- [x] Returns empty result for directories with no recognized config files
 
 **Planned tests** (`tests/services/portal_knowledge/config_parser_test.ts`):
 
-- `[ConfigParser] parses package.json dependencies`
-- `[ConfigParser] parses deno.json imports and tasks`
-- `[ConfigParser] parses tsconfig.json compiler options`
-- `[ConfigParser] detects test framework from dependencies`
-- `[ConfigParser] detects web framework from dependencies`
-- `[ConfigParser] detects build tool from scripts`
-- `[ConfigParser] reads .gitignore and adds patterns to ignorePatterns`
-- `[ConfigParser] handles malformed JSON gracefully`
-- `[ConfigParser] returns empty for directory with no config files`
-- `[ConfigParser] extracts key dependencies with purpose heuristic`
+- [x] `[ConfigParser] parses package.json dependencies`
+- [x] `[ConfigParser] parses deno.json imports and tasks`
+- [x] `[ConfigParser] parses tsconfig.json compiler options`
+- [x] `[ConfigParser] detects test framework from dependencies`
+- [x] `[ConfigParser] detects web framework from dependencies`
+- [x] `[ConfigParser] detects build tool from scripts`
+- [x] `[ConfigParser] reads .gitignore and adds patterns to ignorePatterns`
+- [x] `[ConfigParser] handles malformed JSON gracefully`
+- [x] `[ConfigParser] returns empty for directory with no config files`
+- [x] `[ConfigParser] extracts key dependencies with purpose heuristic`
 
 ---
 
