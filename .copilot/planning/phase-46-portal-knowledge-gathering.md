@@ -1,5 +1,7 @@
 # Phase 46: Portal Codebase Knowledge Gathering
 
+## Version: 1.0
+
 ## Status: PLANNING
 
 Introduce a `PortalKnowledgeService` that deeply analyzes mounted portal codebases — extracting architecture, patterns, conventions, and key file maps — and persists the results in `Memory/Projects/{portal}/` for consumption by all downstream services (request analysis, agent execution, quality evaluation).
@@ -296,7 +298,7 @@ You are an expert software architect analyzing a codebase.
 Produce a concise architecture overview including:
 
 1. Overall architecture style (monolith, microservices, layered, etc.)
-1.
+
 1.
 1.
 
@@ -590,6 +592,7 @@ Incremental updates:
 - Zero LLM dependencies — deterministic, reliable output
 - Parses: `package.json`/`deno.json` (JSON), `tsconfig.json`/`jsconfig.json` (JSON), `Cargo.toml`/`pyproject.toml` (TOML), `Dockerfile` (presence detection + base image), CI configs (`.github/workflows/*.yml`) — YAML parse for build/test commands
 - Extracts `IDependencyInfo` per config file, key dependencies with purpose heuristic (e.g., "express" → "web framework"), tech stack fields (`framework`, `testFramework`, `buildTool`)
+- **Also reads `.gitignore`** from the portal root (if present) and merges its patterns into `ignorePatterns` to avoid analyzing generated/vendor files
 - Handles parse errors gracefully (skip unparseable files, log warning)
 
 **Success criteria:**
@@ -600,6 +603,7 @@ Incremental updates:
 - [ ] Detects test framework from dependencies (jest, vitest, deno test)
 - [ ] Detects build tool from scripts/tasks (vite, webpack, tsc, esbuild)
 - [ ] Detects web framework from dependencies (express, fastify, hono, oak)
+- [ ] Reads `.gitignore` and merges its patterns into `ignorePatterns`
 - [ ] Gracefully skips files that fail to parse
 - [ ] Returns empty result for directories with no recognized config files
 
@@ -611,6 +615,7 @@ Incremental updates:
 - `[ConfigParser] detects test framework from dependencies`
 - `[ConfigParser] detects web framework from dependencies`
 - `[ConfigParser] detects build tool from scripts`
+- `[ConfigParser] reads .gitignore and adds patterns to ignorePatterns`
 - `[ConfigParser] handles malformed JSON gracefully`
 - `[ConfigParser] returns empty for directory with no config files`
 - `[ConfigParser] extracts key dependencies with purpose heuristic`
@@ -875,23 +880,25 @@ Incremental updates:
 
 **Files to modify:**
 
-- `src/services/request_processor.ts` (add knowledge resolution)
-- `src/services/request_common.ts` (extend `buildParsedRequest` to accept portal knowledge)
+- `src/services/request_processor.ts` (extend `IRequestProcessingContext` with `portalKnowledge?` field; resolve in `process()` alongside `analysis`; inject into agent prompt context via `PORTAL_KNOWLEDGE_KEY`)
+- `src/flows/flow_runner.ts` (add `portalKnowledge?: IPortalKnowledge` to `IFlowRunner.execute()` request params and internal type — see Flow Request Coverage section below)
 
 **Architecture notes:**
 
-- After `RequestParser.parse()` and before `processRequestByKind()` — same location as Phase 45 analysis integration
-- If request has a `portal` field, call `portalKnowledgeService.getOrAnalyze()`
-- Inject `IPortalKnowledge` into `IParsedRequest.context.portalKnowledge`
-- Also available on `IRequestProcessingContext` for flow path
+- Resolve knowledge in `process()` immediately after the `analysis` resolution block, before `pipeline.execute()` — mirrors the existing pattern exactly
+- If `frontmatter.portal` is set, call `portalKnowledgeService.getOrAnalyze(portal, portalPath)` wrapped in `.catch(() => undefined)`
+- Add `portalKnowledge?: IPortalKnowledge` to `IRequestProcessingContext` (parallel to `analysis?: IRequestAnalysis`); store result there
+- Pass `portalKnowledge` as a parameter to `processAgentRequest()` and `processFlowRequest()` (parallel to `analysis`)
+- **Do not** attempt to add `IPortalKnowledge` to `IParsedRequest.context` (`IRequestContextContext`) — that type is a string/primitive record and cannot hold the schema. Instead, inject a Markdown-formatted summary string under `PORTAL_KNOWLEDGE_KEY` constant (following the `PORTAL_CONTEXT_KEY` pattern in `agent_runner.ts`) for prompt injection; the full object lives on `IRequestProcessingContext`
 - `getOrAnalyze()` returns cached knowledge when fresh, re-analyzes with `standard` mode if stale
 - Non-blocking for execution: if knowledge gathering fails, proceed without it
 
 **Success criteria:**
 
 - [ ] Portal knowledge resolved for portal-bound requests
-- [ ] Knowledge available in `IParsedRequest.context.portalKnowledge`
+- [ ] `IRequestProcessingContext.portalKnowledge` populated when available
 - [ ] Both agent and flow paths receive knowledge
+- [ ] Agent prompts receive a Markdown summary via `PORTAL_KNOWLEDGE_KEY` in `IParsedRequest.context`
 - [ ] Uses cached knowledge when fresh (no re-analysis overhead)
 - [ ] Re-analyzes with `standard` mode when stale
 - [ ] Proceeds without knowledge on failure
@@ -899,7 +906,8 @@ Incremental updates:
 **Planned tests** (`tests/services/request_processor_knowledge_test.ts`):
 
 - `[RequestProcessor] resolves portal knowledge for portal-bound requests`
-- `[RequestProcessor] injects knowledge into IParsedRequest.context`
+- `[RequestProcessor] populates IRequestProcessingContext.portalKnowledge`
+- `[RequestProcessor] injects knowledge Markdown summary into IParsedRequest.context via PORTAL_KNOWLEDGE_KEY`
 - `[RequestProcessor] skips knowledge for requests without portal`
 - `[RequestProcessor] uses cached knowledge when fresh`
 - `[RequestProcessor] proceeds without knowledge on failure`
@@ -909,12 +917,12 @@ Incremental updates:
 
 ### Step 13: Add Portal Knowledge to TUI Data Path
 
-**What:** Extend the portal/request service layer so TUI can load and display portal knowledge data.
+**What:** Extend the portal service layer so TUI can load and display portal knowledge data.
 
 **Files to modify:**
 
-- `src/shared/interfaces/i_portal_service.ts` or equivalent (add `getKnowledge` method)
-- Portal service implementation (implement `getKnowledge`)
+- `src/shared/interfaces/i_portal_service.ts` (add `getKnowledge` method)
+- `src/services/portal_service.ts` (implement `getKnowledge`)
 
 **Architecture notes:**
 
@@ -938,11 +946,11 @@ Incremental updates:
 
 ### Step 14: Add Portal Knowledge Display to TUI
 
-**What:** Enhance the portal-related TUI view to display portal knowledge data — architecture overview, key files, conventions, and dependencies.
+**What:** Enhance the portal TUI view to display portal knowledge data — architecture overview, key files, conventions, and dependencies.
 
 **Files to modify:**
 
-- Portal detail view in TUI (extend with knowledge rendering)
+- `src/tui/portal_manager_view.ts` (extend with knowledge rendering section and `a` keybinding)
 
 **Architecture notes:**
 
@@ -1119,8 +1127,8 @@ Incremental updates:
    ```text
    Request File (.md)
      → RequestParser.parse()
-     → RequestAnalyzer.analyze()           ← Phase 45
-     → PortalKnowledgeService.getOrAnalyze() ← Phase 46 (NEW)
+     → RequestAnalyzer.analyze()              ← Phase 45
+     → PortalKnowledgeService.getOrAnalyze()  ← Phase 46 (NEW)
      → RequestRouter (agent or flow)
    ```
 
@@ -1131,7 +1139,7 @@ Incremental updates:
 1.
    - Five analysis strategies with LLM/no-LLM breakdown
    - Three modes comparison table (quick/standard/deep)
-   - Persistence model (knowledge.json + IProjectMemory mapping)
+   - Persistence model (`knowledge.json` + `IProjectMemory` mapping)
    - Staleness detection and incremental updates
    - Configuration (`[portal_knowledge]` TOML section)
 
@@ -1172,15 +1180,15 @@ Incremental updates:
    - Describe `knowledge.json` in `Memory/Projects/`
 
 1.
-   - Add `IPortalKnowledge` schema specification
-   - Document `PortalKnowledgeService` API (modes, strategies, config)
-   - Document analysis strategy pipeline
-   - Add `knowledge.json` to file format specifications
+   - Add `IPortalKnowledge` schema specification (all sub-schemas: `IFileSignificance`, `IArchitectureLayer`, `ICodeConvention`, `IDependencyInfo`)
+   - Document `PortalKnowledgeService` API (modes, strategies, config interface `IPortalKnowledgeConfig`)
+   - Document the five analysis strategy pipeline with inputs/outputs
+   - Add `knowledge.json` to the file format specifications section
 
 1.
    - Add portal knowledge test categories to the test strategy matrix
-   - Document strategy tests, service tests, persistence tests, integration tests
-   - Note new test file locations (`tests/services/portal_knowledge/`)
+   - Document strategy tests, service tests, persistence tests, and integration test locations
+   - Note new test file locations under `tests/services/portal_knowledge/`
 
 **Success criteria:**
 
@@ -1302,14 +1310,18 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 | Over-analysis of trivial portals | Configurable mode; `quick` is lightweight; `autoAnalyzeOnMount` can be disabled |
 | Privacy: reading portal source code | Already within ExoFrame's security model — portals are explicitly mounted by the user; analysis respects `PathResolver` and sandbox modes |
 
-## Open Questions
+## Resolved Design Decisions
 
-- Should deep analysis use the `code-analyst` agent blueprint (via `AgentRunner`) or a standalone analysis pipeline?
-- Should `knowledge.json` be a Zod-validated schema in `src/shared/schemas/`?
-- Should the TUI have a "Portal Knowledge" view showing architecture overview, patterns, and key files?
-- How should this interact with the existing `code-analyst.md` blueprint's read-only analysis capabilities — complement or replace?
-- Should there be a `portal diff` command that shows what changed since last analysis?
-- Should knowledge gathering respect `.gitignore` patterns in the portal codebase?
+The following questions were raised during design and have been resolved:
+
+| Question | Decision | Rationale |
+| -------- | --------- | --------- |
+| Use `code-analyst` blueprint (via `AgentRunner`) or standalone pipeline? | **Standalone pipeline** (`PortalKnowledgeService` + strategy modules) | Lower coupling; avoids recursive agent spawning; synchronous control flow; no blueprint execution overhead for background analysis |
+| Should `knowledge.json` be Zod-validated? | **Yes** — `PortalKnowledgeSchema` in `src/shared/schemas/portal_knowledge.ts` (Step 1) | Consistent with all other data schemas in the project; enables safe deserialization in `loadKnowledge()` |
+| TUI view for portal knowledge? | **Yes** — extend `src/tui/portal_manager_view.ts` (Step 14) | Surfacing knowledge in TUI closes the feedback loop for users post-mount |
+| Complement or replace `code-analyst.md` blueprint? | **Complement** | `code-analyst` blueprint remains for user-triggered interactive deep dives; `PortalKnowledgeService` handles automated background analysis at mount/pre-execution only |
+| `portal diff` command (changed since last analysis)? | **Out of scope for Phase 46** | Staleness detection via timestamp covers the core need; a diff command can be introduced in a later phase once knowledge is proven useful |
+| Respect `.gitignore` in portal codebase? | **Yes** — `config_parser.ts` (Step 5) reads `.gitignore` from the portal root and merges its patterns into `ignorePatterns`; documented as a success criterion in Step 5 | Avoids analyzing generated/vendor files that the portal itself excludes |
 
 ---
 
@@ -1319,24 +1331,115 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 
 ### Required Changes for Flow Requests
 
-1. **Move portal knowledge resolution before the agent/flow split.** Like request analysis (Phase 45), portal knowledge should be resolved in `RequestProcessor.process()` before `processRequestByKind()`, so both paths have access.
+1. **Move portal knowledge resolution before the agent/flow split.** Like request analysis (Phase 45), portal knowledge should be resolved in `RequestProcessor.process()` before `processRequestByKind()`, so both paths have access. (Already reflected in Step 12 above.)
 
 1.
 
-```typescript
-async execute(
-  flow: IFlow,
-  request: {
-    userPrompt: string;
-    traceId?: string;
-    requestId?: string;
-    specification?: IRequestSpecification;  // Phase 47
-    requestAnalysis?: IRequestAnalysis;     // Phase 45
-    portalKnowledge?: IPortalKnowledge;     // Phase 46
-  },
-): Promise<IFlowResult>;
-```
+   ```typescript
+   async execute(
+     flow: IFlow,
+     request: {
+       userPrompt: string;
+       traceId?: string;
+       requestId?: string;
+       specification?: IRequestSpecification;  // Phase 47
+       requestAnalysis?: IRequestAnalysis;     // Phase 45
+       portalKnowledge?: IPortalKnowledge;     // Phase 46 (NEW)
+     },
+   ): Promise<IFlowResult>;
+   ```
+
+   Update the internal `FlowRunner.execute()` implementation and the inline object type at the top of `flow_runner.ts` to match.
 
 1.
 
 1.
+
+---
+
+## Gap Analysis & Critique
+
+> **Status:** Identified — to be addressed in subsequent rounds before implementation begins.
+> Critical architectural gaps (§1–§6) must be resolved before coding starts; they cause compile errors or data corruption. Feasibility and conceptual gaps (§7–§14) can be addressed incrementally but §10, §12, and §13 should be resolved in their respective steps.
+
+---
+
+### Critical Architectural Gaps
+
+#### Gap 1: Portal path resolution is missing in Step 12
+
+Step 12 calls `portalKnowledgeService.getOrAnalyze(portal, portalPath)` from `RequestProcessor.process()`, but `portalPath` is not available there. The alias → filesystem path mapping lives in `RequestRouter.buildPortalContext()`, which reads `this.config.portals`. This lookup needs to be extracted to a shared utility and called explicitly in `process()`. It is a straightforward fix but will be a blocking compile error if overlooked.
+
+#### Gap 2: `RequestProcessor` constructor DI is not addressed in Step 12
+
+Step 12 lists two files to modify but does not mention that `PortalKnowledgeService` must be injected into `RequestProcessor`'s constructor (currently: `config, db, processorConfig, testProvider?, costTracker?, testAnalyzer?`). The instantiation site(s) also need updating. This should be called out explicitly in Step 12's "Files to modify" and architecture notes.
+
+#### Gap 3: `ArchitectureInferrer` produces two incompatible output types from one LLM call
+
+Step 8 says the LLM returns both an `architectureOverview` (Markdown string) and a refined `layers` array (`IArchitectureLayer[]`). The prompt template only asks for Markdown. Getting structured `IArchitectureLayer[]` from a Markdown-producing prompt requires either: (a) a second LLM call, (b) asking the LLM to produce JSON with an embedded Markdown field, or (c) post-processing regex on the Markdown. None of these are specified. `OutputValidator` cannot help without a defined output schema. **Simplest fix:** have `ArchitectureInferrer` produce only `architectureOverview` (Markdown) and leave `layers` as-is from the heuristic pass.
+
+#### Gap 4: Concurrent write races on `IProjectMemory` files
+
+`saveKnowledge()` writes to `overview.md`, `patterns.md`, and `references.md`. `MissionReporter` also writes to these same files after execution. If a request triggers both a `getOrAnalyze()` re-analysis and a `MissionReporter` update in overlapping timing, the writes race. The plan specifies atomic writes for `knowledge.json` but says nothing about the Markdown files. **Simplest mitigation:** `saveKnowledge()` checks for a sentinel header marker before writing and skips a file if mission-reported content is already present; document this in Step 10.
+
+#### Gap 5: `references.md` ownership conflict is a data integrity problem
+
+The plan maps `keyFiles` + key dependencies to `references.md` via `MemoryBankService`. But `MissionReporter` also writes references (files consulted during a mission). These are semantically different categories: architectural significance vs. mission-specific context. Overwriting `references.md` on every knowledge refresh destroys mission history. **Two options:** (a) separate namespacing within the file (e.g., `## Architecture` section vs. `## Mission History` section), or (b) keep `knowledge.json` as the sole source for architectural references and never touch `references.md`. Option (b) is simpler and avoids all ownership ambiguity.
+
+#### Gap 6: `MissionReporter` → `PortalKnowledgeService` staleness trigger has no implementation path
+
+The Risks section and Staleness section both state "MissionReporter triggers incremental updates." But `MissionReporter` has no reference to `PortalKnowledgeService`, and no event/hook/observer mechanism is described anywhere in the plan. Either this is dead text (staleness is time-based only), or the coupling needs a concrete mechanism (event bus, callback, or direct injection). **Resolution:** remove the claim from Risks/Staleness and replace with "staleness is time-based; `MissionReporter` may trigger an explicit `updateKnowledge()` call if that integration is added in a later phase."
+
+---
+
+### Feasibility Gaps for Large and Complex Codebases
+
+#### Gap 7: `quickScanLimit = 200` produces a biased, non-reproducible sample
+
+A mid-size Node.js or Rails project has 500–2,000 source files. Scanning only 200 means traversal order determines what is analyzed. BFS from root hits config files first (good), but DFS may stop mid-way through `src/controllers/` (bad). The plan does not specify traversal order, making the 200-file cap non-reproducible across runs. **Fix:** the cap should apply *after* heuristic prioritization — scan root configs and Strategy-3-pattern files first, then fill remaining capacity with a BFS of `src/`.
+
+#### Gap 8: Monorepo architecture is incompatible with the flat `IPortalKnowledge` schema
+
+`IPortalKnowledge` has a single `techStack.primaryLanguage`, single `layers[]`, and single `conventions[]`. A 20-package monorepo (Nx, Turborepo, Lerna) has per-package languages, layers, and conventions. The plan notes "detects monorepo vs single-project structure" in Strategy 1 but never defines what `IPortalKnowledge` contains when it IS a monorepo. **Two options:** (a) add an optional `packages: IMonorepoPackage[]` field where each package has its own `layers` and `conventions`, with the top-level fields reflecting the root workspace; or (b) explicitly scope Phase 46 to single-project portals only and document the limitation.
+
+#### Gap 9: LLM context window is not budgeted
+
+`standard` mode reads "up to 20 key files" and sends a directory tree string + config file contents + patterns to the LLM. For a large codebase: 20 files × avg 200 lines × ~4 tokens/line = ~16,000 tokens for file content alone, plus ~1,500 tokens for a 200-directory tree, plus config files and boilerplate. This can approach or exceed 20,000 tokens — beyond many models' effective context and expensive on all of them. No file-length capping, chunking, or content summarization strategy is described. `ArchitectureInferrer` needs an explicit token budget (e.g., 8,000 tokens max input) with per-file truncation logic.
+
+#### Gap 10: Standard mode re-analysis blocks the first request after each staleness window
+
+Default staleness is 168 hours (1 week). The first request every week on a stale portal triggers `standard` mode re-analysis: 1 LLM call + reading 20 files, estimated ~15 seconds of user-visible latency before the agent starts. The plan says "Non-blocking for execution: if knowledge gathering fails, proceed without it" — but does not define whether `getOrAnalyze()` blocks until re-analysis completes or returns stale knowledge immediately. **Recommended resolution:** `getOrAnalyze()` returns stale (but available) knowledge immediately and fires re-analysis asynchronously, updating the cache in the background. Must be specified explicitly in Step 9 (`getOrAnalyze()` design) and Step 12.
+
+---
+
+### Conceptual Gaps
+
+#### Gap 11: Naming-pattern heuristics are not architectural conventions — missing confidence signal
+
+Detecting `*_service.ts` files confirms a naming *convention*, not an architectural pattern. An agent told "this project uses the service pattern" may interpret that as constructor injection, functional services, singleton services, or something else. The `ICodeConvention` structure has no way to distinguish "3 files named this way" from "300 files named this way." **Missing fields:** add `evidenceCount: number` and `confidence: "low" | "medium" | "high"` to `ICodeConvention`. This lets downstream consumers (Phase 47 Q&A, Phase 49 critique) calibrate how strongly to enforce a convention and avoids surfacing noise as fact.
+
+#### Gap 12: The Markdown summary injected into agent prompts has no defined format or token cap
+
+Step 12 says "inject a Markdown-formatted summary string under `PORTAL_KNOWLEDGE_KEY`", following the `PORTAL_CONTEXT_KEY` pattern. But `PORTAL_CONTEXT_KEY` injects a short string (alias + path). A full portal knowledge summary — architecture overview + key files + conventions + dependencies — can be 3,000–8,000 tokens, added to *every* portal-bound agent prompt. No summarization logic, section-inclusion criteria, or token cap is defined. This is the most likely source of regression (token cost spikes, context pollution). Step 12 must specify: maximum token budget for the summary, which sections to include (architecture overview only? top-N key files?), and whether the format is configurable.
+
+#### Gap 13: Incremental update has no trigger mechanism — documentation contradicts reality
+
+The `updateKnowledge()` method "compares directory tree with previous stats — only re-scans changed areas." But detecting what changed requires walking the current directory tree, which is essentially a full scan anyway (O(N) on file count regardless). And as noted in Gap 6, the trigger is undefined: `MissionReporter` coupling is asserted but unimplemented. In practice, incremental updates can only fire via explicit CLI call (`--force`) or the time-based staleness check. The plan should stop describing incremental updates as a runtime feature and either (a) remove `updateKnowledge()` from the public interface (it can be a future enhancement), or (b) document it as CLI-only with no automatic trigger in Phase 46.
+
+#### Gap 14: `quick` mode post-mount does not actually solve the bootstrapping problem
+
+The plan claims to solve "first execution is knowledge-free." But `quick` mode (no LLM, structure + configs only) gives agents a file tree, dependency list, and naming pattern hints — marginally better than the current empty state, but not architectural understanding. An agent asked to "add a new API endpoint" still does not know the routing convention, middleware stack, response format, or where controllers live. The real bootstrapping value comes from `standard` mode LLM inference, which only runs pre-execution (not at mount time). **Recommendation:** scope the Executive Summary's claim to "basic structural orientation" for `quick` mode, and call out that `standard` mode pre-execution analysis provides the architectural understanding needed before the first agent run.
+
+---
+
+### Overall Feasibility Assessment
+
+The approach is **feasible for small-to-medium single-language projects** (under ~1,000 source files, standard layout). The heuristic strategies produce reliable deterministic value; `standard` mode LLM inference is meaningful at that scale.
+
+For large or complex codebases, three changes are necessary before the design is viable:
+
+1. **Schema extension for monorepos** (Gap 8) — `IMonorepoPackage` sub-structure or explicit scope limitation
+
+1.
+
+The six critical architectural gaps (1–6) must be resolved before coding starts; they cause compile errors or data corruption. Gaps 10, 12, and 13 must be addressed in the design of their respective steps (Step 9, Step 12) before those steps are written.
