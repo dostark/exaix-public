@@ -749,30 +749,32 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Detects service pattern from `*_service.ts` naming
-- [ ] Detects test layout pattern (co-located vs. mirror)
-- [ ] Detects test naming convention (`*.test.ts` vs. `*_test.ts` vs. `*.spec.ts`)
-- [ ] Detects barrel export pattern from `mod.ts`/`index.ts`
-- [ ] Provides example file paths for each detected convention
-- [ ] Assigns correct category to each convention
-- [ ] Works without `readFileContents` (heuristic only)
-- [ ] Enhanced detection when `readFileContents` provided
+- [x] Detects service pattern from `*_service.ts` naming
+- [x] Detects test layout pattern (co-located vs. mirror)
+- [x] Detects test naming convention (`*.test.ts` vs. `*_test.ts` vs. `*.spec.ts`)
+- [x] Detects barrel export pattern from `mod.ts`/`index.ts`
+- [x] Provides example file paths for each detected convention
+- [x] Assigns correct category to each convention
+- [x] Works without `readFileContents` (heuristic only)
+- [x] Enhanced detection when `readFileContents` provided
+
+**✅ IMPLEMENTED** — `src/services/portal_knowledge/pattern_detector.ts`, 13/13 tests passing
 
 **Planned tests** (`tests/services/portal_knowledge/pattern_detector_test.ts`):
 
-- `[PatternDetector] detects service naming pattern`
-- `[PatternDetector] detects repository naming pattern`
-- `[PatternDetector] detects co-located test layout`
-- `[PatternDetector] detects mirror test layout`
-- `[PatternDetector] detects test file naming convention`
-- `[PatternDetector] detects barrel export pattern`
-- `[PatternDetector] provides examples for each convention`
-- `[PatternDetector] assigns correct categories`
-- `[PatternDetector] works in heuristic-only mode`
-- `[PatternDetector] detects import patterns when reading file contents`
-- `[PatternDetector] sets evidenceCount to number of matching files per convention`
-- `[PatternDetector] assigns confidence low for 1-2 evidence files`
-- `[PatternDetector] assigns confidence high for 10+ evidence files`
+- ✅ `[PatternDetector] detects service naming pattern`
+- ✅ `[PatternDetector] detects repository naming pattern`
+- ✅ `[PatternDetector] detects co-located test layout`
+- ✅ `[PatternDetector] detects mirror test layout`
+- ✅ `[PatternDetector] detects test file naming convention`
+- ✅ `[PatternDetector] detects barrel export pattern`
+- ✅ `[PatternDetector] provides examples for each convention`
+- ✅ `[PatternDetector] assigns correct categories`
+- ✅ `[PatternDetector] works in heuristic-only mode`
+- ✅ `[PatternDetector] detects import patterns when reading file contents`
+- ✅ `[PatternDetector] sets evidenceCount to number of matching files per convention`
+- ✅ `[PatternDetector] assigns confidence low for 1-2 evidence files`
+- ✅ `[PatternDetector] assigns confidence high for 10+ evidence files`
 
 ---
 
