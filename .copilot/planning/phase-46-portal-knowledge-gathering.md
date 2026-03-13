@@ -930,7 +930,7 @@ Incremental updates:
 
 ---
 
-### Step 10: Implement Knowledge Persistence (Memory Bank Mapping)
+### Step 10: Implement Knowledge Persistence (Memory Bank Mapping) ✅ IMPLEMENTED
 
 **What:** Add persistence for `IPortalKnowledge` — both as `knowledge.json` for programmatic access and as Markdown updates to existing `Memory/Projects/{portal}/` files (`overview.md`, `patterns.md`, `references.md`).
 
@@ -951,26 +951,29 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Writes `knowledge.json` atomically under `Memory/Projects/{portal}/`
-- [ ] Maps `architectureOverview` to `overview.md` via `MemoryBankService` (when no sentinel)
-- [ ] Maps `conventions` to `IPattern` entries in `patterns.md` (when no sentinel)
-- [ ] Checks for `<!-- mission-reported -->` sentinel header before any Markdown write
-- [ ] Skips Markdown file update when sentinel header is present
-- [ ] Never writes to `references.md` (owned by `MissionReporter` only)
-- [ ] `loadKnowledge` validates against `PortalKnowledgeSchema`
-- [ ] Returns `null` for missing or invalid `knowledge.json`
-- [ ] Does not overwrite `decisions.md` (only `MissionReporter` writes there)
+- [x] Writes `knowledge.json` atomically under `Memory/Projects/{portal}/`
+- [x] Maps `architectureOverview` to `overview.md` via `MemoryBankService` (when no sentinel)
+- [x] Maps `conventions` to `IPattern` entries in `patterns.md` (when no sentinel)
+- [x] Checks for `<!-- mission-reported -->` sentinel header before any Markdown write
+- [x] Skips Markdown file update when sentinel header is present
+- [x] Never writes to `references.md` (owned by `MissionReporter` only)
+- [x] `loadKnowledge` validates against `PortalKnowledgeSchema`
+- [x] Returns `null` for missing or invalid `knowledge.json`
+- [x] Does not overwrite `decisions.md` (only `MissionReporter` writes there)
 
 **Planned tests** (`tests/services/portal_knowledge/knowledge_persistence_test.ts`):
 
-- `[KnowledgePersistence] saves knowledge.json atomically`
-- `[KnowledgePersistence] loads previously saved knowledge`
-- `[KnowledgePersistence] returns null for missing knowledge`
-- `[KnowledgePersistence] returns null for corrupted knowledge`
-- `[KnowledgePersistence] maps architectureOverview to overview.md`
-- `[KnowledgePersistence] maps conventions to patterns.md`
-- `[KnowledgePersistence] maps keyFiles to references.md`
-- `[KnowledgePersistence] does not overwrite decisions.md`
+- ✅ `[KnowledgePersistence] saves knowledge.json atomically`
+- ✅ `[KnowledgePersistence] loads previously saved knowledge`
+- ✅ `[KnowledgePersistence] returns null for missing knowledge`
+- ✅ `[KnowledgePersistence] returns null for corrupted knowledge`
+- ✅ `[KnowledgePersistence] maps architectureOverview to overview.md`
+- ✅ `[KnowledgePersistence] maps conventions to patterns.md`
+- ✅ `[KnowledgePersistence] does not write references.md`
+- ✅ `[KnowledgePersistence] does not overwrite decisions.md`
+- ✅ `[KnowledgePersistence] skips overview update when sentinel is present`
+
+**✅ IMPLEMENTED** — `src/services/portal_knowledge/knowledge_persistence.ts`, 9/9 tests passing
 
 ---
 

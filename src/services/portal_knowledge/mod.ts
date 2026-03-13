@@ -10,6 +10,7 @@
  */
 
 export { PortalKnowledgeService } from "./portal_knowledge_service.ts";
+export { loadKnowledge, saveKnowledge } from "./knowledge_persistence.ts";
 export {
   ArchitectureInferrer,
   type IArchitectureInferrerInput,
