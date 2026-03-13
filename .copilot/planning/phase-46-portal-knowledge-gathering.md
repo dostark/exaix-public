@@ -691,7 +691,7 @@ Incremental updates:
 
 ---
 
-### Step 6: Implement Key File Identifier (Strategy 3)
+### Step 6: Implement Key File Identifier (Strategy 3) ✅ IMPLEMENTED
 
 **What:** Create `src/services/portal_knowledge/key_file_identifier.ts` — a module that identifies significant files by name/path heuristics and assigns roles.
 
@@ -709,26 +709,26 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Identifies standard entrypoints and assigns `entrypoint` role
-- [ ] Identifies config files and assigns `config` role
-- [ ] Identifies schema/type files and assigns `schema`/`types` role
-- [ ] Identifies test helper files and assigns `test-helper` role
-- [ ] Identifies routing files and assigns `routing` role
-- [ ] Provides brief description for each identified file
-- [ ] Sorts by role significance (entrypoints first)
-- [ ] Handles case where no significant files found
+- [x] Identifies standard entrypoints and assigns `entrypoint` role
+- [x] Identifies config files and assigns `config` role
+- [x] Identifies schema/type files and assigns `schema`/`types` role
+- [x] Identifies test helper files and assigns `test-helper` role
+- [x] Identifies routing files and assigns `routing` role
+- [x] Provides brief description for each identified file
+- [x] Sorts by role significance (entrypoints first)
+- [x] Handles case where no significant files found
 
 **Planned tests** (`tests/services/portal_knowledge/key_file_identifier_test.ts`):
 
-- `[KeyFileIdentifier] identifies entrypoint files`
-- `[KeyFileIdentifier] identifies config files`
-- `[KeyFileIdentifier] identifies schema/types files`
-- `[KeyFileIdentifier] identifies test helper files`
-- `[KeyFileIdentifier] identifies routing files`
-- `[KeyFileIdentifier] assigns correct roles`
-- `[KeyFileIdentifier] sorts by significance`
-- `[KeyFileIdentifier] handles no significant files`
-- `[KeyFileIdentifier] respects output cap limit`
+- [x] `[KeyFileIdentifier] identifies entrypoint files`
+- [x] `[KeyFileIdentifier] identifies config files`
+- [x] `[KeyFileIdentifier] identifies schema/types files`
+- [x] `[KeyFileIdentifier] identifies test helper files`
+- [x] `[KeyFileIdentifier] identifies routing files`
+- [x] `[KeyFileIdentifier] assigns correct roles`
+- [x] `[KeyFileIdentifier] sorts by significance`
+- [x] `[KeyFileIdentifier] handles no significant files`
+- [x] `[KeyFileIdentifier] respects output cap limit`
 
 ---
 
