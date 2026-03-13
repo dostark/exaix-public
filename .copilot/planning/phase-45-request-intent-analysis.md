@@ -9,7 +9,7 @@ Introduce a `RequestAnalyzer` service that extracts structured intent, requireme
 ## Executive Summary
 
 **Problem:**
-Today, the request body flows through the pipeline as an opaque string. `RequestParser` extracts YAML frontmatter metadata, `buildParsedRequest()` passes `body.trim()` as-is into `userPrompt`, and no component analyzes *what the user is actually asking for*. This means:
+Today, the request body flows through the pipeline as an opaque string. `RequestParser` extracts YAML frontmatter metadata, `buildParsedRequest()` passes `body.trim()` as-is into `userPrompt`, and no component analyzes _what the user is actually asking for_. This means:
 
 - Downstream quality measures (quality gates, confidence scorer, reflexive agent) evaluate generic criteria but have **no structured understanding of the specific request goals**.
 - The `classifyTaskComplexity()` method in `RequestProcessor` ignores request content entirely — it classifies based solely on agent ID substrings (e.g., `agentId.includes("coder")`).
@@ -36,26 +36,26 @@ Request File (.md)
 
 ### Key Files Involved
 
-| File | Role | Gap |
-| ------ | ------ | ----- |
-| `src/services/request_processing/request_parser.ts` | YAML frontmatter + body extraction | No content analysis |
-| `src/services/request_common.ts` (`buildParsedRequest`) | Wraps body into `IParsedRequest` | Only adds `priority`, `source` as context |
-| `src/services/request_processor.ts` (`classifyTaskComplexity`) | Provider selection | Uses agent ID substrings, ignores `_request` param |
-| `src/services/request_processor.ts` (`processAgentRequest`) | Main agent processing | No pre-analysis step |
-| `src/services/agent_runner.ts` (`IParsedRequest`) | Request interface | Has `taskType`, `tags`, `filePaths` fields — all unused by RequestProcessor |
+| File                                                           | Role                               | Gap                                                                         |
+| -------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------- |
+| `src/services/request_processing/request_parser.ts`            | YAML frontmatter + body extraction | No content analysis                                                         |
+| `src/services/request_common.ts` (`buildParsedRequest`)        | Wraps body into `IParsedRequest`   | Only adds `priority`, `source` as context                                   |
+| `src/services/request_processor.ts` (`classifyTaskComplexity`) | Provider selection                 | Uses agent ID substrings, ignores `_request` param                          |
+| `src/services/request_processor.ts` (`processAgentRequest`)    | Main agent processing              | No pre-analysis step                                                        |
+| `src/services/agent_runner.ts` (`IParsedRequest`)              | Request interface                  | Has `taskType`, `tags`, `filePaths` fields — all unused by RequestProcessor |
 
 ### Unused Potential in `IParsedRequest`
 
-The `IParsedRequest` interface already has fields that *should* carry structured analysis, but are never populated:
+The `IParsedRequest` interface already has fields that _should_ carry structured analysis, but are never populated:
 
 ```typescript
 export interface IParsedRequest {
   userPrompt: string;
-  context: IRequestContextContext;      // Only has priority, source, traceId, requestId
-  filePaths?: string[];                 // Never set by RequestProcessor
-  taskType?: string;                    // Never set by RequestProcessor
-  tags?: string[];                      // Never set by RequestProcessor
-  skills?: string[];                    // Set only from frontmatter
+  context: IRequestContextContext; // Only has priority, source, traceId, requestId
+  filePaths?: string[]; // Never set by RequestProcessor
+  taskType?: string; // Never set by RequestProcessor
+  tags?: string[]; // Never set by RequestProcessor
+  skills?: string[]; // Set only from frontmatter
   skipSkills?: string[];
 }
 ```
@@ -818,6 +818,452 @@ export interface IParsedRequest {
 
 ---
 
+### Step 21: Backfill `IRequirement` and `IAmbiguity` Schema Fields (Gaps 1, 2)
+
+**What:** Add the four missing fields to `RequirementSchema` and `AmbiguitySchema` that were dropped
+during implementation but are required by Phase 47 (clarification flow) and Phase 48 (quality gates).
+Update `LlmAnalyzer` prompt template and `HeuristicAnalyzer` output to populate the new fields.
+
+**Files to modify:**
+
+- `src/shared/schemas/request_analysis.ts` (`type` + `explicit` to `RequirementSchema`; `interpretations` + `clarificationQuestion` to `AmbiguitySchema`)
+- `src/services/request_analysis/llm_analyzer.ts` (update JSON prompt spec with new field names)
+- `src/services/request_analysis/heuristic_analyzer.ts` (emit safe defaults for the four new fields)
+- `tests/schemas/request_analysis_test.ts` (regression tests for new fields)
+- `tests/services/request_analysis/heuristic_analyzer_test.ts` (assert `type` and `explicit` in heuristic output)
+- `tests/services/request_analysis/llm_analyzer_test.ts` (assert prompt template string references new field names)
+
+**Changes:**
+
+1. **`RequirementSchema`** — add before `confidence`:
+
+   ```typescript
+   type: z.union([
+     z.literal("functional"),
+     z.literal("non-functional"),
+     z.literal("constraint"),
+   ]).default("functional"),
+   explicit: z.boolean().default(true),
+   ```
+
+1. **`AmbiguitySchema`** — add after `impact`:
+
+   ```typescript
+   interpretations: z.array(z.string()).default([]),
+   clarificationQuestion: z.string().optional(),
+   ```
+
+1. **`LlmAnalyzer` prompt template** — add to the `requirements[]` JSON shape hint the fields
+   `"type": "functional|non-functional|constraint"` and `"explicit": true/false`. Add to the
+   `ambiguities[]` JSON shape hint the fields `"interpretations": ["..."]` and
+   `"clarificationQuestion": "..."`.
+
+1. **`HeuristicAnalyzer`** — set `type: "functional"` and `explicit: true` on every emitted
+   requirement (conservative, safe default). Set `interpretations: []` and omit
+   `clarificationQuestion` on every emitted ambiguity.
+
+**Success criteria:**
+
+- [ ] `RequirementSchema` validates objects containing `type` and `explicit` fields
+- [ ] `AmbiguitySchema` validates objects containing `interpretations[]` and optional `clarificationQuestion`
+- [ ] `HeuristicAnalyzer` output includes `type: "functional"` and `explicit: true` on all requirements
+- [ ] `LlmAnalyzer` prompt template string contains `type`, `interpretations`, and `clarificationQuestion` field names
+- [ ] All existing tests pass after schema change (no breaking removals — new fields have defaults)
+- [ ] 4 new regression tests pass in `tests/schemas/request_analysis_test.ts`
+
+**Implemented tests:**
+
+- `[RequirementSchema] accepts type: functional / non-functional / constraint`
+- `[RequirementSchema] defaults type to functional when absent`
+- `[RequirementSchema] defaults explicit to true when absent`
+- `[AmbiguitySchema] accepts interpretations array`
+- `[AmbiguitySchema] accepts optional clarificationQuestion string`
+- `[HeuristicAnalyzer] requirement output includes type=functional and explicit=true`
+- `[LlmAnalyzer] prompt template references type, interpretations, and clarificationQuestion`
+
+---
+
+### Step 22: Fix Analyzer Mode Default and Config Wiring (Gaps 3, 4, 5)
+
+**What:** Correct the production default analyzer mode from `HEURISTIC` to `HYBRID` as designed,
+expose the `[request_analysis]` section in `exo.config.toml` for user discoverability, and add
+the missing `enabled` and `persist_analysis` config fields so operators can disable analysis or
+persistence without code changes.
+
+**Files to modify:**
+
+- `src/services/request_processor.ts` (fix fallback to reference `DEFAULT_ANALYZER_MODE` constant)
+- `exo.config.toml` (add `[request_analysis]` section)
+- `src/shared/schemas/config.ts` (add `enabled` and `persist_analysis` to `request_analysis` block)
+- `tests/services/request_analysis/request_processor_analysis_test.ts` (assert enabled=false skips analysis; persist_analysis=false skips persistence)
+- `tests/schemas/config_request_analysis_test.ts` (new defaults coverage — completed fully in Step 26)
+
+**Changes:**
+
+1. **`request_processor.ts` mode fallback** — replace:
+
+   ```typescript
+   // BEFORE
+   mode: config.request_analysis?.mode ?? AnalysisMode.HEURISTIC,
+
+   // AFTER
+   mode: config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE as AnalysisMode,
+   ```
+
+   Add import of `DEFAULT_ANALYZER_MODE` from `src/shared/constants.ts` if not already imported.
+
+1. **`exo.config.toml`** — append block:
+
+   ```toml
+   [request_analysis]
+   mode = "hybrid"
+   actionability_threshold = 60
+   infer_acceptance_criteria = true
+   enabled = true
+   persist_analysis = true
+   ```
+
+1. **`ConfigSchema.request_analysis`** — add two fields:
+
+   ```typescript
+   enabled: z.boolean().default(true),
+   persist_analysis: z.boolean().default(true),
+   ```
+
+1. **`RequestProcessor.process()`** — guard the analysis call:
+
+   ```typescript
+   if (config.request_analysis?.enabled !== false) {
+     const analysis = await this.analyzer.analyze(requestText, context);
+     // ... persist, enrich
+   }
+   ```
+
+   Guard the persistence call separately:
+
+   ```typescript
+   if (config.request_analysis?.persist_analysis !== false) {
+     await this.persistence.saveAnalysis(path, analysis);
+   }
+   ```
+
+**Success criteria:**
+
+- [ ] `RequestProcessor` uses `DEFAULT_ANALYZER_MODE` constant as fallback — hard-coded `HEURISTIC` removed
+- [ ] `exo.config.toml` contains the `[request_analysis]` section with all five keys
+- [ ] `ConfigSchema` accepts `enabled: false` and `persist_analysis: false` without error
+- [ ] `RequestProcessor` skips analysis entirely when `enabled: false`
+- [ ] `RequestProcessor` skips `saveAnalysis()` when `persist_analysis: false`
+- [ ] No regressions in existing processor or config tests
+
+**Implemented tests:**
+
+- `[ConfigSchema] request_analysis.enabled defaults to true`
+- `[ConfigSchema] request_analysis.persist_analysis defaults to true`
+- `[RequestProcessor] skips analysis when enabled=false`
+- `[RequestProcessor] skips persistence when persist_analysis=false`
+- `[RequestProcessor] uses DEFAULT_ANALYZER_MODE constant when config absent`
+
+---
+
+### Step 23: Fix CLI `--force` Flag and `hybrid` Mode Routing (Gaps 6, 7)
+
+**What:** Implement the documented skip-if-cached behaviour in `RequestService.analyze()` and
+surface it via a `--force` CLI flag. Fix the CLI engine-to-mode mapping so `--mode hybrid`
+actually produces a `HYBRID` analysis instead of silently falling back to `HEURISTIC`.
+
+**Files to modify:**
+
+- `src/services/request.ts` (add cache-check logic gated on `force` flag)
+- `src/cli/handlers/request_show_handler.ts` (accept and forward `force` option)
+- `src/cli/command_builders/request_actions.ts` (add `--force` option; fix mode mapping)
+- `tests/services/request_service_test.ts` (skip-if-cached and force-override paths)
+- `tests/cli/request_analyze_test.ts` (`--force` and `--mode hybrid` CLI paths)
+
+**Changes:**
+
+1. **`RequestService.analyze()`** — add cache guard at the start of the method body:
+
+   ```typescript
+   if (!options?.force) {
+     const cached = await this.persistence.loadAnalysis(filePath);
+     if (cached) return cached;
+   }
+   ```
+
+1. **`request_show_handler.ts`** — thread `force` through the `analyze()` call:
+
+   ```typescript
+   await this.requests.analyze(idOrFilename, { mode, force: options.force });
+   ```
+
+1. **`request_actions.ts`** — add option and fix mapping:
+
+   ```typescript
+   .option("--force", "Re-analyze even if a cached analysis already exists")
+   ```
+
+   Replace the binary engine mapping:
+
+   ```typescript
+   // BEFORE
+   options.engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC // AFTER
+   (options.engine as AnalysisMode) ?? AnalysisMode.HYBRID;
+   ```
+
+**Success criteria:**
+
+- [ ] `exoctl request analyze <id>` returns cached `_analysis.json` without making an LLM call when cached result exists
+- [ ] `exoctl request analyze <id> --force` always re-runs analysis and overwrites the cache
+- [ ] `exoctl request analyze <id> --mode hybrid` produces hybrid-mode analysis (not silently downgraded to heuristic)
+- [ ] `RequestService.analyze()` with the default `force=false` short-circuits if `_analysis.json` is present
+- [ ] All three mode values (heuristic, llm, hybrid) are exercised in tests
+
+**Implemented tests:**
+
+- `[RequestService] analyze returns cached result when force=false and cache exists`
+- `[RequestService] analyze re-runs when force=true even if cache exists`
+- `[RequestService] analyze writes result when no cache exists regardless of force flag`
+- `[CLI] request analyze --mode hybrid routes to HYBRID mode`
+- `[CLI] request analyze --force passes force=true to the service layer`
+
+---
+
+### Step 24: Harden Plan Schema and Extract Analysis Scoring Constants (Gaps 8, 11)
+
+**What:** Replace `z.record(z.any())` in `plan_schema.ts` with the typed `RequestAnalysisSchema`
+to prevent silent schema drift in plan round-trips. Extract the heuristic scoring formula weights
+into named constants so the escalation logic is documented, testable, and consistent.
+
+**Files to modify:**
+
+- `src/shared/schemas/plan_schema.ts` (replace weakly-typed field with `RequestAnalysisSchema.optional()`)
+- `src/shared/constants.ts` (add `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, `HEURISTIC_SCORE_COMPLEXITY_BONUS`)
+- `src/services/request_analysis/request_analyzer.ts` (replace magic numbers with constants in `heuristicActionabilityScore()`)
+- `tests/schemas/plan_schema_test.ts` (malformed analysis block rejected by `PlanSchema.parse()`)
+- `tests/services/request_analysis/request_analyzer_test.ts` (scoring formula unit tests)
+
+**Changes:**
+
+1. **`plan_schema.ts`** — replace the weakly-typed field:
+
+   ```typescript
+   // BEFORE
+   request_analysis: z.record(z.any()).optional(),
+
+   // AFTER
+   request_analysis: RequestAnalysisSchema.optional(),
+   ```
+
+   Add import: `import { RequestAnalysisSchema } from "./request_analysis.ts";`
+
+1. **`src/shared/constants.ts`** under `// === Request Analysis ===` — add:
+
+   ```typescript
+   export const HEURISTIC_SCORE_BASELINE = 70;
+   export const HEURISTIC_SCORE_AMBIGUITY_PENALTY = 10;
+   export const HEURISTIC_SCORE_COMPLEXITY_BONUS = 20;
+   ```
+
+1. **`request_analyzer.ts`** — update `heuristicActionabilityScore()` to use constants:
+
+   ```typescript
+   let score = HEURISTIC_SCORE_BASELINE;
+   score -= ambiguities.length * HEURISTIC_SCORE_AMBIGUITY_PENALTY;
+   if (partial.complexity === "simple") score += HEURISTIC_SCORE_COMPLEXITY_BONUS;
+   if (partial.complexity === "epic") score -= HEURISTIC_SCORE_COMPLEXITY_BONUS;
+   ```
+
+**Success criteria:**
+
+- [ ] `plan_schema.ts` imports and uses `RequestAnalysisSchema` for the `request_analysis` field
+- [ ] `PlanSchema.parse()` rejects a plan containing a malformed `request_analysis` block
+- [ ] `HEURISTIC_SCORE_BASELINE`, `HEURISTIC_SCORE_AMBIGUITY_PENALTY`, and `HEURISTIC_SCORE_COMPLEXITY_BONUS` are exported from `src/shared/constants.ts`
+- [ ] `heuristicActionabilityScore()` references all three constants — no remaining magic numbers
+- [ ] Unit tests verify formula at 0, 2, and 4 ambiguities for `simple` and `epic` complexity tiers
+
+**Implemented tests:**
+
+- `[PlanSchema] rejects plan with malformed request_analysis block`
+- `[PlanSchema] accepts plan with valid RequestAnalysisSchema-conforming block`
+- `[RequestAnalyzer] heuristic baseline score equals HEURISTIC_SCORE_BASELINE`
+- `[RequestAnalyzer] heuristic score decreases by AMBIGUITY_PENALTY per ambiguity`
+- `[RequestAnalyzer] heuristic score increases by COMPLEXITY_BONUS for simple requests`
+- `[RequestAnalyzer] heuristic score decreases by COMPLEXITY_BONUS for epic requests`
+
+---
+
+### Step 25: Enrich Analysis Metadata and Fix Journal Correlation (Gaps 12, 13, 14)
+
+**What:** Add `analyzerVersion` to the metadata schema so LLM prompt regressions can be tracked
+without checking git history. Populate `requestFilePath` and `traceId` in `IRequestAnalysisContext`
+so every `request.analyzed` journal entry can be correlated back to a specific request file and
+trace. Remove the dead `RequestTaskType.FIX` enum variant that is unreachable from every code
+path and creates switch-exhaustiveness hazards.
+
+**Files to modify:**
+
+- `src/shared/schemas/request_analysis.ts` (`analyzerVersion` to `RequestAnalysisMetadataSchema`; `requestFilePath` + `traceId` to `IRequestAnalysisContext`; remove `FIX` from `RequestTaskType`)
+- `src/shared/constants.ts` (add `ANALYZER_VERSION = "1.0.0"` to the Request Analysis block)
+- `src/services/request_analysis/llm_analyzer.ts` (populate `analyzerVersion` from constant)
+- `src/services/request_analysis/request_analyzer.ts` (`analyzerVersion` in output; pass `requestFilePath` to `_logActivity()` target; pass `traceId` to `db.logActivity()`)
+- `src/services/request_processor.ts` (populate `requestFilePath` and `traceId` in `IRequestAnalysisContext` before calling `analyze()`)
+- `tests/services/request_analysis/request_analyzer_test.ts` (assert journal target equals `requestFilePath`)
+- `tests/services/request_analysis/llm_analyzer_test.ts` (assert `analyzerVersion` present in output)
+
+**Changes:**
+
+1. **`RequestAnalysisMetadataSchema`** — add `analyzerVersion` (keep existing `mode` field):
+
+   ```typescript
+   analyzerVersion: z.string().default(ANALYZER_VERSION),
+   mode: z.nativeEnum(AnalysisMode),
+   ```
+
+1. **`IRequestAnalysisContext`** — add two optional correlation fields:
+
+   ```typescript
+   requestFilePath?: string;
+   traceId?: string;
+   ```
+
+1. **`src/shared/constants.ts`** — add in the `// === Request Analysis ===` block:
+
+   ```typescript
+   export const ANALYZER_VERSION = "1.0.0";
+   ```
+
+   Document in a comment: increment this constant whenever the LLM prompt template changes in a
+   breaking way (alters JSON field names or semantics).
+
+1. **`_logActivity()` in `request_analyzer.ts`** — replace the `null` target:
+
+   ```typescript
+   // BEFORE
+   this.db.logActivity("RequestAnalyzer", "request.analyzed", null, { ... });
+
+   // AFTER
+   this.db.logActivity(
+     "RequestAnalyzer",
+     "request.analyzed",
+     context?.requestFilePath ?? null,
+     { ...details, traceId: context?.traceId },
+   );
+   ```
+
+1. **`RequestProcessor.process()`** — populate correlation fields in the context object:
+
+   ```typescript
+   const analysisContext: IRequestAnalysisContext = {
+     requestFilePath: request.filePath,
+     traceId: request.traceId,
+   };
+   ```
+
+1. **`RequestTaskType` enum** — remove dead `FIX = "fix"` variant; update any switch/case that
+   referenced it; update affected tests and schema snapshot. `BUGFIX = "bugfix"` becomes the
+   sole canonical value for bug-fix task type across heuristic, LLM, and CLI paths.
+
+**Success criteria:**
+
+- [ ] `IRequestAnalysis.metadata.analyzerVersion` is present and non-empty for both heuristic and LLM results
+- [ ] `ANALYZER_VERSION` constant exported from `src/shared/constants.ts`
+- [ ] `request.analyzed` journal entry uses `requestFilePath` as the target (non-null for all production request paths)
+- [ ] `IRequestAnalysisContext` interface declares `requestFilePath?: string` and `traceId?: string`
+- [ ] `RequestProcessor` populates both fields before passing context to `analyzer.analyze()`
+- [ ] `RequestTaskType.FIX` removed; `deno check src/main.ts` produces no type errors
+- [ ] No test references `RequestTaskType.FIX` after removal
+
+**Implemented tests:**
+
+- `[RequestAnalysisMetadataSchema] includes analyzerVersion field with string type`
+- `[RequestAnalyzer] request.analyzed journal entry target equals context.requestFilePath`
+- `[RequestAnalyzer] request.analyzed journal entry target is null when requestFilePath not provided`
+- `[LlmAnalyzer] output includes analyzerVersion populated from ANALYZER_VERSION constant`
+- `[RequestTaskType] enum does not contain FIX variant — BUGFIX is canonical`
+
+---
+
+### Step 26: Add Missing Integration and Config Schema Tests (Gaps 9, 10)
+
+**What:** Create the two test files specified in Steps 16 and 17 but never created, leaving the
+`_analysis.json` write-read cycle and config defaults completely uncovered by automated tests.
+
+**Files to create:**
+
+- `tests/integration/request_analysis_e2e_test.ts`
+- `tests/schemas/config_request_analysis_test.ts`
+
+**Test structure — `tests/integration/request_analysis_e2e_test.ts`:**
+
+```typescript
+// Uses TestEnvironment.create() — real workspace, real file I/O, no external LLM
+
+Deno.test("[E2E] request analysis pipeline with heuristic mode", async () => { ... });
+Deno.test("[E2E] request analysis pipeline with hybrid mode (mock LLM)", async () => { ... });
+Deno.test("[E2E] analysis persisted as _analysis.json", async () => { ... });
+Deno.test("[E2E] plan metadata includes request analysis", async () => { ... });
+Deno.test("[E2E] flow request receives analysis context", async () => { ... });
+```
+
+**Test structure — `tests/schemas/config_request_analysis_test.ts`:**
+
+```typescript
+Deno.test("[ConfigSchema] validates request_analysis section", () => { ... });
+Deno.test("[ConfigSchema] uses defaults when request_analysis is absent", () => { ... });
+Deno.test("[ConfigSchema] rejects invalid mode value", () => { ... });
+Deno.test("[ConfigSchema] rejects actionability_threshold outside 0-100", () => { ... });
+// Tests added by Step 22 backfill:
+Deno.test("[ConfigSchema] request_analysis.enabled defaults to true", () => { ... });
+Deno.test("[ConfigSchema] request_analysis.persist_analysis defaults to true", () => { ... });
+```
+
+**Integration test approach:**
+
+1. Call `TestEnvironment.create()` to spin up a real workspace with temp directories and an
+   in-memory DB.
+1. Write a request `.md` file to `Workspace/Requests/` using `writeFileAtomically()`.
+1. Construct a `RequestProcessor` with a heuristic-only config (no LLM mock needed for the
+   happy path test).
+1. Call `RequestProcessor.process()` with the request file path.
+1. Assert that `_analysis.json` was written alongside the request file.
+1. Re-load via `AnalysisPersistence.loadAnalysis()` and assert schema round-trip — no fields
+   lost or corrupted.
+1. For hybrid escalation: inject a mock `IModelProvider` that returns a known JSON response;
+   assert mock was called exactly once for a low-actionability request and zero times for a
+   clearly-specified request.
+1. For plan metadata: retrieve the written plan file, parse frontmatter with `PlanSchema.parse()`,
+   assert `request_analysis` block matches the analysis object.
+1. For flow request: construct a flow-routed request; assert `IFlowStepRequest.requestAnalysis`
+   is populated after `RequestProcessor.process()`.
+
+**Success criteria:**
+
+- [ ] `tests/integration/request_analysis_e2e_test.ts` exists and all 5 tests pass
+- [ ] `tests/schemas/config_request_analysis_test.ts` exists and all 6 tests pass
+- [ ] E2E test covers the heuristic-only path (no LLM dependency)
+- [ ] E2E test covers the hybrid escalation path with a deterministic mock LLM provider
+- [ ] E2E test verifies `_analysis.json` round-trip via `RequestAnalysisSchema.parse()`
+- [ ] E2E test verifies plan frontmatter contains a typed `request_analysis` block after `PlanWriter.writePlan()`
+- [ ] E2E test verifies flow request carries `requestAnalysis` context through to `FlowRunner.execute()`
+- [ ] Config schema test covers `enabled: false` and `persist_analysis: false` added in Step 22
+
+**Implemented tests:**
+
+- `[E2E] request analysis pipeline with heuristic mode`
+- `[E2E] request analysis pipeline with hybrid mode (mock LLM)`
+- `[E2E] analysis persisted as _analysis.json`
+- `[E2E] plan metadata includes request analysis`
+- `[E2E] flow request receives analysis context`
+- `[ConfigSchema] validates request_analysis section`
+- `[ConfigSchema] uses defaults when request_analysis is absent`
+- `[ConfigSchema] rejects invalid mode value`
+- `[ConfigSchema] rejects actionability_threshold outside 0-100`
+- `[ConfigSchema] request_analysis.enabled defaults to true`
+- `[ConfigSchema] request_analysis.persist_analysis defaults to true`
+
+---
+
 ### Implementation Order & Dependencies
 
 ```text
@@ -841,20 +1287,29 @@ Step 17: E2E test                    ← depends on all above
 Step 18: ARCHITECTURE.md             ← depends on Steps 8, 11, 13 (needs final design)
 Step 19: User & dev docs             ← depends on Steps 15, 16 (needs CLI & config)
 Step 20: .copilot/ agent docs        ← depends on Step 18 (needs architecture)
+Step 21: Schema backfill             ← depends on Steps 1, 3, 4 (extends existing schemas)
+Step 22: Mode default & config       ← depends on Steps 5, 7, 16 (extends processor and config)
+Step 23: CLI --force & hybrid mode   ← depends on Steps 14, 15 (extends CLI commands)
+Step 24: Plan schema + constants     ← depends on Steps 1, 6, 10 (extends plan schema)
+Step 25: Metadata & journal          ← depends on Steps 1, 6 (extends schemas and constants)
+Step 26: Integration & config tests  ← depends on Steps 17, 22, 23 (new test files; completes coverage)
 ```
 
 **Parallel waves:**
 
-| Wave | Steps | Description |
-| ------ | ------- | ------------- |
-| 1 | 1, 2, 6 | Types, interfaces, constants (no runtime code) |
-| 2 | 3, 4 | Analysis strategies (parallel, independent) |
-| 3 | 5, 7 | Orchestrator service + persistence |
-| 4 | 8, 15, 16 | Pipeline wiring + CLI command + config |
-| 5 | 9, 10, 11, 12 | Downstream consumers (parallel) |
-| 6 | 13, 14 | UI integration (depends on data path) |
-| 7 | 17 | E2E validation |
-| 8 | 18, 19, 20 | Documentation (after implementation stabilizes) |
+| Wave | Steps         | Description                                                                    |
+| ---- | ------------- | ------------------------------------------------------------------------------ |
+| 1    | 1, 2, 6       | Types, interfaces, constants (no runtime code)                                 |
+| 2    | 3, 4          | Analysis strategies (parallel, independent)                                    |
+| 3    | 5, 7          | Orchestrator service + persistence                                             |
+| 4    | 8, 15, 16     | Pipeline wiring + CLI command + config                                         |
+| 5    | 9, 10, 11, 12 | Downstream consumers (parallel)                                                |
+| 6    | 13, 14        | UI integration (depends on data path)                                          |
+| 7    | 17            | E2E validation                                                                 |
+| 8    | 18, 19, 20    | Documentation (after implementation stabilizes)                                |
+| 9    | 21, 24, 25    | Schema backfill + plan hardening + metadata enrichment (parallel)              |
+| 10   | 22, 23        | Config wiring + CLI fixes (parallel; depends on Step 21 for new config fields) |
+| 11   | 26            | Missing test files (requires Wave 9–10 fixes to be in place)                   |
 
 ---
 
@@ -951,11 +1406,11 @@ export class RequestAnalyzer {
 
 #### Analysis Modes
 
-| Mode | Cost | Accuracy | Use Case |
-| ------ | ------ | ---------- | ---------- |
-| `heuristic` | Zero (no LLM) | Basic | Quick classification, keyword extraction, file reference detection |
-| `llm` | 1 LLM call | High | Full intent extraction, acceptance criteria inference, ambiguity detection |
-| `hybrid` | Conditional | Balanced | Heuristic first; LLM only if actionability is below threshold |
+| Mode        | Cost          | Accuracy | Use Case                                                                   |
+| ----------- | ------------- | -------- | -------------------------------------------------------------------------- |
+| `heuristic` | Zero (no LLM) | Basic    | Quick classification, keyword extraction, file reference detection         |
+| `llm`       | 1 LLM call    | High     | Full intent extraction, acceptance criteria inference, ambiguity detection |
+| `hybrid`    | Conditional   | Balanced | Heuristic first; LLM only if actionability is below threshold              |
 
 #### Heuristic Analysis Capabilities (No LLM)
 
@@ -1046,12 +1501,12 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-| ------ | ----------- |
-| LLM analysis adds latency/cost to every request | Hybrid mode: heuristic first, LLM only when needed |
-| Analysis may be inaccurate | Heuristic fallback; analysis is advisory, not blocking |
-| Over-engineering simple requests | Actionability threshold skips deep analysis for clear requests |
-| Schema changes to `IParsedRequest` | Additive only; existing fields gain population, no breaking changes |
+| Risk                                            | Mitigation                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------- |
+| LLM analysis adds latency/cost to every request | Hybrid mode: heuristic first, LLM only when needed                  |
+| Analysis may be inaccurate                      | Heuristic fallback; analysis is advisory, not blocking              |
+| Over-engineering simple requests                | Actionability threshold skips deep analysis for clear requests      |
+| Schema changes to `IParsedRequest`              | Additive only; existing fields gain population, no breaking changes |
 
 ## Open Questions
 
@@ -1068,7 +1523,7 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 
 ### Required Changes for Flow Requests
 
-1. **Move analysis before the agent/flow split.** `RequestAnalyzer.analyze()` should run in `RequestProcessor.process()` after `RequestParser.parse()` but before `processRequestByKind()`. The analysis applies to the *request*, not to the execution mechanism.
+1. **Move analysis before the agent/flow split.** `RequestAnalyzer.analyze()` should run in `RequestProcessor.process()` after `RequestParser.parse()` but before `processRequestByKind()`. The analysis applies to the _request_, not to the execution mechanism.
 
 1.
 
@@ -1127,12 +1582,12 @@ All 58 related tests (covering schemas, services, TUI, CLI, and E2E integration)
 
 The following questions from the [Open Questions](#open-questions) section were answered during implementation:
 
-| Question | Decision |
-| -------- | --------- |
-| Should analysis be persisted as `_analysis.json`? | **Yes** — `saveAnalysis()` writes atomically alongside the request file. `loadAnalysis()` validates on read via `RequestAnalysisSchema`. |
-| Should analysis results be visible in CLI/TUI? | **Yes** — `exoctl request show` displays analysis section; TUI Request Manager Detail View shows complexity badge, actionability bar, goals, ambiguities. |
-| What is the right actionability threshold? | **60** — `DEFAULT_ACTIONABILITY_THRESHOLD = 60` in `src/shared/constants.ts`. Hybrid mode escalates to LLM when heuristic score is below 60. |
-| Should the `product-manager` agent be usable as the LLM analyzer? | **Not implemented** — `LlmAnalyzer` uses a hard-coded prompt template. Blueprint-based LLM analysis deferred to a future phase. |
+| Question                                                          | Decision                                                                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Should analysis be persisted as `_analysis.json`?                 | **Yes** — `saveAnalysis()` writes atomically alongside the request file. `loadAnalysis()` validates on read via `RequestAnalysisSchema`.                  |
+| Should analysis results be visible in CLI/TUI?                    | **Yes** — `exoctl request show` displays analysis section; TUI Request Manager Detail View shows complexity badge, actionability bar, goals, ambiguities. |
+| What is the right actionability threshold?                        | **60** — `DEFAULT_ACTIONABILITY_THRESHOLD = 60` in `src/shared/constants.ts`. Hybrid mode escalates to LLM when heuristic score is below 60.              |
+| Should the `product-manager` agent be usable as the LLM analyzer? | **Not implemented** — `LlmAnalyzer` uses a hard-coded prompt template. Blueprint-based LLM analysis deferred to a future phase.                           |
 
 ---
 
@@ -1173,7 +1628,7 @@ clarificationQuestion?: string;
 The actual `AmbiguitySchema` only contains `description` and `impact`. **Impact:** Phase 47 (clarification flow) and Phase 49 (reflexive agent critique) plan to iterate over `ambiguities[]` and surface the `clarificationQuestion` to the user or agent. Without these fields the clarification flow has no question text to show, forcing every downstream consumer to reconstruct questions from the ambiguity description — defeating the purpose of structured extraction.
 
 > **To fix:** Add `interpretations: z.array(z.string()).default([])` and `clarificationQuestion: z.string().optional()` to `AmbiguitySchema`. Update `LlmAnalyzer` prompt template JSON spec to include both fields. Heuristic analyzer can leave `interpretations: []` and `clarificationQuestion: undefined` (fields are optional or default-empty). Add regression tests for both fields.
-
+>
 > **Downstream phases affected:** Phase 47 Q&A clarification flow, Phase 49 reflexive agent critique loop.
 
 ---
@@ -1318,7 +1773,7 @@ The [Detailed Design §1](#1-irequestanalysis-schema) shows the metadata shape a
 ```typescript
 metadata: {
   analyzedAt: string;
-  analyzerVersion: string;    // ← In design but NOT in implementation
+  analyzerVersion: string; // ← In design but NOT in implementation
   durationMs: number;
 }
 ```
