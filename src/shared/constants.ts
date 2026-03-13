@@ -744,3 +744,132 @@ export const ANALYSIS_TASK_TYPE_VERBS: Record<string, string> = {
   introduce: "feature",
   new: "feature",
 };
+
+// === Portal Knowledge ===
+
+/** Maximum files to scan in quick mode. */
+export const DEFAULT_QUICK_SCAN_LIMIT = 200;
+
+/** Maximum files whose content is read during analysis. */
+export const DEFAULT_MAX_FILES_TO_READ = 50;
+
+/** Hours before portal knowledge is considered stale (1 week). */
+export const DEFAULT_KNOWLEDGE_STALENESS_HOURS = 168;
+
+/** Default analysis mode applied when not overridden. */
+export const DEFAULT_PORTAL_KNOWLEDGE_MODE = "quick";
+
+/** Max total assembled prompt tokens sent to LLM in ArchitectureInferrer. */
+export const ARCHITECTURE_INFERRER_TOKEN_BUDGET = 8_000;
+
+/** Max lines per file before truncation when assembling the LLM prompt. */
+export const ARCHITECTURE_INFERRER_MAX_FILE_TOKENS = 200;
+
+/** Max lines in the portal knowledge Markdown summary injected into agent prompts. */
+export const PORTAL_KNOWLEDGE_PROMPT_MAX_LINES = 60;
+
+/** Max ISymbolEntry records stored in symbolMap. */
+export const DEFAULT_SYMBOL_MAP_LIMIT = 100;
+
+/** Subprocess timeout for `deno doc --json` call in milliseconds. */
+export const DENO_DOC_TIMEOUT_MS = 15_000;
+
+/** File/directory name patterns skipped during portal traversal by default. */
+export const DEFAULT_IGNORE_PATTERNS: string[] = [
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  ".next",
+  ".nuxt",
+  "coverage",
+  "cov_profile",
+  ".cache",
+  "__pycache__",
+  "target",
+  "vendor",
+  ".venv",
+  "venv",
+  ".DS_Store",
+];
+
+/** Well-known entrypoint file names used for priority-first traversal and key-file identification. */
+export const PORTAL_ENTRYPOINT_NAMES: string[] = [
+  "main.ts",
+  "main.js",
+  "mod.ts",
+  "index.ts",
+  "index.js",
+  "index.mjs",
+  "app.ts",
+  "app.js",
+  "server.ts",
+  "server.js",
+];
+
+/** Config file extensions used for config file identification. */
+export const PORTAL_KNOWLEDGE_CONFIG_EXTENSIONS: string[] = [
+  ".json",
+  ".toml",
+  ".yaml",
+  ".yml",
+];
+
+/**
+ * File name/path patterns that are always collected before the scan cap applies
+ * (priority-first traversal). Matched using substring/suffix checks.
+ */
+export const PORTAL_KNOWLEDGE_PRIORITY_PATTERNS: string[] = [
+  "package.json",
+  "deno.json",
+  "deno.jsonc",
+  "tsconfig.json",
+  "jsconfig.json",
+  "Cargo.toml",
+  "pyproject.toml",
+  "go.mod",
+  "Dockerfile",
+  ".gitignore",
+  "main.ts",
+  "main.js",
+  "mod.ts",
+  "index.ts",
+  "index.js",
+  "app.ts",
+  "server.ts",
+];
+
+/**
+ * Maps well-known directory names to architecture layer descriptions.
+ * Keys are directory names (relative path components). Values are responsibility strings.
+ */
+export const PORTAL_KNOWLEDGE_ARCH_LAYER_DIRS: Record<string, string> = {
+  services: "Core business logic and service implementations",
+  controllers: "Request handling and routing controllers",
+  handlers: "Command and event handlers",
+  routes: "URL routing definitions",
+  models: "Data models and entities",
+  repositories: "Data access and persistence layer",
+  schemas: "Validation schemas and type definitions",
+  types: "Shared TypeScript type definitions",
+  interfaces: "Service and domain interfaces",
+  config: "Configuration loading and validation",
+  migrations: "Database migration scripts",
+  scripts: "Build, deploy, and maintenance scripts",
+  tests: "Automated test suite",
+  docs: "Project documentation",
+  middleware: "HTTP middleware and interceptors",
+  utils: "Utility functions and helpers",
+  helpers: "Helper utilities",
+  adapters: "External system adapters",
+  providers: "Service and dependency providers",
+  hooks: "React/framework lifecycle hooks",
+  components: "UI components",
+  pages: "Page-level UI components",
+  api: "API layer / route definitions",
+  lib: "Shared library code",
+  cli: "Command-line interface commands",
+  tui: "Terminal user interface components",
+  ai: "AI/LLM provider implementations",
+  mcp: "Model Context Protocol server",
+};
