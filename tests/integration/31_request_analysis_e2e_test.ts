@@ -113,7 +113,6 @@ Deno.test(
       await env.createBlueprint("senior-coder");
       const { processor } = env.createRequestProcessor();
 
-      let agentFilePath: string;
       let planPath: string | null;
 
       await t.step(
@@ -123,7 +122,6 @@ Deno.test(
             "Implement an OAuth2 login flow with Google and GitHub providers",
             { agentId: "senior-coder" },
           );
-          agentFilePath = filePath;
           planPath = await processor.process(filePath);
 
           const analysisPath = filePath.replace(/\.md$/, "_analysis.json");
@@ -164,8 +162,6 @@ Deno.test(
           assertExists(stat, "_analysis.json should be created for flow request");
         },
       );
-
-      void agentFilePath; // declared before steps; used only inside step 1
     } finally {
       await env.cleanup();
     }
