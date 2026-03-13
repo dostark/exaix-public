@@ -799,26 +799,28 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Calls `provider.generate()` with structured architecture analysis prompt
-- [ ] Validates LLM response with expected output format
-- [ ] Returns Markdown architecture overview
-- [ ] Does **not** override `layers` populated by heuristic Strategy 1 pass
-- [ ] Falls back to empty overview on LLM failure
-- [ ] Prompt includes all input signals (tree, key files, configs, patterns, deps)
-- [ ] Truncates per-file content to `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS` (200) lines before prompt assembly
-- [ ] Caps total assembled prompt at `ARCHITECTURE_INFERRER_TOKEN_BUDGET` (8,000) tokens; omits low-significance files when over budget
-- [ ] Uses `temperature: 0` for deterministic output
+- [x] Calls `provider.generate()` with structured architecture analysis prompt
+- [x] Validates LLM response with expected output format
+- [x] Returns Markdown architecture overview
+- [x] Does **not** override `layers` populated by heuristic Strategy 1 pass
+- [x] Falls back to empty overview on LLM failure
+- [x] Prompt includes all input signals (tree, key files, configs, patterns, deps)
+- [x] Truncates per-file content to `ARCHITECTURE_INFERRER_MAX_FILE_TOKENS` (200) lines before prompt assembly
+- [x] Caps total assembled prompt at `ARCHITECTURE_INFERRER_TOKEN_BUDGET` (8,000) tokens; omits low-significance files when over budget
+- [x] Uses `temperature: 0` for deterministic output
 
-**Planned tests** (`tests/services/portal_knowledge/architecture_inferrer_test.ts`):
+**✅ IMPLEMENTED** — `src/services/portal_knowledge/architecture_inferrer.ts`, 8/8 tests passing
 
-- `[ArchitectureInferrer] generates architecture overview from mock LLM response`
-- `[ArchitectureInferrer] passes directory tree in prompt`
-- `[ArchitectureInferrer] passes key files and patterns in prompt`
-- `[ArchitectureInferrer] handles LLM failure gracefully`
-- `[ArchitectureInferrer] returns empty overview on invalid LLM output`
-- `[ArchitectureInferrer] uses OutputValidator for response parsing`
-- `[ArchitectureInferrer] truncates long files to ARCHITECTURE_INFERRER_MAX_FILE_TOKENS lines`
-- `[ArchitectureInferrer] stays within ARCHITECTURE_INFERRER_TOKEN_BUDGET on large input sets`
+**Tests** (`tests/services/portal_knowledge/architecture_inferrer_test.ts`):
+
+- ✅ `[ArchitectureInferrer] generates architecture overview from mock LLM response`
+- ✅ `[ArchitectureInferrer] passes directory tree in prompt`
+- ✅ `[ArchitectureInferrer] passes key files and patterns in prompt`
+- ✅ `[ArchitectureInferrer] handles LLM failure gracefully`
+- ✅ `[ArchitectureInferrer] returns empty overview on invalid LLM output`
+- ✅ `[ArchitectureInferrer] uses OutputValidator for response parsing`
+- ✅ `[ArchitectureInferrer] truncates long files to ARCHITECTURE_INFERRER_MAX_FILE_TOKENS lines`
+- ✅ `[ArchitectureInferrer] stays within ARCHITECTURE_INFERRER_TOKEN_BUDGET on large input sets`
 
 ---
 
