@@ -8,9 +8,10 @@
  */
 
 import { join, resolve } from "@std/path";
+import { ensureDir } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
 import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../../shared/enums.ts";
-import { PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
+import { ExoPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
 import type { JSONValue } from "../../shared/types/json.ts";
 
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
@@ -83,6 +84,24 @@ export class PortalCommands extends BaseCommand {
         path: absoluteTarget,
         techStack: [],
       });
+
+      // Trigger portal knowledge analysis post-mount (fire-and-forget on failure)
+      if (this.context.portalKnowledge && this.context.portalKnowledgeConfig?.autoAnalyzeOnMount) {
+        const sysRoot = this.config.system.root as string;
+        const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+        try {
+          const knowledge = await this.context.portalKnowledge.analyze(alias, absoluteTarget);
+          // Atomically persist knowledge.json under Memory/Projects/{alias}/
+          const portalDir = join(projectsDir, alias);
+          await ensureDir(portalDir);
+          const knowledgePath = join(portalDir, "knowledge.json");
+          const tmpPath = `${knowledgePath}.tmp`;
+          await Deno.writeTextFile(tmpPath, JSON.stringify(knowledge, null, 2));
+          await Deno.rename(tmpPath, knowledgePath);
+        } catch {
+          // Analysis failure must not block mount
+        }
+      }
 
       // Update config file
       if (this.context.config) {

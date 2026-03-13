@@ -23,6 +23,10 @@ import type { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import type { IPortalService } from "../shared/interfaces/i_portal_service.ts";
 import type { IRequestService } from "../shared/interfaces/i_request_service.ts";
 import type { IPlanService } from "../shared/interfaces/i_plan_service.ts";
+import type {
+  IPortalKnowledgeConfig,
+  IPortalKnowledgeService,
+} from "../shared/interfaces/i_portal_knowledge_service.ts";
 
 export interface ICliApplicationContext {
   db: IDatabaseService;
@@ -41,6 +45,8 @@ export interface ICliApplicationContext {
   portals?: IPortalService;
   requests?: IRequestService;
   plans?: IPlanService;
+  portalKnowledge?: IPortalKnowledgeService;
+  portalKnowledgeConfig?: IPortalKnowledgeConfig;
 }
 
 export type {
@@ -52,6 +58,8 @@ export type {
   IMemoryExtractorService,
   IMemoryService,
   IPlanService,
+  IPortalKnowledgeConfig,
+  IPortalKnowledgeService,
   IPortalService,
   IRequestService,
   ISkillsService,

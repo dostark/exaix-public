@@ -977,7 +977,7 @@ Incremental updates:
 
 ---
 
-### Step 11: Wire Post-Mount Trigger in `portal_commands.ts`
+### Step 11: Wire Post-Mount Trigger in `portal_commands.ts` ✅ IMPLEMENTED
 
 **What:** Add automatic knowledge gathering after portal mount in `portal_commands.ts`, running `quick` mode analysis synchronously.
 
@@ -996,18 +996,18 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Quick analysis runs after portal mount when `autoAnalyzeOnMount` is true
-- [ ] Analysis is skipped when `autoAnalyzeOnMount` is false
-- [ ] Analysis failure does not block portal mount
-- [ ] Result persisted to `Memory/Projects/{portal}/knowledge.json`
+- [x] Quick analysis runs after portal mount when `autoAnalyzeOnMount` is true
+- [x] Analysis is skipped when `autoAnalyzeOnMount` is false
+- [x] Analysis failure does not block portal mount
+- [x] Result persisted to `Memory/Projects/{portal}/knowledge.json`
 - [ ] User sees brief log message about analysis completion
 
 **Planned tests** (`tests/cli/commands/portal_mount_knowledge_test.ts`):
 
-- `[portal add] triggers quick analysis on mount when enabled`
-- `[portal add] skips analysis when autoAnalyzeOnMount is false`
-- `[portal add] mount succeeds even if analysis fails`
-- `[portal add] persists knowledge.json after analysis`
+- ✅ `[portal add] triggers quick analysis on mount when enabled`
+- ✅ `[portal add] skips analysis when autoAnalyzeOnMount is false`
+- ✅ `[portal add] mount succeeds even if analysis fails`
+- ✅ `[portal add] persists knowledge.json after analysis`
 
 ---
 
