@@ -48,7 +48,7 @@ const KNOWLEDGE_FILE = "knowledge.json";
 export async function saveKnowledge(
   portalAlias: string,
   knowledge: IPortalKnowledge,
-  memoryBank: IMemoryBankService,
+  memoryBank: IMemoryBankService | null,
   projectsDir: string,
 ): Promise<void> {
   const portalDir = join(projectsDir, portalAlias);
@@ -59,6 +59,8 @@ export async function saveKnowledge(
   const tmpPath = `${knowledgePath}.tmp`;
   await Deno.writeTextFile(tmpPath, JSON.stringify(knowledge, null, 2));
   await Deno.rename(tmpPath, knowledgePath);
+
+  if (!memoryBank) return;
 
   // 2. Ensure project memory record exists (create if absent)
   const existing = await memoryBank.getProjectMemory(portalAlias);
