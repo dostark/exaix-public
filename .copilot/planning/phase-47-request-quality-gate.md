@@ -599,28 +599,30 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Scores short/vague requests below minimum threshold
-- [ ] Scores well-structured requests above proceed threshold
-- [ ] Detects all negative signals (short body, no verbs, only questions, no specifics)
-- [ ] Detects all positive signals (file refs, acceptance criteria, structure, tech terms)
-- [ ] Generates appropriate `IRequestQualityIssue` per negative signal
-- [ ] Maps score to correct level and recommendation
-- [ ] Zero external dependencies
-- [ ] Completes in <5ms
+- [x] Scores short/vague requests below minimum threshold
+- [x] Scores well-structured requests above proceed threshold
+- [x] Detects all negative signals (short body, no verbs, only questions, no specifics)
+- [x] Detects all positive signals (file refs, acceptance criteria, structure, tech terms)
+- [x] Generates appropriate `IRequestQualityIssue` per negative signal
+- [x] Maps score to correct level and recommendation
+- [x] Zero external dependencies
+- [x] Completes in <5ms
 
 **Planned tests** (`tests/services/quality_gate/heuristic_assessor_test.ts`):
 
-- `[HeuristicAssessor] scores vague one-liner as poor/unactionable`
-- `[HeuristicAssessor] scores well-structured request as good/excellent`
-- `[HeuristicAssessor] detects short body issue`
-- `[HeuristicAssessor] detects missing action verbs`
-- `[HeuristicAssessor] detects question-only request`
-- `[HeuristicAssessor] positive: file references boost score`
-- `[HeuristicAssessor] positive: acceptance criteria keywords boost score`
-- `[HeuristicAssessor] positive: structured requirements boost score`
-- `[HeuristicAssessor] maps score to correct recommendation`
-- `[HeuristicAssessor] handles empty request text`
-- `[HeuristicAssessor] score clamped to 0-100 range`
+- ✅ `[HeuristicAssessor] scores vague one-liner as poor/unactionable`
+- ✅ `[HeuristicAssessor] scores well-structured request as good/excellent`
+- ✅ `[HeuristicAssessor] detects short body issue`
+- ✅ `[HeuristicAssessor] detects missing action verbs`
+- ✅ `[HeuristicAssessor] detects question-only request`
+- ✅ `[HeuristicAssessor] positive: file references boost score`
+- ✅ `[HeuristicAssessor] positive: acceptance criteria keywords boost score`
+- ✅ `[HeuristicAssessor] positive: structured requirements boost score`
+- ✅ `[HeuristicAssessor] maps score to correct recommendation`
+- ✅ `[HeuristicAssessor] handles empty request text`
+- ✅ `[HeuristicAssessor] score clamped to 0-100 range`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/heuristic_assessor.ts`, 13/13 tests passing
 
 ---
 
