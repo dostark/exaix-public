@@ -1079,15 +1079,17 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `getKnowledge()` defined in portal service interface
-- [ ] Implementation loads from `knowledge.json`
-- [ ] Returns `null` when no knowledge exists
-- [ ] Cached knowledge served without re-analysis
+- [x] `getKnowledge()` defined in portal service interface
+- [x] Implementation loads from `knowledge.json`
+- [x] Returns `null` when no knowledge exists
+- [x] Cached knowledge served without re-analysis
 
 **Planned tests** (`tests/services/portal_knowledge_data_path_test.ts`):
 
-- `[PortalService] getKnowledge returns knowledge for analyzed portal`
-- `[PortalService] getKnowledge returns null for unanalyzed portal`
+- ✅ `[PortalService] getKnowledge returns knowledge for analyzed portal`
+- ✅ `[PortalService] getKnowledge returns null for unanalyzed portal`
+
+**✅ IMPLEMENTED** — `src/services/portal.ts`, `src/shared/interfaces/i_portal_service.ts`, 2/2 tests passing
 
 ---
 

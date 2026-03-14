@@ -12,7 +12,9 @@ import { ensureDir, exists } from "@std/fs";
 import { Config } from "../shared/schemas/config.ts";
 import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../shared/enums.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../shared/types/portal.ts";
-import { PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
+import { ExoPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
+import { loadKnowledge } from "./portal_knowledge/knowledge_persistence.ts";
 import { IContextCardGeneratorService } from "../shared/interfaces/i_context_card_generator_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
 import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
@@ -352,6 +354,18 @@ export class PortalService {
     if (this.reservedNames.includes(alias)) {
       throw new Error(`Alias '${alias}' is reserved`);
     }
+  }
+
+  /**
+   * Load persisted portal knowledge (knowledge.json) for the given alias.
+   * Returns `null` when no analysis has been run yet.
+   */
+  getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null> {
+    const projectsDir = join(
+      this.config.system.root as string,
+      ExoPathDefaults.memoryProjects,
+    );
+    return loadKnowledge(portalAlias, projectsDir);
   }
 
   private async validateBranchName(branch: string, opts?: { label?: string }): Promise<void> {

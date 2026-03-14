@@ -9,6 +9,7 @@
 
 import type { PortalExecutionStrategy } from "../enums.ts";
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../types/portal.ts";
+import type { IPortalKnowledge } from "../schemas/portal_knowledge.ts";
 
 export interface IPortalService {
   /**
@@ -89,4 +90,9 @@ export interface IPortalService {
    * TUI-specific: Get the activity log for a portal.
    */
   getPortalActivityLog(alias: string): string[];
+
+  /**
+   * Load persisted portal knowledge from knowledge.json, or null when not yet analyzed.
+   */
+  getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null>;
 }
