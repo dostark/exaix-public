@@ -376,6 +376,18 @@ fast = ["google", "openai"]
 local_first = ["local", "default"]
 
 
+[quality_gate]
+enabled = true
+mode = "hybrid"                  # heuristic | llm | hybrid
+auto_enrich = true               # enrich requests that score between enrichment and proceed thresholds
+block_unactionable = false       # hard-block requests below the minimum threshold
+max_clarification_rounds = 5     # maximum Q&A rounds before auto-proceeding
+
+[quality_gate.thresholds]
+minimum = 20                     # 0–100; below this the request is rejected or blocked
+enrichment = 50                  # 0–100; below this the request is enriched before execution
+proceed = 70                     # 0–100; at or above this the request proceeds immediately
+
 [request_analysis]
 enabled = true
 mode = "hybrid"                  # heuristic | llm | hybrid

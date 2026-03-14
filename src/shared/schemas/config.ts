@@ -17,6 +17,7 @@ import {
   PortalAnalysisMode,
   PortalExecutionStrategy,
   ProviderCostTier,
+  QualityGateMode,
   SqliteJournalMode,
 } from "../enums.ts";
 import { AnalysisMode } from "../types/request.ts";
@@ -281,6 +282,46 @@ export const ConfigSchema = z.object({
     agent_id: z.string().default(DEFAULTS.DEFAULT_MCP_AGENT_ID),
   }).optional().default({
     agent_id: DEFAULTS.DEFAULT_MCP_AGENT_ID,
+  }),
+  /** Request quality gate configuration (Phase 47) */
+  quality_gate: z.object({
+    /** Whether the quality gate runs at all. */
+    enabled: z.boolean().default(true),
+
+    /** Gate strategy: heuristic, llm, or hybrid. */
+    mode: z.nativeEnum(QualityGateMode).default(QualityGateMode.HYBRID),
+
+    /** Whether to automatically enrich requests that score between enrichment and proceed thresholds. */
+    auto_enrich: z.boolean().default(true),
+
+    /** Whether to hard-block requests deemed unactionable instead of letting them proceed. */
+    block_unactionable: z.boolean().default(false),
+
+    /** Maximum number of clarification rounds before auto-proceeding. */
+    max_clarification_rounds: z.number().int().min(1).max(20)
+      .default(DEFAULTS.DEFAULT_MAX_CLARIFICATION_ROUNDS),
+
+    /** Score thresholds (0-100) controlling gate behaviour. */
+    thresholds: z.object({
+      minimum: z.number().int().min(0).max(100).default(DEFAULTS.DEFAULT_QG_MINIMUM_THRESHOLD),
+      enrichment: z.number().int().min(0).max(100).default(DEFAULTS.DEFAULT_QG_ENRICHMENT_THRESHOLD),
+      proceed: z.number().int().min(0).max(100).default(DEFAULTS.DEFAULT_QG_PROCEED_THRESHOLD),
+    }).default({
+      minimum: DEFAULTS.DEFAULT_QG_MINIMUM_THRESHOLD,
+      enrichment: DEFAULTS.DEFAULT_QG_ENRICHMENT_THRESHOLD,
+      proceed: DEFAULTS.DEFAULT_QG_PROCEED_THRESHOLD,
+    }),
+  }).optional().default({
+    enabled: true,
+    mode: QualityGateMode.HYBRID,
+    auto_enrich: true,
+    block_unactionable: false,
+    max_clarification_rounds: DEFAULTS.DEFAULT_MAX_CLARIFICATION_ROUNDS,
+    thresholds: {
+      minimum: DEFAULTS.DEFAULT_QG_MINIMUM_THRESHOLD,
+      enrichment: DEFAULTS.DEFAULT_QG_ENRICHMENT_THRESHOLD,
+      proceed: DEFAULTS.DEFAULT_QG_PROCEED_THRESHOLD,
+    },
   }),
   /** Request intent analysis configuration (Phase 45) */
   request_analysis: z.object({
