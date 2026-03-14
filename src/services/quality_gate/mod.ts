@@ -14,3 +14,5 @@ export { type IRequestQualityGateConfig } from "../../shared/interfaces/i_reques
 export { assessHeuristic } from "./heuristic_assessor.ts";
 export { LlmQualityAssessor } from "./llm_assessor.ts";
 export { enrichRequest } from "./request_enricher_llm.ts";
+export { ClarificationEngine } from "./clarification_engine.ts";
+export { type IClarificationEngineConfig } from "./clarification_engine.ts";
