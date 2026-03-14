@@ -12,7 +12,13 @@ import { AiConfigSchema } from "./ai_config.ts";
 import { MCPConfigSchema } from "../schemas/mcp.ts";
 import * as DEFAULTS from "../constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
-import { LogLevel, PortalExecutionStrategy, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
+import {
+  LogLevel,
+  PortalAnalysisMode,
+  PortalExecutionStrategy,
+  ProviderCostTier,
+  SqliteJournalMode,
+} from "../enums.ts";
 import { AnalysisMode } from "../types/request.ts";
 
 export interface IPortalConfig {
@@ -507,6 +513,36 @@ export const ConfigSchema = z.object({
     cache_ttl_ms: DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS,
     memory_warn_percent: DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT,
     memory_critical_percent: DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT,
+  }),
+  /** Portal codebase knowledge gathering configuration (Phase 46) */
+  portal_knowledge: z.object({
+    /** Automatically trigger knowledge analysis after portal mount. */
+    auto_analyze_on_mount: z.boolean().default(true),
+    /** Default analysis depth when not overridden per-call. */
+    default_mode: z.nativeEnum(PortalAnalysisMode)
+      .default(DEFAULTS.DEFAULT_PORTAL_KNOWLEDGE_MODE as PortalAnalysisMode),
+    /** Maximum files to stat/list in quick scan mode. */
+    quick_scan_limit: z.number().int().min(1)
+      .default(DEFAULTS.DEFAULT_QUICK_SCAN_LIMIT),
+    /** Maximum files to read content from during analysis. */
+    max_files_to_read: z.number().int().min(1)
+      .default(DEFAULTS.DEFAULT_MAX_FILES_TO_READ),
+    /** Hours before cached knowledge is considered stale. */
+    staleness_hours: z.number().positive()
+      .default(DEFAULTS.DEFAULT_KNOWLEDGE_STALENESS_HOURS),
+    /** Whether to use an LLM call for architecture inference. */
+    use_llm_inference: z.boolean().default(true),
+    /** Directory/file patterns to skip during analysis. */
+    ignore_patterns: z.array(z.string())
+      .default(DEFAULTS.DEFAULT_IGNORE_PATTERNS),
+  }).optional().default({
+    auto_analyze_on_mount: true,
+    default_mode: DEFAULTS.DEFAULT_PORTAL_KNOWLEDGE_MODE as PortalAnalysisMode,
+    quick_scan_limit: DEFAULTS.DEFAULT_QUICK_SCAN_LIMIT,
+    max_files_to_read: DEFAULTS.DEFAULT_MAX_FILES_TO_READ,
+    staleness_hours: DEFAULTS.DEFAULT_KNOWLEDGE_STALENESS_HOURS,
+    use_llm_inference: true,
+    ignore_patterns: DEFAULTS.DEFAULT_IGNORE_PATTERNS,
   }),
 }).superRefine((data, ctx: z.RefinementCtx) => {
   // Type assertion to avoid circular reference

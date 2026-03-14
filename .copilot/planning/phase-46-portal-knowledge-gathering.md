@@ -1202,19 +1202,21 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Config schema validates new `[portal_knowledge]` section
-- [ ] All fields are optional with sensible defaults
+- [x] Config schema validates new `[portal_knowledge]` section
+- [x] All fields are optional with sensible defaults
 - [ ] `PortalKnowledgeService` uses config values when constructing analyzer
-- [ ] Invalid config values produce clear validation errors
-- [ ] TOML file includes commented example section
+- [x] Invalid config values produce clear validation errors
+- [x] TOML file includes commented example section
 
-**Planned tests** (`tests/shared/schemas/config_portal_knowledge_test.ts`):
+**Planned tests** (`tests/schemas/config_portal_knowledge_test.ts`):
 
-- `[ConfigSchema] validates portal_knowledge section`
-- `[ConfigSchema] uses defaults when portal_knowledge is absent`
-- `[ConfigSchema] rejects invalid default_mode value`
-- `[ConfigSchema] rejects negative quick_scan_limit`
-- `[ConfigSchema] rejects non-array ignore_patterns`
+- ✅ `[ConfigSchema] validates portal_knowledge section`
+- ✅ `[ConfigSchema] uses defaults when portal_knowledge is absent`
+- ✅ `[ConfigSchema] rejects invalid default_mode value`
+- ✅ `[ConfigSchema] rejects negative quick_scan_limit`
+- ✅ `[ConfigSchema] rejects non-array ignore_patterns`
+
+**✅ IMPLEMENTED** — src/shared/schemas/config.ts + exo.config.toml, 5/5 tests passing
 
 ---
 
