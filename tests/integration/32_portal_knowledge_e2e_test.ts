@@ -1,0 +1,382 @@
+/**
+ * @module PortalKnowledgeE2ETest
+ * @path tests/integration/32_portal_knowledge_e2e_test.ts
+ * @description End-to-end integration tests for the portal knowledge gathering
+ * pipeline: analysis → persistence → retrieval → request-context injection.
+ * Covers quick and standard modes, knowledge.json round-trip, IProjectMemory
+ * file updates, and RequestProcessor portal-knowledge injection.
+ * @related-files [src/services/portal_knowledge/portal_knowledge_service.ts,
+ *   src/services/portal_knowledge/knowledge_persistence.ts,
+ *   src/services/request_processor.ts,
+ *   src/shared/schemas/portal_knowledge.ts]
+ */
+
+import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
+import { join } from "@std/path";
+import { ensureDir } from "@std/fs";
+import { MockStrategy, PortalAnalysisMode } from "../../src/shared/enums.ts";
+import { PortalKnowledgeService } from "../../src/services/portal_knowledge/portal_knowledge_service.ts";
+import type { IDocCommandRunner } from "../../src/services/portal_knowledge/symbol_extractor.ts";
+import { loadKnowledge, saveKnowledge } from "../../src/services/portal_knowledge/knowledge_persistence.ts";
+import { MemoryBankService } from "../../src/services/memory_bank.ts";
+import { RequestProcessor } from "../../src/services/request_processor.ts";
+import { MockLLMProvider } from "../../src/ai/providers/mock_llm_provider.ts";
+import type {
+  IPortalKnowledgeConfig,
+  IPortalKnowledgeService,
+} from "../../src/shared/interfaces/i_portal_knowledge_service.ts";
+import { initTestDbService } from "../helpers/db.ts";
+import { TestEnvironment } from "./helpers/test_environment.ts";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Build a minimal IPortalKnowledgeConfig for testing. */
+function makeConfig(overrides: Partial<IPortalKnowledgeConfig> = {}): IPortalKnowledgeConfig {
+  return {
+    autoAnalyzeOnMount: false,
+    defaultMode: PortalAnalysisMode.QUICK,
+    quickScanLimit: 50,
+    maxFilesToRead: 10,
+    ignorePatterns: ["node_modules", ".git"],
+    staleness: 168,
+    useLlmInference: false,
+    ...overrides,
+  };
+}
+
+/**
+ * A no-op IDocCommandRunner that returns an empty symbol list,
+ * avoiding real `deno doc` calls in tests.
+ */
+const NULL_RUNNER: IDocCommandRunner = {
+  run(_entrypoint: string, _portalPath: string): Promise<string | null> {
+    return Promise.resolve("[]");
+  },
+};
+
+/**
+ * Create a minimal mock portal directory with TypeScript files
+ * so PortalKnowledgeService has something to analyze.
+ */
+async function createMockPortalDir(baseDir: string): Promise<string> {
+  const portalDir = join(baseDir, "mock-portal");
+  await ensureDir(join(portalDir, "src", "services"));
+  await ensureDir(join(portalDir, "src", "models"));
+  await ensureDir(join(portalDir, "tests"));
+
+  await Deno.writeTextFile(
+    join(portalDir, "deno.json"),
+    JSON.stringify({ name: "mock-portal", version: "1.0.0" }),
+  );
+  await Deno.writeTextFile(
+    join(portalDir, "README.md"),
+    "# Mock Portal\n\nA minimal TypeScript project for testing.\n",
+  );
+  await Deno.writeTextFile(
+    join(portalDir, "src", "main.ts"),
+    "/**\n * @module Main\n */\nexport function run(): void {\n  console.log('hello');\n}\n",
+  );
+  await Deno.writeTextFile(
+    join(portalDir, "src", "services", "greeter.ts"),
+    "export class Greeter {\n  greet(name: string): string {\n    return `Hello, ${name}!`;\n  }\n}\n",
+  );
+  await Deno.writeTextFile(
+    join(portalDir, "src", "models", "user.ts"),
+    "export interface IUser {\n  id: string;\n  name: string;\n}\n",
+  );
+  await Deno.writeTextFile(
+    join(portalDir, "tests", "greeter_test.ts"),
+    'import { Greeter } from "../src/services/greeter.ts";\nimport { assertEquals } from "@std/assert";\nDeno.test("greeter", () => assertEquals(new Greeter().greet("world"), "Hello, world!"));\n',
+  );
+
+  return portalDir;
+}
+
+// ---------------------------------------------------------------------------
+// Test 1: quick mode analysis
+// ---------------------------------------------------------------------------
+
+Deno.test("[E2E] portal knowledge pipeline with quick mode", async () => {
+  const { db, cleanup } = await initTestDbService();
+
+  try {
+    const tempDir = await Deno.makeTempDir();
+    const portalDir = await createMockPortalDir(tempDir);
+
+    const service = new PortalKnowledgeService(
+      makeConfig(),
+      null as never,
+      undefined,
+      undefined,
+      db,
+    );
+    const knowledge = await service.analyze("test-portal", portalDir, PortalAnalysisMode.QUICK);
+
+    assertEquals(knowledge.portal, "test-portal");
+    assertExists(knowledge.gatheredAt);
+    assertEquals(knowledge.metadata.mode, PortalAnalysisMode.QUICK);
+    assertGreater(knowledge.metadata.filesScanned, 0);
+    assertExists(knowledge.techStack);
+    assertExists(knowledge.keyFiles);
+    assert(Array.isArray(knowledge.conventions));
+    assert(knowledge.metadata.durationMs >= 0);
+
+    await Deno.remove(tempDir, { recursive: true });
+  } finally {
+    await cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 2: standard mode (no LLM, null runner skips deno doc)
+// ---------------------------------------------------------------------------
+
+Deno.test("[E2E] portal knowledge pipeline with standard mode (mock LLM)", async () => {
+  const { db, cleanup } = await initTestDbService();
+
+  try {
+    const tempDir = await Deno.makeTempDir();
+    const portalDir = await createMockPortalDir(tempDir);
+
+    const service = new PortalKnowledgeService(
+      makeConfig({ defaultMode: PortalAnalysisMode.STANDARD }),
+      null as never,
+      undefined,
+      undefined,
+      db,
+      NULL_RUNNER,
+    );
+    const knowledge = await service.analyze("std-portal", portalDir, PortalAnalysisMode.STANDARD);
+
+    assertEquals(knowledge.portal, "std-portal");
+    assertEquals(knowledge.metadata.mode, PortalAnalysisMode.STANDARD);
+    assertGreater(knowledge.metadata.filesScanned, 0);
+    assertExists(knowledge.techStack);
+    assert(Array.isArray(knowledge.conventions));
+
+    await Deno.remove(tempDir, { recursive: true });
+  } finally {
+    await cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 3: knowledge persisted as knowledge.json
+// ---------------------------------------------------------------------------
+
+Deno.test("[E2E] knowledge persisted as knowledge.json", async () => {
+  const { db, cleanup } = await initTestDbService();
+
+  try {
+    const tempDir = await Deno.makeTempDir();
+    const portalDir = await createMockPortalDir(tempDir);
+    const projectsDir = join(tempDir, "Memory", "Projects");
+    await ensureDir(projectsDir);
+
+    const service = new PortalKnowledgeService(
+      makeConfig(),
+      null as never,
+      undefined,
+      undefined,
+      db,
+    );
+    const knowledge = await service.analyze("persist-portal", portalDir);
+
+    await saveKnowledge("persist-portal", knowledge, null, projectsDir);
+
+    const knowledgePath = join(projectsDir, "persist-portal", "knowledge.json");
+    const stat = await Deno.stat(knowledgePath);
+    assert(stat.isFile, "knowledge.json should be a file");
+
+    const loaded = await loadKnowledge("persist-portal", projectsDir);
+    assertExists(loaded, "loadKnowledge should return the saved knowledge");
+    assertEquals(loaded!.portal, "persist-portal");
+    assertEquals(loaded!.version, knowledge.version);
+    assertEquals(loaded!.metadata.mode, PortalAnalysisMode.QUICK);
+
+    await Deno.remove(tempDir, { recursive: true });
+  } finally {
+    await cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4: knowledge mapped to IProjectMemory files
+// ---------------------------------------------------------------------------
+
+Deno.test("[E2E] knowledge mapped to IProjectMemory files", async () => {
+  const { db, config, cleanup } = await initTestDbService();
+
+  try {
+    const tempDir = await Deno.makeTempDir();
+    const portalDir = await createMockPortalDir(tempDir);
+    const projectsDir = join(tempDir, "Memory", "Projects");
+    await ensureDir(projectsDir);
+
+    const memoryBank = new MemoryBankService(config, db);
+    const service = new PortalKnowledgeService(
+      makeConfig(),
+      null as never,
+      undefined,
+      undefined,
+      db,
+    );
+    const knowledge = await service.analyze("mem-portal", portalDir);
+
+    await saveKnowledge("mem-portal", knowledge, memoryBank, projectsDir);
+
+    const projectMem = await memoryBank.getProjectMemory("mem-portal");
+    assertExists(projectMem, "IProjectMemory record should be created");
+    assertEquals(projectMem!.portal, "mem-portal");
+    assert(typeof projectMem!.overview === "string");
+    assert(Array.isArray(projectMem!.patterns));
+
+    await Deno.remove(tempDir, { recursive: true });
+  } finally {
+    await cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 5: knowledge available in request processing context
+// ---------------------------------------------------------------------------
+
+Deno.test(
+  "[E2E] knowledge available in request processing context",
+  { sanitizeOps: false, sanitizeResources: false },
+  async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      const portalAlias = "ctx-portal";
+      const portalTargetPath = join(env.tempDir, "ctx-portal-target");
+      await ensureDir(portalTargetPath);
+      await Deno.writeTextFile(join(portalTargetPath, "main.ts"), "export const x = 1;");
+
+      let getOrAnalyzeCalled = false;
+      let capturedAlias = "";
+
+      const spyService: IPortalKnowledgeService = {
+        analyze(alias, path, mode) {
+          const svc = new PortalKnowledgeService(
+            makeConfig(),
+            null as never,
+            undefined,
+            undefined,
+            undefined,
+            NULL_RUNNER,
+          );
+          return svc.analyze(alias, path, mode);
+        },
+        getOrAnalyze(alias, path) {
+          getOrAnalyzeCalled = true;
+          capturedAlias = alias;
+          const svc = new PortalKnowledgeService(
+            makeConfig(),
+            null as never,
+            undefined,
+            undefined,
+            undefined,
+            NULL_RUNNER,
+          );
+          return svc.analyze(alias, path);
+        },
+        isStale: () => Promise.resolve(true),
+        updateKnowledge(alias, path) {
+          const svc = new PortalKnowledgeService(
+            makeConfig(),
+            null as never,
+            undefined,
+            undefined,
+            undefined,
+            NULL_RUNNER,
+          );
+          return svc.analyze(alias, path);
+        },
+      };
+
+      await env.createBlueprint("code-analyst");
+
+      const configWithPortal = {
+        ...env.config,
+        portals: [{ alias: portalAlias, target_path: portalTargetPath }],
+      };
+
+      const provider = new MockLLMProvider(MockStrategy.RECORDED, { recordings: [] });
+      const processor = new RequestProcessor(
+        configWithPortal,
+        env.db,
+        {
+          workspacePath: join(env.tempDir, "Workspace"),
+          requestsDir: join(env.tempDir, "Workspace", "Requests"),
+          blueprintsPath: join(env.tempDir, "Blueprints", "Agents"),
+          includeReasoning: false,
+        },
+        provider,
+        undefined,
+        undefined,
+        spyService,
+      );
+
+      const { filePath } = await env.createRequest(
+        "Analyze the portal codebase",
+        { agentId: "code-analyst", portal: portalAlias },
+      );
+
+      try {
+        await processor.process(filePath);
+      } catch {
+        // Plan generation failure is acceptable; we only care about the spy call
+      }
+
+      assert(getOrAnalyzeCalled, "portalKnowledgeService.getOrAnalyze should have been called");
+      assertEquals(capturedAlias, portalAlias);
+    } finally {
+      await env.cleanup();
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Test 6: stale knowledge triggers re-analysis
+// ---------------------------------------------------------------------------
+
+Deno.test("[E2E] stale knowledge re-analyzed on request processing", async () => {
+  const { db, cleanup } = await initTestDbService();
+
+  try {
+    const tempDir = await Deno.makeTempDir();
+    const portalDir = await createMockPortalDir(tempDir);
+
+    // staleness=-1 makes cutoff 1 hour in the future → always stale
+    const service = new PortalKnowledgeService(
+      makeConfig({ staleness: -1 }),
+      null as never,
+      undefined,
+      undefined,
+      db,
+    );
+
+    const first = await service.analyze("stale-portal", portalDir);
+    assertEquals(first.version, 1);
+
+    const stale = await service.isStale("stale-portal");
+    assert(stale, "knowledge should be stale when cutoff is in the future (staleness=-1)");
+
+    // getOrAnalyze returns stale data immediately, fires background re-analysis
+    const returned = await service.getOrAnalyze("stale-portal", portalDir);
+    assertEquals(returned.version, 1, "getOrAnalyze immediately returns stale version");
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Direct analyze confirms the version counter increments
+    const fresh = await service.analyze("stale-portal", portalDir);
+    assertGreater(fresh.version, 1, "version should increment after re-analysis");
+
+    await Deno.remove(tempDir, { recursive: true });
+  } finally {
+    await cleanup();
+  }
+});

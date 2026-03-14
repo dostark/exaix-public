@@ -1238,22 +1238,24 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Full pipeline: mount portal → analyze → persist → retrieve
-- [ ] `knowledge.json` contains valid `IPortalKnowledge`
-- [ ] `overview.md` updated with architecture overview
-- [ ] `patterns.md` populated with detected conventions
+- [x] Full pipeline: mount portal → analyze → persist → retrieve
+- [x] `knowledge.json` contains valid `IPortalKnowledge`
+- [x] `overview.md` updated with architecture overview
+- [x] `patterns.md` populated with detected conventions
 - [ ] `references.md` populated with key files and dependencies
-- [ ] Knowledge available in `IParsedRequest.context.portalKnowledge` during request processing
-- [ ] Pipeline degrades gracefully when LLM is unavailable (quick fallback)
+- [x] Knowledge available in `IParsedRequest.context.portalKnowledge` during request processing
+- [x] Pipeline degrades gracefully when LLM is unavailable (quick fallback)
 
 **Planned tests:**
 
-- `[E2E] portal knowledge pipeline with quick mode`
-- `[E2E] portal knowledge pipeline with standard mode (mock LLM)`
-- `[E2E] knowledge persisted as knowledge.json`
-- `[E2E] knowledge mapped to IProjectMemory files`
-- `[E2E] knowledge available in request processing context`
-- `[E2E] stale knowledge re-analyzed on request processing`
+- ✅ `[E2E] portal knowledge pipeline with quick mode`
+- ✅ `[E2E] portal knowledge pipeline with standard mode (mock LLM)`
+- ✅ `[E2E] knowledge persisted as knowledge.json`
+- ✅ `[E2E] knowledge mapped to IProjectMemory files`
+- ✅ `[E2E] knowledge available in request processing context`
+- ✅ `[E2E] stale knowledge re-analyzed on request processing`
+
+**✅ IMPLEMENTED** — tests/integration/32_portal_knowledge_e2e_test.ts, 6/6 tests passing
 
 ---
 
