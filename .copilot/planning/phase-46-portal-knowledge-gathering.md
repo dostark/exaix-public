@@ -1152,22 +1152,24 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `exoctl portal analyze` triggers analysis and displays summary
-- [ ] `--mode` flag controls analysis depth
-- [ ] `--force` flag re-analyzes regardless of staleness
-- [ ] `exoctl portal knowledge` displays formatted knowledge
-- [ ] `--json` flag outputs raw JSON
-- [ ] Both commands handle missing portal gracefully
+- [x] `exoctl portal analyze` triggers analysis and displays summary
+- [x] `--mode` flag controls analysis depth
+- [x] `--force` flag re-analyzes regardless of staleness
+- [x] `exoctl portal knowledge` displays formatted knowledge
+- [x] `--json` flag outputs raw JSON
+- [x] Both commands handle missing portal gracefully
 
 **Planned tests** (`tests/cli/commands/portal_knowledge_cli_test.ts`):
 
-- `[portal analyze] triggers analysis and displays summary`
-- `[portal analyze] uses specified mode`
-- `[portal analyze] force re-analyzes fresh knowledge`
-- `[portal knowledge] displays formatted knowledge`
-- `[portal knowledge] outputs raw JSON with --json flag`
-- `[portal knowledge] handles missing portal gracefully`
-- `[portal knowledge] handles unanalyzed portal gracefully`
+- ✅ `[portal analyze] triggers analysis and displays summary`
+- ✅ `[portal analyze] uses specified mode`
+- ✅ `[portal analyze] force re-analyzes fresh knowledge`
+- ✅ `[portal knowledge] displays formatted knowledge`
+- ✅ `[portal knowledge] outputs raw JSON with --json flag`
+- ✅ `[portal knowledge] handles missing portal gracefully`
+- ✅ `[portal knowledge] handles unanalyzed portal gracefully`
+
+**✅ IMPLEMENTED** — `src/cli/commands/portal_commands.ts`, 7/7 tests passing
 
 ---
 

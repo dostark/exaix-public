@@ -10,9 +10,11 @@
 import { join, resolve } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { BaseCommand, type ICommandContext } from "../base.ts";
-import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../../shared/enums.ts";
+import { PortalAnalysisMode, PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../../shared/enums.ts";
 import { ExoPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../../shared/constants.ts";
 import type { JSONValue } from "../../shared/types/json.ts";
+import type { IPortalKnowledge } from "../../shared/schemas/portal_knowledge.ts";
+import { PortalKnowledgeSchema } from "../../shared/schemas/portal_knowledge.ts";
 
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
 
@@ -454,6 +456,92 @@ export class PortalCommands extends BaseCommand {
   }
 
   /**
+   * Trigger codebase knowledge analysis for a portal.
+   * Returns a human-readable summary of the analysis.
+   */
+  async analyze(
+    alias: string,
+    options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string> {
+    const symlinkPath = join(this.portalsDir, alias);
+
+    try {
+      await Deno.lstat(symlinkPath);
+    } catch {
+      throw new Error(`Portal '${alias}' not found`);
+    }
+
+    const portalPath = await Deno.readLink(symlinkPath);
+
+    if (!this.context.portalKnowledge) {
+      throw new Error("Portal knowledge service is not available");
+    }
+
+    const mode = options?.mode;
+    let knowledge;
+    if (options?.force) {
+      knowledge = await this.context.portalKnowledge.analyze(alias, portalPath, mode);
+    } else {
+      knowledge = await this.context.portalKnowledge.analyze(alias, portalPath, mode);
+    }
+
+    // Persist knowledge.json
+    const sysRoot = this.config.system.root as string;
+    const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+    const portalDir = join(projectsDir, alias);
+    await ensureDir(portalDir);
+    const knowledgePath = join(portalDir, "knowledge.json");
+    const tmpPath = `${knowledgePath}.tmp`;
+    await Deno.writeTextFile(tmpPath, JSON.stringify(knowledge, null, 2));
+    await Deno.rename(tmpPath, knowledgePath);
+
+    await this.logActivity("portal.analyzed", {
+      alias,
+      mode: knowledge.metadata.mode,
+      filesScanned: knowledge.metadata.filesScanned,
+      durationMs: knowledge.metadata.durationMs,
+    });
+
+    return [
+      `Portal: ${alias}`,
+      `Mode:   ${knowledge.metadata.mode}`,
+      `Files scanned: ${knowledge.metadata.filesScanned}`,
+      `Duration: ${knowledge.metadata.durationMs}ms`,
+    ].join("\n");
+  }
+
+  /**
+   * Display gathered knowledge for a portal.
+   * Returns formatted Markdown by default, or raw JSON with `--json`.
+   */
+  async knowledge(
+    alias: string,
+    options?: { json?: boolean },
+  ): Promise<string> {
+    const symlinkPath = join(this.portalsDir, alias);
+
+    try {
+      await Deno.lstat(symlinkPath);
+    } catch {
+      throw new Error(`Portal '${alias}' not found`);
+    }
+
+    const sysRoot = this.config.system.root as string;
+    const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+    const data = await loadKnowledgeFile(projectsDir, alias);
+
+    if (!data) {
+      return `No knowledge available for '${alias}'.\nRun \`exoctl portal analyze ${alias}\` to gather it.`;
+    }
+
+    if (options?.json) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    return formatKnowledgeText(data).join("\n");
+  }
+
+  /**
    * Validate portal alias
    */
   private validateAlias(alias: string): void {
@@ -494,4 +582,70 @@ export class PortalCommands extends BaseCommand {
       console.error("Failed to log activity:", error);
     }
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Module-level helpers (no boundary violations)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Read and validate knowledge.json from the projects directory. */
+async function loadKnowledgeFile(
+  projectsDir: string,
+  portalAlias: string,
+): Promise<IPortalKnowledge | null> {
+  const knowledgePath = `${projectsDir}/${portalAlias}/knowledge.json`;
+  try {
+    const raw = await Deno.readTextFile(knowledgePath);
+    const result = PortalKnowledgeSchema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Render an IPortalKnowledge record into lines for CLI output. */
+function formatKnowledgeText(knowledge: IPortalKnowledge): string[] {
+  const lines: string[] = [];
+
+  if (knowledge.architectureOverview) {
+    lines.push("=== Architecture Overview ===");
+    for (const line of knowledge.architectureOverview.split("\n").slice(0, 20)) {
+      lines.push(line);
+    }
+  }
+
+  if (knowledge.keyFiles.length > 0) {
+    lines.push("", "=== Key Files ===");
+    for (const kf of knowledge.keyFiles) {
+      lines.push(`  ${kf.path} [${kf.role}]: ${kf.description}`);
+    }
+  }
+
+  if (knowledge.conventions.length > 0) {
+    lines.push("", "=== Conventions ===");
+    const byCategory = new Map<string, typeof knowledge.conventions>();
+    for (const conv of knowledge.conventions) {
+      const existing = byCategory.get(conv.category) ?? [];
+      existing.push(conv);
+      byCategory.set(conv.category, existing);
+    }
+    for (const [category, items] of byCategory) {
+      lines.push(`  [${category}]`);
+      for (const item of items) {
+        lines.push(`    • ${item.name}: ${item.description}`);
+      }
+    }
+  }
+
+  if (knowledge.dependencies.length > 0) {
+    lines.push("", "=== Dependencies ===");
+    for (const dep of knowledge.dependencies) {
+      for (const kd of dep.keyDependencies) {
+        const purpose = kd.purpose ? ` — ${kd.purpose}` : "";
+        lines.push(`  ${kd.name}${purpose}`);
+      }
+    }
+  }
+
+  return lines;
 }
