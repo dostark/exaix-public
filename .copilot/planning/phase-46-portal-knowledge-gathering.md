@@ -1393,7 +1393,7 @@ Incremental updates:
 
 **Planned tests:** `deno task check:docs` passes (verifies manifest freshness).
 
-**✅ IMPLEMENTED** — commit: _to be filled_
+**✅ IMPLEMENTED** — commit: `83fbccf`
 
 ---
 
