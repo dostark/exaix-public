@@ -1,0 +1,199 @@
+/**
+ * @module RequestQualityGate
+ * @path src/services/quality_gate/request_quality_gate.ts
+ * @description Orchestrates request quality assessment, optional LLM enrichment,
+ * and clarification session management. Acts as the entry-point for the Phase 47
+ * quality gate pipeline, delegating to HeuristicAssessor, LlmQualityAssessor,
+ * and RequestEnricherLlm based on configuration and score thresholds.
+ * @architectural-layer Services
+ * @dependencies [src/shared/interfaces/i_request_quality_gate_service.ts, src/services/quality_gate/heuristic_assessor.ts, src/services/quality_gate/llm_assessor.ts, src/services/quality_gate/request_enricher_llm.ts, src/ai/types.ts, src/services/output_validator.ts, src/services/event_logger.ts]
+ * @related-files [src/services/quality_gate/mod.ts, src/shared/interfaces/i_request_quality_gate_service.ts]
+ */
+
+import type { IModelProvider } from "../../ai/types.ts";
+import type { IOutputValidator } from "../output_validator.ts";
+import type { IEventLogger } from "../event_logger.ts";
+import type {
+  IRequestQualityAssessment,
+  IRequestQualityIssue,
+} from "../../shared/schemas/request_quality_assessment.ts";
+import { RequestQualityLevel, RequestQualityRecommendation } from "../../shared/schemas/request_quality_assessment.ts";
+import type { IClarificationSession } from "../../shared/schemas/clarification_session.ts";
+import type {
+  IRequestQualityContext,
+  IRequestQualityGateConfig,
+  IRequestQualityGateService,
+} from "../../shared/interfaces/i_request_quality_gate_service.ts";
+import { QualityGateMode } from "../../shared/enums.ts";
+import { assessHeuristic } from "./heuristic_assessor.ts";
+import { LlmQualityAssessor } from "./llm_assessor.ts";
+import { enrichRequest } from "./request_enricher_llm.ts";
+
+// ---------------------------------------------------------------------------
+// RequestQualityGate
+// ---------------------------------------------------------------------------
+
+/**
+ * Main service that implements the request quality gate pipeline.
+ *
+ * Assessment strategies:
+ * - `heuristic`: zero-cost text signal analysis only (sandboxed-safe)
+ * - `llm`: full LLM-powered assessment
+ * - `hybrid`: heuristic first; escalate to LLM for borderline scores
+ *
+ * After assessment, the service optionally:
+ * 1. Auto-enriches the request when `autoEnrich` is enabled and recommendation
+ *    is `auto-enrich`.
+ * 2. Overrides recommendation to `reject` when `blockUnactionable` is enabled
+ *    and the score is below the configured minimum threshold.
+ * 3. Logs `request.quality_assessed` to the activity journal when an
+ *    `IEventLogger` was provided.
+ */
+export class RequestQualityGate implements IRequestQualityGateService {
+  private readonly provider?: IModelProvider;
+  private readonly validator?: IOutputValidator;
+  private readonly eventLogger?: IEventLogger;
+  private readonly config: IRequestQualityGateConfig;
+
+  constructor(
+    config: IRequestQualityGateConfig,
+    provider?: IModelProvider,
+    validator?: IOutputValidator,
+    eventLogger?: IEventLogger,
+  ) {
+    this.config = config;
+    this.provider = provider;
+    this.validator = validator;
+    this.eventLogger = eventLogger;
+  }
+
+  // ---------------------------------------------------------------------------
+  // IRequestQualityGateService — assess
+  // ---------------------------------------------------------------------------
+
+  async assess(
+    requestText: string,
+    context?: IRequestQualityContext,
+  ): Promise<IRequestQualityAssessment> {
+    const start = performance.now();
+
+    if (!this.config.enabled) {
+      return this._buildProceedResult(start);
+    }
+
+    let result = await this._runAssessment(requestText);
+
+    // Override recommendation when blockUnactionable is set
+    if (
+      this.config.blockUnactionable &&
+      result.score < this.config.thresholds.minimum
+    ) {
+      result = { ...result, recommendation: RequestQualityRecommendation.REJECT };
+    }
+
+    // Auto-enrich when configured and recommended
+    if (
+      this.config.autoEnrich &&
+      result.recommendation === RequestQualityRecommendation.AUTO_ENRICH &&
+      this.provider
+    ) {
+      const enrichedBody = await enrichRequest(this.provider, requestText, result.issues);
+      result = { ...result, enrichedBody };
+    }
+
+    // Log to activity journal
+    if (this.eventLogger) {
+      await this.eventLogger.log({
+        action: "request.quality_assessed",
+        target: context?.requestId ?? "unknown",
+        payload: {
+          score: result.score,
+          recommendation: result.recommendation,
+          issueCount: result.issues.length,
+        },
+      });
+    }
+
+    return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // IRequestQualityGateService — enrich
+  // ---------------------------------------------------------------------------
+
+  enrich(requestText: string, issues: IRequestQualityIssue[]): Promise<string> {
+    if (!this.provider) return Promise.resolve(requestText);
+    return enrichRequest(this.provider, requestText, issues);
+  }
+
+  // ---------------------------------------------------------------------------
+  // IRequestQualityGateService — clarification (stubbed; implemented in Step 10)
+  // ---------------------------------------------------------------------------
+
+  startClarification(
+    _requestId: string,
+    _body: string,
+  ): Promise<IClarificationSession> {
+    return Promise.reject(new Error("ClarificationEngine not yet available (Step 10)"));
+  }
+
+  submitAnswers(
+    _session: IClarificationSession,
+    _answers: Record<string, string>,
+  ): Promise<IClarificationSession> {
+    return Promise.reject(new Error("ClarificationEngine not yet available (Step 10)"));
+  }
+
+  isSessionComplete(_session: IClarificationSession): boolean {
+    throw new Error("ClarificationEngine not yet available (Step 10)");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  private async _runAssessment(requestText: string): Promise<IRequestQualityAssessment> {
+    const { minimum, proceed } = this.config.thresholds;
+
+    switch (this.config.mode) {
+      case QualityGateMode.HEURISTIC:
+        return assessHeuristic(requestText);
+
+      case QualityGateMode.LLM:
+        if (this.provider && this.validator) {
+          return await new LlmQualityAssessor(this.provider, this.validator).assess(requestText);
+        }
+        return assessHeuristic(requestText);
+
+      case QualityGateMode.HYBRID: {
+        const heuristic = assessHeuristic(requestText);
+        // Clear pass or clear fail — no need for expensive LLM call
+        if (heuristic.score >= proceed || heuristic.score < minimum) {
+          return heuristic;
+        }
+        // Borderline range — escalate to LLM for nuanced judgment
+        if (this.provider && this.validator) {
+          return await new LlmQualityAssessor(this.provider, this.validator).assess(requestText);
+        }
+        return heuristic;
+      }
+
+      default:
+        return assessHeuristic(requestText);
+    }
+  }
+
+  private _buildProceedResult(start: number): IRequestQualityAssessment {
+    return {
+      score: 100,
+      level: RequestQualityLevel.EXCELLENT,
+      issues: [],
+      recommendation: RequestQualityRecommendation.PROCEED,
+      metadata: {
+        assessedAt: new Date().toISOString(),
+        mode: this.config.mode,
+        durationMs: Math.round(performance.now() - start),
+      },
+    };
+  }
+}
