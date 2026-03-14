@@ -49,6 +49,9 @@ import { IRequestAnalyzerService } from "../shared/interfaces/i_request_analyzer
 import { RequestKind, TaskComplexity } from "../shared/enums.ts";
 
 import { AnalysisMode } from "../shared/types/request.ts";
+import type { IRequestQualityGateService } from "../shared/interfaces/i_request_quality_gate_service.ts";
+import { RequestQualityRecommendation } from "../shared/schemas/request_quality_assessment.ts";
+import { saveClarification } from "./quality_gate/clarification_persistence.ts";
 
 export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
@@ -84,6 +87,7 @@ export class RequestProcessor {
   private readonly requestParser: RequestParser;
   private readonly statusManager: StatusManager;
   private readonly analyzer: IRequestAnalyzerService;
+  private readonly qualityGate?: IRequestQualityGateService;
 
   constructor(
     private readonly config: Config,
@@ -93,6 +97,7 @@ export class RequestProcessor {
     costTracker?: CostTracker,
     testAnalyzer?: IRequestAnalyzerService,
     private readonly portalKnowledgeService?: IPortalKnowledgeService,
+    testQualityGate?: IRequestQualityGateService,
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
@@ -133,6 +138,7 @@ export class RequestProcessor {
       actionabilityThreshold: config.request_analysis?.actionability_threshold,
       inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
     });
+    this.qualityGate = testQualityGate;
   }
 
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
@@ -169,6 +175,13 @@ export class RequestProcessor {
       return null;
     }
 
+    // Quality gate assessment (Phase 47) — runs before analysis and agent execution
+    const qgOutcome = await this._runQualityGate(body, filePath, requestId, traceLogger);
+    if (qgOutcome.earlyReturn) {
+      return null;
+    }
+    const assessedBody = qgOutcome.enrichedBody ?? body;
+
     const pipeline = this.createRequestProcessingPipeline();
 
     // Run analysis before pipeline so both agent and flow paths benefit
@@ -177,7 +190,7 @@ export class RequestProcessor {
     const persistAnalysis = this.config.request_analysis?.persist_analysis !== false;
     const analysisMode = (this.config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE) as AnalysisMode;
     const analysis = analysisEnabled
-      ? await this.analyzer.analyze(body, {
+      ? await this.analyzer.analyze(assessedBody, {
         agentId: frontmatter.agent ?? frontmatter.flow,
         priority: frontmatter.priority,
         mode: analysisMode,
@@ -204,7 +217,7 @@ export class RequestProcessor {
       filePath,
       parsed,
       frontmatter,
-      body,
+      body: assessedBody,
       traceLogger,
       requestId,
       requestKind,
@@ -217,7 +230,7 @@ export class RequestProcessor {
         return this.processRequestByKind(
           requestKind,
           frontmatter,
-          body,
+          assessedBody,
           filePath,
           requestId,
           traceId,
@@ -240,6 +253,41 @@ export class RequestProcessor {
         // Ignore flush errors during processing
       }
     }
+  }
+
+  /** Evaluates quality gate and returns early-return signal or enriched body. */
+  private async _runQualityGate(
+    body: string,
+    filePath: string,
+    requestId: string,
+    traceLogger: EventLogger,
+  ): Promise<{ earlyReturn: true } | { earlyReturn: false; enrichedBody?: string }> {
+    if (!this.qualityGate) {
+      return { earlyReturn: false };
+    }
+    try {
+      const qgResult = await this.qualityGate.assess(body, { requestId });
+      if (qgResult.recommendation === RequestQualityRecommendation.REJECT) {
+        await this.statusManager.updateStatus(filePath, RequestStatus.FAILED, "Request rejected by quality gate");
+        return { earlyReturn: true };
+      }
+      if (qgResult.recommendation === RequestQualityRecommendation.NEEDS_CLARIFICATION) {
+        await this.statusManager.updateStatus(filePath, RequestStatus.REFINING);
+        try {
+          const session = await this.qualityGate.startClarification(requestId, body);
+          await saveClarification(filePath, session);
+        } catch {
+          // Session start failed; REFINING status is preserved, return early anyway
+        }
+        return { earlyReturn: true };
+      }
+      if (qgResult.recommendation === RequestQualityRecommendation.AUTO_ENRICH && qgResult.enrichedBody) {
+        return { earlyReturn: false, enrichedBody: qgResult.enrichedBody };
+      }
+    } catch {
+      traceLogger.warn("request.quality_gate.failed", filePath, { requestId });
+    }
+    return { earlyReturn: false };
   }
 
   private shouldSkipRequest(frontmatter: IRequestFrontmatter, _traceLogger: EventLogger, _filePath: string): boolean {
