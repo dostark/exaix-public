@@ -118,21 +118,22 @@ temporary directories created during daemon tests.
 
 **v1.0 Scenarios:**
 
-| #  | Scenario                | Description                                 | Validates            | Status      |
-| -- | ----------------------- | ------------------------------------------- | -------------------- | ----------- |
-| 1  | **Happy Path**          | Request → Plan → Approve → Execute → Report | Core workflow        | ✅ Complete |
-| 2  | **Plan Rejection**      | Request → Plan → Reject → Archive           | Rejection flow       | ✅ Complete |
-| 3  | **Plan Revision**       | Request → Plan → Revise → New Plan          | Revision flow        | ✅ Complete |
-| 4  | **Execution Failure**   | Approved plan fails during execution        | Error handling       | ✅ Complete |
-| 5  | **Concurrent Requests** | Multiple requests processed simultaneously  | Race conditions      | ✅ Complete |
-| 6  | **Context Overflow**    | Request references 50 large files           | Graceful truncation  | ✅ Complete |
-| 7  | **Git Conflict**        | Agent and human edit same file              | Conflict detection   | ✅ Complete |
-| 8  | **Daemon Restart**      | Daemon killed mid-execution                 | State recovery       | ✅ Complete |
-| 9  | **Portal Access**       | Request accesses portal files               | Security enforcement | ✅ Complete |
-| 10 | **Invalid Input**       | Malformed YAML frontmatter                  | Input validation     | ✅ Complete |
-| 11 | **MCP Execution**       | Plan executed via MCP server                | MCP protocol flow    | 📋 Planned  |
-| 12 | **Sandboxed Mode**      | Agent runs with no file access              | Security enforcement | 📋 Planned  |
-| 13 | **Hybrid Mode Audit**   | Agent makes unauthorized file change        | Change detection     | 📋 Planned  |
+| #  | Scenario                 | Description                                 | Validates            | Status      |
+| -- | ------------------------ | ------------------------------------------- | -------------------- | ----------- |
+| 1  | **Happy Path**           | Request → Plan → Approve → Execute → Report | Core workflow        | ✅ Complete |
+| 2  | **Plan Rejection**       | Request → Plan → Reject → Archive           | Rejection flow       | ✅ Complete |
+| 3  | **Plan Revision**        | Request → Plan → Revise → New Plan          | Revision flow        | ✅ Complete |
+| 4  | **Execution Failure**    | Approved plan fails during execution        | Error handling       | ✅ Complete |
+| 5  | **Concurrent Requests**  | Multiple requests processed simultaneously  | Race conditions      | ✅ Complete |
+| 6  | **Context Overflow**     | Request references 50 large files           | Graceful truncation  | ✅ Complete |
+| 7  | **Git Conflict**         | Agent and human edit same file              | Conflict detection   | ✅ Complete |
+| 8  | **Daemon Restart**       | Daemon killed mid-execution                 | State recovery       | ✅ Complete |
+| 9  | **Portal Access**        | Request accesses portal files               | Security enforcement | ✅ Complete |
+| 10 | **Invalid Input**        | Malformed YAML frontmatter                  | Input validation     | ✅ Complete |
+| 11 | **MCP Execution**        | Plan executed via MCP server                | MCP protocol flow    | 📋 Planned  |
+| 12 | **Sandboxed Mode**       | Agent runs with no file access              | Security enforcement | 📋 Planned  |
+| 13 | **Hybrid Mode Audit**    | Agent makes unauthorized file change        | Change detection     | 📋 Planned  |
+| 32 | **Portal Knowledge E2E** | Mount portal → analyze → getOrAnalyze       | Phase 46 pipeline    | ✅ Complete |
 
 **Portal review cleanup coverage:** Integration tests for portal workflows should also validate cleanup semantics:
 
@@ -193,6 +194,22 @@ deno test tests/integration/happy_path_test.ts
 # Run with verbose output
 deno test tests/integration/ --reporter=verbose
 ```
+
+**Portal Knowledge test files (Phase 46):**
+
+| Category                 | Location                                                           | Tests | Status      |
+| ------------------------ | ------------------------------------------------------------------ | ----- | ----------- |
+| Schema validation        | `tests/schemas/config_portal_knowledge_test.ts`                    | 5     | ✅ Complete |
+| Directory analyzer       | `tests/services/portal_knowledge/directory_analyzer_test.ts`       | —     | ✅ Complete |
+| Config file parser       | `tests/services/portal_knowledge/config_parser_test.ts`            | —     | ✅ Complete |
+| Key file identifier      | `tests/services/portal_knowledge/key_file_identifier_test.ts`      | —     | ✅ Complete |
+| Pattern detector         | `tests/services/portal_knowledge/pattern_detector_test.ts`         | —     | ✅ Complete |
+| Architecture inferrer    | `tests/services/portal_knowledge/architecture_inferrer_test.ts`    | —     | ✅ Complete |
+| Symbol extractor         | `tests/services/portal_knowledge/symbol_extractor_test.ts`         | —     | ✅ Complete |
+| Portal knowledge service | `tests/services/portal_knowledge/portal_knowledge_service_test.ts` | —     | ✅ Complete |
+| Knowledge persistence    | `tests/services/portal_knowledge/knowledge_persistence_test.ts`    | —     | ✅ Complete |
+| CLI commands             | `tests/cli/commands/portal_knowledge_cli_test.ts`                  | 7     | ✅ Complete |
+| E2E integration          | `tests/integration/32_portal_knowledge_e2e_test.ts`                | 6     | ✅ Complete |
 
 ---
 

@@ -325,19 +325,20 @@ ExoFrame uses a **hybrid format strategy** optimized for different use cases:
 
 ### Complete Format Reference
 
-| Category             | Format                      | Extension      | Location              | Purpose                                    |
-| -------------------- | --------------------------- | -------------- | --------------------- | ------------------------------------------ |
-| **System Config**    | TOML                        | `.toml`        | `exo.config.toml`     | Main configuration                         |
-| **Deno Config**      | JSON                        | `.json`        | `deno.json`           | Runtime, imports, tasks (Deno requirement) |
-| **Agent Blueprints** | TOML                        | `.toml`        | `Blueprints/Agents/`  | Agent definitions                          |
-| **Flow Definitions** | TypeScript                  | `.ts`          | `Blueprints/Flows/`   | Orchestration logic                        |
-| **Requests**         | Markdown + YAML frontmatter | `.md`          | `Workspace/Requests/` | User task requests                         |
-| **Plans**            | Markdown + YAML frontmatter | `.md`          | `Workspace/Plans/`    | Agent proposals                            |
-| **Reports**          | Markdown + JSON metadata    | `.md`, `.json` | `Memory/Execution/`   | Mission completion reports                 |
-| **Memory Banks**     | Markdown + JSON             | `.md`, `.json` | `Memory/`             | Execution history and project context      |
-| **Project Memory**   | Markdown                    | `.md`          | `Memory/Projects/`    | Auto-generated project context             |
-| **Activity Journal** | SQLite                      | `.db`          | `.exo/exo.db`         | Audit log & file locks                     |
-| **Migrations**       | SQL                         | `.sql`         | `migrations/`         | Database schema changes                    |
+| Category             | Format                      | Extension      | Location                                 | Purpose                                    |
+| -------------------- | --------------------------- | -------------- | ---------------------------------------- | ------------------------------------------ |
+| **System Config**    | TOML                        | `.toml`        | `exo.config.toml`                        | Main configuration                         |
+| **Deno Config**      | JSON                        | `.json`        | `deno.json`                              | Runtime, imports, tasks (Deno requirement) |
+| **Agent Blueprints** | TOML                        | `.toml`        | `Blueprints/Agents/`                     | Agent definitions                          |
+| **Flow Definitions** | TypeScript                  | `.ts`          | `Blueprints/Flows/`                      | Orchestration logic                        |
+| **Requests**         | Markdown + YAML frontmatter | `.md`          | `Workspace/Requests/`                    | User task requests                         |
+| **Plans**            | Markdown + YAML frontmatter | `.md`          | `Workspace/Plans/`                       | Agent proposals                            |
+| **Reports**          | Markdown + JSON metadata    | `.md`, `.json` | `Memory/Execution/`                      | Mission completion reports                 |
+| **Memory Banks**     | Markdown + JSON             | `.md`, `.json` | `Memory/`                                | Execution history and project context      |
+| **Project Memory**   | Markdown                    | `.md`          | `Memory/Projects/`                       | Auto-generated project context             |
+| **Portal Knowledge** | JSON                        | `.json`        | `Memory/Projects/{alias}/knowledge.json` | Structured codebase analysis (Phase 46)    |
+| **Activity Journal** | SQLite                      | `.db`          | `.exo/exo.db`                            | Audit log & file locks                     |
+| **Migrations**       | SQL                         | `.sql`         | `migrations/`                            | Database schema changes                    |
 
 ### YAML Frontmatter Format (Requests, Plans, Reports)
 
@@ -889,6 +890,68 @@ Help me understand the project structure and architecture.
 - **FlowRunner:** Executes multi-agent flow requests (Phase 7)
 - **PlanWriter:** Generates plan files for both routing types
 - **EventLogger:** Records all routing decisions and validation results
+
+#### 5.8.2.1.2. Portal Knowledge Gathering (Phase 46 ✅ Implemented)
+
+Portal Knowledge Gathering provides agents with structured, pre-computed codebase context
+before each request is routed. It eliminates the need for agents to re-explore portal
+codebases from scratch on every run.
+
+**Service:** `PortalKnowledgeService` (`src/services/portal_knowledge/portal_knowledge_service.ts`)
+
+**`IPortalKnowledgeConfig` interface:**
+
+| Field                | Type                 | Default       | Description                               |
+| -------------------- | -------------------- | ------------- | ----------------------------------------- |
+| `autoAnalyzeOnMount` | `boolean`            | `true`        | Trigger analysis on portal add/refresh    |
+| `defaultMode`        | `PortalAnalysisMode` | `"quick"`     | Default analysis depth                    |
+| `quickScanLimit`     | `number`             | `200`         | Max files read per strategy in quick mode |
+| `maxFilesToRead`     | `number`             | `50`          | Hard cap across all strategies            |
+| `staleness`          | `number`             | `168`         | Hours before re-analysis is triggered     |
+| `useLlmInference`    | `boolean`            | `true`        | Allow LLM calls in deep-mode strategies   |
+| `ignorePatterns`     | `string[]`           | see constants | Directories/patterns to skip              |
+
+**`IPortalKnowledge` schema (validated by `PortalKnowledgeSchema`):**
+
+Sub-schemas defined in `src/shared/schemas/portal_knowledge.ts`:
+
+| Sub-schema                | Purpose                                   |
+| ------------------------- | ----------------------------------------- |
+| `FileSignificanceSchema`  | Ranks files by importance to agents       |
+| `ArchitectureLayerSchema` | Maps source directories to logical layers |
+| `CodeConventionSchema`    | Naming conventions, test patterns         |
+| `DependencyInfoSchema`    | Runtime/dev deps with manager detection   |
+| `SymbolEntrySchema`       | Exported API symbols (TS/JS only)         |
+| `MonorepoPackageSchema`   | Monorepo sub-package metadata             |
+
+**Six analysis strategies:**
+
+| # | Strategy                | Component              | Mode(s)                | Notes                                                                  |
+| - | ----------------------- | ---------------------- | ---------------------- | ---------------------------------------------------------------------- |
+| 1 | Directory Census        | `DirectoryAnalyzer`    | quick, standard, deep  | File count, extension histogram                                        |
+| 2 | Key File Identification | `KeyFileIdentifier`    | quick, standard, deep  | Entry points, manifests                                                |
+| 3 | Config File Parsing     | `ConfigFileParser`     | quick†, standard, deep | Parse package.json, deno.json, tsconfig.json                           |
+| 4 | Pattern Detection       | `PatternDetector`      | standard, deep         | Naming patterns, test framework detection                              |
+| 5 | Architecture Inference  | `ArchitectureInferrer` | standard, deep         | Layer inference, optional LLM enrichment                               |
+| 6 | Symbol Extraction       | `SymbolExtractor`      | deep only              | `deno doc --json` — TS/JS portals only; non-TS/JS portals return empty |
+
+_† In quick mode, config parsing is capped by `quickScanLimit`._
+
+**Service API:**
+
+```typescript
+// Run analysis pipeline
+analyze(portal: string, config: IPortalKnowledgeConfig, mode?: PortalAnalysisMode): Promise<IPortalKnowledge>
+
+// Return cached knowledge or re-analyze if stale
+getOrAnalyze(portal: string, config: IPortalKnowledgeConfig): Promise<IPortalKnowledge>
+```
+
+**Persistence:** `KnowledgePersistence` (`src/services/portal_knowledge/knowledge_persistence.ts`)
+writes to `Memory/Projects/{alias}/knowledge.json`, validated against `PortalKnowledgeSchema`
+on both read and write.
+
+**Activity Journal:** Emits `portal.analyzed` on each successful save.
 
 ### 5.8.2.2. Flow Orchestration Improvements (Phase 15 ✅ Implemented)
 

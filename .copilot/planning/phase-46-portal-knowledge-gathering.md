@@ -1313,7 +1313,7 @@ Incremental updates:
 
 **Planned tests:** None (documentation-only; validated by `deno task check:docs` and manual review).
 
-**✅ IMPLEMENTED** — commit: _to be filled_
+**✅ IMPLEMENTED** — commit: `24b2657`
 
 ---
 
@@ -1350,14 +1350,16 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] User guide explains portal knowledge in user-accessible language
-- [ ] CLI commands documented with usage examples
-- [ ] `[portal_knowledge]` config section documented
-- [ ] Technical spec includes schema definitions
-- [ ] Test strategy doc covers new test categories
-- [ ] No broken internal links
+- [x] User guide explains portal knowledge in user-accessible language
+- [x] CLI commands documented with usage examples
+- [x] `[portal_knowledge]` config section documented
+- [x] Technical spec includes schema definitions
+- [x] Test strategy doc covers new test categories
+- [x] No broken internal links
 
 **Planned tests:** None (documentation-only; validated by manual review and link checker).
+
+**✅ IMPLEMENTED** — commit: _to be filled_
 
 ---
 

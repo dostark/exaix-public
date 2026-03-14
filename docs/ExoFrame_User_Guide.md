@@ -1498,6 +1498,8 @@ exoctl portal show MyProject                 # Portal details
 exoctl portal remove MyProject               # Unmount portal
 exoctl portal verify                         # Check portal integrity
 exoctl portal refresh MyProject              # Update context card
+exoctl portal analyze MyProject              # Analyze codebase knowledge
+exoctl portal knowledge MyProject            # Show gathered knowledge
 
 # Daemon management
 exoctl daemon start                        # Start background process
@@ -2103,11 +2105,70 @@ exoctl request --portal my-project "Analyze code"
 # Result: Operates in ~/git/MyProject
 ```
 
-**Backward Compatibility:**
+#### Portal Knowledge Gathering (Phase 46)
 
-- Requests without `--portal` continue to work in deployed workspace
-- Existing reviews remain valid
-- No data migration required
+ExoFrame automatically analyzes every portal codebase and stores the results in
+`Memory/Projects/{alias}/knowledge.json`. This gives agents structured, up-to-date
+context about the project without reading every file on each request.
+
+**What is gathered:**
+
+| Category            | Examples                                            |
+| ------------------- | --------------------------------------------------- |
+| Directory census    | File count, extension breakdown, top-level folders  |
+| Key files           | Entry points, `package.json`, `deno.json`, configs  |
+| Dependencies        | Runtime deps, dev deps, package manager             |
+| Code conventions    | Naming patterns, test file naming, style hints      |
+| Architecture layers | `src/`, `tests/`, `docs/` inference                 |
+| Exported symbols    | Public API types and functions (TS/JS portals only) |
+
+**When does analysis run?**
+
+- Automatically on `portal add` and `portal refresh` (when `auto_analyze_on_mount = true`).
+- Automatically before each request execution if the snapshot is stale (default: > 168 hours).
+- Manually on demand with `exoctl portal analyze <alias>`.
+
+**Modes:**
+
+| Mode       | Speed  | Detail | Requires LLM |
+| ---------- | ------ | ------ | ------------ |
+| `quick`    | Fast   | Low    | No           |
+| `standard` | Medium | High   | No           |
+| `deep`     | Slow   | Full   | Optional     |
+
+**CLI commands:**
+
+```bash
+# Run analysis manually (default: quick mode)
+exoctl portal analyze MyProject
+
+# Force deep analysis, ignore staleness
+exoctl portal analyze MyProject --mode deep --force
+
+# Display gathered knowledge (human-readable)
+exoctl portal knowledge MyProject
+
+# Display as machine-readable JSON
+exoctl portal knowledge MyProject --json
+```
+
+**Configuration (`[portal_knowledge]` in `exo.config.toml`):**
+
+```toml
+[portal_knowledge]
+auto_analyze_on_mount = true      # Analyze on portal add/refresh
+default_mode          = "quick"   # quick | standard | deep
+quick_scan_limit      = 200       # Max files read in quick mode
+max_files_to_read     = 50        # Hard cap across all strategies
+staleness_hours       = 168       # Re-analyze after this many hours (default: 1 week)
+use_llm_inference     = true      # Allow LLM calls in deep mode
+ignore_patterns       = ["node_modules", ".git", "dist", "build"]
+```
+
+**Where is it stored?**
+
+Knowledge snapshots are saved at `Memory/Projects/{alias}/knowledge.json`. You can
+inspect them directly or via `exoctl portal knowledge <alias> --json`.
 
 ---
 
