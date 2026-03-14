@@ -644,19 +644,21 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Calls `provider.generate()` with quality assessment prompt
-- [ ] Validates response against schema
-- [ ] Returns full `IRequestQualityAssessment` with detailed issues
-- [ ] Falls back gracefully on LLM failure
-- [ ] Includes enriched body suggestion when auto-enrich recommended
+- [x] Calls `provider.generate()` with quality assessment prompt
+- [x] Validates response against schema
+- [x] Returns full `IRequestQualityAssessment` with detailed issues
+- [x] Falls back gracefully on LLM failure
+- [x] Includes enriched body suggestion when auto-enrich recommended
 
 **Planned tests** (`tests/services/quality_gate/llm_assessor_test.ts`):
 
-- `[LlmQualityAssessor] parses valid LLM response`
-- `[LlmQualityAssessor] handles invalid LLM JSON gracefully`
-- `[LlmQualityAssessor] passes request text in prompt`
-- `[LlmQualityAssessor] uses OutputValidator for parsing`
-- `[LlmQualityAssessor] returns fallback on validation failure`
+- ✅ `[LlmQualityAssessor] parses valid LLM response`
+- ✅ `[LlmQualityAssessor] handles invalid LLM JSON gracefully`
+- ✅ `[LlmQualityAssessor] passes request text in prompt`
+- ✅ `[LlmQualityAssessor] uses OutputValidator for parsing`
+- ✅ `[LlmQualityAssessor] returns fallback on validation failure`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/llm_assessor.ts`, 5/5 tests passing
 
 ---
 
