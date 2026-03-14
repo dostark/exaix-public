@@ -91,6 +91,10 @@ const git = GitService.getInstance();
   - **Note**: Always use `PathResolver` to validate paths before access.
 - **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
 - **Intent Analysis**: Requests can trigger the `RequestAnalyzer` via the `--analyze` flag. This layer extracts goals, constraints, and requirements to a `req_analysis.json` artifact. Use the centralized `AnalysisMode` / `AnalyzerEngine` types from `src/types/request.ts` (Phase 45).
+- **Portal Knowledge Gathering** (Phase 46): `PortalKnowledgeService` (`src/services/portal_knowledge/`) builds a structured analysis snapshot of every portal codebase — file census, key files, config parsing, pattern detection, architecture inference, and (deep mode) symbol extraction via `deno doc`. Results persist to `Memory/Projects/{alias}/knowledge.json` (validated by `PortalKnowledgeSchema` in `src/shared/schemas/portal_knowledge.ts`). Always use `PortalKnowledgeService.getOrAnalyze()` rather than raw file reads when agents need codebase context. Modes: `quick` (fast, no LLM), `standard` (all non-LLM strategies), `deep` (full, includes `SymbolExtractor`). Configured via `[portal_knowledge]` TOML section. CLI: `exoctl portal analyze <alias>`, `exoctl portal knowledge <alias>`.
+  - Directory: `src/services/portal_knowledge/` — `directory_analyzer.ts`, `config_parser.ts`, `key_file_identifier.ts`, `pattern_detector.ts`, `architecture_inferrer.ts`, `symbol_extractor.ts`, `portal_knowledge_service.ts`, `knowledge_persistence.ts`
+  - Interface: `IPortalKnowledgeService` in `src/services/portal_knowledge/interfaces.ts`
+  - Config interface: `IPortalKnowledgeConfig` — fields: `defaultMode`, `quickScanLimit`, `maxFilesToRead`, `staleness` (hours), `useLlmInference`, `ignorePatterns`, `autoAnalyzeOnMount`
 
 ### Configuration Constants & Magic Numbers
 

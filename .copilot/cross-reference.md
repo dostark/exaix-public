@@ -32,6 +32,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 | Instruction gaps / self-improvement | [process/self-improvement.md](process/self-improvement.md) | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md) |
 | Architecture review / improvement | [process/review-research-improvement.md](process/review-research-improvement.md) | [planning/](planning/) |
 | SDD / request quality methodology | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
+| Portal knowledge / codebase analysis | [source/exoframe.md](source/exoframe.md) | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md) |
 
 ## Search by Topic
 
@@ -57,6 +58,9 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 - **`self-improvement`** → [process/self-improvement.md](process/self-improvement.md), [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md)
 - **`architecture`** → [process/review-research-improvement.md](process/review-research-improvement.md)
 - **`improvement-planning`** → [process/review-research-improvement.md](process/review-research-improvement.md), [planning/](planning/)
+- **`portal-knowledge`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`codebase-analysis`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`architecture-inference`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
 
 ## Workflow Examples
 

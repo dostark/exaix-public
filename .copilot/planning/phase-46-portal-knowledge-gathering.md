@@ -1359,11 +1359,7 @@ Incremental updates:
 
 **Planned tests:** None (documentation-only; validated by manual review and link checker).
 
-**✅ IMPLEMENTED** — commit: _to be filled_
-
----
-
-### Step 20: Update `.copilot/` Agent Documentation
+**✅ IMPLEMENTED** — commit: `0d0e578`: Update `.copilot/` Agent Documentation
 
 **What:** Update AI agent guidance docs to reflect the new portal knowledge components.
 
@@ -1390,12 +1386,14 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] `.copilot/source/exoframe.md` lists `PortalKnowledgeService` in service catalog
-- [ ] `.copilot/cross-reference.md` has `portal knowledge` task row
-- [ ] `manifest.json` is fresh (passes `deno task check:docs`)
-- [ ] Future agents can find portal knowledge guidance via cross-reference
+- [x] `.copilot/source/exoframe.md` lists `PortalKnowledgeService` in service catalog
+- [x] `.copilot/cross-reference.md` has `portal knowledge` task row
+- [x] `manifest.json` is fresh (passes `deno task check:docs`)
+- [x] Future agents can find portal knowledge guidance via cross-reference
 
 **Planned tests:** `deno task check:docs` passes (verifies manifest freshness).
+
+**✅ IMPLEMENTED** — commit: _to be filled_
 
 ---
 
