@@ -16,3 +16,4 @@ export { LlmQualityAssessor } from "./llm_assessor.ts";
 export { enrichRequest } from "./request_enricher_llm.ts";
 export { ClarificationEngine } from "./clarification_engine.ts";
 export { type IClarificationEngineConfig } from "./clarification_engine.ts";
+export { loadClarification, saveClarification } from "./clarification_persistence.ts";
