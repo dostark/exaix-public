@@ -19,6 +19,7 @@ export * from "./plan_schema.ts";
 export * from "./portal_knowledge.ts";
 export * from "./request.ts";
 export * from "./request_analysis.ts";
+export * from "./request_quality_assessment.ts";
 export * from "./review.ts";
 export * from "./schema_describer.ts";
 export * as InputValidationSchemas from "./input_validation.ts";

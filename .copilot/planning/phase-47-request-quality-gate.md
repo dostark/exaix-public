@@ -451,23 +451,25 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `RequestQualityAssessmentSchema.safeParse(validData)` returns `{ success: true }`
-- [ ] `RequestQualityAssessmentSchema.safeParse(invalidData)` returns `{ success: false }`
-- [ ] Score constrained to 0–100 range
-- [ ] All enum values validated (issue types, severity, level, recommendation)
-- [ ] Schema re-exported through `src/shared/schemas/mod.ts` barrel
-- [ ] No lint or type errors
+- [x] `RequestQualityAssessmentSchema.safeParse(validData)` returns `{ success: true }`
+- [x] `RequestQualityAssessmentSchema.safeParse(invalidData)` returns `{ success: false }`
+- [x] Score constrained to 0–100 range
+- [x] All enum values validated (issue types, severity, level, recommendation)
+- [x] Schema re-exported through `src/shared/schemas/mod.ts` barrel
+- [x] No lint or type errors
 
-**Planned tests** (`tests/shared/schemas/request_quality_assessment_test.ts`):
+**Planned tests** (`tests/schemas/request_quality_assessment_test.ts`):
 
-- `[RequestQualityAssessmentSchema] validates complete valid assessment`
-- `[RequestQualityAssessmentSchema] rejects score outside 0-100`
-- `[RequestQualityAssessmentSchema] validates all issue type enum values`
-- `[RequestQualityAssessmentSchema] validates all severity enum values`
-- `[RequestQualityAssessmentSchema] validates all level enum values`
-- `[RequestQualityAssessmentSchema] validates all recommendation enum values`
-- `[RequestQualityIssueSchema] validates individual issue`
-- `[RequestQualityAssessmentSchema] validates metadata fields`
+- ✅ `[RequestQualityAssessmentSchema] validates complete valid assessment`
+- ✅ `[RequestQualityAssessmentSchema] rejects score outside 0-100`
+- ✅ `[RequestQualityAssessmentSchema] validates all issue type enum values`
+- ✅ `[RequestQualityAssessmentSchema] validates all severity enum values`
+- ✅ `[RequestQualityAssessmentSchema] validates all level enum values`
+- ✅ `[RequestQualityAssessmentSchema] validates all recommendation enum values`
+- ✅ `[RequestQualityIssueSchema] validates individual issue`
+- ✅ `[RequestQualityAssessmentSchema] validates metadata fields`
+
+**✅ IMPLEMENTED** — `src/shared/schemas/request_quality_assessment.ts`, 17/17 tests passing
 
 ---
 
