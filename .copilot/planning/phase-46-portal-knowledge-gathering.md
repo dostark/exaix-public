@@ -1304,14 +1304,16 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Portal knowledge pipeline documented with diagram
-- [ ] Six strategies described with mode matrix (including Strategy 6 `deno doc` language gate)
-- [ ] `PortalKnowledgeSchema` listed in schema layer section
-- [ ] `portal.analyzed` event documented
-- [ ] Memory Bank section updated with knowledge.json
-- [ ] All internal links use relative paths
+- [x] Portal knowledge pipeline documented with diagram
+- [x] Six strategies described with mode matrix (including Strategy 6 `deno doc` language gate)
+- [x] `PortalKnowledgeSchema` listed in schema layer section
+- [x] `portal.analyzed` event documented
+- [x] Memory Bank section updated with knowledge.json
+- [x] All internal links use relative paths
 
 **Planned tests:** None (documentation-only; validated by `deno task check:docs` and manual review).
+
+**✅ IMPLEMENTED** — commit: _to be filled_
 
 ---
 

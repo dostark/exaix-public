@@ -639,6 +639,10 @@ graph TB
 - `plan.parsing_failed` - Missing body, no steps, or empty titles
 - `plan.non_sequential_steps` - Warning for gaps in step numbering
 
+**Portal Knowledge Events:**
+
+- `portal.analyzed` - Knowledge gathering pipeline completed and `knowledge.json` saved
+
 ---
 
 ## CLI Commands Architecture
@@ -1013,6 +1017,7 @@ graph TB
         Decisions["decisions.md"]
         References["references.md"]
         ContextJson["context.json"]
+        Knowledge["knowledge.json"]
     end
 
     subgraph ExecMem["Execution/{trace-id}/"]
@@ -1048,7 +1053,7 @@ graph TB
 
     class Memory,Global,Projects,Execution,Pending,Tasks,Index dir
     class Overview,Patterns,Decisions,References,Summary,Changes,Learnings,GLearnings,GPatterns,GAnti file
-    class ContextJson,Context,GJson,Files,PatIdx,Tags,LearnIdx,Embed json
+    class ContextJson,Context,GJson,Files,PatIdx,Tags,LearnIdx,Embed,Knowledge json
 ```
 
 ### Memory Update Workflow
@@ -1095,14 +1100,17 @@ exoctl memory
 
 ### Key Components
 
-| Component         | Location                                       | Purpose                      | Status      |
-| ----------------- | ---------------------------------------------- | ---------------------------- | ----------- |
-| MemoryBankService | `src/services/memory_bank.ts`                  | Core CRUD operations         | ✅ Complete |
-| Memory Schemas    | `src/schemas/memory_bank.ts`                   | Zod validation schemas       | ✅ Complete |
-| Memory Extractor  | `src/services/memory_extractor.ts`             | Learning extraction          | ✅ Complete |
-| Memory Embedding  | `src/services/memory_embedding.ts`             | Vector embeddings for search | ✅ Complete |
-| Memory CLI        | `src/cli/memory_commands.ts`                   | CLI interface                | ✅ Complete |
-| Integration Tests | `tests/integration/memory_integration_test.ts` | End-to-end tests             | ✅ Complete |
+| Component                | Location                                                | Purpose                              | Status      |
+| ------------------------ | ------------------------------------------------------- | ------------------------------------ | ----------- |
+| MemoryBankService        | `src/services/memory_bank.ts`                           | Core CRUD operations                 | ✅ Complete |
+| Memory Schemas           | `src/schemas/memory_bank.ts`                            | Zod validation schemas               | ✅ Complete |
+| Memory Extractor         | `src/services/memory_extractor.ts`                      | Learning extraction                  | ✅ Complete |
+| Memory Embedding         | `src/services/memory_embedding.ts`                      | Vector embeddings for search         | ✅ Complete |
+| Memory CLI               | `src/cli/memory_commands.ts`                            | CLI interface                        | ✅ Complete |
+| Integration Tests        | `tests/integration/memory_integration_test.ts`          | End-to-end tests                     | ✅ Complete |
+| PortalKnowledgeService   | `src/services/portal_knowledge/portal_knowledge_service.ts` | Codebase analysis pipeline       | ✅ Complete |
+| PortalKnowledgeSchema    | `src/shared/schemas/portal_knowledge.ts`                | Zod validation for knowledge.json    | ✅ Complete |
+| KnowledgePersistence     | `src/services/portal_knowledge/knowledge_persistence.ts` | knowledge.json read/write           | ✅ Complete |
 
 ---
 
@@ -1175,6 +1183,89 @@ graph TB
     class Card1,Card2,Card3 memory
     class TOML,Deno config
     class Add,List,Show,Remove,Verify,Refresh cli
+```
+
+### Knowledge Gathering Pipeline (Phase 46)
+
+Phase 46 adds automated codebase analysis to every portal. After `ContextCardGenerator`
+builds the human-readable context card, `PortalKnowledgeService` runs a configurable
+analysis pipeline and persists structured knowledge to
+`Memory/Projects/{alias}/knowledge.json`.
+
+**Post-mount flow:**
+
+```text
+Portal Mount
+  → ContextCardGenerator.generate()         (context card)
+  → PortalKnowledgeService.analyze()        (NEW — quick mode by default)
+      → DirectoryAnalyzer   (file census)
+      → KeyFileIdentifier   (entry points, configs)
+      → ConfigFileParser    (package.json, deno.json, …)
+      → PatternDetector     (naming / style patterns)
+      → ArchitectureInferrer (layer inference)
+      → SymbolExtractor     (deno doc — TS/JS only)
+  → KnowledgePersistence.save()             → Memory/Projects/{alias}/knowledge.json
+```
+
+**Pre-execution flow:**
+
+```text
+Request File (.md)
+  → RequestParser.parse()
+  → RequestAnalyzer.analyze()               ← Phase 45
+  → PortalKnowledgeService.getOrAnalyze()   ← Phase 46 (NEW)
+  → RequestRouter (agent or flow)
+```
+
+**Analysis modes:**
+
+| Mode       | Strategies run      | LLM needed | `quick_scan_limit` applies |
+| ---------- | ------------------- | ---------- | -------------------------- |
+| `quick`    | 1, 2, 3 (partial)   | No         | Yes                        |
+| `standard` | 1–5                 | Optional   | No                         |
+| `deep`     | 1–6                 | Yes        | No                         |
+
+**Six analysis strategies:**
+
+| # | Strategy               | Mode(s)               | Notes                                                   |
+| - | ---------------------- | --------------------- | ------------------------------------------------------- |
+| 1 | Directory Census       | quick, standard, deep | File count, extension breakdown                         |
+| 2 | Key File Identification | quick, standard, deep | Entry points, package.json, deno.json                  |
+| 3 | Config File Parsing    | quick†, standard, deep | Reads package.json, deno.json, tsconfig.json           |
+| 4 | Pattern Detection      | standard, deep        | Naming conventions, test patterns                       |
+| 5 | Architecture Inference | standard, deep        | Layer inference from directory names and import graph   |
+| 6 | Symbol Extraction      | deep only             | `deno doc --json` (TS/JS only; skipped for non-TS portals) |
+
+_† In quick mode, config parsing is capped by `quick_scan_limit`._
+
+**Persistence & staleness:**
+
+- Knowledge is written to `Memory/Projects/{alias}/knowledge.json` and exposed via
+  `IProjectMemory["knowledge"]`.
+- `staleness_hours` (default: 168 h / 1 week) controls re-analysis:
+  if `gatheredAt < now − staleness_hours`, a fresh run is triggered automatically.
+- Incremental update: only outdated strategy results are re-run; unchanged results are
+  merged from the previous snapshot.
+- `portal.analyzed` is emitted to the Activity Journal on each successful save.
+
+**Configuration (`[portal_knowledge]` TOML section):**
+
+```toml
+[portal_knowledge]
+auto_analyze_on_mount = true      # Trigger analysis on portal add/refresh
+default_mode          = "quick"   # quick | standard | deep
+quick_scan_limit      = 200       # Max files read per strategy in quick mode
+max_files_to_read     = 50        # Hard cap across all strategies
+staleness_hours       = 168       # Hours before re-analysis (default: 1 week)
+use_llm_inference     = true      # Allow LLM calls in deep-mode strategies
+ignore_patterns       = ["node_modules", ".git", "dist", "build", ".next"]
+```
+
+**CLI commands:**
+
+```text
+exoctl portal analyze <alias> [--mode quick|standard|deep] [--force]
+exoctl portal knowledge <alias> [--json]
 ```
 
 ### Portal review cleanup semantics
