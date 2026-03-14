@@ -44,7 +44,7 @@ The `RequestStatus` enum in `src/shared/status/request_status.ts` has these stat
 PENDING → PLANNED → COMPLETED
                  → FAILED
                  → CANCELLED
-```text
+```
 
 There is no `NEEDS_CLARIFICATION` or `ENRICHING` status. Once a request is `PENDING`, it will be processed regardless of quality.
 
@@ -130,7 +130,7 @@ export interface IRequestQualityAssessment {
     durationMs: number;
   };
 }
-```text
+```
 
 ### 2. `RequestQualityGate` Service
 
@@ -154,7 +154,7 @@ export interface IRequestQualityGateConfig {
   /** Whether to block unactionable requests */
   blockUnactionable: boolean;
 }
-```text
+```
 
 #### Heuristic Quality Signals
 
@@ -184,7 +184,7 @@ export enum RequestStatus {
   FAILED = "failed",
   CANCELLED = "cancelled",
 }
-```text
+```
 
 ### 4. Request Enrichment via LLM
 
@@ -210,7 +210,7 @@ Rewrite this request to be:
 
 Preserve the original intent. Do not add requirements the user didn't imply.
 Output ONLY the improved request body (no explanation).
-```text
+```
 
 The enriched body replaces the original in `IParsedRequest.userPrompt`. The original body is preserved in metadata for audit.
 
@@ -240,7 +240,7 @@ export enum RequestStatus {
   FAILED = "failed",
   CANCELLED = "cancelled",
 }
-```text
+```
 
 #### Clarification Session Model
 
@@ -285,7 +285,7 @@ export interface IClarificationSession {
   /** Quality assessment at each round (tracks improvement) */
   qualityHistory: Array<{ round: number; score: number; level: string }>;
 }
-```text
+```
 
 #### Request Specification Structure
 
@@ -308,7 +308,7 @@ export interface IRequestSpecification {
   /** Original body for reference */
   originalBody: string;
 }
-```text
+```
 
 #### Q&A Loop Flow
 
@@ -338,7 +338,7 @@ Request File (.md)
   → buildParsedRequest()
   → AgentRunner.run()
   → PlanWriter.writePlan()
-```text
+```
 
 #### Planning Agent Role
 
@@ -373,7 +373,7 @@ You are refining a task request through conversation with the user.
 
 If the request is sufficiently clear, output { "satisfied": true, "refinedBody": ... }
 If more clarification is needed, output { "satisfied": false, "questions": [...] }
-```text
+```
 
 #### CLI Integration
 
@@ -392,7 +392,7 @@ exoctl request clarify <request-id> --proceed
 
 # Cancel the refinement and go back to original
 exoctl request clarify <request-id> --cancel
-```text
+```
 
 #### TUI Integration
 
@@ -411,7 +411,7 @@ The clarification session is stored as `_clarification.json` alongside the reque
 Workspace/Requests/
   ├── my-request.md              ← Original request (never modified)
   └── my-request_clarification.json  ← Clarification session state
-```text
+```
 
 ### 6. Integration into `RequestProcessor`
 
@@ -426,7 +426,7 @@ Request File (.md)
   → buildParsedRequest()                    (with IRequestSpecification if available)
   → AgentRunner.run()
   → PlanWriter.writePlan()
-```text
+```
 
 ---
 
@@ -680,17 +680,21 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Calls LLM with enrichment prompt containing body + issues
-- [ ] Returns enriched body string
-- [ ] Original body is not lost (caller responsibility to preserve)
-- [ ] Falls back to original body on LLM failure
-- [ ] Enrichment adds structure (bullets, sections) without changing intent
+- [x] Calls LLM with enrichment prompt containing body + issues
+- [x] Returns enriched body string
+- [x] Original body is not lost (caller responsibility to preserve)
+- [x] Falls back to original body on LLM failure
+- [x] Enrichment adds structure (bullets, sections) without changing intent
 
 **Planned tests** (`tests/services/quality_gate/request_enricher_llm_test.ts`):
 
-- `[RequestEnricherLlm] returns enriched body from LLM`
-- `[RequestEnricherLlm] includes issues in prompt`
-- `[RequestEnricherLlm] falls back to original on LLM failure`
+- ✅ `[RequestEnricherLlm] returns enriched body from LLM`
+- ✅ `[RequestEnricherLlm] includes issues in prompt`
+- ✅ `[RequestEnricherLlm] falls back to original on LLM failure`
+- ✅ `[RequestEnricherLlm] includes original body in prompt`
+- ✅ `[RequestEnricherLlm] returns non-empty string on success`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/request_enricher_llm.ts`, 5/5 tests passing
 
 ---
 
