@@ -665,7 +665,7 @@ export class PortalManagerView implements IPortalService {
     return this.service.getPortalActivityLog(alias);
   }
 
-  getKnowledge(portalAlias: string): Promise<import("../shared/schemas/portal_knowledge.ts").IPortalKnowledge | null> {
+  getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null> {
     return this.service.getKnowledge(portalAlias);
   }
 

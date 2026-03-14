@@ -66,6 +66,18 @@ const rules: Rule[] = [
     ]
     : []),
   {
+    name: "inline-type-import",
+    // Matches import("...").Something used as a type annotation, e.g.:
+    //   Promise<import("./foo.ts").IFoo>
+    //   : import("./bar.ts").Bar
+    // Excludes `typeof import("...").Foo` which is the legitimate pattern for
+    // typing the result of a dynamic import helper without a top-level import.
+    regex: /(?<!typeof\s+)import\s*\(\s*["'][^"']+["']\s*\)\s*\.\s*\w/,
+    message: 'Inline type imports (e.g. `import("./foo.ts").IFoo` inside a type annotation) are prohibited. ' +
+      'Declare an explicit `import type { IFoo } from "./foo.ts"` at the top of the file.',
+    severity: "error" as const,
+  },
+  {
     name: "explicit-unknown-array",
     regex: /:\s*unknown\[\]/,
     message: "Using 'unknown[]' as a type is forbidden; use a specific type instead.",

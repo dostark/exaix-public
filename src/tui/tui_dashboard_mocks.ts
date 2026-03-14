@@ -65,6 +65,7 @@ import { INotificationService } from "../shared/interfaces/i_notification_servic
 import { ILogService, IStructuredLogger } from "../shared/interfaces/i_log_service.ts";
 import { IJournalService } from "../shared/interfaces/i_journal_service.ts";
 import { IMemoryService } from "../shared/interfaces/i_memory_service.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
 import { PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts";
 import { RequestStatus, type RequestStatusType } from "../shared/status/request_status.ts";
 import { AgentStatus, type AgentStatusType as _AgentStatusType } from "../shared/status/agent_status.ts";
@@ -147,6 +148,10 @@ export class MockPortalService implements IPortalService {
 
   getPortalActivityLog(_alias: string): string[] {
     return [];
+  }
+
+  getKnowledge(_alias: string): Promise<IPortalKnowledge | null> {
+    return Promise.resolve(null);
   }
 }
 

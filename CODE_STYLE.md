@@ -119,10 +119,10 @@ Exporting entities imported from other modules is prohibited. Each module must o
 
 ```ts
 export { Foo } from "./bar.ts"; // ❌ Inline re-export
-export * from "./bar.ts";       // ❌ Wildcard re-export
+export * from "./bar.ts"; // ❌ Wildcard re-export
 
 import { Baz } from "./qux.ts";
-export { Baz };                 // ❌ Explicit re-export
+export { Baz }; // ❌ Explicit re-export
 ```
 
 ### Dynamic Imports
@@ -144,6 +144,33 @@ const { join } = await import("@std/path");
 ```
 
 The code style checker will warn on all uses of dynamic import. Only use them when absolutely necessary and always provide a justification comment.
+
+### No Inline Type Imports
+
+Using `import(...)` inside a type annotation or return type — instead of a top-level `import type` statement — is **prohibited**. All imports, including type-only imports, must be explicit top-level declarations.
+
+**Prohibited:**
+
+```ts
+// ❌ Inline import inside a type annotation
+function foo(): Promise<import("./bar.ts").IBar | null> { ... }
+
+// ❌ Inline import in a method return type
+getKnowledge(alias: string): Promise<import("../shared/schemas/portal_knowledge.ts").IPortalKnowledge | null> { ... }
+```
+
+**Required:**
+
+```ts
+// ✅ Top-level import declaration
+import type { IBar } from "./bar.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
+
+function foo(): Promise<IBar | null> { ... }
+getKnowledge(alias: string): Promise<IPortalKnowledge | null> { ... }
+```
+
+The style checker enforces this as an **error** (`inline-type-import` rule).
 
 ### No Aliasing Interfaces on Import
 
