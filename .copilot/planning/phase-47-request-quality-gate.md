@@ -1,5 +1,7 @@
 # Phase 47: Request Quality Gate & Clarification Protocol
 
+## Version: 1.0
+
 ## Status: PLANNING
 
 Introduce a pre-execution quality gate that assesses whether incoming requests are well-specified enough to produce good results, with a protocol for requesting clarification or auto-enriching underspecified requests.
@@ -1250,6 +1252,8 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 | LLM-based assessment adds cost | Hybrid mode: heuristic first, LLM only for borderline scores |
 | New statuses break existing CLI/TUI | Additive enum values; existing code handles unknown statuses gracefully via `coerceRequestStatus()` |
 | User abandons mid-clarification | Session persisted in `_clarification.json`; can resume or cancel at any time |
+| New statuses break existing CLI/TUI | Additive enum values; existing code handles unknown statuses gracefully via `coerceRequestStatus()` |
+| User abandons mid-clarification | Session persisted in `_clarification.json`; can resume or cancel at any time |
 
 ## Open Questions
 
@@ -1309,3 +1313,446 @@ return {
 1.
 
 ```
+
+---
+
+## Gap Analysis & Critique
+
+> **Status:** Identified — to be addressed before implementation begins.
+> Critical architectural gaps (§1–§4) are blocking: they cause the Q&A loop to be a dead end (requests never execute after clarification) or status corruption (new statuses silently coerced to `pending`). Feasibility and design gaps (§5–§11) produce incorrect or unexpectedly expensive behaviour if left to implementer judgment. Testing gaps (§12–§14) leave the highest-value execution path and backward-compatibility regression entirely uncovered. Conceptual gaps (§15–§17) create undocumented cross-phase protocols that Phases 48 and 49 will need to guess at.
+
+---
+
+### Critical Architectural Gaps
+
+#### Gap 1: `shouldSkipRequest()` semantics for all three new statuses are undefined
+
+`RequestProcessor.shouldSkipRequest()` currently skips `PLANNED`, `COMPLETED`, `FAILED`, and `CANCELLED`. The plan adds `NEEDS_CLARIFICATION`, `REFINING`, and `ENRICHING` in Step 8 without specifying their skip semantics. Three options exist for each:
+
+- **Skip (terminal):** request never re-enters the pipeline — correct for `NEEDS_CLARIFICATION` (awaiting user), but then `exoctl request clarify --proceed` must explicitly write `status: pending` back to the `.md` frontmatter to re-trigger execution
+- **Process (active):** request runs the quality gate again — correct for `ENRICHING` (short-lived), dangerous for `NEEDS_CLARIFICATION` (infinite re-trigger loop)
+- **Skip without forwarding to terminal checklist:** breaks the future re-entry path
+
+If `shouldSkipRequest()` processes `NEEDS_CLARIFICATION` requests, every FileWatcher event re-enters the quality gate and immediately generates a new clarification session, producing an infinite Q&A loop for every re-watch. If it skips, requests in that state never execute unless the re-entry write is explicitly implemented. The plan is silent on all three cases.
+
+**Impact:** without defined skip semantics, the clarification feature delivers no execution value — clarified requests never reach an agent.
+
+> **To fix:** Add to Step 8 architecture notes: `NEEDS_CLARIFICATION` → skip (awaiting user response; re-entry via `--proceed` writing `status: pending` to frontmatter); `REFINING` → skip (engine is mid-round; FileWatcher must not interrupt an active session); `ENRICHING` → do NOT skip (synchronous transient state, completes within the same process call — may be removed per Gap §3). Step 20 (new) specifies the `finalizeAndWritePending()` contract for the re-entry write. Step 8 success criteria must include all three status skip-resolution tests.
+
+---
+
+#### Gap 2: Request re-entry mechanism after Q&A completion is critically underspecified
+
+Step 12 states: "Set status = REFINING, persist session, return early (request re-enters pipeline when user completes Q&A)." This statement implies a mechanism that does not exist:
+
+- The `FileWatcher` fires on `.md` file change events — it does **not** watch `_clarification.json` changes
+- If only `_clarification.json` is updated when the user submits answers, FileWatcher never fires
+- If `status = REFINING` is written to the `.md` frontmatter, FileWatcher fires — but `shouldSkipRequest()` must then NOT skip `REFINING` for re-entry to work, directly conflicting with Gap §1 (which requires skipping it to prevent loop re-entry)
+
+The only viable re-entry path: `exoctl request clarify --proceed` (and TUI proceed action) writes `status: pending` back to the `.md` frontmatter, triggering FileWatcher. But the plan never says this write happens, which file-system operation performs it, or which module owns the write.
+
+**Impact:** this is the most critical missing piece — the entire Q&A loop has no value if clarified requests never reach agent execution.
+
+> **To fix:** Specify the re-entry contract explicitly: `exoctl request clarify --proceed` (Step 13) calls `finalizeAndWritePending(requestFilePath, session, spec)`, which reads the `.md` frontmatter via `RequestParser`, replaces `status: pending`, sets `assessed_at: ISO timestamp`, and writes back atomically. FileWatcher picks up the `.md` change and re-triggers normally. Step 10 (`ClarificationEngine.finalize()`) returns `IRequestSpecification` but does **not** write to `.md` — that is the CLI/TUI's responsibility. Add a `finalizeAndWritePending()` function to the persistence module (Step 11) and make Step 20 the explicit contract for this end-to-end path.
+
+---
+
+#### Gap 3: `ENRICHING` status is vestigial — no described code path ever sets it
+
+The plan adds `ENRICHING` as a status sibling of `NEEDS_CLARIFICATION` and `REFINING`. However:
+
+- Auto-enrichment in Step 9 (`RequestQualityGate.enrich()`) is described as synchronous: "enriched body replaces the original in `IParsedRequest.userPrompt`"
+- Step 12 pipeline says "if auto-enrich → enrich body, then continue" — no async pause, no visible delay, no status write
+- No code path in Steps 9, 12, or 13 ever sets `status = ENRICHING` on the request file
+
+A status that exists in the enum but is never emitted by any code path creates confusion in the TUI `STATUS_ICONS`/`STATUS_COLORS` maps (returns `undefined`), in CLI filter logic, and in documentation.
+
+**Impact:** the `ENRICHING` value in `STATUS_ICONS` silently renders with no icon. Developers implementing Step 14 (TUI) will add a display case for a status that is never reached. TypeScript switch exhaustiveness checks on `RequestStatus` will require a dead `ENRICHING` branch forever.
+
+> **To fix:** Remove `ENRICHING` from the new-statuses list in Step 8. Auto-enrichment is synchronous and needs no observable intermediate state. The plan's "synchronous enrichment in pipeline" model is fundamentally incompatible with a status value that requires an intermediate file write and re-read. Document the removal decision in Step 8 architecture notes. If an async enrichment mode is added in a future phase, `ENRICHING` can be restored at that time.
+
+---
+
+#### Gap 4: `IRequestFrontmatter` is never listed in any step's "Files to modify" — new statuses silently corrupt on re-read
+
+The plan writes `status = NEEDS_CLARIFICATION` and `status = REFINING` to request files, but `src/services/request_processing/types.ts` (`IRequestFrontmatter`) is absent from every step's file list. `RequestParser.parse()` calls `coerceRequestStatus(frontmatter.status)` which coerces any value not in `REQUEST_STATUS_VALUES` to `"pending"`. Until `REQUEST_STATUS_VALUES` is extended (Step 8), any file written with `NEEDS_CLARIFICATION` will be coerced back to `PENDING` on next re-read — silently erasing the Q&A state.
+
+**Compounding effect:** `STATUS_ICONS` and `STATUS_COLORS` in `src/tui/request_manager_view.ts` are exhaustive over current statuses. Missing entries return `undefined`, producing blank status icons in the TUI for every request in a clarification state.
+
+> **To fix:** Add `src/services/request_processing/types.ts` to Step 8's "Files to modify." Add `quality_score?: number` and `clarification_session_path?: string` optional fields to `IRequestFrontmatter` so the quality state is visible without reading the sidecar. Add `src/tui/request_manager_view.ts` to Step 8's "Files to modify" with the explicit requirement to add `STATUS_ICONS` and `STATUS_COLORS` entries for `NEEDS_CLARIFICATION` and `REFINING`.
+
+---
+
+### Feasibility & Design Gaps
+
+#### Gap 5: `IRequestQualityAssessment.enrichedBody` conflates assessment and enrichment responsibilities
+
+The plan's `IRequestQualityAssessment` schema includes `enrichedBody?: string`. This conflates two separate concerns:
+
+- **Assessment** determines whether the request meets quality thresholds (`score`, `level`, `issues[]`, `recommendation`)
+- **Enrichment** produces an improved version of the request (`enrichedBody`)
+
+In `heuristic` mode, `enrichedBody` is always absent (no LLM call). In `hybrid`/`llm` mode, obtaining it would require bundling an enrichment LLM call inside the assessment call, or making two calls. Step 7 implements enrichment as a separate `enrichRequest()` function — correctly separating concerns — but Step 6 (`LlmQualityAssessor`) says "includes enriched body suggestion when auto-enrich recommended", implying one combined call. Step 9 orchestration is then ambiguous: does `assess()` sometimes return `enrichedBody` and sometimes not, depending on mode? Callers cannot reliably check for its presence.
+
+**Impact:** `IRequestQualityAssessment` becomes a variable-shape type; TypeScript's `?.` check is not sufficient — callers must also know which mode was used to know whether `enrichedBody` was attempted.
+
+> **To fix:** Remove `enrichedBody` from `IRequestQualityAssessmentSchema` in Step 1. Enrichment is a separate action triggered by `recommendation === "auto-enrich"`, returned exclusively from `RequestQualityGate.enrich()`. The assessment return value never includes an enriched body. Update Step 6 (`LlmQualityAssessor` success criteria) to remove "includes enriched body suggestion" — its only job is scoring and issue identification. Update Step 9 orchestration to call `enrich()` as a second step only when needed.
+
+---
+
+#### Gap 6: Hybrid mode cascades up to three sequential LLM calls before agent execution
+
+For a borderline request with `auto-enrich` recommendation in `hybrid` mode:
+
+1. Heuristic assess (fast, free) → borderline score → escalate to LLM
+1. LLM assess → returns `recommendation: "auto-enrich"`
+1. `enrich()` → second LLM call for request rewrite
+
+That is two LLM calls just for quality gating, before the agent runs a single token. For a simple one-or-two-step feature request, quality-gate LLM cost equals or exceeds execution cost. No cost guard, combined-call strategy, nor mode-specific short-circuit is defined.
+
+> **To fix:** Add to Step 9 architecture notes: (a) in `hybrid` mode, if heuristic score exceeds the `enrichment` threshold, skip LLM assessment entirely and call `enrich()` directly if `recommendation = "auto-enrich"` (one LLM call maximum); (b) if heuristic score is between `minimum` and `enrichment`, combine assessment and enrichment into a single LLM prompt that returns `{ score, issues, enrichedBody }` using a combined output schema (one LLM call total). Add `DEFAULT_QG_COMBINED_ASSESS_ENRICH = true` constant to Step 4. Add to Step 9 success criteria: "hybrid mode triggers at most one LLM call per request."
+
+---
+
+#### Gap 7: `IClarificationQuestion.id` uniqueness is undefined — CLI `--answer` arguments become ambiguous across rounds
+
+The data model uses `id: string` on `IClarificationQuestion` and `answers: Record<string, string>` on `IClarificationRound`. Within a round, IDs are unique (e.g., `q1`, `q2`). But the CLI `--answer` syntax (`exoctl request clarify <id> --answer q1="..."`) provides no round qualifier. If Round 1 has `q1: "What is the target file?"` and Round 2 also has `q1: "Should tests be included?"`, `--answer q1="src/main.ts"` is ambiguous and will silently update the wrong round.
+
+**Impact:** multi-round sessions with `--answer` flags may silently supply answers to a prior round's questions, producing a corrupted `IClarificationSession` that cannot synthesise a correct `IRequestSpecification`.
+
+> **To fix:** Specify in Step 10 that question IDs are globally unique within a session, formatted as `r{round}q{index}` (e.g., `r1q1`, `r1q2`, `r2q1`). `ClarificationEngine.startSession()` and `processAnswers()` generate IDs in this format. The CLI `--answer` flag accepts `r1q1="..."` syntax. Add to Step 10 success criteria: "question IDs are session-globally unique in `r{R}q{N}` format." Add to Step 13 success criteria: "`--answer` accepts `r{R}q{N}` key format."
+
+---
+
+#### Gap 8: Maximum-rounds exhaustion outcome is unspecified
+
+Step 10 says "if rounds >= max → finalize with warning, proceed with best effort." But "finalize" is ambiguous:
+
+- `session.status = "max-rounds"` (plan confirms this)
+- Does the request status become `PENDING` (to execute with partial spec) or `FAILED`?
+- Is the unrefined body used, or the best available partial `IRequestSpecification`?
+- Where does the warning appear (TUI? CLI? activity journal only)?
+
+Without this specification, Steps 11 (persistence), 12 (pipeline), and 13 (CLI) cannot consistently handle the exhaustion case. A request that hits max rounds may remain permanently stuck in `REFINING` with no execution path.
+
+> **To fix:** Specify in Step 10: when max rounds is reached, `session.status = "max-rounds"`, `ClarificationEngine.finalize()` returns the best available `IRequestSpecification` (even if `successCriteria` is empty). The caller (Step 12 pipeline, Step 13 CLI) writes `status: pending` to the `.md` frontmatter with `assessed_at` set, injects the partial spec into `context[REQUEST_SPECIFICATION_KEY]`, and sets `context.clarificationComplete = false` as a downstream signal. Activity journal logs `"request.quality_gate.clarification_max_rounds"`. Add max-rounds path to Step 10 success criteria, Step 12 planned tests, and the E2E Step 16 scenarios.
+
+---
+
+#### Gap 9: `ClarificationEngine.startSession()` makes an LLM call synchronously inside the "early-return" code path
+
+Step 12 says: "set `status = REFINING`, persist session, return early." Step 10 says `startSession()` generates Round 1 questions via the planning agent prompt — an LLM call. This means the "early-return" path blocks the FileWatcher event loop for 5–15 seconds while waiting for Round 1 questions before returning to the caller.
+
+**Impact:** every vague request submitted via FileWatcher freezes all event processing for ~10 seconds. Subsequent `.md` events are delayed. The user experience is: submit a request → 10-second stall before any feedback.
+
+> **To fix:** Redesign `startSession()` as two-phase: (a) synchronous phase — create session record, set `session.status = "active"`, set `round1.generatingQuestions = true`, write session to `_clarification.json`, return immediately; (b) async phase — `generateRound1Questions()` fires as a detached Promise that writes questions to `session.rounds[0]` and flushes the session file. The TUI/CLI shows "Generating clarification questions…" while `generatingQuestions` is `true`, and refreshes when the file is updated. Add `generatingQuestions: boolean` field to `IClarificationRound` schema in Step 2 and to Step 10 architecture notes. Add to Step 10 success criteria: "`startSession()` returns within 50ms regardless of LLM latency."
+
+---
+
+#### Gap 10: `IRequestQualityGateConfig.mode` collides semantically with `AnalysisMode` from Phase 45
+
+Phase 45 defines `export enum AnalysisMode { HEURISTIC = "heuristic", LLM = "llm", HYBRID = "hybrid" }` in `src/shared/enums.ts`. Phase 47's `IRequestQualityGateConfig` uses `mode: "heuristic" | "llm" | "hybrid"` as a plain string union. Two risks arise:
+
+- Implementers may accidentally import `AnalysisMode` from Phase 45 and use it for the quality gate config — creating hidden coupling where toggling `AnalysisMode` also affects quality gate mode
+- ConfigSchema validation uses `z.enum([...])` string literals for the quality gate `mode` field, inconsistent with the project convention of `z.nativeEnum(SomeEnum)` for all other mode-type fields (see `AnalysisMode`, `PortalAnalysisMode`, `McpTransportType`, `LogLevel`)
+
+**Impact:** when an engineer searches for all usages of `AnalysisMode` to diagnose a hybrid-mode bug, they will miss quality gate invocations that passed the `AnalysisMode` enum. Code review tools and semantic search both fail silently.
+
+> **To fix:** Add `QualityGateMode` enum to `src/shared/enums.ts` with `HEURISTIC = "heuristic"`, `LLM = "llm"`, `HYBRID = "hybrid"` values — explicitly separate from `AnalysisMode`. Update `IRequestQualityGateConfig.mode` in Step 3 to use `QualityGateMode`. Update ConfigSchema in Step 15 to use `z.nativeEnum(QualityGateMode)`. Step 21 (new) tracks this as an explicit deliverable.
+
+---
+
+#### Gap 11: Quality gate heuristic scorer duplicates Phase-45 `actionabilityScore` computation
+
+`RequestProcessor.process()` already calls `analyzer.analyze()` (Phase 45) before the quality gate, producing `analysis.actionabilityScore` (0–100) from the same request text. Phase 47's `HeuristicAssessor` then runs its own 9-signal pass over the same body — scanning for the same action verbs, acceptance criteria keywords, and structural patterns. This is redundant computation on every request.
+
+More critically, there are now **two different quality scores** for the same request: `analysis.actionabilityScore` (Phase 45) and `qualityAssessment.score` (Phase 47). They may diverge when the two scoring formulas produce different results from the same input. Phases 48 and 49 receive both and have no guidance on which to trust for gating decisions.
+
+> **To fix:** Specify in Step 5 and Step 9: `HeuristicAssessor.assess()` accepts an optional `existingAnalysis?: IRequestAnalysis` parameter. When provided: use `existingAnalysis.actionabilityScore` as the base quality score; map `existingAnalysis.ambiguities[]` to `IRequestQualityIssue[]` entries of type `"ambiguous"`; run only the supplementary signals that Phase 45 does not cover (file-reference detection, multi-requirement structure, context-section header). When absent: run the full 9-signal pass. Step 9 orchestration passes the already-available `analysis` result to the assessor. Add to Step 5 success criteria: "uses Phase-45 `actionabilityScore` as base score when analysis is provided."
+
+---
+
+### Testing Gaps
+
+#### Gap 12: Post-clarification re-entry execution path is uncovered by any planned test
+
+Step 16 E2E scenarios include "Q&A loop completes and re-enters pipeline" verbally, but the planned test list only has `[E2E] Q&A loop produces IRequestSpecification after answers`. No test verifies the complete re-entry chain:
+
+1. `finalizeAndWritePending()` writes `status: pending` to the `.md` frontmatter
+1. FileWatcher event fires on the updated `.md`
+1. Second `RequestProcessor.process()` call reads `_clarification.json` and injects `IRequestSpecification`
+1. `IParsedRequest.context[REQUEST_SPECIFICATION_KEY]` is populated
+1. `agentRunner.run()` receives a prompt containing the structured goals and success criteria
+
+This is the highest-value end-to-end path for the entire feature — and it is completely untested.
+
+> **To fix:** Add to Step 16 planned tests: `[E2E] specification persists through re-entry and appears in agent prompt` (covers the full 5-step chain above); `[E2E] max-rounds request executes with partial specification after exhaustion`. Add to Step 12 planned tests: `[RequestProcessor] second invocation loads IRequestSpecification from _clarification.json`.
+
+---
+
+#### Gap 13: No backward-compatibility regression test — existing requests must not enter the Q&A loop
+
+Any request file created before Phase 47 has no quality gate history. If `RequestQualityGate` scores an old, previously-accepted request below the `minimum` threshold (e.g., a brief but legitimate one-liner), the user will unexpectedly be prompted for clarification on a request they already submitted and expected to execute. No planned test verifies that:
+
+- Requests with an `assessed_at` field in frontmatter (from a prior quality-gate pass) bypass re-assessment
+- Requests explicitly marked `proceed` skip gate
+- The `enabled: false` config genuinely bypasses all gate logic with no side effects
+
+> **To fix:** Add `assessed_at?: string` to `IRequestFrontmatter` in Step 8 as Re-assessment bypass marker — if present and `config.quality_gate.force !== true`, skip the quality gate call entirely in `RequestProcessor.process()`. Add to Step 12 planned tests: `[RequestProcessor] does not re-trigger quality gate when assessed_at present in frontmatter` and `[RequestProcessor] disabled gate passes all requests through with no side effects`.
+
+---
+
+#### Gap 14: Portal-knowledge-aware question generation path is not tested
+
+Step 10 describes that `ClarificationEngine` can use `IPortalKnowledgeService.getOrAnalyze()` to ground questions in real codebase facts (e.g., "Did you mean `src/services/portal_service.ts`?" rather than "Which file should be modified?"). No planned test in any step verifies:
+
+- Questions are enriched when portal knowledge is available
+- Graceful fallback (generic questions) when portal knowledge is absent or `null`
+- Question text changes when different portal knowledge is injected (question quality regression)
+
+> **To fix:** Add to Step 10 planned tests: `[ClarificationEngine] enriches questions with portal knowledge file references when available` and `[ClarificationEngine] generates general questions when portal knowledge is absent`. Add an integration test to Step 16: `[E2E] clarification questions reference actual portal files when knowledge is available`.
+
+---
+
+### Conceptual Gaps
+
+#### Gap 15: `IRequestSpecification` context key for cross-phase consumption is undeclared
+
+Step 12 says "IRequestSpecification stored in `IParsedRequest.context`" — but never names the key. Phase 48 (Acceptance Criteria Propagation) and Phase 49 (Reflexive Agent Critique) both need to read this specification from `IParsedRequest.context`. Without a declared constant, each phase's implementer invents their own key name (e.g., `"specification"`, `"requestSpec"`, `"clarificationResult"`), producing silent cross-phase incompatibilities that only surface at integration time.
+
+The existing pattern in `src/services/prompt_context.ts` is explicit: `PORTAL_CONTEXT_KEY`, `PORTAL_KNOWLEDGE_KEY`, `ANALYSIS_KEY` — all declared string constants.
+
+> **To fix:** Add `REQUEST_SPECIFICATION_KEY = "requestSpecification"` and `REQUEST_QUALITY_ASSESSMENT_KEY = "qualityAssessment"` to `src/shared/constants.ts` under `// === Request Quality Gate ===` in Step 4. Step 12 uses these constants in `applyQualityGateResult()`. Step 17 documents both keys in `ARCHITECTURE.md`. Step 21 (new) tracks this as an explicit deliverable.
+
+---
+
+#### Gap 16: Planning agent model selection for the Q&A loop is unspecified
+
+Step 10 describes `ClarificationEngine` constructor DI: `constructor(provider: IModelProvider, ...)` — but does not specify which blueprint system prompt, which config model key (`default`, `fast`, `local`), or how these are configurable. The choice matters:
+
+- `fast` model: lower cost per round, may produce generic/low-quality questions
+- `default` model: higher cost, but each round is meaningful — Q&A becomes as expensive as execution
+- `product-manager` blueprint system prompt vs. a dedicated `request-clarifier` blueprint changes both question tone and the reliability of structured JSON output
+
+Without specification, the implementer makes an arbitrary choice that is then hardcoded and may not be tunable without code changes.
+
+> **To fix:** Add `DEFAULT_CLARIFICATION_MODEL_KEY = "fast"` constant to Step 4. Add `clarificationModel?: string` (default: `"fast"`) to `IRequestQualityGateConfig` in Step 3. Step 10 architecture notes specify: Q&A loop uses `config.clarificationModel` to select the provider; default is the `fast` model. Specify the blueprint: `Blueprints/Agents/product-manager.md` is the planning agent system prompt for Round N question generation (reuse reduces maintenance cost). Add `clarificationModel` field to the TOML `[quality_gate]` section in Step 15.
+
+---
+
+#### Gap 17: `userPrompt` replacement strategy after Q&A completion is underspecified
+
+Step 12 says "enriched body replaces `userPrompt` in `IParsedRequest.userPrompt`; original body preserved in `context.originalBody`." But for the Q&A path specifically:
+
+- If `userPrompt` is set to `IRequestSpecification.summary` only (one sentence), the agent loses goals, constraints, success criteria, and scope
+- If `userPrompt` is set to the raw JSON `IRequestSpecification`, it is unreadable to current prompt templates
+- If `userPrompt` is left as the original body after Q&A, then specification sections are never visible to the agent
+
+**Impact:** the structured value of the Q&A loop is silently wasted — the agent prompt may not contain the carefully-gathered success criteria and scope that justify the Q&A cost.
+
+> **To fix:** Define a `renderSpecificationAsPrompt(spec: IRequestSpecification): string` function (Step 11 or Step 12) that produces structured Markdown:
+>
+> ```markdown
+> ## Summary
+> {spec.summary}
+>
+> ## Goals
+> - {goal 1}
+> - {goal 2}
+>
+> ## Success Criteria
+> - [ ] {criterion 1}
+>
+> ## Scope
+> **In scope:** {includes}  **Out of scope:** {excludes}
+>
+> ## Constraints
+> - {constraint 1}
+> ```
+>
+> After Q&A: `request.userPrompt = renderSpecificationAsPrompt(spec)`. After auto-enrich: `request.userPrompt = enrichedBody` (plain string). Both paths write `context.originalBody = original`. Add `renderSpecificationAsPrompt` to Step 11 (clarification persistence) success criteria and planned tests.
+
+---
+
+### Overall Assessment
+
+Phase 47 is well-scoped conceptually: the three-tier quality assess/enrich/clarify pipeline is sound, and the SDD alignment is a strong architectural anchor. The gaps identified fall into three clusters:
+
+**Cluster A — Pipeline coherence (Gaps §1–§4):** The new request statuses lack defined skip/resume semantics; the Q&A return-to-pipeline mechanism is entirely missing; `ENRICHING` is a vestigial status that no code path ever sets; `IRequestFrontmatter` is unmodified despite writing new status values to file. These four gaps combine to make the clarification feature a dead end: requests that enter the Q&A loop will never execute unless they are explicitly addressed before Steps 8, 10, and 12 are coded.
+
+**Cluster B — Schema integrity and data flow (Gaps §5, §11, §15, §17):** `IRequestQualityAssessment.enrichedBody` conflates assessment and enrichment roles; the quality gate duplicates Phase-45 scoring producing two divergent scores for the same request; the `IRequestSpecification` context key is undeclared creating a silent cross-phase compatibility hazard; and the `userPrompt` replacement strategy after Q&A is opaque, risking that the carefully-gathered specification never reaches the agent.
+
+**Cluster C — Implementation precision (Gaps §6–§10, §16):** Hybrid mode's potential two-LLM-call cascade, question ID ambiguity in multi-round sessions, unspecified max-rounds recovery, synchronous LLM call in the early-return path, `QualityGateMode` enum collision with `AnalysisMode`, and planning agent model selection are all underdefined details. Left to implementer judgment, each will produce either incorrect, expensive, or inconsistent behaviour.
+
+Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification execution), backward-compatibility regression, and portal-knowledge-enriched questions entirely untested — creating silent regressions when Phases 48 and 49 are integrated.
+
+---
+
+### Step 20: Define Q&A Re-Entry Contract and `finalizeAndWritePending()` Helper
+
+**What:** Specify and implement the mechanism for transitioning a clarified request back to `PENDING` so it re-enters the execution pipeline. Directly addresses Gaps §1 (skip semantics) and §2 (re-entry mechanism).
+
+**Files to create/modify:**
+
+- `src/services/quality_gate/clarification_persistence.ts` (extend with `finalizeAndWritePending()`)
+- `src/services/request_processing/types.ts` (add `assessed_at?: string`, `clarification_session_path?: string` to `IRequestFrontmatter`)
+- `src/services/request_processor.ts` (extend `shouldSkipRequest()` and add re-assessment bypass)
+
+**Architecture notes:**
+
+- `finalizeAndWritePending(requestFilePath, session, spec)` reads the existing `.md` YAML frontmatter via `RequestParser`, sets `status: "pending"`, sets `assessed_at: new Date().toISOString()`, rewrites the frontmatter atomically (write `.tmp` then `Deno.rename`). Optionally updates `subject` to `spec.summary` for TUI display.
+- `shouldSkipRequest()` extended: `NEEDS_CLARIFICATION → true` (awaiting user); `REFINING → true` (do not interrupt active session); `ENRICHING → false` (synchronous transient state — if kept, should complete in same process call)
+- `RequestProcessor.process()` checks `frontmatter.assessed_at` — if present and `config.quality_gate.force !== true`, skip the quality gate call and reuse `IRequestQualityAssessment` from `_clarification.json` (loaded via `loadClarification()`)
+- Re-entry triggered by FileWatcher picking up the `.md` frontmatter change written by `finalizeAndWritePending()`
+
+**Success criteria:**
+
+- [ ] `finalizeAndWritePending()` writes `status: "pending"` and `assessed_at` to `.md` frontmatter atomically
+- [ ] FileWatcher event fires after `finalizeAndWritePending()` completes
+- [ ] `shouldSkipRequest()` returns `true` for `NEEDS_CLARIFICATION` and `REFINING`
+- [ ] `shouldSkipRequest()` returns `false` for `ENRICHING` (or `ENRICHING` is removed per Gap §3)
+- [ ] `process()` skips quality gate when `frontmatter.assessed_at` is present and `!force`
+- [ ] After `finalizeAndWritePending()`, second `process()` call successfully executes the request with `IRequestSpecification` in context
+
+**Planned tests** (`tests/services/quality_gate/clarification_re_entry_test.ts`):
+
+- `[ClarificationReEntry] finalizeAndWritePending writes status: pending to frontmatter`
+- `[ClarificationReEntry] finalizeAndWritePending is atomic (uses .tmp rename)`
+- `[ClarificationReEntry] shouldSkipRequest returns true for NEEDS_CLARIFICATION`
+- `[ClarificationReEntry] shouldSkipRequest returns true for REFINING`
+- `[ClarificationReEntry] shouldSkipRequest returns false for ENRICHING`
+- `[ClarificationReEntry] RequestProcessor skips quality gate re-assessment when assessed_at present`
+- `[ClarificationReEntry] second process() call injects IRequestSpecification from _clarification.json`
+
+---
+
+### Step 21: Add `QualityGateMode` Enum and Cross-Phase Context Key Constants
+
+**What:** Add the `QualityGateMode` enum (separate from Phase-45 `AnalysisMode`) and the cross-phase context key constants that wire the quality gate output to Phases 48 and 49. Directly addresses Gaps §10 and §15.
+
+**Files to modify:**
+
+- `src/shared/enums.ts` (add `QualityGateMode` enum)
+- `src/shared/constants.ts` (add `REQUEST_SPECIFICATION_KEY`, `REQUEST_QUALITY_ASSESSMENT_KEY`, `DEFAULT_CLARIFICATION_MODEL_KEY` under `// === Request Quality Gate ===`)
+
+**Architecture notes:**
+
+- `QualityGateMode` in `src/shared/enums.ts`: `HEURISTIC = "heuristic"`, `LLM = "llm"`, `HYBRID = "hybrid"` — mirrors `AnalysisMode` values but is a distinct enum to prevent cross-import confusion
+- `REQUEST_SPECIFICATION_KEY = "requestSpecification"` — `IParsedRequest.context` key for `IRequestSpecification`; used by Phases 48 and 49
+- `REQUEST_QUALITY_ASSESSMENT_KEY = "qualityAssessment"` — `IParsedRequest.context` key for `IRequestQualityAssessment`
+- `DEFAULT_CLARIFICATION_MODEL_KEY = "fast"` — config model key for the Q&A planning agent
+- Update `IRequestQualityGateConfig.mode` (Step 3) to `QualityGateMode` nativeEnum
+- Update ConfigSchema `quality_gate.mode` (Step 15) to `z.nativeEnum(QualityGateMode)`
+- Update Step 12's `applyQualityGateResult()` function to use both context key constants
+
+**Success criteria:**
+
+- [ ] `QualityGateMode` exported from `src/shared/enums.ts`; does not import or reference `AnalysisMode`
+- [ ] `REQUEST_SPECIFICATION_KEY` and `REQUEST_QUALITY_ASSESSMENT_KEY` exported from constants
+- [ ] `DEFAULT_CLARIFICATION_MODEL_KEY` exported from constants
+- [ ] `IRequestQualityGateConfig.mode` typed as `QualityGateMode`
+- [ ] ConfigSchema `quality_gate.mode` uses `z.nativeEnum(QualityGateMode)`
+- [ ] No lint or type errors; `deno check` passes
+
+**Planned tests:** None (validated by TypeScript's type system; `deno check` enforces separation between `QualityGateMode` and `AnalysisMode`).
+
+---
+
+### Step 22: Integrate Phase-45 `actionabilityScore` into Heuristic Assessor
+
+**What:** Extend `HeuristicAssessor.assess()` to optionally consume an existing `IRequestAnalysis` from Phase 45, avoiding double-scoring and preventing two divergent quality scores from being produced for the same request. Directly addresses Gap §11.
+
+**Files to modify:**
+
+- `src/services/quality_gate/heuristic_assessor.ts` (extend signature with optional `existingAnalysis` parameter)
+- `src/services/quality_gate/request_quality_gate.ts` (pass existing analysis from `RequestProcessor` scope to assessor)
+
+**Architecture notes:**
+
+- Extended signature: `assessHeuristic(requestText: string, existingAnalysis?: IRequestAnalysis): IRequestQualityAssessment`
+- When `existingAnalysis` is provided: use `existingAnalysis.actionabilityScore` as the base score (bypasses the full 9-signal computation); map `existingAnalysis.ambiguities[]` to `IRequestQualityIssue[]` entries (type: `"ambiguous"`, severity: proportional to ambiguity `impact`); still run the supplementary signals that Phase 45 does not cover: specific file references (`+15`), multi-requirement structure (`+15`), has context section header (`+10`)
+- When `existingAnalysis` is absent: run full 9-signal heuristic pass (backward compatible for heuristic-only mode)
+- `RequestQualityGate.assess()` in Step 9 passes the `analysis` result (already in `RequestProcessor`'s scope at the injection point, from Step 12) to the assessor
+
+**Success criteria:**
+
+- [ ] Accepts optional `IRequestAnalysis` parameter (backward-compatible — existing calls without analysis still work)
+- [ ] Uses `existingAnalysis.actionabilityScore` as base score when provided
+- [ ] Maps `existingAnalysis.ambiguities[]` to `IRequestQualityIssue[]` with type `"ambiguous"`
+- [ ] Runs supplementary signal checks even when base score is provided
+- [ ] Falls back to full 9-signal scan when no existing analysis provided
+- [ ] Produces a single quality score consistent with `actionabilityScore` (no divergence > ±15 for the same input)
+- [ ] No double-counting of signals already embedded in `actionabilityScore`
+
+**Planned tests** (added to `tests/services/quality_gate/heuristic_assessor_test.ts`):
+
+- `[HeuristicAssessor] uses Phase-45 actionabilityScore as base when analysis provided`
+- `[HeuristicAssessor] maps Phase-45 ambiguities to quality issues with type "ambiguous"`
+- `[HeuristicAssessor] runs supplementary checks on top of Phase-45 base score`
+- `[HeuristicAssessor] falls back to full scan when no existing analysis`
+- `[HeuristicAssessor] score is consistent with Phase-45 actionabilityScore within tolerance`
+
+---
+
+### Step 23: Define `renderSpecificationAsPrompt()` and `userPrompt` Replacement Contract
+
+**What:** Create the canonical function for converting an `IRequestSpecification` into an agent-ready `userPrompt` string, and specify the exact `userPrompt` replacement contract for both the Q&A and auto-enrich paths. Directly addresses Gap §17.
+
+**Files to create/modify:**
+
+- `src/services/quality_gate/clarification_persistence.ts` (add `renderSpecificationAsPrompt()` export)
+- `src/services/quality_gate/request_quality_gate.ts` (document replacement contract in `applyQualityGateResult()`)
+
+**Architecture notes:**
+
+- `renderSpecificationAsPrompt(spec: IRequestSpecification): string` produces structured Markdown:
+
+  ```markdown
+  ## Summary
+  {spec.summary}
+
+  ## Goals
+  - {spec.goals[0]}
+  - ...
+
+  ## Success Criteria
+  - [ ] {spec.successCriteria[0]}
+  - ...
+
+  ## Scope
+  **In scope:** {spec.scope.includes.join(", ")}
+  **Out of scope:** {spec.scope.excludes.join(", ")}
+
+  ## Constraints
+  - {spec.constraints[0]}
+  - ...
+
+  ## Context
+  - {spec.context[0]}
+  - ...
+  ```
+
+  Sections with empty arrays are omitted entirely. `summary` is always present.
+
+- **Q&A path:** `request.userPrompt = renderSpecificationAsPrompt(spec)` (full structured prompt)
+- **Auto-enrich path:** `request.userPrompt = enrichedBody` (plain string from LLM rewrite)
+- **Both paths:** `request.context.originalBody = originalRequestText` (preserved for audit)
+- `applyQualityGateResult(request, assessment, spec?, enrichedBody?)` helper mirrors existing `applyAnalysisToRequest()` pattern in `request_common.ts`
+
+**Success criteria:**
+
+- [ ] `renderSpecificationAsPrompt()` produces valid Markdown with all non-empty sections
+- [ ] Empty arrays produce omitted sections (no empty bullet lists)
+- [ ] `summary` always present even when all other arrays are empty
+- [ ] Q&A path: `request.userPrompt` is the rendered specification
+- [ ] Auto-enrich path: `request.userPrompt` is the plain enriched body string
+- [ ] Both paths: `request.context.originalBody` contains the unmodified original
+- [ ] `context[REQUEST_SPECIFICATION_KEY]` set when Q&A path taken
+- [ ] `context[REQUEST_QUALITY_ASSESSMENT_KEY]` set when assessment is available
+
+**Planned tests** (added to `tests/services/quality_gate/clarification_persistence_test.ts`):
+
+- `[clarification_persistence] renderSpecificationAsPrompt produces all sections for full spec`
+- `[clarification_persistence] renderSpecificationAsPrompt omits empty sections`
+- `[clarification_persistence] renderSpecificationAsPrompt always includes summary`
+- `[clarification_persistence] renderSpecificationAsPrompt handles minimal spec (summary only)`

@@ -824,7 +824,9 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             line: lineNo,
             rule: "MD001/heading-increment",
             severity: options.strict ? Severity.ERROR : Severity.WARN,
-            message: `Heading levels should only increment by one level at a time [Expected: h${lastHeadingLevel + 1}; Actual: h${headingLevel}]`,
+            message: `Heading levels should only increment by one level at a time [Expected: h${
+              lastHeadingLevel + 1
+            }; Actual: h${headingLevel}]`,
           });
         }
         lastHeadingLevel = headingLevel;

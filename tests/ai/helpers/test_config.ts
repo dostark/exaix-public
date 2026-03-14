@@ -8,7 +8,13 @@
 import { AiConfig, AiConfigSchema } from "../../../src/shared/schemas/ai_config.ts";
 import { Config } from "../../../src/shared/schemas/config.ts";
 import { ExoPathDefaults } from "../../../src/shared/constants.ts";
-import { LogLevel, McpTransportType, PortalAnalysisMode, ProviderType, SqliteJournalMode } from "../../../src/shared/enums.ts";
+import {
+  LogLevel,
+  McpTransportType,
+  PortalAnalysisMode,
+  ProviderType,
+  SqliteJournalMode,
+} from "../../../src/shared/enums.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import { IModelProvider } from "../../../src/ai/types.ts";
 import { ProviderFactory } from "../../../src/ai/provider_factory.ts";
