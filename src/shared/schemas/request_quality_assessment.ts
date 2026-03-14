@@ -11,6 +11,7 @@
  */
 
 import { z } from "zod";
+import { QualityGateMode } from "../enums.ts";
 
 // ============================================================================
 // Enums
@@ -58,14 +59,8 @@ export enum RequestQualityRecommendation {
   REJECT = "reject",
 }
 
-/**
- * Assessment execution mode.
- */
-export enum RequestQualityAssessmentMode {
-  HEURISTIC = "heuristic",
-  LLM = "llm",
-  HYBRID = "hybrid",
-}
+// QualityGateMode (heuristic/llm/hybrid) is defined in src/shared/enums.ts
+// and used via z.nativeEnum(QualityGateMode) — no re-export needed here.
 
 // ============================================================================
 // Sub-schemas
@@ -94,7 +89,7 @@ export const RequestQualityAssessmentMetadataSchema = z.object({
   /** ISO 8601 timestamp when assessment was performed. */
   assessedAt: z.string(),
   /** Assessment strategy used to produce this result. */
-  mode: z.nativeEnum(RequestQualityAssessmentMode),
+  mode: z.nativeEnum(QualityGateMode),
   /** Wall-clock time to produce this assessment, in milliseconds. */
   durationMs: z.number().nonnegative(),
 });

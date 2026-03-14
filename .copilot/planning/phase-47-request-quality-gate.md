@@ -534,12 +534,14 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Interface exported through barrel
-- [ ] Depends only on schema types (no concrete imports)
-- [ ] Config structure matches design document
-- [ ] TypeScript compiles with `deno check`
+- [x] Interface exported through barrel
+- [x] Depends only on schema types (no concrete imports)
+- [x] Config structure matches design document
+- [x] TypeScript compiles with `deno check`
 
 **Planned tests:** None (interface-only; validated by type system at compile time).
+
+**✅ IMPLEMENTED** — `src/shared/interfaces/i_request_quality_gate_service.ts`
 
 ---
 

@@ -1196,3 +1196,15 @@ export enum PortalAnalysisMode {
   /** Full convention mapping + complete symbol index (~60 s). */
   DEEP = "deep",
 }
+
+/**
+ * Assessment strategy used by the RequestQualityGate service.
+ */
+export enum QualityGateMode {
+  /** Fast, zero-cost text signal analysis — no LLM calls. */
+  HEURISTIC = "heuristic",
+  /** Full LLM-powered quality assessment. */
+  LLM = "llm",
+  /** Heuristic first; escalate to LLM only for borderline scores. */
+  HYBRID = "hybrid",
+}
