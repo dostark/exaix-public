@@ -8,6 +8,7 @@
  */
 
 import { type IPortalDetails, type IPortalInfo, type IVerificationResult } from "../shared/types/portal.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
 import { type IPortalService } from "../shared/interfaces/i_portal_service.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "./helpers/dialog_base.ts";
@@ -52,6 +53,7 @@ export enum PortalAction {
   HELP = "help",
   EXPAND_ALL = "expand-all",
   COLLAPSE_ALL = "collapse-all",
+  ANALYZE = "analyze",
 }
 
 // ===== Portal Status Icons =====
@@ -321,6 +323,10 @@ export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
       case KEYS.S:
         // In a real TUI, this would open a search input
         return true;
+      case KEYS.A:
+        if (this.handleActionGuard()) return true;
+        await this.executeAnalyzeKnowledge();
+        return true;
       default:
         return false;
     }
@@ -399,6 +405,21 @@ export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
         await this.refreshView();
       },
       () => `Removed ${portal.alias}`,
+    );
+  }
+
+  private async executeAnalyzeKnowledge(): Promise<void> {
+    const selected = this.getSelectedNode();
+    if (selected?.type !== "portal" || !selected.data) return;
+    const portal = selected.data;
+
+    await this.executeWithLoading(
+      `Loading knowledge for ${portal.alias}...`,
+      async () => {
+        const knowledge = await this.service.getKnowledge(portal.alias);
+        this.portalExtensions.detailContent = renderKnowledgeSection(knowledge);
+      },
+      () => `Knowledge loaded for ${portal.alias}`,
     );
   }
 
@@ -511,6 +532,66 @@ export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
   }
 }
 
+// ===== Knowledge Rendering =====
+
+/**
+ * Render an IPortalKnowledge record into display lines for the TUI detail pane.
+ * Returns a "no analysis" message when knowledge is null.
+ */
+export function renderKnowledgeSection(knowledge: IPortalKnowledge | null): string[] {
+  if (!knowledge) {
+    return ["No analysis available — run `exoctl portal analyze`"];
+  }
+
+  const lines: string[] = [];
+
+  // Architecture Overview
+  if (knowledge.architectureOverview) {
+    lines.push("=== Architecture Overview ===");
+    for (const line of knowledge.architectureOverview.split("\n").slice(0, 20)) {
+      lines.push(line);
+    }
+  }
+
+  // Key Files
+  if (knowledge.keyFiles.length > 0) {
+    lines.push("", "=== Key Files ===");
+    for (const kf of knowledge.keyFiles) {
+      lines.push(`  ${kf.path} [${kf.role}]: ${kf.description}`);
+    }
+  }
+
+  // Conventions by category
+  if (knowledge.conventions.length > 0) {
+    lines.push("", "=== Conventions ===");
+    const byCategory = new Map<string, typeof knowledge.conventions>();
+    for (const conv of knowledge.conventions) {
+      const existing = byCategory.get(conv.category) ?? [];
+      existing.push(conv);
+      byCategory.set(conv.category, existing);
+    }
+    for (const [category, items] of byCategory) {
+      lines.push(`  [${category}]`);
+      for (const item of items) {
+        lines.push(`    • ${item.name}: ${item.description}`);
+      }
+    }
+  }
+
+  // Dependencies with purpose
+  if (knowledge.dependencies.length > 0) {
+    lines.push("", "=== Dependencies ===");
+    for (const dep of knowledge.dependencies) {
+      for (const kd of dep.keyDependencies) {
+        const purpose = kd.purpose ? ` — ${kd.purpose}` : "";
+        lines.push(`  ${kd.name}${purpose}`);
+      }
+    }
+  }
+
+  return lines;
+}
+
 // ===== View Controller =====
 
 export class PortalManagerView implements IPortalService {
@@ -582,6 +663,10 @@ export class PortalManagerView implements IPortalService {
 
   getPortalActivityLog(alias: string): string[] {
     return this.service.getPortalActivityLog(alias);
+  }
+
+  getKnowledge(portalAlias: string): Promise<import("../shared/schemas/portal_knowledge.ts").IPortalKnowledge | null> {
+    return this.service.getKnowledge(portalAlias);
   }
 
   renderPortalList(portals: IPortalInfo[]): string {
