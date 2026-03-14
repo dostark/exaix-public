@@ -76,7 +76,7 @@ function parseArgs(args: string[]): { options: LintOptions; paths: string[] } {
 
 function printHelp(): void {
   console.log(
-    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD003, MD004, MD012, MD022, MD025, MD029, MD031, MD032, MD036, MD040, MD041, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
+    `Markdown lint\n\nUsage:\n  deno run --allow-read scripts/markdown_lint.ts [paths...]\n\nOptions:\n  --fix       Apply auto-fixes for safe violations (MD001, MD009, MD003, MD004, MD012, MD022, MD025, MD026, MD029, MD031, MD032, MD036, MD040, MD041, MD049, MD060)\n  --strict    Treat warnings as errors\n  --verbose   Print file-level progress\n  --help      Show help\n\nIf no paths are provided, defaults to: ${
       DEFAULT_ROOTS.join(", ")
     }`,
   );
@@ -228,7 +228,8 @@ function parseFenceStart(line: string): Fence | null {
 }
 
 function isTableSeparatorRow(line: string): boolean {
-  return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+  // Allow single-dash separators (e.g. `| - |`) as well as multi-dash (e.g. `| --- |`).
+  return /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(line);
 }
 
 function normalizeSeparatorCell(cell: string): string {
@@ -386,6 +387,47 @@ function applySpecificFixes(content: string, findings: IFinding[]): { fixed: str
     }
 
     text = newLines.join("\n");
+  }
+
+  // Fix MD001/heading-increment: demote headings that skip levels
+  const md001Fixes = findings.filter((f) => f.rule === "MD001/heading-increment");
+  if (md001Fixes.length > 0) {
+    const lines = splitLines(text);
+    for (const fix of md001Fixes) {
+      const idx = fix.line - 1;
+      if (idx < 0 || idx >= lines.length) continue;
+      // Extract expected level from message: "[Expected: hN; Actual: hM]"
+      const expectedMatch = /\[Expected: h(\d); Actual: h(\d)\]/.exec(fix.message);
+      if (!expectedMatch) continue;
+      const expectedLevel = parseInt(expectedMatch[1]);
+      const actualLevel = parseInt(expectedMatch[2]);
+      if (actualLevel <= expectedLevel) continue;
+      const line = lines[idx];
+      const headingMatch = /^(#{1,6})(\s+.*)$/.exec(line);
+      if (!headingMatch) continue;
+      lines[idx] = "#".repeat(expectedLevel) + headingMatch[2];
+      changed = true;
+    }
+    text = lines.join("\n");
+  }
+
+  // Fix MD026: trailing punctuation in headings
+  const md026Fixes = findings.filter((f) => f.rule === "MD026/no-trailing-punctuation");
+  if (md026Fixes.length > 0) {
+    const lines = splitLines(text);
+    const targetLines = new Set(md026Fixes.map((f) => f.line));
+
+    for (const lineNo of targetLines) {
+      const idx = lineNo - 1;
+      if (idx < 0 || idx >= lines.length) continue;
+      const line = lines[idx];
+      if (/^#{1,6}\s+/.test(line)) {
+        lines[idx] = line.replace(/[.,:;!?。，；：！？]+\s*$/, "");
+        changed = true;
+      }
+    }
+
+    text = lines.join("\n");
   }
 
   // Fix MD025: multiple top-level headings by demoting H1 to H2
@@ -667,6 +709,8 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
   }
 
   let topLevelHeadingCount = 0;
+  // MD001/heading-increment: tracks the last seen heading level (0 = none yet).
+  let lastHeadingLevel = 0;
 
   // MD051: link fragments should resolve to known heading/html anchors.
   const headingIdUsed = new Map<string, number>();
@@ -772,6 +816,31 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
         }
 
         const headingLevel = headingMatch.groups.hashes.length;
+
+        // MD001/heading-increment: heading levels should only increment by one level at a time.
+        if (lastHeadingLevel > 0 && headingLevel > lastHeadingLevel + 1) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD001/heading-increment",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
+            message: `Heading levels should only increment by one level at a time [Expected: h${lastHeadingLevel + 1}; Actual: h${headingLevel}]`,
+          });
+        }
+        lastHeadingLevel = headingLevel;
+
+        // MD026/no-trailing-punctuation: headings should not end with punctuation.
+        const plainText = stripMarkdownInline(headingText);
+        if (/[.,:;!?。，；：！？]$/.test(plainText)) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD026/no-trailing-punctuation",
+            severity: options.strict ? Severity.ERROR : Severity.WARN,
+            message: `Trailing punctuation in heading [Punctuation: '${plainText.slice(-1)}']`,
+          });
+        }
+
         const isAfterFrontMatter = frontMatterEndLine === -1 || idx > frontMatterEndLine;
         if (isAfterFrontMatter && headingLevel === 1) {
           topLevelHeadingCount++;
@@ -899,12 +968,12 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
       blankRunOutsideFence = 0;
     }
 
-    // MD001: trailing whitespace (fixable)
+    // MD009/no-trailing-spaces: trailing whitespace (fixable via applySafeFixes)
     if (/[ \t]+$/.test(line)) {
       findings.push({
         filePath,
         line: lineNo,
-        rule: "MD001",
+        rule: "MD009/no-trailing-spaces",
         severity: Severity.ERROR,
         message: "Trailing whitespace",
       });
@@ -1301,7 +1370,9 @@ async function main() {
           f.rule === "MD032/blanks-around-lists" ||
           f.rule === "MD029/ol-prefix" ||
           f.rule === "MD022/blanks-around-headings" ||
+          f.rule === "MD001/heading-increment" ||
           f.rule === "MD025/single-title/single-h1" ||
+          f.rule === "MD026/no-trailing-punctuation" ||
           f.rule === "MD031/blanks-around-fences" ||
           f.rule === "MD060/table-column-style" ||
           f.rule === "MD040/fenced-code-language" ||

@@ -8,7 +8,7 @@
 import { AiConfig, AiConfigSchema } from "../../../src/shared/schemas/ai_config.ts";
 import { Config } from "../../../src/shared/schemas/config.ts";
 import { ExoPathDefaults } from "../../../src/shared/constants.ts";
-import { LogLevel, McpTransportType, ProviderType, SqliteJournalMode } from "../../../src/shared/enums.ts";
+import { LogLevel, McpTransportType, PortalAnalysisMode, ProviderType, SqliteJournalMode } from "../../../src/shared/enums.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import { IModelProvider } from "../../../src/ai/types.ts";
 import { ProviderFactory } from "../../../src/ai/provider_factory.ts";
@@ -159,6 +159,15 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,
+    },
+    portal_knowledge: {
+      auto_analyze_on_mount: true,
+      default_mode: PortalAnalysisMode.QUICK,
+      quick_scan_limit: 200,
+      max_files_to_read: 50,
+      staleness_hours: 168,
+      use_llm_inference: true,
+      ignore_patterns: ["node_modules", ".git", "dist", "build"],
     },
   };
 }

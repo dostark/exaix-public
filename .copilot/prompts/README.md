@@ -37,6 +37,7 @@ Welcome to the ExoFrame prompt template library for coding agents. This collecti
 - `#security` — Security Patch
 - `#upgrade` — Dependency/Version Upgrade
 - `#explore` — Codebase Exploration
+- `#next-steps` — TDD Red-Green-Refactor Phase Steps (plan-driven, CI-gated, per-step commits)
 
 ## Usage Example
 

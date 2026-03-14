@@ -397,6 +397,9 @@ export function createMockPortalService(initial: IPortalInfo[] = []) {
         `2025-12-22T12:05:00Z: No errors reported`,
       ];
     }
+    getKnowledge(_alias: string) {
+      return Promise.resolve(null);
+    }
   }
 
   return new MockPortalService(initial);

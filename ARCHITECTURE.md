@@ -212,24 +212,24 @@ graph TB
 
 ExoFrame follows a **three-tier edition model** to serve different organizational needs:
 
-| Edition        | Target Audience                         | Key Differentiation                                                   |
+| Edition | Target Audience | Key Differentiation |
 | -------------- | --------------------------------------- | --------------------------------------------------------------------- |
-| **Solo** 🟢    | Individual developers, OSS contributors | CLI + TUI, SQLite audit, MCP client, local-first                      |
-| **Team** 🔵    | Small teams, startups, consulting firms | + Web UI, PostgreSQL, MCP server mode, multi-user collaboration       |
-| **Enterprise** 🟣 | Regulated industries, large enterprises | + Governance dashboard, compliance frameworks, immudb, SSO/SAML       |
+| **Solo** 🟢 | Individual developers, OSS contributors | CLI + TUI, SQLite audit, MCP client, local-first |
+| **Team** 🔵 | Small teams, startups, consulting firms | + Web UI, PostgreSQL, MCP server mode, multi-user collaboration |
+| **Enterprise** 🟣 | Regulated industries, large enterprises | + Governance dashboard, compliance frameworks, immudb, SSO/SAML |
 
 ### Component Availability by Edition
 
-| Component Category         | Solo 🟢                    | Team 🔵                      | Enterprise 🟣                         |
+| Component Category | Solo 🟢 | Team 🔵 | Enterprise 🟣 |
 | -------------------------- | -------------------------- | ---------------------------- | ------------------------------------- |
-| **Interface**              | CLI + TUI (7 views)        | + Web UI                     | + Enhanced TUI (9 views)              |
-| **Audit Database**         | SQLite (embedded)          | PostgreSQL (append-only)     | PostgreSQL + immudb (WORM)            |
-| **MCP Support**            | Client only                | + Server mode                | + Custom tool development             |
-| **LLM Providers**          | Ollama, OpenAI, Anthropic, Google | + OpenRouter               | + Azure OpenAI, AWS Bedrock, GCP Vertex |
-| **Memory Banks**           | Basic (file-based)         | + Full-text search           | + Vector search, knowledge graphs     |
-| **Collaboration**          | Single user                | Multi-user (unlimited)       | + RBAC, department isolation          |
-| **Compliance**             | ❌                         | ❌                           | ✅ EU AI Act, HIPAA, SOX, ISO 27001   |
-| **Cost Management**        | Basic logs                 | Per-user budgets, alerts     | Forecasting, anomaly detection        |
+| **Interface** | CLI + TUI (7 views) | + Web UI | + Enhanced TUI (9 views) |
+| **Audit Database** | SQLite (embedded) | PostgreSQL (append-only) | PostgreSQL + immudb (WORM) |
+| **MCP Support** | Client only | + Server mode | + Custom tool development |
+| **LLM Providers** | Ollama, OpenAI, Anthropic, Google | + OpenRouter | + Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Memory Banks** | Basic (file-based) | + Full-text search | + Vector search, knowledge graphs |
+| **Collaboration** | Single user | Multi-user (unlimited) | + RBAC, department isolation |
+| **Compliance** | ❌ | ❌ | ✅ EU AI Act, HIPAA, SOX, ISO 27001 |
+| **Cost Management** | Basic logs | Per-user budgets, alerts | Forecasting, anomaly detection |
 
 ---
 
@@ -807,12 +807,12 @@ interface Pane {
 
 Dashboard uses a declarative key binding system:
 
-| Category        | Keys                      | Actions                           |
+| Category | Keys | Actions |
 | --------------- | ------------------------- | --------------------------------- |
-| **Navigation**  | `Tab`, `Shift+Tab`, `1-7` | Pane switching                    |
-| **Layout**      | `v`, `h`, `c`, `z`        | Split, close, maximize            |
-| **Persistence** | `s`, `r`, `d`             | Save, restore, default            |
-| **Dialogs**     | `?`, `n`, `p`, `Esc/q`    | Help, notifications, picker, quit |
+| **Navigation** | `Tab`, `Shift+Tab`, `1-7` | Pane switching |
+| **Layout** | `v`, `h`, `c`, `z` | Split, close, maximize |
+| **Persistence** | `s`, `r`, `d` | Save, restore, default |
+| **Dialogs** | `?`, `n`, `p`, `Esc/q` | Help, notifications, picker, quit |
 
 ### Layout Persistence
 
@@ -864,12 +864,12 @@ For keyboard shortcuts, see [TUI Keyboard Reference](./TUI_Keyboard_Reference.md
 
 ExoFrame supports multiple LLM providers with **edition-based availability**:
 
-| Provider Category      | Solo 🟢                      | Team 🔵 | Enterprise 🟣                            |
+| Provider Category | Solo 🟢 | Team 🔵 | Enterprise 🟣 |
 | ---------------------- | ---------------------------- | ------- | ---------------------------------------- |
-| **Local**              | ✅ Ollama                    | ✅ All  | ✅ All                                   |
-| **Cloud (Basic)**      | ✅ OpenAI, Anthropic, Google | ✅ All  | ✅ All                                   |
-| **Cloud (Enterprise)** | ❌                           | ❌      | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
-| **Cost Management**    | Basic logs                   | Budgets | Forecasting, anomaly detection           |
+| **Local** | ✅ Ollama | ✅ All | ✅ All |
+| **Cloud (Basic)** | ✅ OpenAI, Anthropic, Google | ✅ All | ✅ All |
+| **Cloud (Enterprise)** | ❌ | ❌ | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Cost Management** | Basic logs | Budgets | Forecasting, anomaly detection |
 
 ```mermaid
 graph TB
@@ -939,11 +939,11 @@ graph TB
 
 ExoFrame uses a **tiered database architecture** aligned with edition requirements:
 
-| Edition           | Audit Database           | Compliance Level                               |
+| Edition | Audit Database | Compliance Level |
 | ----------------- | ------------------------ | ---------------------------------------------- |
-| **Solo** 🟢       | SQLite (embedded)        | Basic audit logging                            |
-| **Team** 🔵       | PostgreSQL (append-only) | Multi-user with database-enforced immutability |
-| **Enterprise** 🟣 | PostgreSQL + immudb      | WORM-compliant, cryptographically verified     |
+| **Solo** 🟢 | SQLite (embedded) | Basic audit logging |
+| **Team** 🔵 | PostgreSQL (append-only) | Multi-user with database-enforced immutability |
+| **Enterprise** 🟣 | PostgreSQL + immudb | WORM-compliant, cryptographically verified |
 
 ```mermaid
 graph TB
@@ -1100,17 +1100,17 @@ exoctl memory
 
 ### Key Components
 
-| Component                | Location                                                | Purpose                              | Status      |
+| Component | Location | Purpose | Status |
 | ------------------------ | ------------------------------------------------------- | ------------------------------------ | ----------- |
-| MemoryBankService        | `src/services/memory_bank.ts`                           | Core CRUD operations                 | ✅ Complete |
-| Memory Schemas           | `src/schemas/memory_bank.ts`                            | Zod validation schemas               | ✅ Complete |
-| Memory Extractor         | `src/services/memory_extractor.ts`                      | Learning extraction                  | ✅ Complete |
-| Memory Embedding         | `src/services/memory_embedding.ts`                      | Vector embeddings for search         | ✅ Complete |
-| Memory CLI               | `src/cli/memory_commands.ts`                            | CLI interface                        | ✅ Complete |
-| Integration Tests        | `tests/integration/memory_integration_test.ts`          | End-to-end tests                     | ✅ Complete |
-| PortalKnowledgeService   | `src/services/portal_knowledge/portal_knowledge_service.ts` | Codebase analysis pipeline       | ✅ Complete |
-| PortalKnowledgeSchema    | `src/shared/schemas/portal_knowledge.ts`                | Zod validation for knowledge.json    | ✅ Complete |
-| KnowledgePersistence     | `src/services/portal_knowledge/knowledge_persistence.ts` | knowledge.json read/write           | ✅ Complete |
+| MemoryBankService | `src/services/memory_bank.ts` | Core CRUD operations | ✅ Complete |
+| Memory Schemas | `src/schemas/memory_bank.ts` | Zod validation schemas | ✅ Complete |
+| Memory Extractor | `src/services/memory_extractor.ts` | Learning extraction | ✅ Complete |
+| Memory Embedding | `src/services/memory_embedding.ts` | Vector embeddings for search | ✅ Complete |
+| Memory CLI | `src/cli/memory_commands.ts` | CLI interface | ✅ Complete |
+| Integration Tests | `tests/integration/memory_integration_test.ts` | End-to-end tests | ✅ Complete |
+| PortalKnowledgeService | `src/services/portal_knowledge/portal_knowledge_service.ts` | Codebase analysis pipeline | ✅ Complete |
+| PortalKnowledgeSchema | `src/shared/schemas/portal_knowledge.ts` | Zod validation for knowledge.json | ✅ Complete |
+| KnowledgePersistence | `src/services/portal_knowledge/knowledge_persistence.ts` | knowledge.json read/write | ✅ Complete |
 
 ---
 
@@ -1219,22 +1219,22 @@ Request File (.md)
 
 **Analysis modes:**
 
-| Mode       | Strategies run      | LLM needed | `quick_scan_limit` applies |
+| Mode | Strategies run | LLM needed | `quick_scan_limit` applies |
 | ---------- | ------------------- | ---------- | -------------------------- |
-| `quick`    | 1, 2, 3 (partial)   | No         | Yes                        |
-| `standard` | 1–5                 | Optional   | No                         |
-| `deep`     | 1–6                 | Yes        | No                         |
+| `quick` | 1, 2, 3 (partial) | No | Yes |
+| `standard` | 1–5 | Optional | No |
+| `deep` | 1–6 | Yes | No |
 
 **Six analysis strategies:**
 
-| # | Strategy               | Mode(s)               | Notes                                                   |
-| - | ---------------------- | --------------------- | ------------------------------------------------------- |
-| 1 | Directory Census       | quick, standard, deep | File count, extension breakdown                         |
-| 2 | Key File Identification | quick, standard, deep | Entry points, package.json, deno.json                  |
-| 3 | Config File Parsing    | quick†, standard, deep | Reads package.json, deno.json, tsconfig.json           |
-| 4 | Pattern Detection      | standard, deep        | Naming conventions, test patterns                       |
-| 5 | Architecture Inference | standard, deep        | Layer inference from directory names and import graph   |
-| 6 | Symbol Extraction      | deep only             | `deno doc --json` (TS/JS only; skipped for non-TS portals) |
+| # | Strategy | Mode(s) | Notes |
+| --- | ---------------------- | --------------------- | ------------------------------------------------------- |
+| 1 | Directory Census | quick, standard, deep | File count, extension breakdown |
+| 2 | Key File Identification | quick, standard, deep | Entry points, package.json, deno.json |
+| 3 | Config File Parsing | quick†, standard, deep | Reads package.json, deno.json, tsconfig.json |
+| 4 | Pattern Detection | standard, deep | Naming conventions, test patterns |
+| 5 | Architecture Inference | standard, deep | Layer inference from directory names and import graph |
+| 6 | Symbol Extraction | deep only | `deno doc --json` (TS/JS only; skipped for non-TS portals) |
 
 _† In quick mode, config parsing is capped by `quick_scan_limit`._
 
@@ -1509,60 +1509,60 @@ graph LR
 
 ## Component Responsibilities
 
-| Component                | Responsibility                             | Key Files                                     | Edition  |
+| Component | Responsibility | Key Files | Edition |
 | ------------------------ | ------------------------------------------ | --------------------------------------------- | -------- |
-| **CLI Layer**            | Human interface for system control         | `src/cli/*.ts`                                | 🟢 All   |
-| **Daemon**               | Background orchestration engine            | `src/main.ts`                                 | 🟢 All   |
-| **Request Watcher**      | Detect new requests in Workspace/Requests  | `src/services/watcher.ts`                     | 🟢 All   |
-| **Plan Watcher**         | Detect approved plans                      | `src/services/watcher.ts`                     | 🟢 All   |
-| **Request Processor**    | Parse requests, generate plans             | `src/services/request_processor.ts`           | 🟢 All   |
-| **Request Router**       | Route requests to Agent/Flow runners       | `src/services/request_router.ts`              | 🟢 All   |
-| **Request Analyzer**     | `src/services/request_analysis/`              | Intent, requirements & complexity extraction  | 🟢 All   |
-| **Plan Executor**        | Execute approved plans                     | `src/services/plan_executor.ts`               | 🟢 All   |
-| **Agent Runner**         | Execute agent logic with LLM               | `src/services/agent_runner.ts`                | 🟢 All   |
-| **Flow Runner**          | Execute multi-agent flows                  | `src/flows/flow_runner.ts`                    | 🟢 All   |
-| **Event Logger**         | Write to Activity Journal                  | `src/services/event_logger.ts`                | 🟢 All   |
-| **Config Service**       | Load and validate exo.config.toml          | `src/config/service.ts`                       | 🟢 All   |
-| **Workspace Execution**  | Agent environment and path resolution      | `src/services/workspace_execution_context.ts` | 🟢 All   |
-| **Database Service**     | Edition-tiered journal operations          | `src/services/db.ts`                          | 🟢 All   |
-| **Git Service**          | Git operations with trace metadata         | `src/services/git_service.ts`                 | 🟢 All   |
-| **Provider Factory**     | Create LLM provider instances              | `src/ai/provider_factory.ts`                  | 🟢 All   |
-| **Context Loader**       | Load context for agent execution           | `src/services/context_loader.ts`              | 🟢 All   |
-| **Portal Commands**      | Manage external project access             | `src/cli/portal_commands.ts`                  | 🟢 All   |
-| **Blueprint Commands**   | Manage agent templates                     | `src/cli/blueprint_commands.ts`               | 🟢 All   |
-| **Dashboard Commands**   | Launch terminal dashboard                  | `src/cli/dashboard_commands.ts`               | 🟢 All   |
-| **TUI Dashboard**        | Multi-view terminal UI (7-9 views)         | `src/tui/*.ts`                                | 🟢 All   |
-| **Web UI**               | Browser-based approval interface           | `src/web/*`                                   | 🔵 Team+ |
-| **Parsers**              | Parse markdown + frontmatter               | `src/parsers/*.ts`                            | 🟢 All   |
-| **Plan Parser**          | Shared structured plan parsing utility     | `src/services/structured_plan_parser.ts`      | 🟢 All   |
-| **Schemas**              | Zod validation layer                       | `src/schemas/*.ts`                            | 🟢 All   |
-| **MCP Client**           | Connect to external MCP servers            | `src/mcp/client.ts`                           | 🟢 All   |
-| **MCP Server**           | JSON-RPC server for tool execution         | `src/mcp/server.ts`                           | 🔵 Team+ |
-| **Blueprint Loader**     | Unified blueprint parsing                  | `src/services/blueprint_loader.ts`            | 🟢 All   |
-| **Output Validator**     | Schema validation with JSON repair         | `src/services/output_validator.ts`            | 🟢 All   |
-| **Retry Policy**         | Exponential backoff with jitter            | `src/services/retry_policy.ts`                | 🟢 All   |
-| **Plan Adapter**         | JSON validation and markdown conversion    | `src/services/plan_adapter.ts`                | 🟢 All   |
-| **Plan Writer**          | Format results into structured plans       | `src/services/plan_writer.ts`                 | 🟢 All   |
-| **Request Common**       | Blueprints and request building utilities  | `src/services/request_common.ts`              | 🟢 All   |
-| **Review Registry**      | Agent-created review management            | `src/services/review_registry.ts`             | 🟢 All   |
-| **Path Resolver**        | Portal alias and security path resolution  | `src/services/path_resolver.ts`               | 🟢 All   |
-| **Skills Service**       | Procedural memory (skills) management      | `src/services/skills.ts`                      | 🟢 All   |
-| **Mission Reporter**     | Execution reports and memory updates       | `src/services/mission_reporter.ts`            | 🟢 All   |
-| **Prompt Context**       | Structured prompt building utilities       | `src/services/prompt_context.ts`              | 🟢 All   |
-| **Reflexive Agent**      | Self-critique improvement loop             | `src/services/reflexive_agent.ts`             | 🟢 All   |
-| **Tool Reflector**       | Tool result evaluation and retry           | `src/services/tool_reflector.ts`              | 🟢 All   |
-| **Session Memory**       | Memory context injection                   | `src/services/session_memory.ts`              | 🟢 All   |
-| **Confidence Scorer**    | Output confidence assessment               | `src/services/confidence_scorer.ts`           | 🟢 All   |
-| **Condition Evaluator**  | Flow condition expression eval             | `src/flows/condition_evaluator.ts`            | 🟢 All   |
-| **Gate Evaluator**       | Quality gate checkpoint validation         | `src/flows/gate_evaluator.ts`                 | 🟢 All   |
-| **Judge Evaluator**      | LLM-as-a-Judge assessment                  | `src/flows/judge_evaluator.ts`                | 🟢 All   |
-| **Feedback Loop**        | Iterative refinement control               | `src/flows/feedback_loop.ts`                  | 🟢 All   |
-| **Evaluation Criteria**  | Quality standards validation               | `src/flows/evaluation_criteria.ts`            | 🟢 All   |
-| **Notification Service** | Memory update and system notifications     | `src/services/notification.ts`                | 🟢 All   |
-| **Health Check Service** | System health and resource monitoring      | `src/services/health_check_service.ts`        | 🟢 All   |
-| **Graceful Shutdown**    | Process termination and cleanup management | `src/services/graceful_shutdown.ts`           | 🟢 All   |
-| **Governance Dashboard** | Compliance monitoring and risk scoring     | `src/web/governance/*`                        | 🟣 Ent   |
-| **Compliance Reporter**  | Regulatory compliance exports              | `src/services/compliance.ts`                  | 🟣 Ent   |
+| **CLI Layer** | Human interface for system control | `src/cli/*.ts` | 🟢 All |
+| **Daemon** | Background orchestration engine | `src/main.ts` | 🟢 All |
+| **Request Watcher** | Detect new requests in Workspace/Requests | `src/services/watcher.ts` | 🟢 All |
+| **Plan Watcher** | Detect approved plans | `src/services/watcher.ts` | 🟢 All |
+| **Request Processor** | Parse requests, generate plans | `src/services/request_processor.ts` | 🟢 All |
+| **Request Router** | Route requests to Agent/Flow runners | `src/services/request_router.ts` | 🟢 All |
+| **Request Analyzer** | `src/services/request_analysis/` | Intent, requirements & complexity extraction | 🟢 All |
+| **Plan Executor** | Execute approved plans | `src/services/plan_executor.ts` | 🟢 All |
+| **Agent Runner** | Execute agent logic with LLM | `src/services/agent_runner.ts` | 🟢 All |
+| **Flow Runner** | Execute multi-agent flows | `src/flows/flow_runner.ts` | 🟢 All |
+| **Event Logger** | Write to Activity Journal | `src/services/event_logger.ts` | 🟢 All |
+| **Config Service** | Load and validate exo.config.toml | `src/config/service.ts` | 🟢 All |
+| **Workspace Execution** | Agent environment and path resolution | `src/services/workspace_execution_context.ts` | 🟢 All |
+| **Database Service** | Edition-tiered journal operations | `src/services/db.ts` | 🟢 All |
+| **Git Service** | Git operations with trace metadata | `src/services/git_service.ts` | 🟢 All |
+| **Provider Factory** | Create LLM provider instances | `src/ai/provider_factory.ts` | 🟢 All |
+| **Context Loader** | Load context for agent execution | `src/services/context_loader.ts` | 🟢 All |
+| **Portal Commands** | Manage external project access | `src/cli/portal_commands.ts` | 🟢 All |
+| **Blueprint Commands** | Manage agent templates | `src/cli/blueprint_commands.ts` | 🟢 All |
+| **Dashboard Commands** | Launch terminal dashboard | `src/cli/dashboard_commands.ts` | 🟢 All |
+| **TUI Dashboard** | Multi-view terminal UI (7-9 views) | `src/tui/*.ts` | 🟢 All |
+| **Web UI** | Browser-based approval interface | `src/web/*` | 🔵 Team+ |
+| **Parsers** | Parse markdown + frontmatter | `src/parsers/*.ts` | 🟢 All |
+| **Plan Parser** | Shared structured plan parsing utility | `src/services/structured_plan_parser.ts` | 🟢 All |
+| **Schemas** | Zod validation layer | `src/schemas/*.ts` | 🟢 All |
+| **MCP Client** | Connect to external MCP servers | `src/mcp/client.ts` | 🟢 All |
+| **MCP Server** | JSON-RPC server for tool execution | `src/mcp/server.ts` | 🔵 Team+ |
+| **Blueprint Loader** | Unified blueprint parsing | `src/services/blueprint_loader.ts` | 🟢 All |
+| **Output Validator** | Schema validation with JSON repair | `src/services/output_validator.ts` | 🟢 All |
+| **Retry Policy** | Exponential backoff with jitter | `src/services/retry_policy.ts` | 🟢 All |
+| **Plan Adapter** | JSON validation and markdown conversion | `src/services/plan_adapter.ts` | 🟢 All |
+| **Plan Writer** | Format results into structured plans | `src/services/plan_writer.ts` | 🟢 All |
+| **Request Common** | Blueprints and request building utilities | `src/services/request_common.ts` | 🟢 All |
+| **Review Registry** | Agent-created review management | `src/services/review_registry.ts` | 🟢 All |
+| **Path Resolver** | Portal alias and security path resolution | `src/services/path_resolver.ts` | 🟢 All |
+| **Skills Service** | Procedural memory (skills) management | `src/services/skills.ts` | 🟢 All |
+| **Mission Reporter** | Execution reports and memory updates | `src/services/mission_reporter.ts` | 🟢 All |
+| **Prompt Context** | Structured prompt building utilities | `src/services/prompt_context.ts` | 🟢 All |
+| **Reflexive Agent** | Self-critique improvement loop | `src/services/reflexive_agent.ts` | 🟢 All |
+| **Tool Reflector** | Tool result evaluation and retry | `src/services/tool_reflector.ts` | 🟢 All |
+| **Session Memory** | Memory context injection | `src/services/session_memory.ts` | 🟢 All |
+| **Confidence Scorer** | Output confidence assessment | `src/services/confidence_scorer.ts` | 🟢 All |
+| **Condition Evaluator** | Flow condition expression eval | `src/flows/condition_evaluator.ts` | 🟢 All |
+| **Gate Evaluator** | Quality gate checkpoint validation | `src/flows/gate_evaluator.ts` | 🟢 All |
+| **Judge Evaluator** | LLM-as-a-Judge assessment | `src/flows/judge_evaluator.ts` | 🟢 All |
+| **Feedback Loop** | Iterative refinement control | `src/flows/feedback_loop.ts` | 🟢 All |
+| **Evaluation Criteria** | Quality standards validation | `src/flows/evaluation_criteria.ts` | 🟢 All |
+| **Notification Service** | Memory update and system notifications | `src/services/notification.ts` | 🟢 All |
+| **Health Check Service** | System health and resource monitoring | `src/services/health_check_service.ts` | 🟢 All |
+| **Graceful Shutdown** | Process termination and cleanup management | `src/services/graceful_shutdown.ts` | 🟢 All |
+| **Governance Dashboard** | Compliance monitoring and risk scoring | `src/web/governance/*` | 🟣 Ent |
+| **Compliance Reporter** | Regulatory compliance exports | `src/services/compliance.ts` | 🟣 Ent |
 
 ---
 
@@ -1621,14 +1621,14 @@ graph TB
 
 ### Service Responsibilities
 
-| Service               | Purpose             | Key Features                                                  |
+| Service | Purpose | Key Features |
 | --------------------- | ------------------- | ------------------------------------------------------------- |
-| **Session Memory**    | Context injection   | Semantic search, memory lookup, insight saving                |
-| **Reflexive Agent**   | Quality improvement | Self-critique, iterative refinement, confidence threshold     |
-| **Output Validator**  | Schema validation   | JSON repair, Zod validation, error reporting                  |
-| **Retry Policy**      | Failure recovery    | Exponential backoff, jitter, circuit breaker                  |
-| **Confidence Scorer** | Quality assessment  | LLM-based scoring, human review flags                         |
-| **Tool Reflector**    | Tool execution      | Result evaluation, alternative parameters, parallel execution |
+| **Session Memory** | Context injection | Semantic search, memory lookup, insight saving |
+| **Reflexive Agent** | Quality improvement | Self-critique, iterative refinement, confidence threshold |
+| **Output Validator** | Schema validation | JSON repair, Zod validation, error reporting |
+| **Retry Policy** | Failure recovery | Exponential backoff, jitter, circuit breaker |
+| **Confidence Scorer** | Quality assessment | LLM-based scoring, human review flags |
+| **Tool Reflector** | Tool execution | Result evaluation, alternative parameters, parallel execution |
 
 ### Data Flow
 
@@ -1707,23 +1707,23 @@ graph TB
 
 ### Evaluation Component Responsibilities
 
-| Component               | Purpose               | Key Features                                               |
+| Component | Purpose | Key Features |
 | ----------------------- | --------------------- | ---------------------------------------------------------- |
 | **Condition Evaluator** | Expression evaluation | Safe expression parsing, variable interpolation, operators |
-| **Gate Evaluator**      | Quality checkpoints   | Pass/fail criteria, threshold validation, gate actions     |
-| **LLM-as-a-Judge**      | AI-powered assessment | Structured rubrics, multi-criteria scoring, explanations   |
-| **Feedback Loop**       | Iterative refinement  | Max iterations, convergence detection, state tracking      |
-| **Evaluation Criteria** | Quality standards     | Built-in criteria, custom criteria, weighted scoring       |
+| **Gate Evaluator** | Quality checkpoints | Pass/fail criteria, threshold validation, gate actions |
+| **LLM-as-a-Judge** | AI-powered assessment | Structured rubrics, multi-criteria scoring, explanations |
+| **Feedback Loop** | Iterative refinement | Max iterations, convergence detection, state tracking |
+| **Evaluation Criteria** | Quality standards | Built-in criteria, custom criteria, weighted scoring |
 
 ### Built-in Evaluation Criteria
 
-| Criteria           | Description                           | Use Case                  |
+| Criteria | Description | Use Case |
 | ------------------ | ------------------------------------- | ------------------------- |
-| `CODE_CORRECTNESS` | Validates syntax and semantics        | Code generation steps     |
-| `HAS_TESTS`        | Ensures test coverage exists          | TDD workflows             |
-| `FOLLOWS_SPEC`     | Matches specification requirements    | Implementation validation |
-| `IS_SECURE`        | Checks security best practices        | Security-critical flows   |
-| `PERFORMANCE_OK`   | Validates performance characteristics | Optimization workflows    |
+| `CODE_CORRECTNESS` | Validates syntax and semantics | Code generation steps |
+| `HAS_TESTS` | Ensures test coverage exists | TDD workflows |
+| `FOLLOWS_SPEC` | Matches specification requirements | Implementation validation |
+| `IS_SECURE` | Checks security best practices | Security-critical flows |
+| `PERFORMANCE_OK` | Validates performance characteristics | Optimization workflows |
 
 ### Condition Expression Syntax
 

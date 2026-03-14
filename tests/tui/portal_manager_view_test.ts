@@ -47,7 +47,8 @@ class MinimalIPortalServiceMock implements IPortalService {
   };
   quickJumpToPortalDir = (_: string) => Promise.resolve("");
   getPortalFilesystemPath = (_: string) => Promise.resolve("");
-  getPortalActivityLog = (_: string) => [];
+  getPortalActivityLog = (_: string) => [] as string[];
+  getKnowledge = (_: string) => Promise.resolve(null);
 }
 
 // Additional coverage for error branches and rendering helpers
@@ -1052,6 +1053,7 @@ Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
     quickJumpToPortalDir: () => Promise.resolve(""),
     getPortalFilesystemPath: () => Promise.resolve(""),
     getPortalActivityLog: () => [],
+    getKnowledge: () => Promise.resolve(null),
   };
 
   const view = new PortalManagerView(service);

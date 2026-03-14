@@ -10,6 +10,7 @@ import {
   CritiqueSeverity as _CritiqueSeverity,
   LogLevel,
   McpTransportType,
+  PortalAnalysisMode,
   RequestGroupingMode,
   RequestPriority,
   RequestSource,
@@ -923,6 +924,15 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       mode: AnalysisMode.HYBRID,
       actionability_threshold: 60,
       infer_acceptance_criteria: true,
+    },
+    portal_knowledge: {
+      auto_analyze_on_mount: true,
+      default_mode: PortalAnalysisMode.QUICK,
+      quick_scan_limit: 200,
+      max_files_to_read: 50,
+      staleness_hours: 168,
+      use_llm_inference: true,
+      ignore_patterns: ["node_modules", ".git", "dist", "build"],
     },
   };
 
