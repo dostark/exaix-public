@@ -13,6 +13,12 @@ export const RequestStatus = {
   COMPLETED: "completed",
   FAILED: "failed",
   CANCELLED: "cancelled",
+  /** Request is awaiting human answers to clarification questions. */
+  NEEDS_CLARIFICATION: "needs_clarification",
+  /** Active Q&A loop in progress between planning agent and user. */
+  REFINING: "refining",
+  /** LLM-based automatic enrichment of the request body is in progress. */
+  ENRICHING: "enriching",
 } as const;
 
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
@@ -25,6 +31,9 @@ export const REQUEST_STATUS_VALUES = [
   RequestStatus.COMPLETED,
   RequestStatus.FAILED,
   RequestStatus.CANCELLED,
+  RequestStatus.NEEDS_CLARIFICATION,
+  RequestStatus.REFINING,
+  RequestStatus.ENRICHING,
 ] as const;
 
 export function isRequestStatus(value: unknown): value is RequestStatus {

@@ -717,18 +717,25 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Three new statuses added to enum
-- [ ] `coerceRequestStatus()` handles new values correctly
-- [ ] Existing status transitions unaffected
+- [x] Three new statuses added to enum
+- [x] `coerceRequestStatus()` handles new values correctly
+- [x] Existing status transitions unaffected
 - [ ] CLI status filters include new statuses
 - [ ] TUI status display renders new statuses with appropriate colors
 
 **Planned tests** (`tests/shared/status/request_status_test.ts`):
 
-- `[RequestStatus] includes NEEDS_CLARIFICATION`
-- `[RequestStatus] includes REFINING`
-- `[RequestStatus] includes ENRICHING`
-- `[coerceRequestStatus] handles new status values`
+- ✅ `[RequestStatus] includes NEEDS_CLARIFICATION`
+- ✅ `[RequestStatus] includes REFINING`
+- ✅ `[RequestStatus] includes ENRICHING`
+- ✅ `[coerceRequestStatus] handles new status values`
+- ✅ `[RequestStatus] includes all original values`
+- ✅ `[REQUEST_STATUS_VALUES] includes all new status values`
+- ✅ `[isRequestStatus] recognises new status values`
+- ✅ `[isRequestStatus] rejects unknown values`
+- ✅ `[coerceRequestStatus] falls back for unknown values`
+
+**✅ IMPLEMENTED** — `src/shared/status/request_status.ts`, 9/9 tests passing
 
 ---
 
@@ -992,6 +999,7 @@ Request File (.md)
 **Architecture notes:**
 
 - New TOML section:
+
   ```toml
   [quality_gate]
   enabled = true
@@ -1004,7 +1012,8 @@ Request File (.md)
   minimum = 20
   enrichment = 50
   proceed = 70
-  ```text
+  ```
+
 - `RequestQualityGate` constructor reads config from `Config.quality_gate` to construct `IRequestQualityGateConfig`
 - All fields optional with defaults from constants
 
@@ -1074,6 +1083,7 @@ Request File (.md)
 **Sections to update:**
 
 1. **"Request Processing Flow"** — Insert quality gate step in pipeline diagram:
+
    ```text
    Request File (.md)
      → RequestParser.parse()
@@ -1081,17 +1091,14 @@ Request File (.md)
      → [Q&A loop if needed]
      → RequestAnalyzer.analyze()        ← Phase 45
      → RequestRouter (agent or flow)
-   ```text
+   ```
 
 1.
-   ```text
+
+  ```text
    PENDING → REFINING → NEEDS_CLARIFICATION → PENDING → PLANNED → ...
    PENDING → ENRICHING → PENDING → PLANNED → ...
-   ```text
-
-1.
-
-1.
+  ```
 
 1.
    - Three-tier quality assessment (heuristic/LLM/hybrid)
@@ -1214,7 +1221,7 @@ Step 16: E2E test                     ← depends on all above
 Step 17: ARCHITECTURE.md             ← depends on Steps 12, 14
 Step 18: User & dev docs              ← depends on Steps 13, 15
 Step 19: .copilot/ agent docs        ← depends on Step 17
-```text
+```
 
 **Parallel waves:**
 
@@ -1306,7 +1313,7 @@ async execute(
     specification?: IRequestSpecification;
   },
 ): Promise<IFlowResult>;
-```text
+```
 
 1.
 
@@ -1324,11 +1331,10 @@ return {
   requestId: originalRequest.requestId,
   skills,
 };
-```text
+```
 
 1.
 
-```
 
 ---
 
