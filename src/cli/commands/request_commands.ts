@@ -12,6 +12,11 @@ import type { RequestStatusType } from "../../shared/status/request_status.ts";
 import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
 import { RequestListHandler } from "../handlers/request_list_handler.ts";
 import { RequestShowHandler } from "../handlers/request_show_handler.ts";
+import {
+  type IClarifyOptions,
+  type IClarifyResult,
+  RequestClarifyHandler,
+} from "../handlers/request_clarify_handler.ts";
 import { IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
 import { RequestSource } from "../../shared/enums.ts";
 import {
@@ -30,6 +35,7 @@ export class RequestCommands extends BaseCommand {
   private createHandler: RequestCreateHandler;
   private listHandler: RequestListHandler;
   private showHandler: RequestShowHandler;
+  private clarifyHandler: RequestClarifyHandler;
 
   constructor(
     context: ICommandContext,
@@ -38,6 +44,7 @@ export class RequestCommands extends BaseCommand {
     this.createHandler = new RequestCreateHandler(context);
     this.listHandler = new RequestListHandler(context);
     this.showHandler = new RequestShowHandler(context);
+    this.clarifyHandler = new RequestClarifyHandler(context);
   }
 
   /**
@@ -96,5 +103,15 @@ export class RequestCommands extends BaseCommand {
    */
   async show(idOrFilename: string): Promise<IRequestShowResult> {
     return await this.showHandler.show(idOrFilename);
+  }
+
+  /**
+   * Manage the clarification Q&A loop for a REFINING request.
+   * @param requestId The request ID (filename without .md)
+   * @param options Flags: answers, proceed, cancel, engine (for DI in tests)
+   * @returns Current clarification state with pending questions and quality score
+   */
+  async clarify(requestId: string, options?: IClarifyOptions): Promise<IClarifyResult> {
+    return await this.clarifyHandler.clarify(requestId, options);
   }
 }

@@ -1208,3 +1208,17 @@ export enum QualityGateMode {
   /** Heuristic first; escalate to LLM only for borderline scores. */
   HYBRID = "hybrid",
 }
+
+/**
+ * Outcome status returned by the `exoctl request clarify` command.
+ */
+export enum ClarifyResultStatus {
+  /** Session has pending questions awaiting user answers. */
+  QUESTIONS = "questions",
+  /** Session is complete — request is re-queued for processing. */
+  COMPLETE = "complete",
+  /** User cancelled clarification — request is re-queued as-is. */
+  CANCELLED = "cancelled",
+  /** No clarification session found for the given request. */
+  NO_SESSION = "no_session",
+}
