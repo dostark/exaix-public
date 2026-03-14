@@ -561,11 +561,13 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] All heuristic signal values/weights referenced from constants
-- [ ] Constants grouped under `// === Request Quality Gate ===` header
-- [ ] No magic numbers in assessor code
+- [x] All heuristic signal values/weights referenced from constants
+- [x] Constants grouped under `// === Request Quality Gate ===` header
+- [x] No magic numbers in assessor code
 
 **Planned tests:** None (validated through usage in Step 5/6 tests).
+
+**✅ IMPLEMENTED** — `src/shared/constants.ts` (Request Quality Gate section added)
 
 ---
 

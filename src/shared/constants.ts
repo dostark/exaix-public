@@ -874,3 +874,114 @@ export const PORTAL_KNOWLEDGE_ARCH_LAYER_DIRS: Record<string, string> = {
   ai: "AI/LLM provider implementations",
   mcp: "Model Context Protocol server",
 };
+
+// === Request Quality Gate ===
+
+/** Default quality gate assessment mode. */
+export const DEFAULT_QG_MODE = "hybrid";
+
+/**
+ * Score below which a request requires clarification or is rejected.
+ * Requests scoring below this are not actionable without human input.
+ */
+export const DEFAULT_QG_MINIMUM_THRESHOLD = 20;
+
+/**
+ * Score below which auto-enrichment is applied (but above minimum).
+ * Requests in the [minimum, enrichment) band are auto-enriched via LLM.
+ */
+export const DEFAULT_QG_ENRICHMENT_THRESHOLD = 50;
+
+/**
+ * Score above which a request proceeds to execution without intervention.
+ */
+export const DEFAULT_QG_PROCEED_THRESHOLD = 70;
+
+/** Maximum clarification rounds before forcing proceed-with-best-effort. */
+export const DEFAULT_MAX_CLARIFICATION_ROUNDS = 5;
+
+// --- Heuristic signal thresholds ---
+
+/** Minimum body character count; shorter bodies incur the short-body penalty. */
+export const QG_SHORT_BODY_MAX_CHARS = 20;
+
+/** Score penalty for a body shorter than QG_SHORT_BODY_MAX_CHARS. */
+export const QG_SHORT_BODY_PENALTY = 40;
+
+/** Score penalty when no action verbs are detected in the request body. */
+export const QG_NO_ACTION_VERBS_PENALTY = 20;
+
+/** Score penalty when the request consists only of questions and no directives. */
+export const QG_QUESTIONS_ONLY_PENALTY = 15;
+
+/** Score penalty when no specific nouns (file names, feature names) are detected. */
+export const QG_NO_SPECIFIC_NOUNS_PENALTY = 15;
+
+/** Score bonus when the request references specific files or code paths. */
+export const QG_FILE_REFERENCE_BONUS = 15;
+
+/** Score bonus when acceptance criteria keywords are detected. */
+export const QG_ACCEPTANCE_CRITERIA_BONUS = 20;
+
+/** Score bonus when the request contains multiple structured requirements. */
+export const QG_STRUCTURED_REQUIREMENTS_BONUS = 15;
+
+/** Score bonus when technical specifics (APIs, libraries, protocols) are referenced. */
+export const QG_TECHNICAL_SPECIFICS_BONUS = 10;
+
+/** Score bonus when the request contains a context or background section. */
+export const QG_CONTEXT_SECTION_BONUS = 10;
+
+/** Baseline score before heuristic bonuses/penalties are applied. */
+export const QG_HEURISTIC_SCORE_BASELINE = 50;
+
+/** Action verbs indicating the request is directive (not just descriptive). */
+export const QG_ACTION_VERBS: string[] = [
+  "implement",
+  "fix",
+  "add",
+  "create",
+  "update",
+  "refactor",
+  "test",
+  "build",
+  "write",
+  "change",
+  "remove",
+  "delete",
+  "migrate",
+  "integrate",
+  "deploy",
+  "configure",
+  "optimize",
+  "debug",
+  "extract",
+  "rename",
+];
+
+/** Keywords that indicate explicit acceptance criteria are present. */
+export const QG_ACCEPTANCE_CRITERIA_KEYWORDS: string[] = [
+  "should",
+  "must",
+  "expect",
+  "given",
+  "when",
+  "then",
+  "assert",
+  "verify",
+  "ensure",
+  "requirement",
+  "acceptance criteria",
+  "success criteria",
+  "definition of done",
+];
+
+/** Regex patterns used to detect file path references in request text. */
+export const QG_FILE_REF_PATTERNS: RegExp[] = [
+  /[a-zA-Z][a-zA-Z0-9_/-]*\/[a-zA-Z0-9_/.-]+\.[a-z]{1,4}/,
+  /`[^`]+\.[a-z]{1,4}`/,
+];
+
+/** Regex pattern to detect technical specifics (APIs, packages, protocols). */
+export const QG_TECH_SPECIFICS_PATTERN =
+  /\b(?:api|sdk|http|https|rest|graphql|sql|json|xml|yaml|toml|deno|node|python|typescript|javascript|react|vue|postgres|sqlite|redis|docker|kubernetes|jwt|oauth|websocket)\b/i;
