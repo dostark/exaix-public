@@ -15,6 +15,7 @@ import { appendToRequest, extractSection, mergeAsContext, passthrough, templateF
 import { jsonExtract, JSONValue } from "../shared/types/json.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
 
 export interface IFlowRunner {
   execute(
@@ -24,6 +25,7 @@ export interface IFlowRunner {
       traceId?: string;
       requestId?: string;
       requestAnalysis?: IRequestAnalysis;
+      portalKnowledge?: IPortalKnowledge;
     },
   ): Promise<IFlowResult>;
 }

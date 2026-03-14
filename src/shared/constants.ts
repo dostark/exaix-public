@@ -555,6 +555,7 @@ export const MAX_PROMPT_LENGTH = 50000;
 // ============================================================================
 
 export const PORTAL_CONTEXT_KEY = "portal_context";
+export const PORTAL_KNOWLEDGE_KEY = "portal_knowledge";
 export const PORTAL_CONTEXT_SECTION_TITLE = "Portal Context (SYSTEM CONTROLLED)";
 export const PORTAL_CONTEXT_ALIAS_LABEL = "Portal Alias";
 export const PORTAL_CONTEXT_ROOT_LABEL = "Portal Root";

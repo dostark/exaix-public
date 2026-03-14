@@ -1034,27 +1034,31 @@ Incremental updates:
 
 **Success criteria:**
 
-- [ ] Portal knowledge resolved for portal-bound requests
-- [ ] `IRequestProcessingContext.portalKnowledge` populated when available
-- [ ] Both agent and flow paths receive knowledge
-- [ ] Agent prompts receive a Markdown summary via `PORTAL_KNOWLEDGE_KEY` in `IParsedRequest.context`
-- [ ] Uses cached knowledge when fresh (no re-analysis overhead)
-- [ ] Returns stale knowledge immediately; async background re-analysis fires without blocking the request
-- [ ] `PORTAL_KNOWLEDGE_KEY` summary capped at `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES` lines
-- [ ] Summary includes architecture overview (20 lines) + top-5 key files + top-5 conventions only
-- [ ] Proceeds without knowledge on failure
+- [x] Portal knowledge resolved for portal-bound requests
+- [x] `IRequestProcessingContext.portalKnowledge` populated when available
+- [x] Both agent and flow paths receive knowledge
+- [x] Agent prompts receive a Markdown summary via `PORTAL_KNOWLEDGE_KEY` in `IParsedRequest.context`
+- [x] Uses cached knowledge when fresh (no re-analysis overhead)
+- [x] Returns stale knowledge immediately; async background re-analysis fires without blocking the request
+- [x] `PORTAL_KNOWLEDGE_KEY` summary capped at `PORTAL_KNOWLEDGE_PROMPT_MAX_LINES` lines
+- [x] Summary includes architecture overview (20 lines) + top-5 key files + top-5 conventions only
+- [x] Proceeds without knowledge on failure
 
 **Planned tests** (`tests/services/request_processor_knowledge_test.ts`):
 
-- `[RequestProcessor] resolves portal knowledge for portal-bound requests`
-- `[RequestProcessor] populates IRequestProcessingContext.portalKnowledge`
-- `[RequestProcessor] injects knowledge Markdown summary into IParsedRequest.context via PORTAL_KNOWLEDGE_KEY`
-- `[RequestProcessor] skips knowledge for requests without portal`
-- `[RequestProcessor] uses cached knowledge when fresh`
-- `[RequestProcessor] proceeds without knowledge on failure`
-- `[RequestProcessor] passes knowledge to flow processing path`
-- `[RequestProcessor] clamps PORTAL_KNOWLEDGE_KEY summary to PORTAL_KNOWLEDGE_PROMPT_MAX_LINES`
-- `[RequestProcessor] returns stale knowledge immediately without blocking on re-analysis`
+- ✅ `[RequestProcessor] resolves portal knowledge for portal-bound requests`
+- ✅ `[RequestProcessor] populates IRequestProcessingContext.portalKnowledge`
+- ✅ `[RequestProcessor] injects knowledge Markdown summary into IParsedRequest.context via PORTAL_KNOWLEDGE_KEY`
+- ✅ `[RequestProcessor] skips knowledge for requests without portal`
+- ✅ `[RequestProcessor] uses cached knowledge when fresh`
+- ✅ `[RequestProcessor] proceeds without knowledge on failure`
+- ✅ `[RequestProcessor] passes knowledge to flow processing path`
+- ✅ `[RequestProcessor] clamps PORTAL_KNOWLEDGE_KEY summary to PORTAL_KNOWLEDGE_PROMPT_MAX_LINES`
+- ✅ `[RequestProcessor] returns stale knowledge immediately without blocking on re-analysis`
+- ✅ `[RequestProcessor] buildPortalKnowledgeSummary includes architecture overview`
+- ✅ `[RequestProcessor] buildPortalKnowledgeSummary includes top-5 key files`
+
+✅ IMPLEMENTED — 11/11 tests pass
 
 ---
 

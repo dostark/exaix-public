@@ -19,7 +19,14 @@ import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
-import { DEFAULT_ANALYZER_MODE, PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
+import {
+  DEFAULT_ANALYZER_MODE,
+  PORTAL_CONTEXT_KEY,
+  PORTAL_KNOWLEDGE_KEY,
+  PORTAL_KNOWLEDGE_PROMPT_MAX_LINES,
+} from "../shared/constants.ts";
+import type { IPortalKnowledgeService } from "../shared/interfaces/i_portal_knowledge_service.ts";
+import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
@@ -52,6 +59,7 @@ export interface IRequestProcessingContext extends IServiceContext {
   requestId: string;
   requestKind: RequestKind;
   analysis?: IRequestAnalysis;
+  portalKnowledge?: IPortalKnowledge;
 }
 
 export interface IRequestProcessorConfig {
@@ -84,6 +92,7 @@ export class RequestProcessor {
     private readonly testProvider?: IModelProvider,
     costTracker?: CostTracker,
     testAnalyzer?: IRequestAnalyzerService,
+    private readonly portalKnowledgeService?: IPortalKnowledgeService,
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
@@ -179,6 +188,18 @@ export class RequestProcessor {
       await saveAnalysis(filePath, analysis).catch(() => {});
     }
 
+    // Resolve portal knowledge for portal-bound requests
+    const portal = frontmatter.portal;
+    let portalKnowledge: IPortalKnowledge | undefined;
+    if (this.portalKnowledgeService && portal) {
+      const portalPath = (this.config.portals ?? []).find((p) => p.alias === portal)?.target_path;
+      if (portalPath) {
+        portalKnowledge = await this.portalKnowledgeService
+          .getOrAnalyze(portal, portalPath)
+          .catch(() => undefined);
+      }
+    }
+
     const context: IRequestProcessingContext = {
       filePath,
       parsed,
@@ -188,6 +209,7 @@ export class RequestProcessor {
       requestId,
       requestKind,
       analysis,
+      portalKnowledge,
     };
 
     try {
@@ -201,6 +223,7 @@ export class RequestProcessor {
           traceId,
           traceLogger,
           context.analysis,
+          context.portalKnowledge,
         );
       });
 
@@ -309,12 +332,22 @@ export class RequestProcessor {
     traceId: string,
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
+    portalKnowledge?: IPortalKnowledge,
   ): Promise<string | null> {
     if (kind === RequestKind.FLOW) {
-      return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis);
+      return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis, portalKnowledge);
     }
 
-    return this.processAgentRequest(frontmatter, body, filePath, requestId, traceId, traceLogger, analysis);
+    return this.processAgentRequest(
+      frontmatter,
+      body,
+      filePath,
+      requestId,
+      traceId,
+      traceLogger,
+      analysis,
+      portalKnowledge,
+    );
   }
 
   private async processFlowRequest(
@@ -324,6 +357,7 @@ export class RequestProcessor {
     traceId: string,
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
+    _portalKnowledge?: IPortalKnowledge,
   ): Promise<string | null> {
     if (this.flowValidator) {
       const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
@@ -382,6 +416,7 @@ export class RequestProcessor {
     traceId: string,
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
+    portalKnowledge?: IPortalKnowledge,
   ): Promise<string | null> {
     const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
@@ -410,6 +445,9 @@ export class RequestProcessor {
     const portalContext = await this.buildPortalContext(frontmatter.portal, traceLogger);
     if (portalContext) {
       request.context[PORTAL_CONTEXT_KEY] = portalContext;
+    }
+    if (portalKnowledge) {
+      request.context[PORTAL_KNOWLEDGE_KEY] = buildPortalKnowledgeSummary(portalKnowledge);
     }
 
     const taskComplexity = this.classifyTaskComplexity(blueprint, request, analysis);
@@ -814,4 +852,45 @@ Raw Details: ${args.rawDetails}
       // Ignore read errors for specific directories
     }
   }
+}
+
+// ============================================================================
+// Exported helpers
+// ============================================================================
+
+/**
+ * Build a capped Markdown summary of IPortalKnowledge for injection into agent prompts.
+ * Includes: architecture overview (first 20 lines), top-5 key files, top-5 conventions
+ * sorted by evidenceCount descending. Capped at maxLines lines.
+ */
+export function buildPortalKnowledgeSummary(
+  knowledge: IPortalKnowledge,
+  maxLines = PORTAL_KNOWLEDGE_PROMPT_MAX_LINES,
+): string {
+  const lines: string[] = ["## Portal Knowledge Summary"];
+
+  if (knowledge.architectureOverview) {
+    lines.push("### Architecture");
+    const overviewLines = knowledge.architectureOverview.split("\n").slice(0, 20);
+    lines.push(...overviewLines);
+  }
+
+  if (knowledge.keyFiles.length > 0) {
+    lines.push("### Key Files");
+    for (const kf of knowledge.keyFiles.slice(0, 5)) {
+      lines.push(`- \`${kf.path}\` (${kf.role}): ${kf.description}`);
+    }
+  }
+
+  const topConventions = [...knowledge.conventions]
+    .sort((a, b) => b.evidenceCount - a.evidenceCount)
+    .slice(0, 5);
+  if (topConventions.length > 0) {
+    lines.push("### Conventions");
+    for (const c of topConventions) {
+      lines.push(`- ${c.name}: ${c.description}`);
+    }
+  }
+
+  return lines.slice(0, maxLines).join("\n");
 }

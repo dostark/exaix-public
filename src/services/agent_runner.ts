@@ -28,7 +28,7 @@ import {
 import { createOutputValidator, type IOutputValidator, type IValidationMetrics } from "./output_validator.ts";
 import { ISkillsService } from "../shared/interfaces/i_skills_service.ts";
 import { extractKeywords } from "../helpers/text.ts";
-import { PORTAL_CONTEXT_KEY } from "../shared/constants.ts";
+import { PORTAL_CONTEXT_KEY, PORTAL_KNOWLEDGE_KEY } from "../shared/constants.ts";
 import { PlanAdapter } from "./plan_adapter.ts";
 
 /**
@@ -472,6 +472,11 @@ export class AgentRunner implements IAgentRunner {
     const portalContext = request.context?.[PORTAL_CONTEXT_KEY];
     if (typeof portalContext === "string" && portalContext.trim()) {
       parts.push(portalContext);
+    }
+
+    const portalKnowledge = request.context?.[PORTAL_KNOWLEDGE_KEY];
+    if (typeof portalKnowledge === "string" && portalKnowledge.trim()) {
+      parts.push(portalKnowledge);
     }
 
     if (request.userPrompt.trim()) {
