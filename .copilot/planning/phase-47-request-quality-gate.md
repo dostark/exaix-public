@@ -493,25 +493,27 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `ClarificationSessionSchema.safeParse(validData)` returns `{ success: true }`
-- [ ] `RequestSpecificationSchema.safeParse(validData)` returns `{ success: true }`
-- [ ] All sub-schemas parseable independently
-- [ ] Session status enum validated
-- [ ] Question category enum validated
-- [ ] `refinedBody` correctly typed as optional `IRequestSpecification`
-- [ ] `qualityHistory` array validated
-- [ ] Both schemas re-exported through barrel
+- [x] `ClarificationSessionSchema.safeParse(validData)` returns `{ success: true }`
+- [x] `RequestSpecificationSchema.safeParse(validData)` returns `{ success: true }`
+- [x] All sub-schemas parseable independently
+- [x] Session status enum validated
+- [x] Question category enum validated
+- [x] `refinedBody` correctly typed as optional `IRequestSpecification`
+- [x] `qualityHistory` array validated
+- [x] Both schemas re-exported through barrel
 
-**Planned tests** (`tests/shared/schemas/clarification_session_test.ts`, `tests/shared/schemas/request_specification_test.ts`):
+**Planned tests** (`tests/schemas/clarification_session_test.ts`, `tests/schemas/request_specification_test.ts`):
 
-- `[ClarificationSessionSchema] validates complete session`
-- `[ClarificationSessionSchema] validates session with multiple rounds`
-- `[ClarificationSessionSchema] validates all session status values`
-- `[ClarificationQuestionSchema] validates all category values`
-- `[ClarificationRoundSchema] validates round with and without answers`
-- `[RequestSpecificationSchema] validates complete specification`
-- `[RequestSpecificationSchema] validates scope includes/excludes`
-- `[RequestSpecificationSchema] preserves originalBody`
+- ✅ `[ClarificationSessionSchema] validates complete session`
+- ✅ `[ClarificationSessionSchema] validates session with multiple rounds`
+- ✅ `[ClarificationSessionSchema] validates all session status values`
+- ✅ `[ClarificationQuestionSchema] validates all category values`
+- ✅ `[ClarificationRoundSchema] validates round with and without answers`
+- ✅ `[RequestSpecificationSchema] validates complete specification`
+- ✅ `[RequestSpecificationSchema] validates scope includes/excludes`
+- ✅ `[RequestSpecificationSchema] preserves originalBody`
+
+**✅ IMPLEMENTED** — `src/shared/schemas/clarification_session.ts`, `src/shared/schemas/request_specification.ts`, 19/19 tests passing
 
 ---
 
