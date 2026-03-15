@@ -71,6 +71,11 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       ...(overrides.provider_strategy ?? {}),
       fallback_chains: overrides.provider_strategy?.fallback_chains ?? {},
     },
+    // Disable quality gate by default in tests so processor tests are not
+    // interrupted by heuristic scores on short test bodies. Tests that
+    // specifically exercise the quality gate pass an explicit testQualityGate
+    // stub or patch this field in their own config.
+    quality_gate: overrides.quality_gate ?? { enabled: false },
   });
 }
 

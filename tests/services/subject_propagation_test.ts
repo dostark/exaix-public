@@ -81,6 +81,7 @@ Follow instructions
       },
       default_provider: "mock",
     },
+    quality_gate: { enabled: false },
   } as unknown;
   const config = configRaw as Config;
 
