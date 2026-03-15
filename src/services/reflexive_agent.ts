@@ -27,6 +27,8 @@ import { LogMethod } from "./decorators/logging.ts";
 import { EventLogger } from "./event_logger.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { IServiceContext } from "./common/types.ts";
+import { RequirementFulfillmentSchema } from "../flows/evaluation_criteria.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 export interface IReflexiveAgentConfig extends IAgentRunnerConfig {
   maxIterations?: number;
@@ -83,6 +85,8 @@ export const CritiqueSchema = z.object({
   })).default([]),
   reasoning: z.string(),
   improvements: z.array(z.string()).optional(),
+  /** Structured fulfillment status per goal/AC — populated by enhanced prompt */
+  requirementsFulfillment: z.array(RequirementFulfillmentSchema).optional(),
 });
 
 export type ICritique = z.infer<typeof CritiqueSchema>;
@@ -238,7 +242,11 @@ export class ReflexiveAgent {
   }
 
   @LogMethod(new EventLogger({ prefix: "[ReflexiveAgent]" }), "reflexive.run")
-  async run(blueprint: IBlueprint, request: IParsedRequest): Promise<IReflexiveExecutionResult> {
+  async run(
+    blueprint: IBlueprint,
+    request: IParsedRequest,
+    requestAnalysis?: IRequestAnalysis,
+  ): Promise<IReflexiveExecutionResult> {
     // Run reflexive loop through middleware pipeline to centralize timing/error handling
     interface ReflexiveAgentContext extends IServiceContext {
       __startTime?: number;
@@ -285,7 +293,7 @@ export class ReflexiveAgent {
           currentResponse = await this.refine(blueprint, request, currentResponse!, finalCritique!);
         }
 
-        const critique = await this.critique(request, currentResponse);
+        const critique = await this.critique(request, currentResponse, requestAnalysis);
 
         const iterationDuration = performance.now() - iterationStart;
         iterations.push({
@@ -351,10 +359,30 @@ export class ReflexiveAgent {
     return finalResult!;
   }
 
-  public async critique(request: IParsedRequest, response: IAgentExecutionResult): Promise<ICritique> {
-    const critiquePrompt = this.config.critiquePromptTemplate
+  public async critique(
+    request: IParsedRequest,
+    response: IAgentExecutionResult,
+    requestAnalysis?: IRequestAnalysis,
+  ): Promise<ICritique> {
+    let critiquePrompt = this.config.critiquePromptTemplate
       .replace("{request}", request.userPrompt)
       .replace("{response}", response.content);
+
+    // Append structured requirements section when analysis is provided
+    if (requestAnalysis) {
+      const goalsSection = requestAnalysis.goals
+        .map((g) => `- ${g.explicit ? "[E]" : "[I]"} ${g.description}`)
+        .join("\n");
+      const acSection = requestAnalysis.acceptanceCriteria
+        .map((ac) => `- ${ac}`)
+        .join("\n");
+      critiquePrompt += "\n\n## Specific Requirements to Verify\n" +
+        (goalsSection || "(none)") +
+        "\n\n## Acceptance Criteria\n" +
+        (acSection || "(none)") +
+        "\n\nFor each requirement, state: \u2705 MET / \u26a0\ufe0f PARTIAL / \u274c MISSING" +
+        '\nAdd a "requirementsFulfillment" array to your JSON response listing each requirement and its status.';
+    }
 
     const critiqueBlueprint: IBlueprint = {
       systemPrompt:
