@@ -1,8 +1,8 @@
 # Phase 47: Request Quality Gate & Clarification Protocol
 
-## Version: 1.0
+## Version: 1.1
 
-## Status: PLANNING
+## Status: ✅ IMPLEMENTED
 
 Introduce a pre-execution quality gate that assesses whether incoming requests are well-specified enough to produce good results, with a protocol for requesting clarification or auto-enriching underspecified requests.
 
@@ -1671,22 +1671,25 @@ Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification
 
 **Success criteria:**
 
-- [ ] `finalizeAndWritePending()` writes `status: "pending"` and `assessed_at` to `.md` frontmatter atomically
-- [ ] FileWatcher event fires after `finalizeAndWritePending()` completes
-- [ ] `shouldSkipRequest()` returns `true` for `NEEDS_CLARIFICATION` and `REFINING`
-- [ ] `shouldSkipRequest()` returns `false` for `ENRICHING` (or `ENRICHING` is removed per Gap §3)
-- [ ] `process()` skips quality gate when `frontmatter.assessed_at` is present and `!force`
-- [ ] After `finalizeAndWritePending()`, second `process()` call successfully executes the request with `IRequestSpecification` in context
+- [x] `finalizeAndWritePending()` writes `status: "pending"` and `assessed_at` to `.md` frontmatter atomically
+- [ ] FileWatcher event fires after `finalizeAndWritePending()` completes *(runtime-only; verified by FileWatcher integration test, Phase 48)*
+- [x] `shouldSkipRequest()` returns `true` for `NEEDS_CLARIFICATION` and `REFINING`
+- [x] `shouldSkipRequest()` returns `false` for `ENRICHING` (falls to `default: return false`)
+- [x] `process()` skips quality gate when `frontmatter.assessed_at` is present and `!force`
+- [ ] After `finalizeAndWritePending()`, second `process()` call successfully executes the request with `IRequestSpecification` in context *(Phase 48 integration — requires context injection in planning phase)*
 
 **Planned tests** (`tests/services/quality_gate/clarification_re_entry_test.ts`):
 
-- `[ClarificationReEntry] finalizeAndWritePending writes status: pending to frontmatter`
-- `[ClarificationReEntry] finalizeAndWritePending is atomic (uses .tmp rename)`
-- `[ClarificationReEntry] shouldSkipRequest returns true for NEEDS_CLARIFICATION`
-- `[ClarificationReEntry] shouldSkipRequest returns true for REFINING`
-- `[ClarificationReEntry] shouldSkipRequest returns false for ENRICHING`
-- `[ClarificationReEntry] RequestProcessor skips quality gate re-assessment when assessed_at present`
-- `[ClarificationReEntry] second process() call injects IRequestSpecification from _clarification.json`
+- ✅ `[ClarificationReEntry] finalizeAndWritePending writes status: pending to frontmatter`
+- ✅ `[ClarificationReEntry] finalizeAndWritePending writes assessed_at to frontmatter` *(extra test, not in original plan)*
+- ✅ `[ClarificationReEntry] finalizeAndWritePending is atomic (no .tmp file remains)`
+- ✅ `[ClarificationReEntry] shouldSkipRequest returns true for NEEDS_CLARIFICATION`
+- ✅ `[ClarificationReEntry] shouldSkipRequest returns true for REFINING`
+- ❌ `[ClarificationReEntry] shouldSkipRequest returns false for ENRICHING` *(not written — implicit via `default` branch)*
+- ✅ `[ClarificationReEntry] RequestProcessor skips quality gate re-assessment when assessed_at present`
+- ❌ `[ClarificationReEntry] second process() call injects IRequestSpecification from _clarification.json` *(not written — deferred to Phase 48)*
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/clarification_persistence.ts` (`finalizeAndWritePending`), `src/services/request_processing/types.ts` (`assessed_at`, `clarification_session_path`), `src/services/request_processor.ts` (skip semantics + bypass); 6/6 tests passing
 
 ---
 
