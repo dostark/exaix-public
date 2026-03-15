@@ -1005,3 +1005,60 @@ export const REQUEST_QUALITY_ASSESSMENT_KEY = "qualityAssessment";
  * Resolved against the provider's model map; falls back to the fast/cheap model.
  */
 export const DEFAULT_CLARIFICATION_MODEL_KEY = "fast";
+
+// === Acceptance Criteria Propagation ===
+
+/**
+ * Maximum number of dynamically generated EvaluationCriterion objects that
+ * CriteriaGenerator.fromAnalysis() may return. Input lists are sorted by
+ * descending weight (tiebreak: ascending goal priority) and then truncated to
+ * this limit. No similarity-based merging is performed in Phase 48.
+ */
+export const MAX_DYNAMIC_CRITERIA = 10;
+
+/**
+ * Default weight assigned to goal-derived criteria when the goal does not
+ * hold priority === 1.
+ */
+export const DEFAULT_GOAL_WEIGHT = 1.0;
+
+/**
+ * Weight assigned to criteria derived from priority-1 goals. Higher than
+ * DEFAULT_GOAL_WEIGHT so that top-priority goals survive the cap-at-10
+ * truncation.
+ */
+export const PRIORITY_1_GOAL_WEIGHT = 2.0;
+
+/**
+ * Weight assigned to acceptance-criterion-derived criteria. Sits between
+ * PRIORITY_1_GOAL_WEIGHT and DEFAULT_GOAL_WEIGHT so that explicit acceptance
+ * criteria are preferred over lower-priority goals under the cap.
+ */
+export const ACCEPTANCE_CRITERION_WEIGHT = 1.5;
+
+/**
+ * Blend weight for the goal-alignment component in ConfidenceScorer.assess()
+ * when a ReflexiveAgent critique with requirementsFulfillment is available.
+ * Final score = rawScore * EXISTING_SCORE_CONFIDENCE_WEIGHT
+ *             + goalAlignmentScore * GOAL_ALIGNMENT_CONFIDENCE_WEIGHT
+ */
+export const GOAL_ALIGNMENT_CONFIDENCE_WEIGHT = 0.3;
+
+/**
+ * Blend weight for the pre-Phase-48 raw confidence score component when
+ * goal-alignment data is present in the critique.
+ */
+export const EXISTING_SCORE_CONFIDENCE_WEIGHT = 0.7;
+
+/**
+ * Maximum length (characters) of a sanitized criterion name produced by
+ * CriteriaGenerator. Names longer than this are sliced after sanitization.
+ */
+export const CRITERION_NAME_MAX_LENGTH = 50;
+
+/**
+ * Regex used by CriteriaGenerator.sanitizeName() to remove characters that are
+ * not lowercase letters, digits, or underscores from a criterion name.
+ * Applied after toLowerCase() and before slice(0, CRITERION_NAME_MAX_LENGTH).
+ */
+export const CRITERION_NAME_SANITIZE_PATTERN = /[^a-z0-9_]/g;

@@ -379,12 +379,14 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] All weights and limits referenced from constants
-- [ ] `CRITERION_NAME_SANITIZE_PATTERN = /[^a-z0-9_]/g` is defined (Gap 7)
-- [ ] Constants grouped under proper section header
-- [ ] No magic numbers in Steps 4, 7, 8, 9
+- [x] All weights and limits referenced from constants
+- [x] `CRITERION_NAME_SANITIZE_PATTERN = /[^a-z0-9_]/g` is defined (Gap 7)
+- [x] Constants grouped under proper section header
+- [x] No magic numbers in Steps 4, 7, 8, 9
 
 **Planned tests:** None (validated through usage in other step tests).
+
+**✅ IMPLEMENTED** — `src/shared/constants.ts` extended with `// === Acceptance Criteria Propagation ===` section; 8 constants exported.
 
 ---
 
