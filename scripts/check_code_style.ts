@@ -281,6 +281,22 @@ async function checkFile(path: string) {
             if (name && name !== "from" && name !== "import") importedNames.set(name, idx + 1);
           });
         }
+        // Check: 5+ named imports must be multi-line
+        const singleLineNamed = trimmed.match(/\{([^}]+)\}\s+from/);
+        if (singleLineNamed) {
+          const importNames = singleLineNamed[1]
+            .split(",")
+            .map((n) => n.trim().replace(/^type\s+/, ""))
+            .filter((n) => n.length > 0);
+          if (importNames.length >= 5) {
+            console.log(
+              `WARN [import-multiline] ${path}:${
+                idx + 1
+              } – Import has ${importNames.length} named bindings on a single line; use multi-line format when importing 5 or more names. See CODE_STYLE.md §3.`,
+            );
+            warnCount++;
+          }
+        }
         // Default or Namespace import
         const defaultMatch = trimmed.match(/^import\s+([\w$]+)[,\s]/);
         if (defaultMatch && defaultMatch[1] !== "type" && defaultMatch[1] !== "*") {

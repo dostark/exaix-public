@@ -1658,7 +1658,7 @@ The quality gate runs immediately after request parsing and before the agent/flo
 
 #### 7.4.1 Assessment Pipeline
 
-```
+```text
 RequestParser.parse()
   → RequestQualityGate.assess()             ← heuristic / LLM / hybrid
       score ≥ proceed threshold             → continues to agent/flow routing

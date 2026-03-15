@@ -702,7 +702,7 @@ $ exoctl request list
 | Error handling | Silent failures          | Clear error messages       |
 | Speed          | ~30 seconds              | ~2 seconds                 |
 
-#### **`exoctl request clarify` — Interactive Clarification** <a name="request-quality-gate"></a>
+#### **`exoctl request clarify` — Interactive Clarification**
 
 When a request enters the **REFINING** or **NEEDS_CLARIFICATION** status the quality gate has determined that the request needs more detail before it can be executed. Use `exoctl request clarify` to answer the pending questions:
 
@@ -734,7 +734,7 @@ exoctl request clarify <trace-id> --cancel
 
 **Clarification workflow:**
 
-```
+```text
 exoctl request "fix something"          # vague → quality gate detects low score
 → status: REFINING                       # gate saves session + questions
 → exoctl request clarify <id>            # see the questions
