@@ -1712,13 +1712,15 @@ Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification
 **Success criteria:**
 
 - [x] `QualityGateMode` exported from `src/shared/enums.ts`; does not import or reference `AnalysisMode`
-- [ ] `REQUEST_SPECIFICATION_KEY` and `REQUEST_QUALITY_ASSESSMENT_KEY` exported from constants
-- [ ] `DEFAULT_CLARIFICATION_MODEL_KEY` exported from constants
+- [x] `REQUEST_SPECIFICATION_KEY` and `REQUEST_QUALITY_ASSESSMENT_KEY` exported from constants
+- [x] `DEFAULT_CLARIFICATION_MODEL_KEY` exported from constants
 - [x] `IRequestQualityGateConfig.mode` typed as `QualityGateMode`
 - [x] ConfigSchema `quality_gate.mode` uses `z.nativeEnum(QualityGateMode)`
 - [x] No lint or type errors; `deno check` passes
 
 **Planned tests:** None (validated by TypeScript's type system; `deno check` enforces separation between `QualityGateMode` and `AnalysisMode`).
+
+**✅ IMPLEMENTED** — `src/shared/constants.ts` (3 constants added), `deno check` clean
 
 ---
 

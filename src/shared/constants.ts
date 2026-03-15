@@ -985,3 +985,23 @@ export const QG_FILE_REF_PATTERNS: RegExp[] = [
 /** Regex pattern to detect technical specifics (APIs, packages, protocols). */
 export const QG_TECH_SPECIFICS_PATTERN =
   /\b(?:api|sdk|http|https|rest|graphql|sql|json|xml|yaml|toml|deno|node|python|typescript|javascript|react|vue|postgres|sqlite|redis|docker|kubernetes|jwt|oauth|websocket)\b/i;
+
+// --- Cross-phase context keys ---
+
+/**
+ * Key used to store the `IRequestSpecification` produced by the quality gate
+ * in `IParsedRequest.context`. Consumed by Phase 48 (planning) and Phase 49 (execution).
+ */
+export const REQUEST_SPECIFICATION_KEY = "requestSpecification";
+
+/**
+ * Key used to store the `IRequestQualityAssessment` snapshot in `IParsedRequest.context`.
+ * Allows downstream phases to inspect heuristic/LLM gate results without recomputing.
+ */
+export const REQUEST_QUALITY_ASSESSMENT_KEY = "qualityAssessment";
+
+/**
+ * Config model-alias key for the Q&A clarification planning agent.
+ * Resolved against the provider's model map; falls back to the fast/cheap model.
+ */
+export const DEFAULT_CLARIFICATION_MODEL_KEY = "fast";
