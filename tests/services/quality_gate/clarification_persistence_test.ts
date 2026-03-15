@@ -8,11 +8,16 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
+import type { IRequestSpecification } from "../../../src/shared/schemas/request_specification.ts";
 import {
   ClarificationSessionStatus,
   type IClarificationSession,
 } from "../../../src/shared/schemas/clarification_session.ts";
-import { loadClarification, saveClarification } from "../../../src/services/quality_gate/clarification_persistence.ts";
+import {
+  loadClarification,
+  renderSpecificationAsPrompt,
+  saveClarification,
+} from "../../../src/services/quality_gate/clarification_persistence.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -113,4 +118,61 @@ Deno.test("[ClarificationPersistence] uses atomic write", async () => {
   } finally {
     await Deno.remove(dir, { recursive: true });
   }
+});
+
+// ---------------------------------------------------------------------------
+// renderSpecificationAsPrompt
+// ---------------------------------------------------------------------------
+
+const FULL_SPEC: IRequestSpecification = {
+  summary: "Implement JWT authentication",
+  goals: ["Add POST /auth/login endpoint"],
+  successCriteria: ["Returns 200 with JWT on valid credentials"],
+  scope: { includes: ["src/api/auth.ts"], excludes: ["user registration"] },
+  constraints: ["Use existing jsonwebtoken library"],
+  context: ["Existing codebase uses Deno"],
+  originalBody: "Make auth work",
+};
+
+const MINIMAL_SPEC: IRequestSpecification = {
+  summary: "Deploy to production",
+  goals: [],
+  successCriteria: [],
+  scope: { includes: [], excludes: [] },
+  constraints: [],
+  context: [],
+  originalBody: "deploy",
+};
+
+Deno.test("[clarification_persistence] renderSpecificationAsPrompt produces all sections for full spec", () => {
+  const result = renderSpecificationAsPrompt(FULL_SPEC);
+  assertEquals(result.includes("## Summary"), true);
+  assertEquals(result.includes("Implement JWT authentication"), true);
+  assertEquals(result.includes("## Goals"), true);
+  assertEquals(result.includes("## Success Criteria"), true);
+  assertEquals(result.includes("## Scope"), true);
+  assertEquals(result.includes("## Constraints"), true);
+  assertEquals(result.includes("## Context"), true);
+});
+
+Deno.test("[clarification_persistence] renderSpecificationAsPrompt omits empty sections", () => {
+  const result = renderSpecificationAsPrompt(MINIMAL_SPEC);
+  assertEquals(result.includes("## Goals"), false);
+  assertEquals(result.includes("## Success Criteria"), false);
+  assertEquals(result.includes("## Scope"), false);
+  assertEquals(result.includes("## Constraints"), false);
+  assertEquals(result.includes("## Context"), false);
+  assertEquals(result.includes("## Summary"), true);
+});
+
+Deno.test("[clarification_persistence] renderSpecificationAsPrompt always includes summary", () => {
+  const result = renderSpecificationAsPrompt(MINIMAL_SPEC);
+  assertEquals(result.includes("## Summary"), true);
+  assertEquals(result.includes("Deploy to production"), true);
+});
+
+Deno.test("[clarification_persistence] renderSpecificationAsPrompt handles minimal spec (summary only)", () => {
+  const result = renderSpecificationAsPrompt(MINIMAL_SPEC);
+  assertEquals(result.trim().length > 0, true);
+  assertEquals(result.includes("## Summary\nDeploy to production"), true);
 });

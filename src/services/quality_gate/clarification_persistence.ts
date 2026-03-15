@@ -138,3 +138,50 @@ export async function finalizeAndWritePending(
   await Deno.writeTextFile(tmpPath, updated);
   await Deno.rename(tmpPath, requestFilePath);
 }
+
+// ---------------------------------------------------------------------------
+// Spec rendering
+// ---------------------------------------------------------------------------
+
+/**
+ * Converts an `IRequestSpecification` into an agent-ready Markdown prompt.
+ * Sections with empty arrays are omitted entirely; `summary` is always present.
+ *
+ * @param spec - The compiled specification from a clarification session.
+ * @returns Structured Markdown string suitable for use as a `userPrompt`.
+ */
+export function renderSpecificationAsPrompt(spec: IRequestSpecification): string {
+  const parts: string[] = [`## Summary\n${spec.summary}`];
+
+  if (spec.goals.length > 0) {
+    parts.push(`## Goals\n${spec.goals.map((g) => `- ${g}`).join("\n")}`);
+  }
+
+  if (spec.successCriteria.length > 0) {
+    parts.push(
+      `## Success Criteria\n${spec.successCriteria.map((c) => `- [ ] ${c}`).join("\n")}`,
+    );
+  }
+
+  const hasScope = spec.scope.includes.length > 0 || spec.scope.excludes.length > 0;
+  if (hasScope) {
+    const scopeLines: string[] = [];
+    if (spec.scope.includes.length > 0) {
+      scopeLines.push(`**In scope:** ${spec.scope.includes.join(", ")}`);
+    }
+    if (spec.scope.excludes.length > 0) {
+      scopeLines.push(`**Out of scope:** ${spec.scope.excludes.join(", ")}`);
+    }
+    parts.push(`## Scope\n${scopeLines.join("\n")}`);
+  }
+
+  if (spec.constraints.length > 0) {
+    parts.push(`## Constraints\n${spec.constraints.map((c) => `- ${c}`).join("\n")}`);
+  }
+
+  if (spec.context.length > 0) {
+    parts.push(`## Context\n${spec.context.map((c) => `- ${c}`).join("\n")}`);
+  }
+
+  return parts.join("\n\n");
+}

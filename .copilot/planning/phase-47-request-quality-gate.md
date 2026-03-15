@@ -1809,18 +1809,20 @@ Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification
 
 **Success criteria:**
 
-- [ ] `renderSpecificationAsPrompt()` produces valid Markdown with all non-empty sections
-- [ ] Empty arrays produce omitted sections (no empty bullet lists)
-- [ ] `summary` always present even when all other arrays are empty
-- [ ] Q&A path: `request.userPrompt` is the rendered specification
-- [ ] Auto-enrich path: `request.userPrompt` is the plain enriched body string
-- [ ] Both paths: `request.context.originalBody` contains the unmodified original
-- [ ] `context[REQUEST_SPECIFICATION_KEY]` set when Q&A path taken
-- [ ] `context[REQUEST_QUALITY_ASSESSMENT_KEY]` set when assessment is available
+- [x] `renderSpecificationAsPrompt()` produces valid Markdown with all non-empty sections
+- [x] Empty arrays produce omitted sections (no empty bullet lists)
+- [x] `summary` always present even when all other arrays are empty
+- [ ] Q&A path: `request.userPrompt` is the rendered specification *(Phase 48 integration)*
+- [ ] Auto-enrich path: `request.userPrompt` is the plain enriched body string *(Phase 48 integration)*
+- [ ] Both paths: `request.context.originalBody` contains the unmodified original *(Phase 48 integration)*
+- [ ] `context[REQUEST_SPECIFICATION_KEY]` set when Q&A path taken *(Phase 48 integration)*
+- [ ] `context[REQUEST_QUALITY_ASSESSMENT_KEY]` set when assessment is available *(Phase 48 integration)*
 
 **Planned tests** (added to `tests/services/quality_gate/clarification_persistence_test.ts`):
 
-- `[clarification_persistence] renderSpecificationAsPrompt produces all sections for full spec`
-- `[clarification_persistence] renderSpecificationAsPrompt omits empty sections`
-- `[clarification_persistence] renderSpecificationAsPrompt always includes summary`
-- `[clarification_persistence] renderSpecificationAsPrompt handles minimal spec (summary only)`
+- ✅ `[clarification_persistence] renderSpecificationAsPrompt produces all sections for full spec`
+- ✅ `[clarification_persistence] renderSpecificationAsPrompt omits empty sections`
+- ✅ `[clarification_persistence] renderSpecificationAsPrompt always includes summary`
+- ✅ `[clarification_persistence] renderSpecificationAsPrompt handles minimal spec (summary only)`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/clarification_persistence.ts` (`renderSpecificationAsPrompt` added), `tests/services/quality_gate/clarification_persistence_test.ts` (4 new tests, 9/9 passing)
