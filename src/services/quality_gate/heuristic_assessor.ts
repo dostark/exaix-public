@@ -19,6 +19,7 @@ import {
   RequestQualityRecommendation,
 } from "../../shared/schemas/request_quality_assessment.ts";
 import { QualityGateMode } from "../../shared/enums.ts";
+import { AmbiguityImpact, type IRequestAnalysis } from "../../shared/schemas/request_analysis.ts";
 import {
   DEFAULT_QG_ENRICHMENT_THRESHOLD,
   DEFAULT_QG_MINIMUM_THRESHOLD,
@@ -106,48 +107,35 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+/**
+ * Map Phase-45 AmbiguityImpact to RequestQualityIssueSeverity.
+ * HIGH → BLOCKER, MEDIUM → MAJOR, LOW → MINOR.
+ */
+function ambiguityImpactToSeverity(impact: AmbiguityImpact): RequestQualityIssueSeverity {
+  switch (impact) {
+    case AmbiguityImpact.HIGH:
+      return RequestQualityIssueSeverity.BLOCKER;
+    case AmbiguityImpact.MEDIUM:
+      return RequestQualityIssueSeverity.MAJOR;
+    default:
+      return RequestQualityIssueSeverity.MINOR;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Main assessment function
 // ---------------------------------------------------------------------------
 
 /**
- * Assess the quality of a request body using heuristic text signals.
- * Zero LLM / network dependencies — safe for sandboxed use.
- *
- * @param requestText - Raw Markdown body of the request.
- * @returns A complete `IRequestQualityAssessment` with score, level, issues, recommendation, and metadata.
+ * Run the full 9-signal heuristic scan on `trimmed` text.
+ * Returns a raw score adjustment and a list of quality issues.
+ * Internal helper — complexity is extracted here to keep `assessHeuristic` lean.
  */
-export function assessHeuristic(requestText: string): IRequestQualityAssessment {
-  const startMs = performance.now();
-
-  const trimmed = requestText.trim();
+function runFullHeuristicScan(
+  trimmed: string,
+): { score: number; issues: IRequestQualityIssue[] } {
   const issues: IRequestQualityIssue[] = [];
-
-  // Handle empty body
-  if (trimmed.length === 0) {
-    return {
-      score: 0,
-      level: RequestQualityLevel.UNACTIONABLE,
-      issues: [
-        {
-          type: RequestQualityIssueType.VAGUE,
-          description: "Request body is empty",
-          severity: RequestQualityIssueSeverity.BLOCKER,
-          suggestion: "Provide a description of what you want to achieve",
-        },
-      ],
-      recommendation: RequestQualityRecommendation.REJECT,
-      metadata: {
-        assessedAt: new Date().toISOString(),
-        mode: QualityGateMode.HEURISTIC,
-        durationMs: Math.round(performance.now() - startMs),
-      },
-    };
-  }
-
   let score = QG_HEURISTIC_SCORE_BASELINE;
-
-  // --- Negative signals ---
 
   if (trimmed.length < QG_SHORT_BODY_MAX_CHARS) {
     score -= QG_SHORT_BODY_PENALTY;
@@ -189,26 +177,80 @@ export function assessHeuristic(requestText: string): IRequestQualityAssessment 
     });
   }
 
-  // --- Positive signals ---
+  if (hasFileReferences(trimmed)) score += QG_FILE_REFERENCE_BONUS;
+  if (hasAcceptanceCriteriaKeywords(trimmed)) score += QG_ACCEPTANCE_CRITERIA_BONUS;
+  if (hasStructuredRequirements(trimmed)) score += QG_STRUCTURED_REQUIREMENTS_BONUS;
+  if (hasTechnicalSpecifics(trimmed)) score += QG_TECHNICAL_SPECIFICS_BONUS;
+  if (hasContextSection(trimmed)) score += QG_CONTEXT_SECTION_BONUS;
 
-  if (hasFileReferences(trimmed)) {
-    score += QG_FILE_REFERENCE_BONUS;
+  return { score, issues };
+}
+
+/**
+ * Assess the quality of a request body using heuristic text signals.
+ * Zero LLM / network dependencies — safe for sandboxed use.
+ *
+ * When `existingAnalysis` is provided (Phase-45 result), its `actionabilityScore`
+ * is used as the base score and its `ambiguities` array is mapped to quality
+ * issues. Supplementary signals not covered by Phase 45 (file references,
+ * structured requirements, context section) are still applied on top.
+ *
+ * @param requestText - Raw Markdown body of the request.
+ * @param existingAnalysis - Optional Phase-45 analysis to integrate. When absent,
+ *   the full 9-signal heuristic scan is performed (backward-compatible).
+ * @returns A complete `IRequestQualityAssessment` with score, level, issues, recommendation, and metadata.
+ */
+export function assessHeuristic(
+  requestText: string,
+  existingAnalysis?: IRequestAnalysis,
+): IRequestQualityAssessment {
+  const startMs = performance.now();
+
+  const trimmed = requestText.trim();
+
+  // Handle empty body
+  if (trimmed.length === 0) {
+    return {
+      score: 0,
+      level: RequestQualityLevel.UNACTIONABLE,
+      issues: [
+        {
+          type: RequestQualityIssueType.VAGUE,
+          description: "Request body is empty",
+          severity: RequestQualityIssueSeverity.BLOCKER,
+          suggestion: "Provide a description of what you want to achieve",
+        },
+      ],
+      recommendation: RequestQualityRecommendation.REJECT,
+      metadata: {
+        assessedAt: new Date().toISOString(),
+        mode: QualityGateMode.HEURISTIC,
+        durationMs: Math.round(performance.now() - startMs),
+      },
+    };
   }
 
-  if (hasAcceptanceCriteriaKeywords(trimmed)) {
-    score += QG_ACCEPTANCE_CRITERIA_BONUS;
-  }
+  let score: number;
+  let issues: IRequestQualityIssue[];
 
-  if (hasStructuredRequirements(trimmed)) {
-    score += QG_STRUCTURED_REQUIREMENTS_BONUS;
-  }
+  if (existingAnalysis !== undefined) {
+    // Phase-45 integration path: use pre-computed actionabilityScore as base
+    // and map its ambiguities to quality issues.
+    score = existingAnalysis.actionabilityScore;
+    issues = existingAnalysis.ambiguities.map((ambiguity) => ({
+      type: RequestQualityIssueType.AMBIGUOUS,
+      description: ambiguity.description,
+      severity: ambiguityImpactToSeverity(ambiguity.impact),
+      suggestion: ambiguity.clarificationQuestion ?? "Clarify this ambiguity before proceeding",
+    }));
 
-  if (hasTechnicalSpecifics(trimmed)) {
-    score += QG_TECHNICAL_SPECIFICS_BONUS;
-  }
-
-  if (hasContextSection(trimmed)) {
-    score += QG_CONTEXT_SECTION_BONUS;
+    // Supplementary signals that Phase 45 does not cover:
+    if (hasFileReferences(trimmed)) score += QG_FILE_REFERENCE_BONUS;
+    if (hasStructuredRequirements(trimmed)) score += QG_STRUCTURED_REQUIREMENTS_BONUS;
+    if (hasContextSection(trimmed)) score += QG_CONTEXT_SECTION_BONUS;
+  } else {
+    // Full 9-signal heuristic scan (backward-compatible path).
+    ({ score, issues } = runFullHeuristicScan(trimmed));
   }
 
   const finalScore = clamp(Math.round(score), 0, 100);

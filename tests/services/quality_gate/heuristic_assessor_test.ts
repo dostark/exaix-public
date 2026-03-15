@@ -9,8 +9,44 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { assessHeuristic } from "../../../src/services/quality_gate/heuristic_assessor.ts";
-import { RequestQualityRecommendation } from "../../../src/shared/schemas/request_quality_assessment.ts";
+import {
+  RequestQualityIssueType,
+  RequestQualityRecommendation,
+} from "../../../src/shared/schemas/request_quality_assessment.ts";
+import {
+  AmbiguityImpact,
+  type IRequestAnalysis,
+  RequestAnalysisComplexity,
+  RequestTaskType,
+} from "../../../src/shared/schemas/request_analysis.ts";
+import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import { QualityGateMode } from "../../../src/shared/enums.ts";
+
+// ---------------------------------------------------------------------------
+// Test helper — builds a minimal valid IRequestAnalysis
+// ---------------------------------------------------------------------------
+
+function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalysis {
+  return {
+    goals: [],
+    requirements: [],
+    constraints: [],
+    acceptanceCriteria: [],
+    ambiguities: [],
+    actionabilityScore: 60,
+    complexity: RequestAnalysisComplexity.MEDIUM,
+    taskType: RequestTaskType.FEATURE,
+    tags: [],
+    referencedFiles: [],
+    metadata: {
+      analyzedAt: new Date().toISOString(),
+      durationMs: 10,
+      mode: AnalysisMode.HEURISTIC,
+      analyzerVersion: "1.0.0",
+    },
+    ...overrides,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Vague / poor requests
@@ -177,3 +213,65 @@ Deno.test("[HeuristicAssessor] completes in under 50ms", () => {
   const elapsed = performance.now() - start;
   assertEquals(elapsed < 50, true);
 });
+
+// ---------------------------------------------------------------------------
+// Phase-45 existingAnalysis integration
+// ---------------------------------------------------------------------------
+
+Deno.test(
+  "[HeuristicAssessor] uses Phase-45 actionabilityScore as base when analysis provided",
+  () => {
+    // "fix the bug" is 11 chars — full scan would penalise it heavily (~0 score).
+    // With Phase-45 base of 45 and no supplementary signals the score stays ≈45.
+    const analysis = makeAnalysis({ actionabilityScore: 45 });
+    const result = assessHeuristic("fix the bug", analysis);
+    assertEquals(result.score >= 35 && result.score <= 60, true);
+  },
+);
+
+Deno.test("[HeuristicAssessor] maps Phase-45 ambiguities to quality issues with type 'ambiguous'", () => {
+  const analysis = makeAnalysis({
+    ambiguities: [
+      {
+        description: "Which database adapter to use?",
+        impact: AmbiguityImpact.HIGH,
+        interpretations: ["PostgreSQL", "SQLite"],
+      },
+      {
+        description: "Is pagination required?",
+        impact: AmbiguityImpact.LOW,
+        interpretations: [],
+      },
+    ],
+  });
+  const result = assessHeuristic("implement data layer", analysis);
+  const ambiguousIssues = result.issues.filter(
+    (i) => i.type === RequestQualityIssueType.AMBIGUOUS,
+  );
+  assertEquals(ambiguousIssues.length, 2);
+  assertEquals(ambiguousIssues[0].severity, "blocker"); // HIGH → BLOCKER
+  assertEquals(ambiguousIssues[1].severity, "minor"); // LOW → MINOR
+});
+
+Deno.test("[HeuristicAssessor] runs supplementary checks on top of Phase-45 base score", () => {
+  // actionabilityScore = 50, but text has a file reference → +QG_FILE_REFERENCE_BONUS
+  const analysis = makeAnalysis({ actionabilityScore: 50 });
+  const result = assessHeuristic("fix bug in src/services/auth.ts", analysis);
+  assertEquals(result.score > 50, true);
+});
+
+Deno.test("[HeuristicAssessor] falls back to full scan when no existing analysis provided", () => {
+  // Full scan on "fix the bug" (11 chars) applies short-body penalty → score near 0
+  const result = assessHeuristic("fix the bug");
+  assertEquals(result.score < 35, true);
+});
+
+Deno.test(
+  "[HeuristicAssessor] score is consistent with Phase-45 actionabilityScore within tolerance",
+  () => {
+    // Base = 60, text has no supplementary signals → score should be 60 ± 15
+    const analysis = makeAnalysis({ actionabilityScore: 60 });
+    const result = assessHeuristic("improve error handling in the codebase", analysis);
+    assertEquals(result.score >= 45 && result.score <= 75, true);
+  },
+);

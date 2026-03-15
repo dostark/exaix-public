@@ -1742,21 +1742,23 @@ Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification
 
 **Success criteria:**
 
-- [ ] Accepts optional `IRequestAnalysis` parameter (backward-compatible — existing calls without analysis still work)
-- [ ] Uses `existingAnalysis.actionabilityScore` as base score when provided
-- [ ] Maps `existingAnalysis.ambiguities[]` to `IRequestQualityIssue[]` with type `"ambiguous"`
-- [ ] Runs supplementary signal checks even when base score is provided
-- [ ] Falls back to full 9-signal scan when no existing analysis provided
-- [ ] Produces a single quality score consistent with `actionabilityScore` (no divergence > ±15 for the same input)
-- [ ] No double-counting of signals already embedded in `actionabilityScore`
+- [x] Accepts optional `IRequestAnalysis` parameter (backward-compatible — existing calls without analysis still work)
+- [x] Uses `existingAnalysis.actionabilityScore` as base score when provided
+- [x] Maps `existingAnalysis.ambiguities[]` to `IRequestQualityIssue[]` with type `"ambiguous"`
+- [x] Runs supplementary signal checks even when base score is provided
+- [x] Falls back to full 9-signal scan when no existing analysis provided
+- [x] Produces a single quality score consistent with `actionabilityScore` (no divergence > ±15 for the same input)
+- [x] No double-counting of signals already embedded in `actionabilityScore`
 
 **Planned tests** (added to `tests/services/quality_gate/heuristic_assessor_test.ts`):
 
-- `[HeuristicAssessor] uses Phase-45 actionabilityScore as base when analysis provided`
-- `[HeuristicAssessor] maps Phase-45 ambiguities to quality issues with type "ambiguous"`
-- `[HeuristicAssessor] runs supplementary checks on top of Phase-45 base score`
-- `[HeuristicAssessor] falls back to full scan when no existing analysis`
-- `[HeuristicAssessor] score is consistent with Phase-45 actionabilityScore within tolerance`
+- ✅ `[HeuristicAssessor] uses Phase-45 actionabilityScore as base when analysis provided`
+- ✅ `[HeuristicAssessor] maps Phase-45 ambiguities to quality issues with type "ambiguous"`
+- ✅ `[HeuristicAssessor] runs supplementary checks on top of Phase-45 base score`
+- ✅ `[HeuristicAssessor] falls back to full scan when no existing analysis`
+- ✅ `[HeuristicAssessor] score is consistent with Phase-45 actionabilityScore within tolerance`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/heuristic_assessor.ts` (signature + Phase-45 integration), `tests/services/quality_gate/heuristic_assessor_test.ts` (5 new tests, 18/18 passing)
 
 ---
 
