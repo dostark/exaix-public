@@ -23,6 +23,8 @@ export interface IConfidenceScorerConfig {
   extractionPromptTemplate?: string;
   verbose?: boolean;
   db?: DatabaseService;
+  existingScoreWeight?: number;
+  goalAlignmentWeight?: number;
 }
 
 export interface IConfidenceResult {
@@ -71,7 +73,10 @@ import {
   CONFIDENCE_THRESHOLD_LOW,
   CONFIDENCE_THRESHOLD_MEDIUM,
   CONFIDENCE_THRESHOLD_VERY_LOW,
+  EXISTING_SCORE_CONFIDENCE_WEIGHT,
+  GOAL_ALIGNMENT_CONFIDENCE_WEIGHT,
 } from "../shared/constants.ts";
+import type { ICritique } from "./reflexive_agent.ts";
 
 // ============================================================================
 // Confidence Schema
@@ -162,6 +167,8 @@ export class ConfidenceScorer {
     extractionPromptTemplate: string;
     verbose: boolean;
     db?: DatabaseService;
+    existingScoreWeight: number;
+    goalAlignmentWeight: number;
   };
 
   private metrics: IConfidenceMetrics = this.emptyMetrics();
@@ -193,6 +200,8 @@ export class ConfidenceScorer {
       extractionPromptTemplate = DEFAULT_EXTRACTION_PROMPT,
       verbose = false,
       db,
+      existingScoreWeight = EXISTING_SCORE_CONFIDENCE_WEIGHT,
+      goalAlignmentWeight = GOAL_ALIGNMENT_CONFIDENCE_WEIGHT,
     } = config;
 
     this.config = {
@@ -203,6 +212,8 @@ export class ConfidenceScorer {
       extractionPromptTemplate,
       verbose,
       db,
+      existingScoreWeight,
+      goalAlignmentWeight,
     };
 
     this.agentRunner = new AgentRunner(modelProvider, { db });
@@ -210,7 +221,12 @@ export class ConfidenceScorer {
   }
 
   /** */
-  async assess(request: string, response: string, traceId?: string): Promise<IConfidenceResult> {
+  async assess(
+    request: string,
+    response: string,
+    traceId?: string,
+    critique?: ICritique,
+  ): Promise<IConfidenceResult> {
     const assessmentPrompt = this.config.extractionPromptTemplate
       .replace("{request}", request)
       .replace("{response}", response);
@@ -235,6 +251,26 @@ export class ConfidenceScorer {
       confidence = validationResult.value;
     } else {
       confidence = this.createDefaultAssessment();
+    }
+
+    const fulfillment = critique?.requirementsFulfillment;
+    if (fulfillment && fulfillment.length > 0) {
+      const metCount = fulfillment.filter((r) => r.status === "MET").length +
+        0.5 * fulfillment.filter((r) => r.status === "PARTIAL").length;
+      const goalAlignmentScore = metCount / fulfillment.length;
+      confidence = {
+        ...confidence,
+        score: Math.max(
+          0,
+          Math.min(
+            100,
+            Math.round(
+              confidence.score * this.config.existingScoreWeight +
+                goalAlignmentScore * this.config.goalAlignmentWeight * 100,
+            ),
+          ),
+        ),
+      };
     }
 
     const flaggedForReview = this.shouldFlagForReview(confidence);
