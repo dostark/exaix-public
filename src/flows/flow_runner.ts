@@ -725,6 +725,8 @@ export class FlowRunner implements IFlowRunner {
           gateConfig,
           stepRequest.userPrompt,
           stepRequest.userPrompt,
+          0,
+          stepRequest.requestAnalysis,
         );
         const completedAt = new Date();
         const duration = completedAt.getTime() - startedAt.getTime();
