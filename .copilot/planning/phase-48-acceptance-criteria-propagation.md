@@ -413,16 +413,16 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Generates goal criteria from explicit goals in `IRequestAnalysis`
-- [ ] Generates acceptance criteria from `acceptanceCriteria` in analysis
-- [ ] `fromSpecification()` is **not** present — deferred to Phase 49
-- [ ] `sanitizeName('Add unit tests for auth module')` → `'add_unit_tests_for_auth_module'`
-- [ ] Caps at `MAX_DYNAMIC_CRITERIA` by sort-then-truncate (no similarity merge)
-- [ ] Sort order: descending weight; tiebreak ascending goal priority
-- [ ] Priority-1 goals get `PRIORITY*1*GOAL_WEIGHT` (2.0), others `DEFAULT_GOAL_WEIGHT` (1.0)
-- [ ] Acceptance criteria get `ACCEPTANCE_CRITERION_WEIGHT` (1.5) and `required: true`
-- [ ] Returns empty array for analysis with no extractable goals or acceptance criteria
-- [ ] No magic number literals — all weight/limit references use Step 3 constants (Gap 16)
+- [x] Generates goal criteria from explicit goals in `IRequestAnalysis`
+- [x] Generates acceptance criteria from `acceptanceCriteria` in analysis
+- [x] `fromSpecification()` is **not** present — deferred to Phase 49
+- [x] `sanitizeName('Add unit tests for auth module')` → `'add_unit_tests_for_auth_module'`
+- [x] Caps at `MAX_DYNAMIC_CRITERIA` by sort-then-truncate (no similarity merge)
+- [x] Sort order: descending weight; tiebreak ascending goal priority
+- [x] Priority-1 goals get `PRIORITY*1*GOAL_WEIGHT` (2.0), others `DEFAULT_GOAL_WEIGHT` (1.0)
+- [x] Acceptance criteria get `ACCEPTANCE_CRITERION_WEIGHT` (1.5) and `required: true`
+- [x] Returns empty array for analysis with no extractable goals or acceptance criteria
+- [x] No magic number literals — all weight/limit references use Step 3 constants (Gap 16)
 
 **Planned tests** (`tests/services/criteria*generator*test.ts`):
 
@@ -439,6 +439,8 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - `[CriteriaGenerator] generates from acceptanceCriteria only when goals empty` (Gap 11)
 - `[CriteriaGenerator] caps at exactly MAX_DYNAMIC_CRITERIA when input produces 11` (Gap 11)
 
+
+**✅ IMPLEMENTED** — `src/services/criteria_generator.ts` created, 12/12 tests passing
 ---
 
 ### Step 5: Extend Gate Schemas to Accept Dynamic Criteria Flag
