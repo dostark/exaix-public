@@ -18,6 +18,9 @@ import {
 } from "./evaluation_criteria.ts";
 import { IStepResult } from "./flow_runner.ts";
 import { FlowGateAction, FlowGateOnFail } from "../shared/enums.ts";
+import { ICriteriaGeneratorService } from "../shared/interfaces/i_criteria_generator_service.ts";
+import { CriteriaGenerator } from "../services/criteria_generator.ts";
+import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 /**
  * Result of gate evaluation
@@ -75,7 +78,10 @@ export type GateConfig = z.infer<typeof GateConfigSchema>;
  * GateEvaluator class for quality gate evaluation
  */
 export class GateEvaluator {
-  constructor(private judgeInvoker: JudgeInvoker) {}
+  constructor(
+    private judgeInvoker: JudgeInvoker,
+    private criteriaGenerator: ICriteriaGeneratorService = new CriteriaGenerator(),
+  ) {}
 
   /**
    * Evaluate a gate step
@@ -84,12 +90,14 @@ export class GateEvaluator {
    * @param contentToEvaluate - Content to evaluate from previous step
    * @param context - Original request context
    * @param previousAttempts - Number of previous evaluation attempts
+   * @param requestAnalysis - Optional analysis used to generate dynamic criteria
    */
   async evaluate(
     config: GateConfig,
     contentToEvaluate: string,
     context?: string,
     previousAttempts: number = 0,
+    requestAnalysis?: IRequestAnalysis,
   ): Promise<IGateResult> {
     const startTime = performance.now();
 
@@ -97,16 +105,29 @@ export class GateEvaluator {
       // Resolve criteria from names or objects
       const criteria = this.resolveCriteria(config.criteria);
 
+      // Merge dynamic criteria from request analysis when enabled
+      let allCriteria = criteria;
+      if (config.includeRequestCriteria && requestAnalysis) {
+        try {
+          const dynamicCriteria = this.criteriaGenerator.fromAnalysis(requestAnalysis);
+          const staticNames = new Set(criteria.map((c) => c.name));
+          const newDynamic = dynamicCriteria.filter((c) => !staticNames.has(c.name));
+          allCriteria = [...criteria, ...newDynamic];
+        } catch (error) {
+          console.error("[GateEvaluator] Dynamic criteria generation failed, using static only:", error);
+        }
+      }
+
       // Invoke judge agent
       const evaluation = await this.judgeInvoker.evaluate(
         config.agent,
         contentToEvaluate,
-        criteria,
+        allCriteria,
         context,
       );
 
       // Calculate pass/fail
-      const passed = this.checkPassed(evaluation, criteria, config.threshold);
+      const passed = this.checkPassed(evaluation, allCriteria, config.threshold);
 
       // Determine action
       let action: FlowGateAction;

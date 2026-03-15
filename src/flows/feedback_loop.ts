@@ -143,6 +143,7 @@ export class FeedbackLoop {
           threshold: config.targetScore,
           onFail: FlowGateOnFail.CONTINUE_WITH_WARNING,
           maxRetries: 1,
+          includeRequestCriteria: false,
         },
         currentContent,
         originalRequest,
