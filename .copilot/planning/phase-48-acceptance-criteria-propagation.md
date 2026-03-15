@@ -289,22 +289,24 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `CRITERIA.GOAL_ALIGNMENT` accessible with correct weight and description
-- [ ] `CRITERIA.TASK_FULFILLMENT` accessible with correct weight and description
-- [ ] `CRITERIA.REQUEST_UNDERSTANDING` accessible with correct weight and description
-- [ ] `CRITERION_SETS.GOAL*ALIGNED*REVIEW` contains the right 5 criteria (Gap 15)
-- [ ] `CRITERION_SETS.FULL*QUALITY*GATE` contains the right 7 criteria (Gap 15)
-- [ ] Existing `CRITERIA` entries and `CRITERION_SETS` entries unaffected (backward compatible)
-- [ ] No lint or type errors
+- [x] `CRITERIA.GOAL_ALIGNMENT` accessible with correct weight and description
+- [x] `CRITERIA.TASK_FULFILLMENT` accessible with correct weight and description
+- [x] `CRITERIA.REQUEST_UNDERSTANDING` accessible with correct weight and description
+- [x] `CRITERION_SETS.GOAL_ALIGNED_REVIEW` contains the right 5 criteria (Gap 15)
+- [x] `CRITERION_SETS.FULL_QUALITY_GATE` contains the right 7 criteria (Gap 15)
+- [x] Existing `CRITERIA` entries and `CRITERION_SETS` entries unaffected (backward compatible)
+- [x] No lint or type errors
 
-**Planned tests** (`tests/flows/evaluation*criteria*test.ts`):
+**Planned tests** (`tests/flows/evaluation_criteria_test.ts`):
 
-- `[EvaluationCriteria] GOAL_ALIGNMENT has correct weight and category`
-- `[EvaluationCriteria] TASK_FULFILLMENT has correct weight and category`
-- `[EvaluationCriteria] REQUEST_UNDERSTANDING has correct weight and category`
-- `[EvaluationCriteria] CRITERION_SETS.GOAL*ALIGNED*REVIEW contains 5 criteria`
-- `[EvaluationCriteria] CRITERION_SETS.FULL*QUALITY*GATE contains 7 criteria`
-- `[EvaluationCriteria] existing criteria remain unchanged`
+- ✅ `[EvaluationCriteria] GOAL_ALIGNMENT has correct weight and category`
+- ✅ `[EvaluationCriteria] TASK_FULFILLMENT has correct weight and category`
+- ✅ `[EvaluationCriteria] REQUEST_UNDERSTANDING has correct weight and category`
+- ✅ `[EvaluationCriteria] CRITERION_SETS.GOAL_ALIGNED_REVIEW contains 5 criteria`
+- ✅ `[EvaluationCriteria] CRITERION_SETS.FULL_QUALITY_GATE contains 7 criteria`
+- ✅ `[EvaluationCriteria] existing criteria remain unchanged`
+
+**✅ IMPLEMENTED** — `src/flows/evaluation_criteria.ts`, 6/6 tests passing
 
 ---
 

@@ -200,6 +200,37 @@ export const CRITERIA = {
     required: false,
     category: EvaluationCategory.PERFORMANCE,
   },
+
+  // Goal-Aligned Request Evaluation Criteria (Phase 48)
+  GOAL_ALIGNMENT: {
+    name: "goal_alignment",
+    description: "The response directly accomplishes the stated objective(s). " +
+      "Every primary goal from the original request is addressed. " +
+      "Check the response against each stated goal and verify it is met.",
+    weight: 2.5,
+    required: true,
+    category: EvaluationCategory.COMPLETENESS,
+  },
+
+  TASK_FULFILLMENT: {
+    name: "task_fulfillment",
+    description: "All explicitly stated requirements are fulfilled. " +
+      "Each functional requirement is implemented, each constraint is respected, " +
+      "and no stated requirement is silently omitted.",
+    weight: 2.0,
+    required: true,
+    category: EvaluationCategory.COMPLETENESS,
+  },
+
+  REQUEST_UNDERSTANDING: {
+    name: "request_understanding",
+    description: "The response demonstrates correct understanding of the task. " +
+      "The approach taken is appropriate for the goal, terminology is used correctly, " +
+      "and the response doesn't solve a different problem than what was asked.",
+    weight: 1.5,
+    required: false,
+    category: EvaluationCategory.CORRECTNESS,
+  },
 } as const;
 
 /**
@@ -255,6 +286,26 @@ export const CRITERION_SETS = {
     CRITERIA.CODE_CORRECTNESS,
     CRITERIA.API_CONSISTENCY,
     CRITERIA.DOCUMENTATION_QUALITY,
+    CRITERIA.ERROR_HANDLING,
+  ],
+
+  /** Goal-aligned review — includes request-specific quality criteria (Phase 48) */
+  GOAL_ALIGNED_REVIEW: [
+    CRITERIA.GOAL_ALIGNMENT,
+    CRITERIA.TASK_FULFILLMENT,
+    CRITERIA.REQUEST_UNDERSTANDING,
+    CRITERIA.CODE_CORRECTNESS,
+    CRITERIA.CODE_COMPLETENESS,
+  ],
+
+  /** Full quality gate with goal alignment and all critical dimensions (Phase 48) */
+  FULL_QUALITY_GATE: [
+    CRITERIA.GOAL_ALIGNMENT,
+    CRITERIA.TASK_FULFILLMENT,
+    CRITERIA.CODE_CORRECTNESS,
+    CRITERIA.CODE_COMPLETENESS,
+    CRITERIA.NO_SECURITY_ISSUES,
+    CRITERIA.HAS_TESTS,
     CRITERIA.ERROR_HANDLING,
   ],
 };

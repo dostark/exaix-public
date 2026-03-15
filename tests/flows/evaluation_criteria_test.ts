@@ -510,3 +510,63 @@ Deno.test("EvaluationCriterionSchema: applies default weight", () => {
 
   assertEquals(result.weight, 1.0);
 });
+
+// ============================================================
+// Phase 48 — Step 1: New goal-aligned built-in criteria
+// ============================================================
+
+Deno.test("[EvaluationCriteria] GOAL_ALIGNMENT has correct weight and category", () => {
+  assertExists(CRITERIA.GOAL_ALIGNMENT);
+  assertEquals(CRITERIA.GOAL_ALIGNMENT.name, "goal_alignment");
+  assertEquals(CRITERIA.GOAL_ALIGNMENT.weight, 2.5);
+  assertEquals(CRITERIA.GOAL_ALIGNMENT.required, true);
+  assertEquals(CRITERIA.GOAL_ALIGNMENT.category, EvaluationCategory.COMPLETENESS);
+});
+
+Deno.test("[EvaluationCriteria] TASK_FULFILLMENT has correct weight and category", () => {
+  assertExists(CRITERIA.TASK_FULFILLMENT);
+  assertEquals(CRITERIA.TASK_FULFILLMENT.name, "task_fulfillment");
+  assertEquals(CRITERIA.TASK_FULFILLMENT.weight, 2.0);
+  assertEquals(CRITERIA.TASK_FULFILLMENT.required, true);
+  assertEquals(CRITERIA.TASK_FULFILLMENT.category, EvaluationCategory.COMPLETENESS);
+});
+
+Deno.test("[EvaluationCriteria] REQUEST_UNDERSTANDING has correct weight and category", () => {
+  assertExists(CRITERIA.REQUEST_UNDERSTANDING);
+  assertEquals(CRITERIA.REQUEST_UNDERSTANDING.name, "request_understanding");
+  assertEquals(CRITERIA.REQUEST_UNDERSTANDING.weight, 1.5);
+  assertEquals(CRITERIA.REQUEST_UNDERSTANDING.required, false);
+  assertEquals(CRITERIA.REQUEST_UNDERSTANDING.category, EvaluationCategory.CORRECTNESS);
+});
+
+Deno.test("[EvaluationCriteria] CRITERION_SETS.GOAL_ALIGNED_REVIEW contains 5 criteria", () => {
+  assertExists(CRITERION_SETS.GOAL_ALIGNED_REVIEW);
+  assertEquals(CRITERION_SETS.GOAL_ALIGNED_REVIEW.length, 5);
+  const names = CRITERION_SETS.GOAL_ALIGNED_REVIEW.map((c) => c.name);
+  assertEquals(names.includes("goal_alignment"), true);
+  assertEquals(names.includes("task_fulfillment"), true);
+  assertEquals(names.includes("request_understanding"), true);
+  assertEquals(names.includes("code_correctness"), true);
+  assertEquals(names.includes("code_completeness"), true);
+});
+
+Deno.test("[EvaluationCriteria] CRITERION_SETS.FULL_QUALITY_GATE contains 7 criteria", () => {
+  assertExists(CRITERION_SETS.FULL_QUALITY_GATE);
+  assertEquals(CRITERION_SETS.FULL_QUALITY_GATE.length, 7);
+  const names = CRITERION_SETS.FULL_QUALITY_GATE.map((c) => c.name);
+  assertEquals(names.includes("goal_alignment"), true);
+  assertEquals(names.includes("task_fulfillment"), true);
+  assertEquals(names.includes("code_correctness"), true);
+  assertEquals(names.includes("code_completeness"), true);
+  assertEquals(names.includes("no_security_issues"), true);
+  assertEquals(names.includes("has_tests"), true);
+  assertEquals(names.includes("error_handling"), true);
+});
+
+Deno.test("[EvaluationCriteria] existing criteria remain unchanged", () => {
+  // Spot-check a handful of pre-Phase-48 criteria to confirm backward compat
+  assertEquals(CRITERIA.CODE_CORRECTNESS.weight, 2.0);
+  assertEquals(CRITERIA.NO_SECURITY_ISSUES.required, true);
+  assertEquals(CRITERIA.ACCURACY.category, EvaluationCategory.CORRECTNESS);
+  assertEquals(CRITERION_SETS.CODE_REVIEW.length, 5);
+});
