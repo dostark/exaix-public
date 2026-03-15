@@ -11,6 +11,8 @@
 
 import { basename, dirname, extname, join } from "@std/path";
 import { ClarificationSessionSchema, type IClarificationSession } from "../../shared/schemas/clarification_session.ts";
+import type { IRequestSpecification } from "../../shared/schemas/request_specification.ts";
+import { RequestStatus } from "../../shared/status/request_status.ts";
 
 // ---------------------------------------------------------------------------
 // Path derivation
@@ -71,4 +73,68 @@ export async function loadClarification(
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Re-entry helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Finalizes a completed clarification session and writes `status: pending`
+ * plus an `assessed_at` timestamp back to the request `.md` frontmatter
+ * atomically (write `.tmp` → `Deno.rename`), triggering a FileWatcher re-entry
+ * so the request re-enters the execution pipeline with the completed spec.
+ *
+ * @param requestFilePath - Absolute path to the request `.md` file.
+ * @param session         - Completed `IClarificationSession` (any terminal status).
+ * @param _spec           - `IRequestSpecification` compiled from the session
+ *                          (injected into context on re-entry by the processor).
+ */
+export async function finalizeAndWritePending(
+  requestFilePath: string,
+  session: IClarificationSession,
+  _spec: IRequestSpecification,
+): Promise<void> {
+  const original = await Deno.readTextFile(requestFilePath);
+  const assessedAt = new Date().toISOString();
+
+  // Replace status with pending
+  let updated = original.replace(/^(status:\s*).+$/m, `$1${RequestStatus.PENDING}`);
+
+  // Add or update assessed_at field after status line
+  const assessedAtRegex = /^assessed_at:\s*.+$/m;
+  if (assessedAtRegex.test(updated)) {
+    updated = updated.replace(
+      /^(assessed_at:\s*).+$/m,
+      `$1"${assessedAt}"`,
+    );
+  } else {
+    updated = updated.replace(
+      /^(status:\s*.+)$/m,
+      `$1\nassessed_at: "${assessedAt}"`,
+    );
+  }
+
+  // Add or update clarification_session_path
+  const clarPath = deriveClarificationPath(requestFilePath);
+  const clarPathRegex = /^clarification_session_path:\s*.+$/m;
+  if (clarPathRegex.test(updated)) {
+    updated = updated.replace(
+      /^(clarification_session_path:\s*).+$/m,
+      `$1"${clarPath}"`,
+    );
+  } else {
+    updated = updated.replace(
+      /^(assessed_at:\s*.+)$/m,
+      `$1\nclarification_session_path: "${clarPath}"`,
+    );
+  }
+
+  // Reference session to suppress unused-variable warning
+  void session;
+
+  // Atomic write via tmp file
+  const tmpPath = `${requestFilePath}.tmp`;
+  await Deno.writeTextFile(tmpPath, updated);
+  await Deno.rename(tmpPath, requestFilePath);
 }

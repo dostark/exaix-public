@@ -187,7 +187,15 @@ export class RequestProcessor {
     }
 
     // Quality gate assessment (Phase 47) — runs before analysis and agent execution
-    const qgOutcome = await this._runQualityGate(body, filePath, requestId, traceLogger);
+    // Gap §13: bypass re-assessment when assessed_at is already set (request already passed the gate)
+    const alreadyAssessed = !!frontmatter.assessed_at;
+    const qgOutcome: { earlyReturn: true } | {
+      earlyReturn: false;
+      enrichedBody?: string;
+      specification?: IRequestSpecification;
+    } = alreadyAssessed
+      ? await this._loadSpecFromClarification(filePath)
+      : await this._runQualityGate(body, filePath, requestId, traceLogger);
     if (qgOutcome.earlyReturn) {
       return null;
     }
@@ -268,6 +276,23 @@ export class RequestProcessor {
     }
   }
 
+  /**
+   * Loads IRequestSpecification from a completed clarification session, bypassing
+   * the quality gate assessment. Used when `assessed_at` is present in frontmatter
+   * (Gap §13: re-assessment bypass for already-assessed requests).
+   */
+  private async _loadSpecFromClarification(
+    filePath: string,
+  ): Promise<{ earlyReturn: false; specification?: IRequestSpecification }> {
+    const completedSession = await loadClarification(filePath).catch(() => null);
+    const specification = completedSession?.refinedBody &&
+        (completedSession.status === ClarificationSessionStatus.AGENT_SATISFIED ||
+          completedSession.status === ClarificationSessionStatus.USER_CONFIRMED)
+      ? completedSession.refinedBody
+      : undefined;
+    return { earlyReturn: false, specification };
+  }
+
   /** Evaluates quality gate and returns early-return signal or enriched body. */
   private async _runQualityGate(
     body: string,
@@ -326,6 +351,10 @@ export class RequestProcessor {
       case RequestStatus.COMPLETED:
       case RequestStatus.FAILED:
       case RequestStatus.CANCELLED:
+      // Gap §1: NEEDS_CLARIFICATION → skip (awaiting user response; re-entry via finalizeAndWritePending)
+      case RequestStatus.NEEDS_CLARIFICATION:
+      // Gap §1: REFINING → skip (active Q&A session; FileWatcher must not interrupt)
+      case RequestStatus.REFINING:
         return true;
       default:
         return false;

@@ -23,6 +23,10 @@ export interface IRequestFrontmatter {
   skills?: string;
   subject?: string;
   subject_is_fallback?: boolean;
+  /** ISO timestamp set by the quality gate after first assessment. Prevents re-assessment on re-entry. */
+  assessed_at?: string;
+  /** Path to the sibling `_clarification.json` file when a Q&A session exists. */
+  clarification_session_path?: string;
 }
 
 export interface ParsedRequestFile {
