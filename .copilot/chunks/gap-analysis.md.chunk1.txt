@@ -1,0 +1,3 @@
+Examples
+- Example prompt: "Gap-analyse .copilot/planning/phase-48-acceptance-criteria-propagation.md"
+- Example prompt: "Find gaps in the phase-49-memory-bank-v3.md planning document."

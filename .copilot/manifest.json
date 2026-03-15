@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-15T12:34:25.504Z",
+  "generated_at": "2026-03-15T14:23:18.945Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -280,6 +280,31 @@
       "chunks": [
         ".copilot/chunks/tdd-workflow.md.chunk0.txt",
         ".copilot/chunks/tdd-workflow.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/gap-analysis.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Planning Document Gap Analysis (#gap-analysis)",
+      "short_summary": "Generic prompt for finding gaps, ambiguities, and risks in a phase planning document before implementation begins.",
+      "version": "0.1",
+      "topics": [
+        "planning",
+        "gap-analysis",
+        "architecture",
+        "risk",
+        "quality"
+      ],
+      "chunks": [
+        ".copilot/chunks/gap-analysis.md.chunk0.txt",
+        ".copilot/chunks/gap-analysis.md.chunk1.txt",
+        ".copilot/chunks/gap-analysis.md.chunk2.txt",
+        ".copilot/chunks/gap-analysis.md.chunk3.txt",
+        ".copilot/chunks/gap-analysis.md.chunk4.txt",
+        ".copilot/chunks/gap-analysis.md.chunk5.txt",
+        ".copilot/chunks/gap-analysis.md.chunk6.txt",
+        ".copilot/chunks/gap-analysis.md.chunk7.txt"
       ]
     },
     {
