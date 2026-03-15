@@ -396,6 +396,34 @@ infer_acceptance_criteria = true
 persist_analysis = true          # write _analysis.json alongside each request file
 
 # ---------------------------------------------------------------------------
+# Portal codebase knowledge gathering (Phase 46)
+# Analyzes portal repositories to extract architecture, conventions, and symbols
+# for injection into agent prompts.
+# ---------------------------------------------------------------------------
+[portal_knowledge]
+# Automatically trigger quick analysis after `exoctl portal add`
+auto_analyze_on_mount = true
+# Default analysis depth: quick | standard | deep
+# quick   — directory + config + key files only, no LLM (< 5 s)
+# standard — all 6 strategies, 1 LLM call + deno doc for TS portals
+# deep     — all 6 strategies with higher file read caps + 2–3 LLM calls
+default_mode = "quick"
+# Maximum files to stat/list during quick scan
+quick_scan_limit = 200
+# Maximum files to read content from during analysis (all modes)
+max_files_to_read = 50
+# Hours before cached knowledge is considered stale and background re-analysis fires
+staleness_hours = 168
+# Whether to call the LLM for architecture inference (standard/deep modes)
+use_llm_inference = true
+# File/directory patterns to skip during analysis
+ignore_patterns = [
+  "node_modules", ".git", "dist", "build", ".next", ".nuxt",
+  "coverage", "cov_profile", ".cache", "__pycache__",
+  "target", "vendor", ".venv", "venv", ".DS_Store",
+]
+
+# ---------------------------------------------------------------------------
 # Notes
 # - Copy this file to the repository root as `exo.config.toml` or pass a path
 #   to the CLI with `--config` when starting the daemon.

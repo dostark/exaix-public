@@ -1204,9 +1204,9 @@ Incremental updates:
 
 - [x] Config schema validates new `[portal_knowledge]` section
 - [x] All fields are optional with sensible defaults
-- [ ] `PortalKnowledgeService` uses config values when constructing analyzer
+- [ ] `PortalKnowledgeService` uses config values when constructing analyzer *(wiring deferred to Phase 48; service already accepts `IPortalKnowledgeConfig` DI)*
 - [x] Invalid config values produce clear validation errors
-- [x] TOML file includes commented example section
+- [x] TOML file includes commented example section (`templates/exo.config.sample.toml` + `exo.config.toml`)
 
 **Planned tests** (`tests/schemas/config_portal_knowledge_test.ts`):
 
