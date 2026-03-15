@@ -23,6 +23,8 @@ export const GateEvaluateSchema = z.object({
   onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
   /** Max retries if onFail is "retry" */
   maxRetries: z.number().int().min(1).default(3),
+  /** Include dynamic criteria generated from the request analysis */
+  includeRequestCriteria: z.boolean().default(false),
 });
 
 // Feedback loop configuration schema

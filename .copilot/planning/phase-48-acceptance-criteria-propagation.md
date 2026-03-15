@@ -464,11 +464,11 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `GateEvaluateSchema` (in `flow.ts`) validates `includeRequestCriteria`; defaults to `false`
-- [ ] `GateConfigSchema` (in `gate_evaluator.ts`) validates `includeRequestCriteria`; defaults to `false`
-- [ ] Existing gate configs in YAML files validate without modification
-- [ ] `GateConfigSchema` continues to accept inline `EvaluationCriterion` objects alongside string names
-- [ ] `IGateEvaluate` type exposes `includeRequestCriteria` for Step 6’s conversion
+- [x] `GateEvaluateSchema` (in `flow.ts`) validates `includeRequestCriteria`; defaults to `false`
+- [x] `GateConfigSchema` (in `gate_evaluator.ts`) validates `includeRequestCriteria`; defaults to `false`
+- [x] Existing gate configs in YAML files validate without modification
+- [x] `GateConfigSchema` continues to accept inline `EvaluationCriterion` objects alongside string names
+- [x] `IGateEvaluate` type exposes `includeRequestCriteria` for Step 6’s conversion
 
 **Planned tests** (`tests/flows/gate*config*test.ts`):
 
@@ -478,6 +478,8 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - `[GateConfigSchema] validates includeRequestCriteria field`
 - `[GateConfigSchema] defaults includeRequestCriteria to false`
 
+
+**✅ IMPLEMENTED** — `includeRequestCriteria: z.boolean().default(false)` added to both `GateEvaluateSchema` and `GateConfigSchema`; 5/5 tests passing
 ---
 
 ### Step 6: Add FlowRunner Gate-Step Dispatch and `requestAnalysis` Forwarding

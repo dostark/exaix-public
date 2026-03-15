@@ -65,6 +65,8 @@ export const GateConfigSchema = z.object({
   onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
   /** Maximum retry attempts if onFail is "retry" */
   maxRetries: z.number().int().min(1).default(3),
+  /** Include dynamic criteria generated from the request analysis */
+  includeRequestCriteria: z.boolean().default(false),
 });
 
 export type GateConfig = z.infer<typeof GateConfigSchema>;
