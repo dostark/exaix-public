@@ -35,6 +35,9 @@ ExoFrame is **not** a replacement for IDE-integrated AI assistants (Copilot, Cur
 - **Request:** What you want the agent to do (markdown file or CLI command).
 - **Request Analysis:** A pre-processing step that extracts structured goals, requirements, and constraints from your request. This helps ensure the agent's plan is grounded in your actual intent.
 - **Actionability Score:** A 0–100 score indicating if your request is ready for execution. A low score (typically <60) means the request is underspecified or ambiguous.
+- **Quality Gate:** An automatic quality check that runs before agent execution. It scores your request and either lets it proceed, auto-enriches it, asks clarifying questions, or rejects it outright if it is too vague to be actionable. See [§4.2 Request Quality Gate](#request-quality-gate) for full details.
+- **Clarification Round:** One turn of the Q&A loop driven by the quality gate. The system asks 3–5 targeted questions; your answers are folded into a refined `IRequestSpecification` that guides the agent.
+- **Request Specification (`IRequestSpecification`):** A structured contract produced by the clarification loop. Contains `summary`, `goals`, `successCriteria`, `scope`, `constraints`, and `context` fields. Used as ground truth for evaluation downstream.
 - **Complexity:** The system classifies a request as `Simple`, `Medium`, `Complex`, or `Epic` to select the most cost-effective and powerful engine for the task.
 - **Plan:** Agent's proposal for how to accomplish the request.
 - **Approval:** Human review gate before agent executes.
@@ -698,6 +701,76 @@ $ exoctl request list
 | Audit trail    | Not logged               | Logged to Activity Journal |
 | Error handling | Silent failures          | Clear error messages       |
 | Speed          | ~30 seconds              | ~2 seconds                 |
+
+#### **`exoctl request clarify` — Interactive Clarification** <a name="request-quality-gate"></a>
+
+When a request enters the **REFINING** or **NEEDS_CLARIFICATION** status the quality gate has determined that the request needs more detail before it can be executed. Use `exoctl request clarify` to answer the pending questions:
+
+```bash
+# Show pending questions for a request
+exoctl request clarify <trace-id>
+
+# Answer all questions interactively (prompts for each one)
+exoctl request clarify <trace-id> --interactive
+
+# Supply specific answers by question ID
+exoctl request clarify <trace-id> --answer r1q1="The users table" --answer r1q2="src/db/queries.ts"
+
+# Force the request to proceed with the current specification
+exoctl request clarify <trace-id> --proceed
+
+# Abandon clarification and revert to the original body
+exoctl request clarify <trace-id> --cancel
+```
+
+**Options:**
+
+| Option          | Short | Description                                               |
+| --------------- | ----- | --------------------------------------------------------- |
+| `--interactive` | `-i`  | Prompt for each pending question sequentially             |
+| `--answer`      |       | Supply an answer: `--answer <question-id>="<text"`        |
+| `--proceed`     |       | Accept current specification and re-enter the pipeline    |
+| `--cancel`      |       | Cancel refinement and revert to the original request body |
+
+**Clarification workflow:**
+
+```
+exoctl request "fix something"          # vague → quality gate detects low score
+→ status: REFINING                       # gate saves session + questions
+→ exoctl request clarify <id>            # see the questions
+→ exoctl request clarify <id> -i        # answer interactively
+→ status: NEEDS_CLARIFICATION           # awaiting further rounds or proceed
+→ exoctl request clarify <id> --proceed # inject final spec and re-queue
+→ PENDING → PLANNED                     # agent runs against the specification
+```
+
+**Understanding quality gate statuses in `exoctl request list`:**
+
+| Status                | Meaning                                                              |
+| --------------------- | -------------------------------------------------------------------- |
+| `REFINING`            | Active Q&A loop in progress — use `exoctl request clarify <id>`      |
+| `NEEDS_CLARIFICATION` | Awaiting your response to the most recent round of questions         |
+| `ENRICHING`           | Quality gate is auto-rewriting an underspecified request (transient) |
+
+#### **Request Quality Gate — How Scoring Works**
+
+Every request passes through a three-tier quality assessment before the agent runs:
+
+| Score range | Level       | Recommendation                            |
+| ----------- | ----------- | ----------------------------------------- |
+| 70 – 100    | Good/Excel. | **Proceed** — agent runs immediately      |
+| 50 – 69     | Acceptable  | **Auto-enrich** — gate rewrites the body  |
+| 20 – 49     | Poor        | **Needs clarification** — Q&A loop starts |
+| 0 – 19      | Very poor   | **Reject** — request returned to sender   |
+
+**Tips for high-quality requests:**
+
+- Include at least one action verb ("implement", "fix", "refactor", "add").
+- Reference specific files, modules, or acceptance criteria.
+- Specify scope: what **in** and what **out** of scope.
+- Use `exoctl request analyze` to preview the score before submitting.
+
+**Auto-enrichment:** When a request scores in the _Acceptable_ range and `auto_enrich = true` is configured (default), the gate rewrites the request body into a more structured form. The original body is preserved in `originalBody` and never lost.
 
 #### **Plan Commands** - Review AI-generated plans
 
@@ -2457,6 +2530,7 @@ The main configuration areas in `exo.config.toml` are:
 - **[models]:** AI provider configurations
 - **[agents]:** Agent blueprint settings
 - **[mcp]:** Model Context Protocol client configuration
+- **[quality_gate]:** Request quality gate thresholds, mode, and enrichment behaviour (Phase 47)
 
 **Example configuration:**
 
@@ -2474,6 +2548,19 @@ server_name = "exoframe-mcp"
 version = "1.0.0"
 enable_stdio = true
 enable_sse = false
+
+# Quality gate — controls automatic request quality checks
+[quality_gate]
+enabled = true
+mode = "hybrid"           # "heuristic" | "llm" | "hybrid"
+auto_enrich = true        # auto-rewrite acceptable-range requests
+block_unactionable = false  # reject (vs ask) when score < minimum
+max_clarification_rounds = 5
+
+[quality_gate.thresholds]
+minimum = 20    # below → needs-clarification or reject
+enrichment = 50 # below → auto-enrich (if auto_enrich = true)
+proceed = 70    # at or above → proceed immediately
 ```
 
 **Best Practices:**

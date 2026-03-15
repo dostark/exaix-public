@@ -1652,6 +1652,97 @@ Confidence scores (0-100) help determine output reliability:
 
 ## Low-confidence outputs (below `confidence_threshold`) are flagged in logs andmay trigger human review workflows
 
+### 7.4 Request Quality Gate (Phase 47)
+
+The quality gate runs immediately after request parsing and before the agent/flow routing split. It evaluates every incoming request and applies one of four actions: **proceed**, **auto-enrich**, **needs-clarification** (Q&A loop), or **reject**.
+
+#### 7.4.1 Assessment Pipeline
+
+```
+RequestParser.parse()
+  → RequestQualityGate.assess()             ← heuristic / LLM / hybrid
+      score ≥ proceed threshold             → continues to agent/flow routing
+      score in enrichment range             → auto-enriches body (if autoEnrich=true)
+      score < minimum, blockUnactionable    → sets status=FAILED, returns early
+      score < minimum, !blockUnactionable   → starts Q&A loop, sets status=REFINING
+  → ClarificationEngine.startSession()     ← generates Round 1 questions via LLM
+  → clarification persisted as _clarification.json
+  → RequestProcessor returns early (request re-enters pipeline after user answers)
+```
+
+#### 7.4.2 Schemas
+
+**`IRequestQualityAssessment`** (`src/shared/schemas/request_quality_assessment.ts`)
+
+| Field            | Type                               | Description                                                     |
+| ---------------- | ---------------------------------- | --------------------------------------------------------------- |
+| `score`          | `number` (0–100)                   | Composite quality score                                         |
+| `level`          | `RequestQualityLevel` enum         | `excellent` \| `good` \| `acceptable` \| `poor`                 |
+| `issues`         | `IRequestQualityIssue[]`           | Detected quality issues with severity and category              |
+| `recommendation` | `RequestQualityRecommendation`     | `proceed` \| `auto-enrich` \| `needs-clarification` \| `reject` |
+| `enrichedBody`   | `string?`                          | Rewritten body when auto-enrich was applied                     |
+| `metadata`       | `{ assessedAt, mode, durationMs }` | Assessment provenance                                           |
+
+**`IClarificationSession`** (`src/shared/schemas/clarification_session.ts`)
+
+| Field            | Type                         | Description                                                                           |
+| ---------------- | ---------------------------- | ------------------------------------------------------------------------------------- |
+| `requestId`      | `string`                     | Trace ID of the parent request                                                        |
+| `originalBody`   | `string`                     | Immutable original request text                                                       |
+| `rounds`         | `IClarificationRound[]`      | Q&A rounds with questions + answers                                                   |
+| `status`         | `ClarificationSessionStatus` | `active` \| `user-confirmed` \| `agent-satisfied` \| `max-rounds` \| `user-cancelled` |
+| `qualityHistory` | `{ round, score, level }[]`  | Score progression across rounds                                                       |
+
+**`IRequestSpecification`** (`src/shared/schemas/clarification_session.ts`)
+
+Produced by `ClarificationEngine` once the session is complete. Serves as the structured contract passed to the agent and used as the downstream evaluation rubric.
+
+| Field             | Type       | Description                                   |
+| ----------------- | ---------- | --------------------------------------------- |
+| `summary`         | `string`   | One-sentence description of what must be done |
+| `goals`           | `string[]` | Explicit deliverables                         |
+| `successCriteria` | `string[]` | Measurable done conditions                    |
+| `scope.includes`  | `string[]` | Files/modules in scope                        |
+| `scope.excludes`  | `string[]` | Explicitly out of scope                       |
+| `constraints`     | `string[]` | Non-functional requirements                   |
+| `context`         | `string[]` | Background information                        |
+| `originalBody`    | `string`   | Original request body (never overwritten)     |
+
+#### 7.4.3 Services
+
+| Service / Module                        | Path                                                     | Responsibility                                          |
+| --------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| `RequestQualityGate`                    | `src/services/quality_gate/request_quality_gate.ts`      | Orchestrator: delegates to assessors, enricher, logger  |
+| `assessHeuristic()`                     | `src/services/quality_gate/heuristic_assessor.ts`        | Zero-cost text-signal analysis (no LLM)                 |
+| `LlmQualityAssessor`                    | `src/services/quality_gate/llm_assessor.ts`              | Full LLM assessment; falls back to heuristic on failure |
+| `enrichRequest()`                       | `src/services/quality_gate/request_enricher_llm.ts`      | Rewrites underspecified body via LLM                    |
+| `ClarificationEngine`                   | `src/services/quality_gate/clarification_engine.ts`      | Multi-turn Q&A loop; generates `IRequestSpecification`  |
+| `saveClarification / loadClarification` | `src/services/quality_gate/clarification_persistence.ts` | Atomic JSON persistence alongside request `.md` file    |
+| `buildQualityGateConfig()`              | `src/services/quality_gate/request_quality_gate.ts`      | Converts TOML `[quality_gate]` section to config object |
+
+#### 7.4.4 Configuration (`[quality_gate]` TOML section)
+
+All fields are optional; defaults are applied from `src/shared/constants.ts`.
+
+| Key                        | Type      | Default    | Description                              |
+| -------------------------- | --------- | ---------- | ---------------------------------------- |
+| `enabled`                  | `boolean` | `true`     | Disable to bypass the gate entirely      |
+| `mode`                     | `string`  | `"hybrid"` | `"heuristic"` \| `"llm"` \| `"hybrid"`   |
+| `auto_enrich`              | `boolean` | `true`     | Auto-rewrite acceptable-range requests   |
+| `block_unactionable`       | `boolean` | `false`    | Reject (vs clarify) when score < minimum |
+| `max_clarification_rounds` | `integer` | `5`        | Max Q&A rounds before auto-proceeding    |
+| `thresholds.minimum`       | `integer` | `20`       | Below → needs-clarification or reject    |
+| `thresholds.enrichment`    | `integer` | `50`       | Below → auto-enrich                      |
+| `thresholds.proceed`       | `integer` | `70`       | At or above → proceed immediately        |
+
+#### 7.4.5 Activity Events
+
+| Event name                 | Payload fields                          |
+| -------------------------- | --------------------------------------- |
+| `request.quality_assessed` | `score`, `recommendation`, `issueCount` |
+
+---
+
 ## 8. Security & Trust
 
 ### 8.1. Threat Model (v1.2 - Hardened)

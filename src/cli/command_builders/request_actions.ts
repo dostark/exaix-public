@@ -10,7 +10,7 @@
 import type { RequestCommands } from "../commands/request_commands.ts";
 import { addTokenFields } from "./display_helpers.ts";
 import { RequestPriority } from "../../shared/enums.ts";
-import { RequestStatus } from "../../shared/status/request_status.ts";
+import { isRequestStatus, REQUEST_STATUS_VALUES, RequestStatus } from "../../shared/status/request_status.ts";
 import { AnalysisMode } from "../../shared/types/request.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
@@ -154,6 +154,13 @@ export async function handleRequestList(
   options: RequestListOptions,
 ): Promise<void> {
   const { requestCommands, display } = context;
+
+  if (options.status !== undefined && !isRequestStatus(options.status)) {
+    display.error("cli.error", "request list", {
+      message: `Invalid status "${options.status}". Valid values: ${REQUEST_STATUS_VALUES.join(", ")}`,
+    });
+    Deno.exit(1);
+  }
 
   try {
     const requests = await requestCommands.list(options.status, options.all);

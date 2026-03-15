@@ -19,4 +19,5 @@
 | Instruction gaps / self-improvement | [process/self-improvement.md](process/self-improvement.md) | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md) |
 | Architecture review / improvement | [process/review-research-improvement.md](process/review-research-improvement.md) | [planning/](planning/) |
 | SDD / request quality methodology | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
+| Request quality gate / clarification | [source/exoframe.md](source/exoframe.md) | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md) |
 | Portal knowledge / codebase analysis | [source/exoframe.md](source/exoframe.md) | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md) |

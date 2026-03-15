@@ -1175,12 +1175,12 @@ Incremental updates:
 
 ### Step 16: Add TOML Configuration for Portal Knowledge
 
-**What:** Add `[portal_knowledge]` section to `exo.config.toml` schema so users can configure knowledge gathering globally.
+**What:** Add `[portal_knowledge]` section to `templates/exo.config.sample.toml` schema so users can configure knowledge gathering globally.
 
 **Files to modify:**
 
 - `src/shared/schemas/config.ts` (extend `ConfigSchema`)
-- `exo.config.toml` (add default section)
+- `templates/exo.config.sample.toml` (add default section)
 
 **Architecture notes:**
 

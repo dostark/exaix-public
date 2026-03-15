@@ -42,6 +42,15 @@ Examples section
 - `src/schemas/` — Zod validation schemas
 - `src/services/` — Core business logic services
 - `src/services/request_analysis/` — Request intent analysis (Phase 45)
+- `src/services/portal_knowledge/` — Portal codebase analysis (Phase 46)
+- `src/services/quality_gate/` — Request quality gate & clarification protocol (Phase 47):
+  - `heuristic_assessor.ts` — zero-cost text-signal scoring
+  - `llm_assessor.ts` — LLM assessment with heuristic fallback
+  - `request_enricher_llm.ts` — LLM body rewriter
+  - `request_quality_gate.ts` — orchestrator + `buildQualityGateConfig()`
+  - `clarification_engine.ts` — multi-turn Q&A loop producing `IRequestSpecification`
+  - `clarification_persistence.ts` — atomic `_clarification.json` read/write
+  - `mod.ts` — barrel export
 - `src/main.ts` — Application entry point
 
 ### Module Documentation
@@ -91,6 +100,7 @@ const git = GitService.getInstance();
   - **Note**: Always use `PathResolver` to validate paths before access.
 - **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
 - **Intent Analysis**: Requests can trigger the `RequestAnalyzer` via the `--analyze` flag. This layer extracts goals, constraints, and requirements to a `req_analysis.json` artifact. Use the centralized `AnalysisMode` / `AnalyzerEngine` types from `src/types/request.ts` (Phase 45).
+- **Request Quality Gate** (Phase 47): `RequestQualityGate` (`src/services/quality_gate/`) runs on every request *before* agent/flow routing. Assessment modes: `heuristic` (zero-cost), `llm`, `hybrid` (heuristic-first, LLM for borderline scores). Results in one of four outcomes: `proceed`, `auto-enrich`, `needs-clarification` (Q&A loop → `REFINING` status), or `reject` (`FAILED` status). Config wired via `buildQualityGateConfig(config.quality_gate ?? {})` in `RequestProcessor` constructor. CLI: `exoctl request clarify <id> [--interactive|--answer|--proceed|--cancel]`. Key interfaces/schemas: `IRequestQualityGateService`, `IRequestQualityAssessment`, `IClarificationSession`, `IRequestSpecification`. New statuses: `REFINING`, `NEEDS_CLARIFICATION`, `ENRICHING`.
 - **Portal Knowledge Gathering** (Phase 46): `PortalKnowledgeService` (`src/services/portal_knowledge/`) builds a structured analysis snapshot of every portal codebase — file census, key files, config parsing, pattern detection, architecture inference, and (deep mode) symbol extraction via `deno doc`. Results persist to `Memory/Projects/{alias}/knowledge.json` (validated by `PortalKnowledgeSchema` in `src/shared/schemas/portal_knowledge.ts`). Always use `PortalKnowledgeService.getOrAnalyze()` rather than raw file reads when agents need codebase context. Modes: `quick` (fast, no LLM), `standard` (all non-LLM strategies), `deep` (full, includes `SymbolExtractor`). Configured via `[portal_knowledge]` TOML section. CLI: `exoctl portal analyze <alias>`, `exoctl portal knowledge <alias>`.
   - Directory: `src/services/portal_knowledge/` — `directory_analyzer.ts`, `config_parser.ts`, `key_file_identifier.ts`, `pattern_detector.ts`, `architecture_inferrer.ts`, `symbol_extractor.ts`, `portal_knowledge_service.ts`, `knowledge_persistence.ts`
   - Interface: `IPortalKnowledgeService` in `src/services/portal_knowledge/interfaces.ts`

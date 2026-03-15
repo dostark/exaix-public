@@ -265,6 +265,59 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
         );
       },
     );
+
+    // -----------------------------------------------------------------------
+    // LLM UNAVAILABLE: gate in hybrid mode, LLM throws — heuristic takes over
+    // and the pipeline completes without throwing.
+    // -----------------------------------------------------------------------
+    await t.step(
+      "[E2E] Pipeline degrades gracefully when LLM unavailable",
+      async () => {
+        const { filePath } = await env.createRequest(
+          // Body scores ~35 by heuristic (borderline → triggers LLM escalation
+          // in hybrid mode).  When LLM throws the gate falls back to heuristic.
+          "fix something in the system that is broken",
+          { agentId: "senior-coder" },
+        );
+
+        // Provider that always rejects — simulates network/service outage.
+        const unavailableProvider = {
+          id: "unavailable",
+          generate(_prompt: string): Promise<string> {
+            return Promise.reject(new Error("LLM service unavailable"));
+          },
+        };
+
+        const hybridGate = new RequestQualityGate(
+          {
+            enabled: true,
+            mode: QualityGateMode.HYBRID,
+            autoEnrich: false,
+            blockUnactionable: false,
+            maxClarificationRounds: 5,
+            thresholds: { minimum: 20, enrichment: 50, proceed: 70 },
+          },
+          unavailableProvider,
+          createOutputValidator(),
+        );
+
+        const { processor: degradedProcessor } = buildProcessor(env, hybridGate);
+
+        // Must NOT throw — LlmQualityAssessor.assess() catches LLM errors and
+        // falls back to assessHeuristic(), so process() always completes.
+        await degradedProcessor.process(filePath);
+
+        // Heuristic scored the body ~35 → needs-clarification → REFINING.
+        // The exact status is less important than the absence of a thrown error,
+        // but we assert the file is in a defined terminal state.
+        const content = await Deno.readTextFile(filePath);
+        const hasDefinedStatus = content.includes("status: refining") ||
+          content.includes("status: failed") ||
+          content.includes("status: planned") ||
+          content.includes("status: pending");
+        assert(hasDefinedStatus, "Request should reach a defined status even when LLM is unavailable");
+      },
+    );
   } finally {
     await env.cleanup();
   }

@@ -1,3 +1,8 @@
+```typescript
+// ✅ GOOD — interface + constructor injection
+export interface IGitService { commit(msg: string): Promise<void>; }
+export class GitService implements IGitService { ... }
+
 export class PlanExecutor {
   constructor(private git: IGitService, private db: IDatabaseService) {}
 }

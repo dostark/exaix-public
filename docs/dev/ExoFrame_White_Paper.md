@@ -1328,7 +1328,7 @@ Traditional seat-based pricing is **obsolete for AI agent platforms** in 2026. W
 
 **License:** MIT/Apache 2.0
 
-## Price:** **$0
+**Price:** $0
 
 ## Includes
 

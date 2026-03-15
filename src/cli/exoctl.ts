@@ -273,7 +273,10 @@ export const __test_command = new Command()
         "list",
         new Command()
           .description("List pending requests")
-          .option("-s, --status <status:string>", "Filter by status")
+          .option(
+            "-s, --status <status:string>",
+            "Filter by status (pending, planned, in_progress, completed, failed, cancelled, needs_clarification, refining, enriching)",
+          )
           .option("-a, --all", "Include archived and rejected requests")
           .option("--json", "Output in JSON format")
           .action(async (options) => {

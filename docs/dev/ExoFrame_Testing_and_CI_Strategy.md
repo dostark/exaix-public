@@ -61,28 +61,36 @@ ExoFrame follows a **test pyramid** approach:
 
 **Coverage Target:** 70% for core modules
 
-| Module                  | Test File                            | Priority | Status      |
-| ----------------------- | ------------------------------------ | -------- | ----------- |
-| Config loader           | `tests/config_test.ts`               | P0       | ✅ Complete |
-| Frontmatter/YAML parser | `tests/frontmatter_test.ts`          | P0       | ✅ Complete |
-| Database service        | `tests/db_test.ts`                   | P0       | ✅ Complete |
-| File watcher            | `tests/watcher_test.ts`              | P1       | ✅ Complete |
-| Context loader          | `tests/context_loader_test.ts`       | P1       | ✅ Complete |
-| Git service             | `tests/git_service_test.ts`          | P1       | ✅ Complete |
-| Agent runner            | `tests/agent_runner_test.ts`         | P1       | ✅ Complete |
-| Execution loop          | `tests/execution_loop_test.ts`       | P1       | ✅ Complete |
-| MCP server              | `tests/mcp/server_test.ts`           | P1       | 📋 Planned  |
-| MCP tools               | `tests/mcp/tools_test.ts`            | P1       | 📋 Planned  |
-| Agent executor (MCP)    | `tests/agent_executor_test.ts`       | P1       | 📋 Planned  |
-| Portal permissions      | `tests/portal_permissions_test.ts`   | P1       | 📋 Planned  |
-| Mission reporter        | `tests/mission_reporter_test.ts`     | P1       | ✅ Complete |
-| Plan writer             | `tests/plan_writer_test.ts`          | P1       | ✅ Complete |
-| Tool registry           | `tests/tool_registry_test.ts`        | P1       | ✅ Complete |
-| Path resolver           | `tests/path_resolver_test.ts`        | P1       | ✅ Complete |
-| Context card generator  | `tests/context_card_test.ts`         | P2       | ✅ Complete |
-| Model adapter           | `tests/model_adapter_test.ts`        | P2       | ✅ Complete |
-| CLI commands            | `tests/cli/*_test.ts`                | P2       | ✅ Complete |
-| Memory Banks services   | `tests/services/memory_bank_test.ts` | P1       | ✅ Complete |
+| Module                       | Test File                                                       | Priority | Status      |
+| ---------------------------- | --------------------------------------------------------------- | -------- | ----------- |
+| Config loader                | `tests/config_test.ts`                                          | P0       | ✅ Complete |
+| Frontmatter/YAML parser      | `tests/frontmatter_test.ts`                                     | P0       | ✅ Complete |
+| Database service             | `tests/db_test.ts`                                              | P0       | ✅ Complete |
+| File watcher                 | `tests/watcher_test.ts`                                         | P1       | ✅ Complete |
+| Context loader               | `tests/context_loader_test.ts`                                  | P1       | ✅ Complete |
+| Git service                  | `tests/git_service_test.ts`                                     | P1       | ✅ Complete |
+| Agent runner                 | `tests/agent_runner_test.ts`                                    | P1       | ✅ Complete |
+| Execution loop               | `tests/execution_loop_test.ts`                                  | P1       | ✅ Complete |
+| MCP server                   | `tests/mcp/server_test.ts`                                      | P1       | 📋 Planned  |
+| MCP tools                    | `tests/mcp/tools_test.ts`                                       | P1       | 📋 Planned  |
+| Agent executor (MCP)         | `tests/agent_executor_test.ts`                                  | P1       | 📋 Planned  |
+| Portal permissions           | `tests/portal_permissions_test.ts`                              | P1       | 📋 Planned  |
+| Mission reporter             | `tests/mission_reporter_test.ts`                                | P1       | ✅ Complete |
+| Plan writer                  | `tests/plan_writer_test.ts`                                     | P1       | ✅ Complete |
+| Tool registry                | `tests/tool_registry_test.ts`                                   | P1       | ✅ Complete |
+| Path resolver                | `tests/path_resolver_test.ts`                                   | P1       | ✅ Complete |
+| Context card generator       | `tests/context_card_test.ts`                                    | P2       | ✅ Complete |
+| Model adapter                | `tests/model_adapter_test.ts`                                   | P2       | ✅ Complete |
+| CLI commands                 | `tests/cli/*_test.ts`                                           | P2       | ✅ Complete |
+| Memory Banks services        | `tests/services/memory_bank_test.ts`                            | P1       | ✅ Complete |
+| Quality gate (heuristic)     | `tests/services/quality_gate/heuristic_assessor_test.ts`        | P1       | ✅ Complete |
+| Quality gate (LLM assessor)  | `tests/services/quality_gate/llm_assessor_test.ts`              | P1       | ✅ Complete |
+| Quality gate (enricher)      | `tests/services/quality_gate/request_enricher_llm_test.ts`      | P1       | ✅ Complete |
+| Quality gate (orchestrator)  | `tests/services/quality_gate/request_quality_gate_test.ts`      | P1       | ✅ Complete |
+| Clarification engine         | `tests/services/quality_gate/clarification_engine_test.ts`      | P1       | ✅ Complete |
+| Clarification persistence    | `tests/services/quality_gate/clarification_persistence_test.ts` | P1       | ✅ Complete |
+| Quality gate config schema   | `tests/shared/schemas/config_quality_gate_test.ts`              | P1       | ✅ Complete |
+| `exoctl request clarify` CLI | `tests/cli/commands/request_clarify_test.ts`                    | P2       | ✅ Complete |
 
 **Running Unit Tests:**
 
@@ -134,6 +142,7 @@ temporary directories created during daemon tests.
 | 12 | **Sandboxed Mode**       | Agent runs with no file access              | Security enforcement | 📋 Planned  |
 | 13 | **Hybrid Mode Audit**    | Agent makes unauthorized file change        | Change detection     | 📋 Planned  |
 | 32 | **Portal Knowledge E2E** | Mount portal → analyze → getOrAnalyze       | Phase 46 pipeline    | ✅ Complete |
+| 33 | **Quality Gate E2E**     | Request → quality gate → clarify → pipeline | Phase 47 pipeline    | ✅ Complete |
 
 **Portal review cleanup coverage:** Integration tests for portal workflows should also validate cleanup semantics:
 
@@ -210,6 +219,23 @@ deno test tests/integration/ --reporter=verbose
 | Knowledge persistence    | `tests/services/portal_knowledge/knowledge_persistence_test.ts`    | —     | ✅ Complete |
 | CLI commands             | `tests/cli/commands/portal_knowledge_cli_test.ts`                  | 7     | ✅ Complete |
 | E2E integration          | `tests/integration/32_portal_knowledge_e2e_test.ts`                | 6     | ✅ Complete |
+
+**Quality Gate test files (Phase 47):**
+
+| Category                   | Location                                                        | Tests | Status      |
+| -------------------------- | --------------------------------------------------------------- | ----- | ----------- |
+| Quality assessment schema  | `tests/shared/schemas/request_quality_assessment_test.ts`       | —     | ✅ Complete |
+| Clarification/spec schemas | `tests/shared/schemas/clarification_session_test.ts`            | —     | ✅ Complete |
+| Quality gate config schema | `tests/shared/schemas/config_quality_gate_test.ts`              | 5     | ✅ Complete |
+| Heuristic assessor         | `tests/services/quality_gate/heuristic_assessor_test.ts`        | 13    | ✅ Complete |
+| LLM assessor               | `tests/services/quality_gate/llm_assessor_test.ts`              | 5     | ✅ Complete |
+| Request enricher LLM       | `tests/services/quality_gate/request_enricher_llm_test.ts`      | 5     | ✅ Complete |
+| Quality gate orchestrator  | `tests/services/quality_gate/request_quality_gate_test.ts`      | 17    | ✅ Complete |
+| Clarification engine       | `tests/services/quality_gate/clarification_engine_test.ts`      | 9     | ✅ Complete |
+| Clarification persistence  | `tests/services/quality_gate/clarification_persistence_test.ts` | 5     | ✅ Complete |
+| RequestProcessor wiring    | `tests/services/request_processor_quality_gate_test.ts`         | 9     | ✅ Complete |
+| CLI `request clarify`      | `tests/cli/commands/request_clarify_test.ts`                    | 8     | ✅ Complete |
+| E2E integration            | `tests/integration/33_quality_gate_e2e_test.ts`                 | 8     | ✅ Complete |
 
 ---
 

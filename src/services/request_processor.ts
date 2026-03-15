@@ -12,7 +12,13 @@ import { basename, dirname, join } from "@std/path";
 import { IModelProvider } from "../ai/types.ts";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../shared/schemas/config.ts";
-import { AgentRunner, type IAgentExecutionResult, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
+import {
+  AgentRunner,
+  type IAgentExecutionResult,
+  type IBlueprint,
+  type IParsedRequest,
+  type IRequestContextContext,
+} from "./agent_runner.ts";
 import { applyAnalysisToRequest, buildParsedRequest } from "./request_common.ts";
 import { BlueprintLoader, type ILoadedBlueprint } from "./blueprint_loader.ts";
 import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
@@ -50,8 +56,11 @@ import { RequestKind, TaskComplexity } from "../shared/enums.ts";
 
 import { AnalysisMode } from "../shared/types/request.ts";
 import type { IRequestQualityGateService } from "../shared/interfaces/i_request_quality_gate_service.ts";
+import { buildQualityGateConfig, RequestQualityGate } from "./quality_gate/request_quality_gate.ts";
 import { RequestQualityRecommendation } from "../shared/schemas/request_quality_assessment.ts";
-import { saveClarification } from "./quality_gate/clarification_persistence.ts";
+import { loadClarification, saveClarification } from "./quality_gate/clarification_persistence.ts";
+import { ClarificationSessionStatus } from "../shared/schemas/clarification_session.ts";
+import type { IRequestSpecification } from "../shared/schemas/request_specification.ts";
 
 export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
@@ -138,7 +147,9 @@ export class RequestProcessor {
       actionabilityThreshold: config.request_analysis?.actionability_threshold,
       inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
     });
-    this.qualityGate = testQualityGate;
+    this.qualityGate = testQualityGate ?? new RequestQualityGate(
+      buildQualityGateConfig(config.quality_gate ?? {}),
+    );
   }
 
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
@@ -181,6 +192,7 @@ export class RequestProcessor {
       return null;
     }
     const assessedBody = qgOutcome.enrichedBody ?? body;
+    const clarificationSpec = qgOutcome.specification;
 
     const pipeline = this.createRequestProcessingPipeline();
 
@@ -237,6 +249,7 @@ export class RequestProcessor {
           traceLogger,
           context.analysis,
           context.portalKnowledge,
+          clarificationSpec,
         );
       });
 
@@ -261,9 +274,18 @@ export class RequestProcessor {
     filePath: string,
     requestId: string,
     traceLogger: EventLogger,
-  ): Promise<{ earlyReturn: true } | { earlyReturn: false; enrichedBody?: string }> {
+  ): Promise<
+    { earlyReturn: true } | { earlyReturn: false; enrichedBody?: string; specification?: IRequestSpecification }
+  > {
     if (!this.qualityGate) {
-      return { earlyReturn: false };
+      // Load any completed clarification session even without an active gate
+      const completedSession = await loadClarification(filePath).catch(() => null);
+      const specification = completedSession?.refinedBody &&
+          (completedSession.status === ClarificationSessionStatus.AGENT_SATISFIED ||
+            completedSession.status === ClarificationSessionStatus.USER_CONFIRMED)
+        ? completedSession.refinedBody
+        : undefined;
+      return { earlyReturn: false, specification };
     }
     try {
       const qgResult = await this.qualityGate.assess(body, { requestId });
@@ -284,6 +306,14 @@ export class RequestProcessor {
       if (qgResult.recommendation === RequestQualityRecommendation.AUTO_ENRICH && qgResult.enrichedBody) {
         return { earlyReturn: false, enrichedBody: qgResult.enrichedBody };
       }
+      // Load IRequestSpecification from any completed clarification session
+      const completedSession = await loadClarification(filePath).catch(() => null);
+      const specification = completedSession?.refinedBody &&
+          (completedSession.status === ClarificationSessionStatus.AGENT_SATISFIED ||
+            completedSession.status === ClarificationSessionStatus.USER_CONFIRMED)
+        ? completedSession.refinedBody
+        : undefined;
+      return { earlyReturn: false, specification };
     } catch {
       traceLogger.warn("request.quality_gate.failed", filePath, { requestId });
     }
@@ -381,6 +411,7 @@ export class RequestProcessor {
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
     portalKnowledge?: IPortalKnowledge,
+    specification?: IRequestSpecification,
   ): Promise<string | null> {
     if (kind === RequestKind.FLOW) {
       return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis, portalKnowledge);
@@ -395,6 +426,7 @@ export class RequestProcessor {
       traceLogger,
       analysis,
       portalKnowledge,
+      specification,
     );
   }
 
@@ -465,6 +497,7 @@ export class RequestProcessor {
     traceLogger: EventLogger,
     analysis?: IRequestAnalysis,
     portalKnowledge?: IPortalKnowledge,
+    specification?: IRequestSpecification,
   ): Promise<string | null> {
     const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
@@ -489,6 +522,11 @@ export class RequestProcessor {
     const request: IParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as IParsedRequest;
     if (analysis) {
       applyAnalysisToRequest(request, analysis);
+    }
+    if (specification) {
+      // Serialize to a plain record — IRequestSpecification is structurally
+      // compatible with IRequestContextContext (all fields are string/string[]).
+      request.context["specification"] = JSON.parse(JSON.stringify(specification)) as IRequestContextContext;
     }
     const portalContext = await this.buildPortalContext(frontmatter.portal, traceLogger);
     if (portalContext) {

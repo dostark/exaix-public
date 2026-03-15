@@ -25,9 +25,58 @@ import type {
   IRequestQualityGateService,
 } from "../../shared/interfaces/i_request_quality_gate_service.ts";
 import { QualityGateMode } from "../../shared/enums.ts";
+import {
+  DEFAULT_MAX_CLARIFICATION_ROUNDS,
+  DEFAULT_QG_ENRICHMENT_THRESHOLD,
+  DEFAULT_QG_MINIMUM_THRESHOLD,
+  DEFAULT_QG_PROCEED_THRESHOLD,
+} from "../../shared/constants.ts";
 import { assessHeuristic } from "./heuristic_assessor.ts";
 import { LlmQualityAssessor } from "./llm_assessor.ts";
 import { enrichRequest } from "./request_enricher_llm.ts";
+
+// ---------------------------------------------------------------------------
+// Config factory
+// ---------------------------------------------------------------------------
+
+/**
+ * Shape of the `quality_gate` section as stored in `Config` (TOML-derived).
+ * All fields are optional because the config schema provides defaults.
+ */
+export interface IQualityGateTomlConfig {
+  enabled?: boolean;
+  mode?: QualityGateMode | string;
+  auto_enrich?: boolean;
+  block_unactionable?: boolean;
+  max_clarification_rounds?: number;
+  thresholds?: {
+    minimum?: number;
+    enrichment?: number;
+    proceed?: number;
+  };
+}
+
+/**
+ * Converts the TOML `[quality_gate]` config section into the
+ * `IRequestQualityGateConfig` expected by `RequestQualityGate`.
+ * All fields fall back to the project-wide defaults when absent.
+ */
+export function buildQualityGateConfig(
+  cfg: IQualityGateTomlConfig,
+): IRequestQualityGateConfig {
+  return {
+    enabled: cfg.enabled ?? true,
+    mode: (cfg.mode as QualityGateMode) ?? QualityGateMode.HYBRID,
+    autoEnrich: cfg.auto_enrich ?? true,
+    blockUnactionable: cfg.block_unactionable ?? false,
+    maxClarificationRounds: cfg.max_clarification_rounds ?? DEFAULT_MAX_CLARIFICATION_ROUNDS,
+    thresholds: {
+      minimum: cfg.thresholds?.minimum ?? DEFAULT_QG_MINIMUM_THRESHOLD,
+      enrichment: cfg.thresholds?.enrichment ?? DEFAULT_QG_ENRICHMENT_THRESHOLD,
+      proceed: cfg.thresholds?.proceed ?? DEFAULT_QG_PROCEED_THRESHOLD,
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // RequestQualityGate

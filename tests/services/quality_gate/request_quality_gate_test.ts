@@ -17,8 +17,10 @@ import type { IEventLogger } from "../../../src/services/event_logger.ts";
 import type { ILogEvent } from "../../../src/services/common/types.ts";
 import type { IModelProvider } from "../../../src/ai/types.ts";
 import { RequestQualityGate } from "../../../src/services/quality_gate/request_quality_gate.ts";
+import { buildQualityGateConfig } from "../../../src/services/quality_gate/request_quality_gate.ts";
 import type { IRequestQualityGateConfig } from "../../../src/shared/interfaces/i_request_quality_gate_service.ts";
 import {
+  DEFAULT_MAX_CLARIFICATION_ROUNDS,
   DEFAULT_QG_ENRICHMENT_THRESHOLD,
   DEFAULT_QG_MINIMUM_THRESHOLD,
   DEFAULT_QG_PROCEED_THRESHOLD,
@@ -252,4 +254,54 @@ Deno.test("[RequestQualityGate] handles disabled gate (returns proceed)", async 
   );
   const result = await gate.assess(LOW_SCORE_REQUEST);
   assertEquals(result.recommendation, RequestQualityRecommendation.PROCEED);
+});
+
+// ---------------------------------------------------------------------------
+// Config wiring — buildQualityGateConfig
+// ---------------------------------------------------------------------------
+
+Deno.test("[buildQualityGateConfig] maps enabled flag from config", () => {
+  const cfg = buildQualityGateConfig({ enabled: false });
+  assertEquals(cfg.enabled, false);
+});
+
+Deno.test("[buildQualityGateConfig] maps mode from config", () => {
+  const cfg = buildQualityGateConfig({ mode: QualityGateMode.LLM });
+  assertEquals(cfg.mode, QualityGateMode.LLM);
+});
+
+Deno.test("[buildQualityGateConfig] maps auto_enrich → autoEnrich", () => {
+  const cfg = buildQualityGateConfig({ auto_enrich: false });
+  assertEquals(cfg.autoEnrich, false);
+});
+
+Deno.test("[buildQualityGateConfig] maps block_unactionable → blockUnactionable", () => {
+  const cfg = buildQualityGateConfig({ block_unactionable: true });
+  assertEquals(cfg.blockUnactionable, true);
+});
+
+Deno.test("[buildQualityGateConfig] maps max_clarification_rounds → maxClarificationRounds", () => {
+  const cfg = buildQualityGateConfig({ max_clarification_rounds: 3 });
+  assertEquals(cfg.maxClarificationRounds, 3);
+});
+
+Deno.test("[buildQualityGateConfig] maps thresholds from config", () => {
+  const cfg = buildQualityGateConfig({
+    thresholds: { minimum: 10, enrichment: 40, proceed: 60 },
+  });
+  assertEquals(cfg.thresholds.minimum, 10);
+  assertEquals(cfg.thresholds.enrichment, 40);
+  assertEquals(cfg.thresholds.proceed, 60);
+});
+
+Deno.test("[buildQualityGateConfig] uses defaults when fields absent", () => {
+  const cfg = buildQualityGateConfig({});
+  assertEquals(cfg.enabled, true);
+  assertEquals(cfg.mode, QualityGateMode.HYBRID);
+  assertEquals(cfg.autoEnrich, true);
+  assertEquals(cfg.blockUnactionable, false);
+  assertEquals(cfg.maxClarificationRounds, DEFAULT_MAX_CLARIFICATION_ROUNDS);
+  assertEquals(cfg.thresholds.minimum, DEFAULT_QG_MINIMUM_THRESHOLD);
+  assertEquals(cfg.thresholds.enrichment, DEFAULT_QG_ENRICHMENT_THRESHOLD);
+  assertEquals(cfg.thresholds.proceed, DEFAULT_QG_PROCEED_THRESHOLD);
 });

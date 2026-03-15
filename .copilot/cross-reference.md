@@ -32,6 +32,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 | Instruction gaps / self-improvement | [process/self-improvement.md](process/self-improvement.md) | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md) |
 | Architecture review / improvement | [process/review-research-improvement.md](process/review-research-improvement.md) | [planning/](planning/) |
 | SDD / request quality methodology | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
+| Request quality gate / clarification | [source/exoframe.md](source/exoframe.md) | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md) |
 | Portal knowledge / codebase analysis | [source/exoframe.md](source/exoframe.md) | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md) |
 
 ## Search by Topic
@@ -53,6 +54,9 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 - **`sdd`** → [process/specification-driven-development.md](process/specification-driven-development.md)
 - **`specification`** → [process/specification-driven-development.md](process/specification-driven-development.md)
 - **`quality-pipeline`** → [process/specification-driven-development.md](process/specification-driven-development.md), [planning/](planning/)
+- **`quality-gate`** → [source/exoframe.md](source/exoframe.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
+- **`clarification`** → [source/exoframe.md](source/exoframe.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
+- **`request-specification`** → [process/specification-driven-development.md](process/specification-driven-development.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
 - **`gemini`** → [providers/google.md](providers/google.md), [providers/google-long-context.md](providers/google-long-context.md)
 - **`long-context`** → [providers/google-long-context.md](providers/google-long-context.md)
 - **`self-improvement`** → [process/self-improvement.md](process/self-improvement.md), [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md)

@@ -26,5 +26,8 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "timeout": true
   }
 }

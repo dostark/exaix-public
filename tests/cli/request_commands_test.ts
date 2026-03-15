@@ -359,6 +359,51 @@ describe("RequestCommands", () => {
       assertEquals(inProgress.length, 1);
     });
 
+    it("should filter by NEEDS_CLARIFICATION status", async () => {
+      const result = await requestCommands.create("Vague request");
+      if (!result.path) throw new Error("Path should be defined");
+      const content = await Deno.readTextFile(result.path);
+      await Deno.writeTextFile(result.path, content.replace("status: pending", "status: needs_clarification"));
+
+      const needsClarity = await requestCommands.list(RequestStatus.NEEDS_CLARIFICATION);
+      assertEquals(needsClarity.length, 1);
+      assertEquals(needsClarity[0].status, RequestStatus.NEEDS_CLARIFICATION);
+    });
+
+    it("should filter by REFINING status", async () => {
+      const result = await requestCommands.create("Ambiguous request");
+      if (!result.path) throw new Error("Path should be defined");
+      const content = await Deno.readTextFile(result.path);
+      await Deno.writeTextFile(result.path, content.replace("status: pending", "status: refining"));
+
+      const refining = await requestCommands.list(RequestStatus.REFINING);
+      assertEquals(refining.length, 1);
+      assertEquals(refining[0].status, RequestStatus.REFINING);
+    });
+
+    it("should filter by ENRICHING status", async () => {
+      const result = await requestCommands.create("Underspecified request");
+      if (!result.path) throw new Error("Path should be defined");
+      const content = await Deno.readTextFile(result.path);
+      await Deno.writeTextFile(result.path, content.replace("status: pending", "status: enriching"));
+
+      const enriching = await requestCommands.list(RequestStatus.ENRICHING);
+      assertEquals(enriching.length, 1);
+      assertEquals(enriching[0].status, RequestStatus.ENRICHING);
+    });
+
+    it("should not include REFINING requests when filtering for PENDING", async () => {
+      await requestCommands.create("Pending request");
+      const result2 = await requestCommands.create("Refining request");
+      if (!result2.path) throw new Error("Path should be defined");
+      const content = await Deno.readTextFile(result2.path);
+      await Deno.writeTextFile(result2.path, content.replace("status: pending", "status: refining"));
+
+      const pending = await requestCommands.list(RequestStatus.PENDING);
+      assertEquals(pending.length, 1);
+      assertEquals(pending[0].status, RequestStatus.PENDING);
+    });
+
     it("should sort by created date descending", async () => {
       const result1 = await requestCommands.create("Request 1");
       await new Promise((r) => setTimeout(r, 50)); // Small delay

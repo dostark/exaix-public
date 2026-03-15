@@ -231,6 +231,139 @@ Deno.test("[request clarify] shows quality score progression", async () => {
   }
 });
 
+Deno.test("[request clarify] interactive mode prompts for answers", async () => {
+  const { tempDir, config, context, cleanup } = await createCliTestContext();
+  try {
+    const requestsDir = join(tempDir, config.paths.workspace, config.paths.requests);
+    await Deno.mkdir(requestsDir, { recursive: true });
+
+    const requestId = "req-clarify-interactive-001";
+    const filePath = makeRequestFile(requestsDir, requestId);
+    const session = makeSession({ requestId });
+    await saveClarification(filePath, session);
+
+    const commands = new RequestCommands(context);
+
+    // Track which question IDs were prompted
+    const promptedIds: string[] = [];
+    const mockPromptFn = (
+      _questionText: string,
+      questionId: string,
+    ): Promise<string | null> => {
+      promptedIds.push(questionId);
+      return Promise.resolve(`answer-for-${questionId}`);
+    };
+
+    // Stub engine that records the answers it received
+    let capturedAnswers: Record<string, string> = {};
+    const satisfiedSession: IClarificationSession = {
+      ...session,
+      status: ClarificationSessionStatus.AGENT_SATISFIED,
+      qualityHistory: [...session.qualityHistory, { round: 1, score: 80, level: "good" }],
+    };
+    const stubEngine = {
+      processAnswers: (
+        _sess: IClarificationSession,
+        ans: Record<string, string>,
+      ): Promise<IClarificationSession> => {
+        capturedAnswers = ans;
+        return Promise.resolve(satisfiedSession);
+      },
+      isComplete: (sess: IClarificationSession) => sess.status === ClarificationSessionStatus.AGENT_SATISFIED,
+      cancel: (sess: IClarificationSession) => ({
+        ...sess,
+        status: ClarificationSessionStatus.USER_CANCELLED,
+      }),
+    };
+
+    const result = await commands.clarify(requestId, {
+      interactive: true,
+      promptFn: mockPromptFn,
+      engine: stubEngine,
+    });
+
+    // promptFn should have been called once per question (r1q1, r1q2)
+    assertEquals(promptedIds.length, 2);
+    assertEquals(promptedIds[0], "r1q1");
+    assertEquals(promptedIds[1], "r1q2");
+
+    // Answers should map question ID → answer text
+    assertEquals(capturedAnswers["r1q1"], "answer-for-r1q1");
+    assertEquals(capturedAnswers["r1q2"], "answer-for-r1q2");
+
+    // Session was agent-satisfied → result is COMPLETE
+    assertEquals(result.status, ClarifyResultStatus.COMPLETE);
+    assertEquals(result.score, 80);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("[request clarify] interactive mode skips null/empty answers", async () => {
+  const { tempDir, config, context, cleanup } = await createCliTestContext();
+  try {
+    const requestsDir = join(tempDir, config.paths.workspace, config.paths.requests);
+    await Deno.mkdir(requestsDir, { recursive: true });
+
+    const requestId = "req-clarify-interactive-002";
+    const filePath = makeRequestFile(requestsDir, requestId);
+    const session = makeSession({ requestId });
+    await saveClarification(filePath, session);
+
+    const commands = new RequestCommands(context);
+
+    // promptFn returns null for r1q2 (user skipped)
+    const mockPromptFn = (
+      _questionText: string,
+      questionId: string,
+    ): Promise<string | null> => {
+      if (questionId === "r1q2") return Promise.resolve(null);
+      return Promise.resolve("the auth module");
+    };
+
+    let capturedAnswers: Record<string, string> = {};
+    const nextSession: IClarificationSession = {
+      ...session,
+      rounds: [
+        ...session.rounds,
+        {
+          round: 2,
+          questions: [],
+          askedAt: new Date().toISOString(),
+        },
+      ],
+      qualityHistory: [...session.qualityHistory, { round: 1, score: 60, level: "acceptable" }],
+    };
+    const stubEngine = {
+      processAnswers: (
+        _sess: IClarificationSession,
+        ans: Record<string, string>,
+      ): Promise<IClarificationSession> => {
+        capturedAnswers = ans;
+        return Promise.resolve(nextSession);
+      },
+      isComplete: () => false,
+      cancel: (sess: IClarificationSession) => ({
+        ...sess,
+        status: ClarificationSessionStatus.USER_CANCELLED,
+      }),
+    };
+
+    await commands.clarify(requestId, {
+      interactive: true,
+      promptFn: mockPromptFn,
+      engine: stubEngine,
+    });
+
+    // Only the answered question should be in capturedAnswers
+    assertEquals(Object.keys(capturedAnswers).length, 1);
+    assertEquals(capturedAnswers["r1q1"], "the auth module");
+    assertEquals("r1q2" in capturedAnswers, false);
+  } finally {
+    await cleanup();
+  }
+});
+
 Deno.test("[request clarify] no session returns no_session status", async () => {
   const { tempDir, config, context, cleanup } = await createCliTestContext();
   try {

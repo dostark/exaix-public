@@ -37,6 +37,18 @@ export interface IClarifyOptions {
   proceed?: boolean;
   /** Cancel clarification and re-queue request as-is. */
   cancel?: boolean;
+  /**
+   * Interactive mode — prompt the user for each question in the current round
+   * sequentially and submit the collected answers automatically.
+   */
+  interactive?: boolean;
+  /**
+   * Custom prompt function used in interactive mode.
+   * Receives the question text and question ID; returns the user's answer or
+   * `null` if the user skips.  Defaults to `prompt()` when absent.
+   * Injected in tests to avoid real stdin.
+   */
+  promptFn?: (questionText: string, questionId: string) => Promise<string | null>;
   /** Injected engine (for tests). When absent the handler skips processAnswers calls. */
   engine?: IClarificationEngineForCLI;
 }
@@ -103,6 +115,38 @@ export class RequestClarifyHandler extends BaseCommand {
       await this.persistence.save(filePath, confirmed);
       await this._setStatus(filePath, RequestStatus.PENDING);
       return { status: ClarifyResultStatus.COMPLETE, score: latestScore };
+    }
+
+    // --interactive: prompt for each question sequentially, then submit answers
+    if (options.interactive && options.engine) {
+      const currentQuestions = session.rounds.at(-1)?.questions ?? [];
+      const defaultPromptFn = (questionText: string, _id: string): Promise<string | null> =>
+        Promise.resolve(prompt(questionText));
+      const ask = options.promptFn ?? defaultPromptFn;
+
+      const answers: Record<string, string> = {};
+      for (const q of currentQuestions) {
+        const answer = await ask(q.question, q.id);
+        if (answer !== null && answer !== "") {
+          answers[q.id] = answer;
+        }
+      }
+
+      const updated = await options.engine.processAnswers(session, answers);
+      await this.persistence.save(filePath, updated);
+
+      if (TERMINAL_STATUSES.has(updated.status)) {
+        await this._setStatus(filePath, RequestStatus.PENDING);
+        return { status: ClarifyResultStatus.COMPLETE, score: updated.qualityHistory.at(-1)?.score };
+      }
+
+      const latestRound = updated.rounds.at(-1);
+      return {
+        status: ClarifyResultStatus.QUESTIONS,
+        questions: latestRound?.questions,
+        round: latestRound?.round,
+        score: updated.qualityHistory.at(-1)?.score,
+      };
     }
 
     // --answers: submit answers and advance session

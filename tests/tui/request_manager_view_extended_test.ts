@@ -11,6 +11,7 @@ import {
   LogLevel,
   McpTransportType,
   PortalAnalysisMode,
+  QualityGateMode,
   RequestGroupingMode,
   RequestPriority,
   RequestSource,
@@ -933,6 +934,14 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       staleness_hours: 168,
       use_llm_inference: true,
       ignore_patterns: ["node_modules", ".git", "dist", "build"],
+    },
+    quality_gate: {
+      enabled: true,
+      mode: QualityGateMode.HYBRID,
+      auto_enrich: true,
+      block_unactionable: false,
+      max_clarification_rounds: 5,
+      thresholds: { minimum: 20, enrichment: 50, proceed: 70 },
     },
   };
 

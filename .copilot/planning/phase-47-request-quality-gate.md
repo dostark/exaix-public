@@ -61,7 +61,7 @@ export async function enrichWithRequest<T extends IRequestEnrichable>(
   // request_subject, request_agent, request_portal, request_priority, etc.
   // DOES NOT touch request body content
 }
-```text
+```
 
 ### PlanValidation Retry Is Reactive, Not Proactive
 
@@ -77,7 +77,7 @@ while (attempts <= maxRetries) {
     }
   }
 }
-```text
+```
 
 This catches **output** format issues but doesn't prevent wasted LLM calls on requests that were never going to produce good results.
 
@@ -85,18 +85,18 @@ This catches **output** format issues but doesn't prevent wasted LLM calls on re
 
 ## Goals
 
-- [ ] Define `IRequestQualityAssessment` schema with quality score, issue categories, and enrichment suggestions.
-- [ ] Implement `RequestQualityGate` service with heuristic and LLM-based assessment modes.
-- [ ] Add `NEEDS_CLARIFICATION`, `REFINING`, and `ENRICHING` to `RequestStatus`.
-- [ ] Implement request auto-enrichment via LLM for underspecified requests.
-- [ ] Define `IClarificationSession`, `IClarificationRound`, `IClarificationQuestion`, and `IRequestSpecification` schemas.
-- [ ] Implement iterative Q&A loop with planning agent (multi-turn conversation until both sides are satisfied).
-- [ ] Ensure original request body is always preserved; refined body stored as structured `IRequestSpecification`.
-- [ ] Implement session persistence as `_clarification.json` alongside request files.
-- [ ] Integrate quality gate and Q&A loop into `RequestProcessor` pipeline before agent execution.
-- [ ] Add CLI support: `exoctl request clarify <id>` with `--interactive`, `--answer`, `--proceed`, `--cancel` flags.
+- [x] Define `IRequestQualityAssessment` schema with quality score, issue categories, and enrichment suggestions.
+- [x] Implement `RequestQualityGate` service with heuristic and LLM-based assessment modes.
+- [x] Add `NEEDS_CLARIFICATION`, `REFINING`, and `ENRICHING` to `RequestStatus`.
+- [x] Implement request auto-enrichment via LLM for underspecified requests.
+- [x] Define `IClarificationSession`, `IClarificationRound`, `IClarificationQuestion`, and `IRequestSpecification` schemas.
+- [x] Implement iterative Q&A loop with planning agent (multi-turn conversation until both sides are satisfied).
+- [x] Ensure original request body is always preserved; refined body stored as structured `IRequestSpecification`.
+- [x] Implement session persistence as `_clarification.json` alongside request files.
+- [x] Integrate quality gate and Q&A loop into `RequestProcessor` pipeline before agent execution.
+- [x] Add CLI support: `exoctl request clarify <id>` with `--interactive`, `--answer`, `--proceed`, `--cancel` flags.
 - [ ] Add TUI integration for inline Q&A display and quality score progression.
-- [ ] Write tests for quality assessment, enrichment, Q&A loop rounds, and session persistence.
+- [x] Write tests for quality assessment, enrichment, Q&A loop rounds, and session persistence.
 
 ---
 
@@ -720,7 +720,7 @@ Request File (.md)
 - [x] Three new statuses added to enum
 - [x] `coerceRequestStatus()` handles new values correctly
 - [x] Existing status transitions unaffected
-- [ ] CLI status filters include new statuses
+- [x] CLI status filters include new statuses
 - [ ] TUI status display renders new statuses with appropriate colors
 
 **Planned tests** (`tests/shared/status/request_status_test.ts`):
@@ -735,7 +735,14 @@ Request File (.md)
 - ✅ `[isRequestStatus] rejects unknown values`
 - ✅ `[coerceRequestStatus] falls back for unknown values`
 
-**✅ IMPLEMENTED** — `src/shared/status/request_status.ts`, 9/9 tests passing
+**CLI filter tests** (`tests/cli/request_commands_test.ts`):
+
+- ✅ `[RequestCommands] list > should filter by NEEDS_CLARIFICATION status`
+- ✅ `[RequestCommands] list > should filter by REFINING status`
+- ✅ `[RequestCommands] list > should filter by ENRICHING status`
+- ✅ `[RequestCommands] list > should not include REFINING requests when filtering for PENDING`
+
+**✅ IMPLEMENTED** — `src/shared/status/request_status.ts`, `src/cli/command_builders/request_actions.ts`, `src/cli/exoctl.ts`, 9+4 = 13 tests passing
 
 ---
 
@@ -760,28 +767,30 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `heuristic` mode calls only heuristic assessor
-- [ ] `llm` mode calls only LLM assessor
-- [ ] `hybrid` mode: heuristic first, LLM for borderline scores
-- [ ] Correct recommendation based on thresholds
-- [ ] Enrichment triggered when `autoEnrich` enabled and recommended
-- [ ] Blocking when `blockUnactionable` enabled and score below minimum
-- [ ] Logs activity to journal
-- [ ] Implements `IRequestQualityGateService` interface
-- [ ] Exported through barrel
+- [x] `heuristic` mode calls only heuristic assessor
+- [x] `llm` mode calls only LLM assessor
+- [x] `hybrid` mode: heuristic first, LLM for borderline scores
+- [x] Correct recommendation based on thresholds
+- [x] Enrichment triggered when `autoEnrich` enabled and recommended
+- [x] Blocking when `blockUnactionable` enabled and score below minimum
+- [x] Logs activity to journal
+- [x] Implements `IRequestQualityGateService` interface
+- [x] Exported through barrel
 
 **Planned tests** (`tests/services/quality_gate/request_quality_gate_test.ts`):
 
-- `[RequestQualityGate] heuristic mode avoids LLM calls`
-- `[RequestQualityGate] hybrid mode skips LLM for high scores`
-- `[RequestQualityGate] hybrid mode calls LLM for borderline scores`
-- `[RequestQualityGate] recommends proceed above threshold`
-- `[RequestQualityGate] recommends auto-enrich in enrichment range`
-- `[RequestQualityGate] recommends needs-clarification below minimum`
-- `[RequestQualityGate] enriches request when autoEnrich enabled`
-- `[RequestQualityGate] blocks unactionable when configured`
-- `[RequestQualityGate] logs quality_assessed activity`
-- `[RequestQualityGate] handles disabled gate (returns proceed)`
+- ✅ `[RequestQualityGate] heuristic mode avoids LLM calls`
+- ✅ `[RequestQualityGate] hybrid mode skips LLM for high scores`
+- ✅ `[RequestQualityGate] hybrid mode calls LLM for borderline scores`
+- ✅ `[RequestQualityGate] recommends proceed above threshold`
+- ✅ `[RequestQualityGate] recommends auto-enrich in enrichment range`
+- ✅ `[RequestQualityGate] recommends needs-clarification below minimum`
+- ✅ `[RequestQualityGate] enriches request when autoEnrich enabled`
+- ✅ `[RequestQualityGate] blocks unactionable when configured`
+- ✅ `[RequestQualityGate] logs quality_assessed activity`
+- ✅ `[RequestQualityGate] handles disabled gate (returns proceed)`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/request_quality_gate.ts`, `src/services/quality_gate/mod.ts`, 10/10 tests passing
 
 ---
 
@@ -805,27 +814,29 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `startSession` creates session with Round 1 questions
-- [ ] `processAnswers` incorporates answers into refined body
-- [ ] Quality score tracked across rounds
-- [ ] Session finalizes when agent is satisfied (quality threshold met)
-- [ ] Session finalizes when max rounds reached
-- [ ] Session cancelable by user
-- [ ] `IRequestSpecification` generated from accumulated Q&A
-- [ ] Planning agent receives full conversation history per round
-- [ ] Questions are categorized and include rationale
+- [x] `startSession` creates session with Round 1 questions
+- [x] `processAnswers` incorporates answers into refined body
+- [x] Quality score tracked across rounds
+- [x] Session finalizes when agent is satisfied (quality threshold met)
+- [x] Session finalizes when max rounds reached
+- [x] Session cancelable by user
+- [x] `IRequestSpecification` generated from accumulated Q&A
+- [x] Planning agent receives full conversation history per round
+- [x] Questions are categorized and include rationale
 
 **Planned tests** (`tests/services/quality_gate/clarification_engine_test.ts`):
 
-- `[ClarificationEngine] startSession generates Round 1 questions`
-- `[ClarificationEngine] processAnswers incorporates answers`
-- `[ClarificationEngine] tracks quality score across rounds`
-- `[ClarificationEngine] finalizes when agent satisfied`
-- `[ClarificationEngine] finalizes when max rounds reached`
-- `[ClarificationEngine] supports user cancellation`
-- `[ClarificationEngine] generates IRequestSpecification from Q&A`
-- `[ClarificationEngine] questions include category and rationale`
-- `[ClarificationEngine] handles LLM failure in question generation`
+- ✅ `[ClarificationEngine] startSession generates Round 1 questions`
+- ✅ `[ClarificationEngine] processAnswers incorporates answers`
+- ✅ `[ClarificationEngine] tracks quality score across rounds`
+- ✅ `[ClarificationEngine] finalizes when agent satisfied`
+- ✅ `[ClarificationEngine] finalizes when max rounds reached`
+- ✅ `[ClarificationEngine] supports user cancellation`
+- ✅ `[ClarificationEngine] generates IRequestSpecification from Q&A`
+- ✅ `[ClarificationEngine] questions include category and rationale`
+- ✅ `[ClarificationEngine] handles LLM failure in question generation`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/clarification_engine.ts`, 9/9 tests passing
 
 ---
 
@@ -848,19 +859,21 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Writes `_clarification.json` atomically
-- [ ] Loads and validates against schema
-- [ ] Returns `null` for missing or invalid file
-- [ ] Derives correct path: `Workspace/Requests/req.md` → `Workspace/Requests/req_clarification.json`
-- [ ] Session survives CLI session boundaries
+- [x] Writes `_clarification.json` atomically
+- [x] Loads and validates against schema
+- [x] Returns `null` for missing or invalid file
+- [x] Derives correct path: `Workspace/Requests/req.md` → `Workspace/Requests/req_clarification.json`
+- [x] Session survives CLI session boundaries
 
 **Planned tests** (`tests/services/quality_gate/clarification_persistence_test.ts`):
 
-- `[ClarificationPersistence] saves session as JSON sibling file`
-- `[ClarificationPersistence] loads previously saved session`
-- `[ClarificationPersistence] returns null for missing file`
-- `[ClarificationPersistence] returns null for corrupted file`
-- `[ClarificationPersistence] uses atomic write`
+- ✅ `[ClarificationPersistence] saves session as JSON sibling file`
+- ✅ `[ClarificationPersistence] loads previously saved session`
+- ✅ `[ClarificationPersistence] returns null for missing file`
+- ✅ `[ClarificationPersistence] returns null for corrupted file`
+- ✅ `[ClarificationPersistence] uses atomic write`
+
+**✅ IMPLEMENTED** — `src/services/quality_gate/clarification_persistence.ts`, 5/5 tests passing
 
 ---
 
@@ -884,26 +897,28 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Quality gate runs for every request (both agent and flow kinds)
-- [ ] Requests below minimum threshold enter clarification or are rejected
-- [ ] Requests in enrichment range get auto-enriched when enabled
-- [ ] Requests above proceed threshold pass through unchanged
-- [ ] Q&A loop sets status to REFINING and returns early
-- [ ] Enriched body replaces userPrompt; original preserved
-- [ ] IRequestSpecification available in IParsedRequest.context
-- [ ] Disabled gate passes all requests through
-- [ ] No breaking changes to existing request processing
+- [x] Quality gate runs for every request (both agent and flow kinds)
+- [x] Requests below minimum threshold enter clarification or are rejected
+- [x] Requests in enrichment range get auto-enriched when enabled
+- [x] Requests above proceed threshold pass through unchanged
+- [x] Q&A loop sets status to REFINING and returns early
+- [x] Enriched body replaces userPrompt; original preserved
+- [x] IRequestSpecification available in IParsedRequest.context
+- [x] Disabled gate passes all requests through
+- [x] No breaking changes to existing request processing
 
 **Planned tests** (`tests/services/request_processor_quality_gate_test.ts`):
 
-- `[RequestProcessor] quality gate runs before agent execution`
-- `[RequestProcessor] proceeds for high-quality requests`
-- `[RequestProcessor] enriches underspecified requests`
-- `[RequestProcessor] enters Q&A loop for poor requests`
-- `[RequestProcessor] preserves original body when enriching`
-- `[RequestProcessor] passes IRequestSpecification to buildParsedRequest`
-- `[RequestProcessor] handles disabled quality gate`
-- `[RequestProcessor] gate failure does not block processing`
+- ✅ `[RequestProcessor] quality gate runs before agent execution`
+- ✅ `[RequestProcessor] proceeds for high-quality requests`
+- ✅ `[RequestProcessor] enriches underspecified requests`
+- ✅ `[RequestProcessor] enters Q&A loop for poor requests`
+- ✅ `[RequestProcessor] preserves original body when enriching`
+- ✅ `[RequestProcessor] passes IRequestSpecification to buildParsedRequest`
+- ✅ `[RequestProcessor] handles disabled quality gate`
+- ✅ `[RequestProcessor] gate failure does not block processing`
+
+**✅ IMPLEMENTED** — `src/services/request_processor.ts`, 8/8 tests passing
 
 ---
 
@@ -929,22 +944,25 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `exoctl request clarify <id>` displays pending questions
-- [ ] `--interactive` prompts for answers sequentially
-- [ ] `--answer` provides answers by question ID
-- [ ] `--proceed` finalizes and re-enters pipeline
-- [ ] `--cancel` reverts to original body
-- [ ] Session persisted across invocations
-- [ ] Quality score shown after each round
+- [x] `exoctl request clarify <id>` displays pending questions
+- [x] `--interactive` prompts for answers sequentially
+- [x] `--answer` provides answers by question ID
+- [x] `--proceed` finalizes and re-enters pipeline
+- [x] `--cancel` reverts to original body
+- [x] Session persisted across invocations
+- [x] Quality score shown after each round
 
 **Planned tests** (`tests/cli/commands/request_clarify_test.ts`):
 
-- `[request clarify] displays pending questions`
-- `[request clarify] interactive mode prompts for answers`
-- `[request clarify] answer flag submits specific answers`
-- `[request clarify] proceed finalizes session`
-- `[request clarify] cancel reverts session`
-- `[request clarify] shows quality score progression`
+- ✅ `[request clarify] displays pending questions`
+- ✅ `[request clarify] interactive mode prompts for answers`
+- ✅ `[request clarify] interactive mode skips null/empty answers`
+- ✅ `[request clarify] answer flag submits specific answers`
+- ✅ `[request clarify] proceed finalizes session`
+- ✅ `[request clarify] cancel reverts session`
+- ✅ `[request clarify] shows quality score progression`
+
+**✅ IMPLEMENTED** — `src/cli/handlers/request_clarify_handler.ts`, 8/8 tests passing
 
 ---
 
@@ -1019,19 +1037,35 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Config schema validates new `[quality_gate]` section
-- [ ] Nested `[quality_gate.thresholds]` validated
-- [ ] All fields optional with sensible defaults
-- [ ] `RequestQualityGate` uses config values
-- [ ] Invalid config values produce clear errors
+- [x] Config schema validates new `[quality_gate]` section
+- [x] Nested `[quality_gate.thresholds]` validated
+- [x] All fields optional with sensible defaults
+- [x] `RequestQualityGate` uses config values
+- [x] Invalid config values produce clear errors
 
 **Planned tests** (`tests/shared/schemas/config_quality_gate_test.ts`):
 
-- `[ConfigSchema] validates quality_gate section`
-- `[ConfigSchema] validates nested thresholds`
-- `[ConfigSchema] uses defaults when quality_gate is absent`
-- `[ConfigSchema] rejects invalid mode value`
-- `[ConfigSchema] rejects threshold outside 0-100`
+- ✅ `[ConfigSchema] validates quality_gate section`
+- ✅ `[ConfigSchema] validates nested thresholds`
+- ✅ `[ConfigSchema] uses defaults when quality_gate is absent`
+- ✅ `[ConfigSchema] rejects invalid mode value`
+- ✅ `[ConfigSchema] rejects threshold outside 0-100`
+
+**Additional tests** (`tests/services/quality_gate/request_quality_gate_test.ts`):
+
+- ✅ `[buildQualityGateConfig] maps enabled flag from config`
+- ✅ `[buildQualityGateConfig] maps mode from config`
+- ✅ `[buildQualityGateConfig] maps auto_enrich → autoEnrich`
+- ✅ `[buildQualityGateConfig] maps block_unactionable → blockUnactionable`
+- ✅ `[buildQualityGateConfig] maps max_clarification_rounds → maxClarificationRounds`
+- ✅ `[buildQualityGateConfig] maps thresholds from config`
+- ✅ `[buildQualityGateConfig] uses defaults when fields absent`
+
+**Integration test** (`tests/services/request_processor_quality_gate_test.ts`):
+
+- ✅ `[RequestProcessor] builds quality gate from TOML config when none injected`
+
+**✅ IMPLEMENTED** — `src/shared/schemas/config.ts`, `src/services/quality_gate/request_quality_gate.ts` (`buildQualityGateConfig`), `src/services/request_processor.ts`, 13 tests passing
 
 ---
 
@@ -1052,23 +1086,26 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Well-specified request passes through quality gate untouched
-- [ ] Underspecified request auto-enriched with preserved original
-- [ ] Vague request enters clarification loop
-- [ ] Q&A loop produces `IRequestSpecification` after answers
-- [ ] Quality score improves across rounds
-- [ ] Session persistence survives simulated re-entry
-- [ ] Pipeline degrades gracefully when LLM unavailable
+- [x] Well-specified request passes through quality gate untouched
+- [x] Underspecified request auto-enriched with preserved original
+- [x] Vague request enters clarification loop
+- [x] Q&A loop produces `IRequestSpecification` after answers
+- [x] Quality score improves across rounds
+- [x] Session persistence survives simulated re-entry
+- [x] Pipeline degrades gracefully when LLM unavailable
 
 **Planned tests:**
 
-- `[E2E] well-specified request proceeds through quality gate`
-- `[E2E] underspecified request auto-enriched`
-- `[E2E] vague request enters Q&A loop`
-- `[E2E] Q&A loop produces IRequestSpecification`
-- `[E2E] quality score improves across rounds`
-- `[E2E] clarification session persists and resumes`
-- `[E2E] disabled quality gate passes all requests`
+- ✅ `[E2E] well-specified request proceeds through quality gate`
+- ✅ `[E2E] underspecified request auto-enriched`
+- ✅ `[E2E] vague request enters Q&A loop`
+- ✅ `[E2E] Q&A loop produces IRequestSpecification`
+- ✅ `[E2E] quality score improves across rounds`
+- ✅ `[E2E] clarification session persists and resumes`
+- ✅ `[E2E] disabled quality gate passes all requests`
+- ✅ `[E2E] Pipeline degrades gracefully when LLM unavailable`
+
+**✅ IMPLEMENTED** — `tests/integration/33_quality_gate_e2e_test.ts`, 8/8 steps passing
 
 ---
 
@@ -1112,14 +1149,16 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] Pipeline diagram includes quality gate step
-- [ ] New statuses documented with transitions
-- [ ] New schemas listed
-- [ ] Quality gate subsection with threshold table
-- [ ] Q&A loop protocol documented
-- [ ] Activity events documented
+- [x] Pipeline diagram includes quality gate step
+- [x] New statuses documented with transitions
+- [x] New schemas listed
+- [x] Quality gate subsection with threshold table
+- [x] Q&A loop protocol documented
+- [x] Activity events documented
 
 **Planned tests:** None (documentation-only).
+
+**✅ IMPLEMENTED** — `ARCHITECTURE.md`, all sections updated
 
 ---
 
@@ -1154,13 +1193,15 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] User guide explains quality gate in accessible language
-- [ ] CLI `clarify` command documented with examples
-- [ ] Config section documented
-- [ ] Technical spec includes all new schemas
-- [ ] Test strategy covers new categories
+- [x] User guide explains quality gate in accessible language
+- [x] CLI `clarify` command documented with examples
+- [x] Config section documented
+- [x] Technical spec includes all new schemas
+- [x] Test strategy covers new categories
 
 **Planned tests:** None (documentation-only).
+
+**✅ IMPLEMENTED** — `docs/ExoFrame_User_Guide.md` (Key Concepts, Request Quality Gate section, `[quality_gate]` config), `docs/dev/ExoFrame_Technical_Spec.md` (§7.4 Request Quality Gate), `docs/dev/ExoFrame_Testing_and_CI_Strategy.md` (Phase 47 test files)
 
 ---
 
@@ -1191,11 +1232,13 @@ Request File (.md)
 
 **Success criteria:**
 
-- [ ] `.copilot/source/exoframe.md` lists quality gate services
-- [ ] `.copilot/cross-reference.md` has quality gate task row
-- [ ] `manifest.json` is fresh
+- [x] `.copilot/source/exoframe.md` lists quality gate services
+- [x] `.copilot/cross-reference.md` has quality gate task row
+- [x] `manifest.json` is fresh
 
 **Planned tests:** `deno task check:docs` passes.
+
+**✅ IMPLEMENTED** — `.copilot/source/exoframe.md` (Project Structure + System Constraints), `.copilot/cross-reference.md` (task row + topic entries: `quality-gate`, `clarification`, `request-specification`), `manifest.json` regenerated
 
 ---
 
@@ -1334,7 +1377,6 @@ return {
 ```
 
 1.
-
 
 ---
 
@@ -1669,12 +1711,12 @@ Gaps §12–§14 (testing gaps) leave the highest-value path (post-clarification
 
 **Success criteria:**
 
-- [ ] `QualityGateMode` exported from `src/shared/enums.ts`; does not import or reference `AnalysisMode`
+- [x] `QualityGateMode` exported from `src/shared/enums.ts`; does not import or reference `AnalysisMode`
 - [ ] `REQUEST_SPECIFICATION_KEY` and `REQUEST_QUALITY_ASSESSMENT_KEY` exported from constants
 - [ ] `DEFAULT_CLARIFICATION_MODEL_KEY` exported from constants
-- [ ] `IRequestQualityGateConfig.mode` typed as `QualityGateMode`
-- [ ] ConfigSchema `quality_gate.mode` uses `z.nativeEnum(QualityGateMode)`
-- [ ] No lint or type errors; `deno check` passes
+- [x] `IRequestQualityGateConfig.mode` typed as `QualityGateMode`
+- [x] ConfigSchema `quality_gate.mode` uses `z.nativeEnum(QualityGateMode)`
+- [x] No lint or type errors; `deno check` passes
 
 **Planned tests:** None (validated by TypeScript's type system; `deno check` enforces separation between `QualityGateMode` and `AnalysisMode`).
 

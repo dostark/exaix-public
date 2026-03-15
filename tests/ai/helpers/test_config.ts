@@ -13,6 +13,7 @@ import {
   McpTransportType,
   PortalAnalysisMode,
   ProviderType,
+  QualityGateMode,
   SqliteJournalMode,
 } from "../../../src/shared/enums.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
@@ -174,6 +175,14 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       staleness_hours: 168,
       use_llm_inference: true,
       ignore_patterns: ["node_modules", ".git", "dist", "build"],
+    },
+    quality_gate: {
+      enabled: true,
+      mode: QualityGateMode.HYBRID,
+      auto_enrich: true,
+      block_unactionable: false,
+      max_clarification_rounds: 5,
+      thresholds: { minimum: 20, enrichment: 50, proceed: 70 },
     },
   };
 }

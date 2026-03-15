@@ -9,7 +9,8 @@
  * @related-files [src/shared/interfaces/i_request_quality_gate_service.ts]
  */
 
-export { RequestQualityGate } from "./request_quality_gate.ts";
+export { buildQualityGateConfig, RequestQualityGate } from "./request_quality_gate.ts";
+export { type IQualityGateTomlConfig } from "./request_quality_gate.ts";
 export { type IRequestQualityGateConfig } from "../../shared/interfaces/i_request_quality_gate_service.ts";
 export { assessHeuristic } from "./heuristic_assessor.ts";
 export { LlmQualityAssessor } from "./llm_assessor.ts";
