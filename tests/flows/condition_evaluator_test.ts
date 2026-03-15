@@ -67,7 +67,7 @@ const mockFlow: IFlow = {
   version: "1.0.0",
   steps: [],
   output: { from: "final", format: FlowOutputFormat.MARKDOWN },
-  settings: { maxParallelism: 3, failFast: true },
+  settings: { maxParallelism: 3, failFast: true, includeRequestCriteria: false },
 };
 
 const mockRequest = {

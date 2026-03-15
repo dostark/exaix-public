@@ -36,7 +36,7 @@ export function defineFlow(config: {
     skills?: string[];
   }>;
   output: { from: string | string[]; format?: FlowOutputFormat };
-  settings?: { maxParallelism?: number; failFast?: boolean; timeout?: number };
+  settings?: { maxParallelism?: number; failFast?: boolean; timeout?: number; includeRequestCriteria?: boolean };
   /** Default skills to apply to all steps (Phase 17) */
   defaultSkills?: string[];
 }): IFlow {
@@ -85,6 +85,7 @@ export function defineFlow(config: {
       maxParallelism: config.settings?.maxParallelism ?? 3,
       failFast: config.settings?.failFast ?? true,
       timeout: config.settings?.timeout,
+      includeRequestCriteria: config.settings?.includeRequestCriteria ?? false,
     },
   };
 

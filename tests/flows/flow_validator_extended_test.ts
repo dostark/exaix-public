@@ -97,7 +97,7 @@ function createFlow(
     version: "1.0.0",
     steps,
     output: output ?? { from: "default", format: FlowOutputFormat.MARKDOWN },
-    settings: { maxParallelism: 3, failFast: true },
+    settings: { maxParallelism: 3, failFast: true, includeRequestCriteria: false },
   };
   return flow;
 }

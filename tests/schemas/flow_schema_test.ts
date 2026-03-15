@@ -423,6 +423,7 @@ Deno.test("IFlow as Flow schemas: can be imported and used by other modules", ()
     settings: {
       maxParallelism: 3,
       failFast: true,
+      includeRequestCriteria: false,
     },
   };
 
