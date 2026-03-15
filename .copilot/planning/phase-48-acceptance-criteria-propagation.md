@@ -339,17 +339,19 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `ICriteriaGeneratorService` exported through barrel with `fromAnalysis()` only
-- [ ] `fromSpecification()` is **not** declared — deferred to Phase 49
-- [ ] `RequirementFulfillmentSchema` and `IRequirementFulfillment` exported from `evaluation_criteria.ts`
-- [ ] Depends only on existing types
-- [ ] TypeScript compiles with `deno check`
+- [x] `ICriteriaGeneratorService` exported through barrel with `fromAnalysis()` only
+- [x] `fromSpecification()` is **not** declared — deferred to Phase 49
+- [x] `RequirementFulfillmentSchema` and `IRequirementFulfillment` exported from `evaluation_criteria.ts`
+- [x] Depends only on existing types
+- [x] TypeScript compiles with `deno check`
 
-**Planned tests** (`tests/flows/evaluation*criteria*test.ts`):
+**Planned tests** (`tests/flows/evaluation_criteria_test.ts`):
 
-- `[EvaluationCriteria] RequirementFulfillmentSchema validates MET status`
-- `[EvaluationCriteria] RequirementFulfillmentSchema validates PARTIAL status`
-- `[EvaluationCriteria] RequirementFulfillmentSchema rejects unknown status`
+- ✅ `[EvaluationCriteria] RequirementFulfillmentSchema validates MET status`
+- ✅ `[EvaluationCriteria] RequirementFulfillmentSchema validates PARTIAL status`
+- ✅ `[EvaluationCriteria] RequirementFulfillmentSchema rejects unknown status`
+
+**✅ IMPLEMENTED** — `src/shared/interfaces/i_criteria_generator_service.ts` created, `src/flows/evaluation_criteria.ts` extended, 3/3 tests passing
 
 ---
 

@@ -1,5 +1,5 @@
 | Symbol | Meaning |
-|--------|---------|
+| --- | --- |
 | 🔴 Critical | Blocks implementation — must resolve before writing code |
 | 🟡 Feasibility | Risky assumption or unspecified algorithm — needs design decision |
 | 🟠 Testing | Missing or under-specified test — implementation may ship without coverage |
@@ -7,7 +7,7 @@
 
 ### Report template
 
-```
+```text
 ## Gap Analysis: {PLANNING_DOC_NAME}
 
 ### Summary

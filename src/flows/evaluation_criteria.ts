@@ -47,6 +47,18 @@ export const CriterionResultSchema = z.object({
 export type CriterionResult = z.infer<typeof CriterionResultSchema>;
 
 /**
+ * Schema for requirement fulfillment tracking
+ */
+export const RequirementFulfillmentSchema = z.object({
+  /** The requirement text being tracked */
+  requirement: z.string(),
+  /** Whether the requirement was met, partially met, or missing */
+  status: z.enum(["MET", "PARTIAL", "MISSING"]),
+});
+
+export type IRequirementFulfillment = z.infer<typeof RequirementFulfillmentSchema>;
+
+/**
  * Schema for complete evaluation result
  */
 export const EvaluationResultSchema = z.object({

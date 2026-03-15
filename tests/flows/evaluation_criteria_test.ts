@@ -17,6 +17,7 @@ import {
   EvaluationCriterion,
   EvaluationCriterionSchema,
   getCriteriaByNames,
+  RequirementFulfillmentSchema,
 } from "../../src/flows/evaluation_criteria.ts";
 import { EvaluationCategory } from "../../src/shared/enums.ts";
 
@@ -569,4 +570,33 @@ Deno.test("[EvaluationCriteria] existing criteria remain unchanged", () => {
   assertEquals(CRITERIA.NO_SECURITY_ISSUES.required, true);
   assertEquals(CRITERIA.ACCURACY.category, EvaluationCategory.CORRECTNESS);
   assertEquals(CRITERION_SETS.CODE_REVIEW.length, 5);
+});
+
+// ============================================================
+// Phase 48 — Step 2: RequirementFulfillmentSchema
+// ============================================================
+
+Deno.test("[EvaluationCriteria] RequirementFulfillmentSchema validates MET status", () => {
+  const result = RequirementFulfillmentSchema.parse({
+    requirement: "implement login",
+    status: "MET",
+  });
+  assertEquals(result.requirement, "implement login");
+  assertEquals(result.status, "MET");
+});
+
+Deno.test("[EvaluationCriteria] RequirementFulfillmentSchema validates PARTIAL status", () => {
+  const result = RequirementFulfillmentSchema.parse({
+    requirement: "add error handling",
+    status: "PARTIAL",
+  });
+  assertEquals(result.status, "PARTIAL");
+});
+
+Deno.test("[EvaluationCriteria] RequirementFulfillmentSchema rejects unknown status", () => {
+  const result = RequirementFulfillmentSchema.safeParse({
+    requirement: "some req",
+    status: "UNKNOWN",
+  });
+  assertEquals(result.success, false);
 });
