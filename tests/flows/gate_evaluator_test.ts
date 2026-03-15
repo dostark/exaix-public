@@ -17,6 +17,7 @@ const DEFAULT_CONFIG: GateConfig = {
   threshold: 0.8,
   onFail: FlowGateOnFail.HALT,
   maxRetries: 3,
+  includeRequestCriteria: false,
 };
 
 function setupEvaluator(score: number, configOverrides: Partial<GateConfig> = {}) {
@@ -177,6 +178,7 @@ Deno.test("GateEvaluator: fails if required criteria fail even when overallScore
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
+    includeRequestCriteria: false,
   };
 
   const result = await evaluator.evaluate(config, "content");
@@ -201,6 +203,7 @@ Deno.test("GateEvaluator: supports criteria objects in config.criteria", async (
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
+    includeRequestCriteria: false,
   };
 
   const result = await evaluator.evaluate(config, "content");
@@ -227,6 +230,7 @@ Deno.test("GateEvaluator: handles judge errors and returns halted by default", a
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
+    includeRequestCriteria: false,
   };
 
   const result = await evaluator.evaluate(config, "content");

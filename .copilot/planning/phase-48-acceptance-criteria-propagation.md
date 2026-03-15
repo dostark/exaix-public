@@ -515,13 +515,13 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Gate steps (`type: "gate"`) execute via `GateEvaluator.evaluate()`, not `agentExecutor`
-- [ ] `IFlowStepRequest.requestAnalysis` is populated from `FlowRunner.execute()` input
-- [ ] `IGateEvaluate` → `GateConfig` conversion preserves all fields including `includeRequestCriteria`
-- [ ] `IGateResult` is mapped to a valid `IStepResult`
-- [ ] Non-gate steps continue to use `agentExecutor` unchanged
-- [ ] Debug warning logged when `includeRequestCriteria=true` but no analysis provided (Gap 17)
-- [ ] JSDoc on `IFlowRunner.execute()` documents the `requestAnalysis` contract (Gap 17)
+- [x] Gate steps (`type: "gate"`) execute via `GateEvaluator.evaluate()`, not `agentExecutor`
+- [x] `IFlowStepRequest.requestAnalysis` is populated from `FlowRunner.execute()` input
+- [x] `IGateEvaluate` → `GateConfig` conversion preserves all fields including `includeRequestCriteria`
+- [x] `IGateResult` is mapped to a valid `IStepResult`
+- [x] Non-gate steps continue to use `agentExecutor` unchanged
+- [x] Debug warning logged when `includeRequestCriteria=true` but no analysis provided (Gap 17)
+- [x] JSDoc on `IFlowRunner.execute()` documents the `requestAnalysis` contract (Gap 17)
 
 **Planned tests** (`tests/flows/flow*runner*gate_dispatch_test.ts`):
 
@@ -531,6 +531,8 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - `[FlowRunner] gate dispatch preserves includeRequestCriteria from step.evaluate`
 - `[FlowRunner] logs warning when includeRequestCriteria=true but no analysis`
 
+
+**✅ IMPLEMENTED** — `flow_runner.ts` updated with gate dispatch, `requestAnalysis` forwarding, `toGateConfig()` export, and debug warning; 5/5 tests passing
 ---
 
 ### Step 7: Enhance `GateEvaluator` to Use Dynamic Criteria

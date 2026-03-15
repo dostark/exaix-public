@@ -7,7 +7,7 @@
  * @related-files [src/flows/flow_loader.ts, src/services/request_router.ts, src/services/flow_reporter.ts]
  */
 
-import { IFlow, IFlowStep } from "../shared/schemas/flow.ts";
+import { IFlow, IFlowStep, IGateEvaluate } from "../shared/schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
 import { IAgentExecutionResult } from "../services/agent_runner.ts";
 import { ConditionEvaluator } from "./condition_evaluator.ts";
@@ -16,8 +16,25 @@ import { jsonExtract, JSONValue } from "../shared/types/json.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
+import { GateConfig, GateEvaluator, IGateResult } from "./gate_evaluator.ts";
+import { FlowStepType } from "../shared/enums.ts";
 
 export interface IFlowRunner {
+  /**
+   * Execute a flow with the given request.
+   *
+   * @param flow - The flow definition to execute.
+   * @param request - Execution request details.
+   * @param request.userPrompt - The user's input prompt.
+   * @param request.traceId - Optional trace identifier for observability.
+   * @param request.requestId - Optional request identifier.
+   * @param request.requestAnalysis - Optional structured analysis of the request
+   *   (Phase 45 output). When provided, gate steps with `includeRequestCriteria`
+   *   enabled will generate dynamic evaluation criteria from this analysis.
+   *   If omitted but a gate step has `includeRequestCriteria: true`, a debug
+   *   warning is logged and the gate falls back to static criteria only.
+   * @param request.portalKnowledge - Optional portal knowledge context.
+   */
   execute(
     flow: IFlow,
     request: {
@@ -186,6 +203,21 @@ const BUILT_IN_TRANSFORM_HANDLERS: Record<string, BuiltInTransformHandler> = {
 };
 
 /**
+ * Convert an IGateEvaluate (YAML-facing gate config) to a GateConfig (evaluator
+ * input), preserving all fields including `includeRequestCriteria`.
+ */
+export function toGateConfig(evaluate: IGateEvaluate): GateConfig {
+  return {
+    agent: evaluate.agent,
+    criteria: evaluate.criteria,
+    threshold: evaluate.threshold,
+    onFail: evaluate.onFail,
+    maxRetries: evaluate.maxRetries,
+    includeRequestCriteria: evaluate.includeRequestCriteria,
+  };
+}
+
+/**
  * FlowRunner - Orchestrates multi-agent flow execution
  * Implements Step 7.4 of the ExoFrame Implementation Plan
  */
@@ -196,6 +228,7 @@ export class FlowRunner implements IFlowRunner {
     private agentExecutor: IAgentExecutor,
     private eventLogger: IFlowEventLogger,
     private db?: IDatabaseService, // Optional for token aggregation
+    private gateEvaluator?: GateEvaluator,
   ) {
     this.conditionEvaluator = new ConditionEvaluator();
   }
@@ -249,7 +282,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async validateIFlow(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
   ): Promise<void> {
     // Log flow validation start
@@ -279,7 +312,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async executeWaves(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
     stepResults: Map<string, IStepResult>,
   ): Promise<void> {
@@ -321,7 +354,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async executeWave(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
     wave: string[],
     waveIndex: number,
@@ -379,7 +412,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async processWaveResults(
     _flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
     wave: string[],
     waveNumber: number,
@@ -484,7 +517,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async aggregateAndFinalize(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
     stepResults: Map<string, IStepResult>,
     startedAt: Date,
@@ -554,7 +587,7 @@ export class FlowRunner implements IFlowRunner {
    */
   private async handleExecutionError(
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     flowRunId: string,
     stepResults: Map<string, IStepResult>,
     startedAt: Date,
@@ -591,7 +624,7 @@ export class FlowRunner implements IFlowRunner {
     flowRunId: string,
     stepId: string,
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     stepResults: Map<string, IStepResult>,
   ): Promise<IStepResult> {
     const step = flow.steps.find((s) => s.id === stepId)!;
@@ -677,7 +710,38 @@ export class FlowRunner implements IFlowRunner {
         requestId: request.requestId,
       });
 
-      // Execute step
+      // Execute step: gate steps route to GateEvaluator; others use agentExecutor
+      if (step.type === FlowStepType.GATE && step.evaluate && this.gateEvaluator) {
+        const gateConfig = toGateConfig(step.evaluate);
+        if (gateConfig.includeRequestCriteria && !stepRequest.requestAnalysis) {
+          await this.eventLogger.log("flow.gate.criteria.no_analysis", {
+            flowRunId,
+            stepId,
+            traceId: request.traceId,
+            requestId: request.requestId,
+          });
+        }
+        const gateResult: IGateResult = await this.gateEvaluator.evaluate(
+          gateConfig,
+          stepRequest.userPrompt,
+          stepRequest.userPrompt,
+        );
+        const completedAt = new Date();
+        const duration = completedAt.getTime() - startedAt.getTime();
+        return {
+          stepId,
+          success: gateResult.passed,
+          result: {
+            thought: "",
+            content: gateResult.evaluation.feedback,
+            raw: JSON.stringify(gateResult.evaluation),
+          },
+          duration,
+          startedAt,
+          completedAt,
+        };
+      }
+
       const result = await this.agentExecutor.run(step.agent, stepRequest);
 
       const completedAt = new Date();
@@ -738,7 +802,7 @@ export class FlowRunner implements IFlowRunner {
     flowRunId: string,
     step: IFlowStep,
     flow: IFlow,
-    originalRequest: { userPrompt: string; traceId?: string; requestId?: string },
+    originalRequest: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     stepResults: Map<string, IStepResult>,
   ): Promise<IFlowStepRequest> {
     let inputData: string;
@@ -815,6 +879,7 @@ export class FlowRunner implements IFlowRunner {
       traceId: originalRequest.traceId,
       requestId: originalRequest.requestId,
       skills,
+      requestAnalysis: originalRequest.requestAnalysis,
     };
   }
 
@@ -898,7 +963,7 @@ export class FlowRunner implements IFlowRunner {
     flowRunId: string,
     stepId: string,
     flow: IFlow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
+    request: { userPrompt: string; traceId?: string; requestId?: string; requestAnalysis?: IRequestAnalysis },
     stepResults: Map<string, IStepResult>,
   ): Promise<IStepResult> {
     try {
