@@ -109,6 +109,8 @@ export const FlowSchema = z.object({
     maxParallelism: z.number().int().min(1).default(3),
     failFast: z.boolean().default(true),
     timeout: z.number().positive().optional(),
+    /** Flow-wide default: include dynamic criteria from request analysis in all gate steps */
+    includeRequestCriteria: z.boolean().default(false),
   }).default({}),
   /** Default skills to apply to all steps (Phase 17) */
   defaultSkills: z.array(z.string()).optional(),

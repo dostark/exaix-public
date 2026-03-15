@@ -713,7 +713,10 @@ export class FlowRunner implements IFlowRunner {
       // Execute step: gate steps route to GateEvaluator; others use agentExecutor
       if (step.type === FlowStepType.GATE && step.evaluate && this.gateEvaluator) {
         const gateConfig = toGateConfig(step.evaluate);
-        if (gateConfig.includeRequestCriteria && !stepRequest.requestAnalysis) {
+        // Step 11: flow-level default upgrades the per-step flag (step wins when true; flow-level true propagates)
+        const effectiveInclude = gateConfig.includeRequestCriteria || flow.settings.includeRequestCriteria;
+        const effectiveGateConfig: GateConfig = { ...gateConfig, includeRequestCriteria: effectiveInclude };
+        if (effectiveGateConfig.includeRequestCriteria && !stepRequest.requestAnalysis) {
           await this.eventLogger.log("flow.gate.criteria.no_analysis", {
             flowRunId,
             stepId,
@@ -722,7 +725,7 @@ export class FlowRunner implements IFlowRunner {
           });
         }
         const gateResult: IGateResult = await this.gateEvaluator.evaluate(
-          gateConfig,
+          effectiveGateConfig,
           stepRequest.userPrompt,
           stepRequest.userPrompt,
           0,
