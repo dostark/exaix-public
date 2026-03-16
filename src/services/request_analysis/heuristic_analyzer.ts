@@ -30,6 +30,7 @@ import {
   ANALYSIS_SIMPLE_MAX_CHARS,
   ANALYSIS_TASK_TYPE_VERBS,
 } from "../../shared/constants.ts";
+import type { IRequestAnalysisContext } from "../../shared/interfaces/i_request_analyzer_service.ts";
 
 // ---------------------------------------------------------------------------
 // File reference extraction
@@ -219,7 +220,10 @@ function extractTags(text: string, fileRefs: string[]): string[] {
  * `metadata`) are omitted. The caller is responsible for merging with LLM output
  * or supplying defaults.
  */
-export function analyzeHeuristic(requestText: string): Partial<IRequestAnalysis> {
+export function analyzeHeuristic(
+  requestText: string,
+  context?: Pick<IRequestAnalysisContext, "memories">,
+): Partial<IRequestAnalysis> {
   if (!requestText || requestText.trim().length === 0) {
     return {
       referencedFiles: [],
@@ -229,7 +233,10 @@ export function analyzeHeuristic(requestText: string): Partial<IRequestAnalysis>
     };
   }
 
-  const fileRefs = extractFileRefs(requestText);
+  const memoryText = context?.memories?.memoryContext ?? "";
+  const combinedText = memoryText ? `${requestText}\n${memoryText}` : requestText;
+
+  const fileRefs = extractFileRefs(combinedText);
   const bulletCount = countBullets(requestText);
   const complexity = classifyComplexity(requestText, fileRefs.length, bulletCount);
   const taskType = classifyTaskType(requestText);

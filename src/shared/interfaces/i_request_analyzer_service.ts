@@ -11,6 +11,7 @@
 
 import type { IRequestAnalysis } from "../schemas/request_analysis.ts";
 import { AnalysisMode } from "../types/request.ts";
+import type { EnhancedRequest } from "../../services/session_memory.ts";
 
 /**
  * Configuration for the RequestAnalyzer service.
@@ -60,6 +61,8 @@ export interface IRequestAnalysisContext {
   traceId?: string;
   /** Analysis mode override for this specific context (overrides config). */
   mode?: AnalysisMode;
+  /** Memory context from session memory service, used to enrich analysis. */
+  memories?: EnhancedRequest;
 }
 
 /**

@@ -129,16 +129,16 @@ export class RequestAnalyzer implements IRequestAnalyzerService {
     let result: IRequestAnalysis;
 
     if (mode === AnalysisMode.HEURISTIC) {
-      const partial = analyzeHeuristic(requestText);
+      const partial = analyzeHeuristic(requestText, context);
       result = completeFromHeuristic(partial, requestText, Date.now() - startMs, AnalysisMode.HEURISTIC);
     } else if (mode === AnalysisMode.LLM) {
       result = await this._callLlmWithFallback(requestText, context, startMs);
       // Always merge heuristic file refs into LLM result
-      const heuristicPartial = analyzeHeuristic(requestText);
+      const heuristicPartial = analyzeHeuristic(requestText, context);
       result = mergeFileRefs(result, heuristicPartial);
     } else {
       // hybrid
-      const heuristicPartial = analyzeHeuristic(requestText);
+      const heuristicPartial = analyzeHeuristic(requestText, context);
       const hScore = heuristicActionabilityScore(heuristicPartial);
 
       if (hScore >= this.threshold || !this.llmAnalyzer) {

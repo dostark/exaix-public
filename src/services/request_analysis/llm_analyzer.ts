@@ -74,6 +74,9 @@ function buildPrompt(requestText: string, context?: IRequestAnalysisContext): st
     if (context.priority) parts.push(`Priority: ${context.priority}`);
     if (context.filePaths?.length) parts.push(`Known files: ${context.filePaths.join(", ")}`);
     if (context.tags?.length) parts.push(`Existing tags: ${context.tags.join(", ")}`);
+    if (context.memories?.memoryContext) {
+      parts.push(`\n${context.memories.memoryContext}`);
+    }
     if (parts.length > 0) {
       contextSection = `CONTEXT:\n${parts.join("\n")}\n`;
     }

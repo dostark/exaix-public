@@ -227,6 +227,7 @@ export class RequestProcessor {
         agentId: frontmatter.agent ?? frontmatter.flow,
         priority: frontmatter.priority,
         mode: analysisMode,
+        memories: memoryContext,
       }).catch(() => undefined)
       : undefined;
 
