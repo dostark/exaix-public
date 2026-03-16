@@ -714,7 +714,7 @@ export class FlowRunner implements IFlowRunner {
       if (step.type === FlowStepType.GATE && step.evaluate && this.gateEvaluator) {
         const gateConfig = toGateConfig(step.evaluate);
         // Step 11: flow-level default upgrades the per-step flag (step wins when true; flow-level true propagates)
-        const effectiveInclude = gateConfig.includeRequestCriteria || flow.settings.includeRequestCriteria;
+        const effectiveInclude = gateConfig.includeRequestCriteria || flow.settings?.includeRequestCriteria;
         const effectiveGateConfig: GateConfig = { ...gateConfig, includeRequestCriteria: effectiveInclude };
         if (effectiveGateConfig.includeRequestCriteria && !stepRequest.requestAnalysis) {
           await this.eventLogger.log("flow.gate.criteria.no_analysis", {
