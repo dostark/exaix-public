@@ -1521,6 +1521,36 @@ When `critique` is absent or `requirementsFulfillment` is empty, `goalAlignmentS
 
 Weights are configurable via `IConfidenceScorerConfig.goalAlignmentWeight` / `existingScoreWeight` (defaults 0.3 / 0.7, from constants `GOAL_ALIGNMENT_CONFIDENCE_WEIGHT` / `EXISTING_SCORE_CONFIDENCE_WEIGHT`).
 
+### Artifact Verification Pipeline
+
+Verification of delivered artifacts against propagated acceptance criteria occurs at **three independent layers**, each triggered at a different point in the execution lifecycle. The layers are complementary: a gate blocks bad output from proceeding; the reflexive critique loop corrects in-flight output before it reaches a gate; confidence scoring communicates residual uncertainty to the caller after execution.
+
+#### Layer 1 — Quality Gate (blocking, post-step)
+
+`GateEvaluator` is invoked synchronously by `FlowRunner` when a `GATE`-type step executes — immediately after the agent step(s) it guards. When `includeRequestCriteria` is enabled and `IRequestAnalysis` is available, the gate evaluates the artifact against the merged static + dynamic criteria set. The judge LLM scores each criterion; the gate **blocks the flow** if the overall score or any required criterion falls below threshold.
+
+#### Layer 2 — Reflexive Critique (iterative, in-flight)
+
+`ReflexiveAgent.run()` embeds structured requirements (goals + acceptance criteria) into the critique prompt on every iteration of the refinement loop. The critique model is asked to classify each requirement as MET, PARTIAL, or MISSING. If requirements are unmet, the agent is directed to revise its response before the loop advances or the response is returned. This layer corrects the artifact _before_ it reaches a gate.
+
+#### Layer 3 — Confidence Scoring (non-blocking, post-execution)
+
+`ConfidenceScorer.assess()` blends requirement-fulfilment evidence from a prior `ReflexiveAgent` critique into the final confidence score. When `requirementsFulfillment` is present in the critique, goal alignment is weighted at 30% of the final score. This layer does not block execution; it communicates to the caller how much confidence to place in the response.
+
+#### Trigger Sequence
+
+```text
+RequestAnalyzer.analyze()              → IRequestAnalysis (stored in plan frontmatter)
+  ↓
+FlowRunner.execute(request, analysis)
+  ├─ [agent step]  → artifact produced
+  ├─ [GATE step]   → GateEvaluator  (Layer 1: blocks on fail)
+  ├─ [reflexive]   → ReflexiveAgent (Layer 2: corrects in-flight)
+  └─ [scoring]     → ConfidenceScorer (Layer 3: non-blocking signal)
+```
+
+All three layers degrade gracefully when `IRequestAnalysis` is absent (e.g., pre-Phase-45 plans): gates use only static criteria, `ReflexiveAgent` omits the requirements block, and `ConfidenceScorer` applies no goal-alignment penalty.
+
 ### New Service
 
 | Service                | Purpose                                                 | Source file                          |

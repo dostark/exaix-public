@@ -1795,6 +1795,30 @@ finalScore = rawScore × 0.7 + goalAlignmentScore × 100 × 0.3
 
 where `goalAlignmentScore = (MET + 0.5 × PARTIAL) / total`. Absent critique → `goalAlignmentScore = 1.0` (no penalty for pre-Phase-48 callers). Weights are configurable via `IConfidenceScorerConfig`.
 
+#### 7.5.5 Artifact Verification Pipeline
+
+Verification of delivered artifacts against propagated acceptance criteria happens across three complementary layers, each triggered at a different point in the execution lifecycle.
+
+| Layer                  | Component          | Trigger                                                              | Effect                                                                                                  |
+| ---------------------- | ------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 1 — Quality Gate       | `GateEvaluator`    | After a producing agent step completes (`GATE`-type flow step)       | **Blocking** — flow is halted on fail; retry or abort per `onFail` config                               |
+| 2 — Reflexive Critique | `ReflexiveAgent`   | Each iteration of the critique loop, before the response is returned | **Corrective** — agent is asked to refine until requirements are MET or `maxIterations` is reached      |
+| 3 — Confidence Scoring | `ConfidenceScorer` | After final response is produced                                     | **Non-blocking signal** — goal-alignment evidence from critique is blended into the score at 0.3 weight |
+
+**Trigger sequence within a flow:**
+
+```text
+RequestAnalyzer.analyze()              → IRequestAnalysis (stored in plan frontmatter)
+  ↓
+FlowRunner.execute(request, analysis)
+  ├─ [agent step]  → artifact produced
+  ├─ [GATE step]   → GateEvaluator  (Layer 1: blocks on fail)
+  ├─ [reflexive]   → ReflexiveAgent (Layer 2: corrects in-flight)
+  └─ [scoring]     → ConfidenceScorer (Layer 3: non-blocking signal)
+```
+
+**Backward compatibility:** All three layers degrade gracefully when `IRequestAnalysis` is absent — gates use only static criteria, `ReflexiveAgent` omits the requirements section, and `ConfidenceScorer` applies no goal-alignment penalty (`goalAlignmentScore` defaults to 1.0).
+
 ---
 
 ## 8. Security & Trust
