@@ -200,6 +200,14 @@ export class RequestCreateHandler extends BaseCommand {
     if (options.skills && options.skills.length > 0) {
       frontmatterFields.skills = JSON.stringify(options.skills);
     }
+
+    if (options.acceptanceCriteria && options.acceptanceCriteria.length > 0) {
+      frontmatterFields.acceptance_criteria = JSON.stringify(options.acceptanceCriteria);
+    }
+
+    if (options.expectedOutcomes && options.expectedOutcomes.length > 0) {
+      frontmatterFields.expected_outcomes = JSON.stringify(options.expectedOutcomes);
+    }
   }
 
   async createFromFile(

@@ -255,6 +255,16 @@ export const __test_command = new Command()
       .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
       .option("--skills <skills:string>", "Comma-separated list of skills to inject")
       .option("-s, --subject <subject:string>", "Human-readable subject for the request")
+      .option(
+        "--acceptance-criteria <criteria:string>",
+        "Acceptance criterion (repeatable: --acceptance-criteria 'A' --acceptance-criteria 'B')",
+        { collect: true },
+      )
+      .option(
+        "--expected-outcome <outcome:string>",
+        "Expected outcome (repeatable: --expected-outcome 'A' --expected-outcome 'B')",
+        { collect: true },
+      )
       .option("-f, --file <file:string>", "Read description from file")
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")

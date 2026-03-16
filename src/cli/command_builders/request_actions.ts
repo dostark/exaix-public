@@ -35,6 +35,8 @@ export interface RequestCreateOptions {
   dryRun?: boolean;
   analyze?: boolean;
   engine?: string;
+  acceptanceCriteria?: string[];
+  expectedOutcomes?: string[];
 }
 
 export interface RequestListOptions {
@@ -114,6 +116,8 @@ export async function handleRequestCreate(
       subject: options.subject,
       analyze: options.analyze,
       analysis_engine: options.engine as AnalysisMode,
+      acceptanceCriteria: options.acceptanceCriteria,
+      expectedOutcomes: options.expectedOutcomes,
     };
 
     // Handle file input

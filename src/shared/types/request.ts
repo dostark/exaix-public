@@ -48,6 +48,10 @@ export interface IRequestOptions {
   subject?: string;
   analyze?: boolean;
   analysis_engine?: AnalysisMode;
+  /** Explicit acceptance criteria passed via CLI --acceptance-criteria flag (Phase 49). */
+  acceptanceCriteria?: string[];
+  /** Expected outcomes passed via CLI --expected-outcome flag (Phase 49). */
+  expectedOutcomes?: string[];
 }
 
 /**
