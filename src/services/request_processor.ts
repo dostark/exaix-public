@@ -31,6 +31,7 @@ import {
   COMPLEXITY_FILE_REF_PATTERN,
   COMPLEXITY_FILE_REF_THRESHOLD_HIGH,
   DEFAULT_ANALYZER_MODE,
+  MEMORY_CONTEXT_KEY,
   PORTAL_CONTEXT_KEY,
   PORTAL_KNOWLEDGE_KEY,
   PORTAL_KNOWLEDGE_PROMPT_MAX_LINES,
@@ -65,6 +66,7 @@ import { RequestQualityRecommendation } from "../shared/schemas/request_quality_
 import { loadClarification, saveClarification } from "./quality_gate/clarification_persistence.ts";
 import { ClarificationSessionStatus } from "../shared/schemas/clarification_session.ts";
 import type { IRequestSpecification } from "../shared/schemas/request_specification.ts";
+import { type EnhancedRequest, SessionMemoryService } from "./session_memory.ts";
 
 export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
@@ -76,6 +78,7 @@ export interface IRequestProcessingContext extends IServiceContext {
   requestKind: RequestKind;
   analysis?: IRequestAnalysis;
   portalKnowledge?: IPortalKnowledge;
+  memoryContext?: EnhancedRequest;
 }
 
 export interface IRequestProcessorConfig {
@@ -111,6 +114,7 @@ export class RequestProcessor {
     testAnalyzer?: IRequestAnalyzerService,
     private readonly portalKnowledgeService?: IPortalKnowledgeService,
     testQualityGate?: IRequestQualityGateService,
+    private readonly sessionMemory?: SessionMemoryService,
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
@@ -208,6 +212,11 @@ export class RequestProcessor {
 
     const pipeline = this.createRequestProcessingPipeline();
 
+    // Enhance request with session memory context before analysis
+    const memoryContext = this.sessionMemory
+      ? await this.sessionMemory.enhanceRequest(assessedBody).catch(() => undefined)
+      : undefined;
+
     // Run analysis before pipeline so both agent and flow paths benefit
     // Skip if analysis is disabled in config
     const analysisEnabled = this.config.request_analysis?.enabled !== false;
@@ -247,6 +256,7 @@ export class RequestProcessor {
       requestKind,
       analysis,
       portalKnowledge,
+      memoryContext,
     };
 
     try {
@@ -262,6 +272,7 @@ export class RequestProcessor {
           context.analysis,
           context.portalKnowledge,
           clarificationSpec,
+          context.memoryContext,
         );
       });
 
@@ -445,6 +456,7 @@ export class RequestProcessor {
     analysis?: IRequestAnalysis,
     portalKnowledge?: IPortalKnowledge,
     specification?: IRequestSpecification,
+    memoryContext?: EnhancedRequest,
   ): Promise<string | null> {
     if (kind === RequestKind.FLOW) {
       return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger, analysis, portalKnowledge);
@@ -460,6 +472,7 @@ export class RequestProcessor {
       analysis,
       portalKnowledge,
       specification,
+      memoryContext,
     );
   }
 
@@ -531,6 +544,7 @@ export class RequestProcessor {
     analysis?: IRequestAnalysis,
     portalKnowledge?: IPortalKnowledge,
     specification?: IRequestSpecification,
+    memoryContext?: EnhancedRequest,
   ): Promise<string | null> {
     const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
@@ -567,6 +581,9 @@ export class RequestProcessor {
     }
     if (portalKnowledge) {
       request.context[PORTAL_KNOWLEDGE_KEY] = buildPortalKnowledgeSummary(portalKnowledge);
+    }
+    if (memoryContext) {
+      request.context[MEMORY_CONTEXT_KEY] = memoryContext;
     }
 
     const taskComplexity = this.classifyTaskComplexity(blueprint, request, analysis);

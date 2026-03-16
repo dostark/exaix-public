@@ -369,11 +369,13 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] Enhanced prompt includes goals with [E]/[I] markers when analysis present
-- [ ] Enhanced prompt includes acceptance criteria when present
-- [ ] Generic prompt returned when no analysis
-- [ ] Requirements capped at `MAX_CRITIQUE_REQUIREMENTS` (no magic literal `10`)
-- [ ] Prompt structure matches expected format
+- [x] Enhanced prompt includes goals with [E]/[I] markers when analysis present
+- [x] Enhanced prompt includes acceptance criteria when present
+- [x] Generic prompt returned when no analysis
+- [x] Requirements capped at `MAX_CRITIQUE_REQUIREMENTS` (no magic literal `10`)
+- [x] Prompt structure matches expected format
+
+✅ IMPLEMENTED — `buildEnhancedCritiquePrompt()` extracted in `src/services/reflexive_agent.ts`; 4 tests in `tests/services/reflexive_agent_enhanced_prompt_test.ts`
 
 **Planned tests** (`tests/services/reflexive_agent_enhanced_prompt_test.ts`):
 
@@ -449,10 +451,12 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `SessionMemoryService.enhanceRequest()` called in `RequestProcessor.process()` before analysis
-- [ ] Memory context stored on `IParsedRequest.context` (not passed to `RequestAnalyzer` yet — that is Step 6)
-- [ ] `AgentRunner` can read memory context from `request.context` without a second `enhanceRequest()` call
-- [ ] Works when `SessionMemoryService` is not configured (no-op)
+- [x] `SessionMemoryService.enhanceRequest()` called in `RequestProcessor.process()` before analysis
+- [x] Memory context stored on `IParsedRequest.context` (not passed to `RequestAnalyzer` yet — that is Step 6)
+- [x] `AgentRunner` can read memory context from `request.context` without a second `enhanceRequest()` call
+- [x] Works when `SessionMemoryService` is not configured (no-op)
+
+✅ IMPLEMENTED — `src/services/request_processor.ts` updated; `MEMORY_CONTEXT_KEY` added to constants; 3 tests in `tests/services/request_processor_memory_test.ts`
 
 **Planned tests** (`tests/services/request_processor_memory_test.ts`):
 
@@ -645,10 +649,12 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `IParsedRequest.context` includes `acceptance_criteria` when present
-- [ ] `IParsedRequest.context` includes `expected_outcomes` when present
-- [ ] `IParsedRequest.context` includes `scope` when present
-- [ ] Context unchanged when fields not present
+- [x] `IParsedRequest.context` includes `acceptance_criteria` when present
+- [x] `IParsedRequest.context` includes `expected_outcomes` when present
+- [x] `IParsedRequest.context` includes `scope` when present
+- [x] Context unchanged when fields not present
+
+✅ IMPLEMENTED — `src/services/request_common.ts` updated; 4 tests in `tests/services/request_common_structured_test.ts`
 
 **Planned tests** (`tests/services/request_common_structured_test.ts`):
 
@@ -684,11 +690,13 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `IRequestOptions` has `acceptanceCriteria?: string[]` and `expectedOutcomes?: string[]`
-- [ ] `--acceptance-criteria` flag accepted (repeatable)
-- [ ] `--expected-outcome` flag accepted (repeatable)
-- [ ] Values propagated from flag → `IRequestOptions` → `addOptionalFrontmatterFields()` → YAML
-- [ ] Request creation works without new flags
+- [x] `IRequestOptions` has `acceptanceCriteria?: string[]` and `expectedOutcomes?: string[]`
+- [x] `--acceptance-criteria` flag accepted (repeatable)
+- [x] `--expected-outcome` flag accepted (repeatable)
+- [x] Values propagated from flag → `IRequestOptions` → `addOptionalFrontmatterFields()` → YAML
+- [x] Request creation works without new flags
+
+✅ IMPLEMENTED — `src/cli/exoctl.ts`, `src/cli/handlers/request_create_handler.ts`, `src/cli/command_builders/request_actions.ts` updated; 4 tests in `tests/cli/commands/request_create_criteria_test.ts`
 
 **Planned tests** (`tests/cli/commands/request_create_criteria_test.ts`):
 

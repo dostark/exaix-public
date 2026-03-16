@@ -1,6 +1,6 @@
 # Phase 48: Acceptance Criteria Propagation & Goal-Aligned Evaluation
 
-## Status: PLANNING
+## Status: COMPLETE ✅
 
 Close the gap between "what was asked" and "what quality gates evaluate" by propagating extracted acceptance criteria through the entire pipeline and introducing goal-alignment evaluation criteria.
 
@@ -91,13 +91,13 @@ Without knowing what "all requirements" are, the judge must guess.
 
 ## Goals
 
-- [ ] Add `GOAL*ALIGNMENT` and `TASK*FULFILLMENT` criteria to the built-in `CRITERIA` library.
-- [ ] Implement `CriteriaGenerator` that produces request-specific `EvaluationCriterion` objects from `IRequestAnalysis` (Phase 45 output).
-- [ ] Extend `GateConfig` to accept dynamic criteria alongside named ones.
-- [ ] Propagate `IRequestAnalysis.acceptanceCriteria` through plan metadata.
-- [ ] Enhance `ReflexiveAgent` critique prompts with structured requirements context.
-- [ ] Enhance `ConfidenceScorer` to factor in goal alignment.
-- [ ] Write tests for dynamic criteria generation and goal-aligned evaluation.
+- [x] Add `GOAL*ALIGNMENT` and `TASK*FULFILLMENT` criteria to the built-in `CRITERIA` library.
+- [x] Implement `CriteriaGenerator` that produces request-specific `EvaluationCriterion` objects from `IRequestAnalysis` (Phase 45 output).
+- [x] Extend `GateConfig` to accept dynamic criteria alongside named ones.
+- [x] Propagate `IRequestAnalysis.acceptanceCriteria` through plan metadata.
+- [x] Enhance `ReflexiveAgent` critique prompts with structured requirements context.
+- [x] Enhance `ConfidenceScorer` to factor in goal alignment.
+- [x] Write tests for dynamic criteria generation and goal-aligned evaluation.
 
 ---
 
