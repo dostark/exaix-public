@@ -21,6 +21,11 @@ import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { IBlueprint, IParsedRequest } from "../../src/services/agent_runner.ts";
 import type { IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
+import {
+  COMPLEXITY_BODY_LENGTH_LOW,
+  COMPLEXITY_BULLET_THRESHOLD_HIGH,
+  COMPLEXITY_FILE_REF_THRESHOLD_HIGH,
+} from "../../src/shared/constants.ts";
 
 /**
  * Interface representing the private method for testing.
@@ -360,3 +365,89 @@ Deno.test("[classifyTaskComplexity] maps EPIC to COMPLEX", async () => {
     await cleanup();
   }
 });
+
+// ---------------------------------------------------------------------------
+// Phase 49 Step 7 — threshold boundary tests using Step 12 constants
+// ---------------------------------------------------------------------------
+
+Deno.test(
+  "[classifyTaskComplexity] file refs at threshold (COMPLEXITY_FILE_REF_THRESHOLD_HIGH) -> COMPLEX",
+  async () => {
+    const { processor, cleanup } = await createComplexityTestSetup();
+    try {
+      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      // Build body with exactly COMPLEXITY_FILE_REF_THRESHOLD_HIGH file references.
+      const refs = Array.from(
+        { length: COMPLEXITY_FILE_REF_THRESHOLD_HIGH },
+        (_, i) => `ref${i}.ts`,
+      ).join(", ");
+      assertEquals(
+        callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(refs)),
+        TaskComplexity.COMPLEX,
+      );
+    } finally {
+      await cleanup();
+    }
+  },
+);
+
+Deno.test(
+  "[classifyTaskComplexity] file refs below threshold (COMPLEXITY_FILE_REF_THRESHOLD_HIGH - 1) -> no file-ref signal",
+  async () => {
+    const { processor, cleanup } = await createComplexityTestSetup();
+    try {
+      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      // Build a body with one fewer file reference than the threshold — no COMPLEX from this signal.
+      const refs = Array.from(
+        { length: COMPLEXITY_FILE_REF_THRESHOLD_HIGH - 1 },
+        (_, i) => `ref${i}.ts`,
+      ).join(", ");
+      // Pad with non-whitespace chars to exceed COMPLEXITY_BODY_LENGTH_LOW so the short-body SIMPLE rule doesn't fire.
+      const padding = "a".repeat(Math.max(0, COMPLEXITY_BODY_LENGTH_LOW - refs.length + 1));
+      const body = `${refs} ${padding}`;
+      // Body has few refs, no bullets, and is not short — falls to MEDIUM via agent ID.
+      assertEquals(
+        callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(body)),
+        TaskComplexity.MEDIUM,
+      );
+    } finally {
+      await cleanup();
+    }
+  },
+);
+
+Deno.test(
+  "[classifyTaskComplexity] bullets at threshold (COMPLEXITY_BULLET_THRESHOLD_HIGH) -> COMPLEX",
+  async () => {
+    const { processor, cleanup } = await createComplexityTestSetup();
+    try {
+      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      const body = "Header:\n" +
+        Array.from({ length: COMPLEXITY_BULLET_THRESHOLD_HIGH }, (_, i) => `- item ${i}`).join("\n");
+      assertEquals(
+        callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(body)),
+        TaskComplexity.COMPLEX,
+      );
+    } finally {
+      await cleanup();
+    }
+  },
+);
+
+Deno.test(
+  "[classifyTaskComplexity] body below COMPLEXITY_BODY_LENGTH_LOW with no bullets -> SIMPLE",
+  async () => {
+    const { processor, cleanup } = await createComplexityTestSetup();
+    try {
+      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      // Construct a body just under COMPLEXITY_BODY_LENGTH_LOW characters.
+      const shortBody = "x".repeat(COMPLEXITY_BODY_LENGTH_LOW - 1);
+      assertEquals(
+        callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(shortBody)),
+        TaskComplexity.SIMPLE,
+      );
+    } finally {
+      await cleanup();
+    }
+  },
+);

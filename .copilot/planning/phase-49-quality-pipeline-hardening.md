@@ -529,9 +529,11 @@ These structured fields feed directly into:
 - [x] Content heuristics provide reasonable classification without analysis *(already done)*
 - [x] Agent-ID fallback still works for backward compatibility *(already done)*
 - [x] No underscore on `request` parameter *(already done)*
-- [ ] No magic number literals in `checkContentHeuristics()` — all from Step 12 constants
-- [ ] `checkContentHeuristics()` uses `COMPLEXITY_FILE_REF_PATTERN` constant
-- [ ] Threshold values match Step 12 constant definitions
+- [x] No magic number literals in `checkContentHeuristics()` — all from Step 12 constants
+- [x] `checkContentHeuristics()` uses `COMPLEXITY_FILE_REF_PATTERN` constant
+- [x] Threshold values match Step 12 constant definitions
+
+✅ IMPLEMENTED — `src/services/request_processor.ts` `checkContentHeuristics()` updated; 4 boundary tests added to `tests/services/request_processor_complexity_test.ts`
 
 **Planned tests** (`tests/services/request_processor_complexity_test.ts` — new file, but assertions must use constant values not literals):
 

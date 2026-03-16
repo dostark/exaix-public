@@ -26,6 +26,10 @@ import { PlanValidationError } from "./plan_adapter.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
 import {
+  COMPLEXITY_BODY_LENGTH_LOW,
+  COMPLEXITY_BULLET_THRESHOLD_HIGH,
+  COMPLEXITY_FILE_REF_PATTERN,
+  COMPLEXITY_FILE_REF_THRESHOLD_HIGH,
   DEFAULT_ANALYZER_MODE,
   PORTAL_CONTEXT_KEY,
   PORTAL_KNOWLEDGE_KEY,
@@ -883,11 +887,11 @@ Raw Details: ${args.rawDetails}
 
   private checkContentHeuristics(body?: string): TaskComplexity | null {
     if (!body) return null;
-    const fileRefs = body.match(/(\/[\w.-]+|[a-z0-9_]+\.(ts|js|md|json|py|go|rs|c|cpp|h))/gi);
-    if (fileRefs && fileRefs.length >= 5) return TaskComplexity.COMPLEX;
+    const fileRefs = body.match(COMPLEXITY_FILE_REF_PATTERN);
+    if (fileRefs && fileRefs.length >= COMPLEXITY_FILE_REF_THRESHOLD_HIGH) return TaskComplexity.COMPLEX;
     const bulletPoints = (body.match(/\n\s*[-*]\s+/g) || []).length;
-    if (bulletPoints >= 8) return TaskComplexity.COMPLEX;
-    if (body.length < 50 && !body.includes("\n-")) return TaskComplexity.SIMPLE;
+    if (bulletPoints >= COMPLEXITY_BULLET_THRESHOLD_HIGH) return TaskComplexity.COMPLEX;
+    if (body.length < COMPLEXITY_BODY_LENGTH_LOW && !body.includes("\n-")) return TaskComplexity.SIMPLE;
     return null;
   }
 
