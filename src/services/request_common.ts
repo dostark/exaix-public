@@ -59,6 +59,13 @@ export function buildParsedRequest(
       source: frontmatter.source,
       traceId,
       requestId,
+      ...(frontmatter.acceptance_criteria !== undefined && {
+        acceptance_criteria: frontmatter.acceptance_criteria,
+      }),
+      ...(frontmatter.expected_outcomes !== undefined && {
+        expected_outcomes: frontmatter.expected_outcomes,
+      }),
+      ...(frontmatter.scope !== undefined && { scope: frontmatter.scope }),
     },
     requestId,
     traceId,
