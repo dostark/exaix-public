@@ -439,8 +439,8 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - `[CriteriaGenerator] generates from acceptanceCriteria only when goals empty` (Gap 11)
 - `[CriteriaGenerator] caps at exactly MAX_DYNAMIC_CRITERIA when input produces 11` (Gap 11)
 
-
 **✅ IMPLEMENTED** — `src/services/criteria_generator.ts` created, 12/12 tests passing
+
 ---
 
 ### Step 5: Extend Gate Schemas to Accept Dynamic Criteria Flag
@@ -477,7 +477,6 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - `[GateEvaluateSchema] backward compatible with existing YAML configs`
 - `[GateConfigSchema] validates includeRequestCriteria field`
 - `[GateConfigSchema] defaults includeRequestCriteria to false`
-
 
 **✅ IMPLEMENTED** — `includeRequestCriteria: z.boolean().default(false)` added to both `GateEvaluateSchema` and `GateConfigSchema`; 5/5 tests passing
 ---
@@ -523,16 +522,16 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 - [x] Debug warning logged when `includeRequestCriteria=true` but no analysis provided (Gap 17)
 - [x] JSDoc on `IFlowRunner.execute()` documents the `requestAnalysis` contract (Gap 17)
 
-**Planned tests** (`tests/flows/flow*runner*gate_dispatch_test.ts`):
+**Planned tests** (`tests/flows/flow_runner_gate_dispatch_test.ts`):
 
-- `[FlowRunner] dispatches gate steps to GateEvaluator`
-- `[FlowRunner] non-gate steps use agentExecutor`
-- `[FlowRunner] requestAnalysis forwarded to IFlowStepRequest`
-- `[FlowRunner] gate dispatch preserves includeRequestCriteria from step.evaluate`
-- `[FlowRunner] logs warning when includeRequestCriteria=true but no analysis`
+- ✅ `[FlowRunner] dispatches gate steps to GateEvaluator`
+- ✅ `[FlowRunner] non-gate steps use agentExecutor`
+- ✅ `[FlowRunner] requestAnalysis forwarded to IFlowStepRequest`
+- ✅ `[FlowRunner] gate dispatch preserves includeRequestCriteria from step.evaluate`
+- ✅ `[FlowRunner] logs warning when includeRequestCriteria=true but no analysis`
 
+**✅ IMPLEMENTED** — `src/flows/flow_runner.ts`, 5/5 tests passing
 
-**✅ IMPLEMENTED** — `flow_runner.ts` updated with gate dispatch, `requestAnalysis` forwarding, `toGateConfig()` export, and debug warning; 5/5 tests passing
 ---
 
 ### Step 7: Enhance `GateEvaluator` to Use Dynamic Criteria
@@ -559,25 +558,27 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Dynamic criteria generated when `includeRequestCriteria` is `true` and analysis available
-- [ ] Dynamic criteria merged with static; deduplication by name with static precedence
-- [ ] No dynamic criteria when `includeRequestCriteria` is `false`
-- [ ] Falls back to static-only when `includeRequestCriteria` is `true` but analysis is `undefined` (Gap 12)
-- [ ] Falls back to static-only when dynamic generation returns empty array (Gap 12)
-- [ ] Catches and logs `CriteriaGenerator` errors; continues with static criteria (Gap 12)
-- [ ] Judge agent receives combined criteria list
-- [ ] Existing flows work unchanged
+- [x] Dynamic criteria generated when `includeRequestCriteria` is `true` and analysis available
+- [x] Dynamic criteria merged with static; deduplication by name with static precedence
+- [x] No dynamic criteria when `includeRequestCriteria` is `false`
+- [x] Falls back to static-only when `includeRequestCriteria` is `true` but analysis is `undefined` (Gap 12)
+- [x] Falls back to static-only when dynamic generation returns empty array (Gap 12)
+- [x] Catches and logs `CriteriaGenerator` errors; continues with static criteria (Gap 12)
+- [x] Judge agent receives combined criteria list
+- [x] Existing flows work unchanged
 
-**Planned tests** (`tests/flows/gate*evaluator*dynamic_test.ts`):
+**Planned tests** (`tests/flows/gate_evaluator_dynamic_test.ts`):
 
-- `[GateEvaluator] includes dynamic criteria when enabled and analysis available`
-- `[GateEvaluator] skips dynamic criteria when disabled`
-- `[GateEvaluator] skips dynamic criteria when analysis unavailable`
-- `[GateEvaluator] deduplicates criteria by name`
-- `[GateEvaluator] static criteria take precedence over dynamic`
-- `[GateEvaluator] existing flows unaffected`
-- `[GateEvaluator] falls back to static when dynamic generation returns empty` (Gap 12)
-- `[GateEvaluator] catches CriteriaGenerator errors and continues with static criteria` (Gap 12)
+- ✅ `[GateEvaluator] includes dynamic criteria when enabled and analysis available`
+- ✅ `[GateEvaluator] skips dynamic criteria when disabled`
+- ✅ `[GateEvaluator] skips dynamic criteria when analysis unavailable`
+- ✅ `[GateEvaluator] deduplicates criteria by name`
+- ✅ `[GateEvaluator] static criteria take precedence over dynamic`
+- ✅ `[GateEvaluator] existing flows unaffected`
+- ✅ `[GateEvaluator] falls back to static when dynamic generation returns empty` (Gap 12)
+- ✅ `[GateEvaluator] catches CriteriaGenerator errors and continues with static criteria` (Gap 12)
+
+**✅ IMPLEMENTED** — `src/flows/gate_evaluator.ts`, 8/8 tests passing
 
 ---
 
@@ -609,20 +610,22 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `run()` accepts optional third parameter `requestAnalysis?: IRequestAnalysis`
-- [ ] `requestAnalysis` is **not** stored in `this.config` (Gap 6)
-- [ ] Enhanced prompt includes structured goals and acceptance criteria when analysis provided
-- [ ] Goals listed with `[E]`/`[I]` explicit/inferred markers
-- [ ] `CritiqueSchema` includes optional `requirementsFulfillment: IRequirementFulfillment[]` (type from Step 2)
-- [ ] Generic critique works without `requestAnalysis` (backward compatible)
+- [x] `run()` accepts optional third parameter `requestAnalysis?: IRequestAnalysis`
+- [x] `requestAnalysis` is **not** stored in `this.config` (Gap 6)
+- [x] Enhanced prompt includes structured goals and acceptance criteria when analysis provided
+- [x] Goals listed with `[E]`/`[I]` explicit/inferred markers
+- [x] `CritiqueSchema` includes optional `requirementsFulfillment: IRequirementFulfillment[]` (type from Step 2)
+- [x] Generic critique works without `requestAnalysis` (backward compatible)
 
-**Planned tests** (`tests/services/reflexive*agent*criteria_test.ts`):
+**Planned tests** (`tests/services/reflexive_agent_criteria_test.ts`):
 
-- `[ReflexiveAgent] includes goals in critique when analysis available`
-- `[ReflexiveAgent] includes acceptance criteria in critique prompt`
-- `[ReflexiveAgent] critique output includes requirementsFulfillment`
-- `[ReflexiveAgent] generic critique works without analysis`
-- `[ReflexiveAgent] goals show explicit/inferred markers`
+- ✅ `[ReflexiveAgent] includes goals in critique when analysis available`
+- ✅ `[ReflexiveAgent] includes acceptance criteria in critique prompt`
+- ✅ `[ReflexiveAgent] critique output includes requirementsFulfillment`
+- ✅ `[ReflexiveAgent] generic critique works without analysis`
+- ✅ `[ReflexiveAgent] goals show explicit/inferred markers`
+
+**✅ IMPLEMENTED** — `src/services/reflexive_agent.ts`, 5/5 tests passing (+ 2 extra: accepts optional parameter, CritiqueSchema accepts requirementsFulfillment)
 
 ---
 
@@ -647,22 +650,24 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `assess()` accepts optional `critique?: ICritique` parameter
-- [ ] `goalAlignmentScore` derived from `requirementsFulfillment` MET/PARTIAL ratios
-- [ ] Absence of `critique` produces `goalAlignmentScore = 1.0` (no penalty for pre-Phase-48 callers)
-- [ ] Goal alignment factored into confidence when critique with fulfillment data is present
-- [ ] `assess()` called without `critique` produces **numerically identical scores** to the pre-Phase-48 formula (Gap 13 — verified against a fixture input/output pair)
-- [ ] Weights configurable; defaults 0.7 / 0.3 from constants
-- [ ] No magic number literals (Gap 16)
+- [x] `assess()` accepts optional `critique?: ICritique` parameter
+- [x] `goalAlignmentScore` derived from `requirementsFulfillment` MET/PARTIAL ratios
+- [x] Absence of `critique` produces `goalAlignmentScore = 1.0` (no penalty for pre-Phase-48 callers)
+- [x] Goal alignment factored into confidence when critique with fulfillment data is present
+- [x] `assess()` called without `critique` produces **numerically identical scores** to the pre-Phase-48 formula (Gap 13 — verified against a fixture input/output pair)
+- [x] Weights configurable; defaults 0.7 / 0.3 from constants
+- [x] No magic number literals (Gap 16)
 
-**Planned tests** (`tests/services/confidence*scorer*alignment_test.ts`):
+**Planned tests** (`tests/services/confidence_scorer_alignment_test.ts`):
 
-- `[ConfidenceScorer] includes goal alignment factor when critique with fulfillment available`
-- `[ConfidenceScorer] higher goalAlignmentScore increases confidence`
-- `[ConfidenceScorer] zero goalAlignmentScore decreases confidence`
-- `[ConfidenceScorer] absent critique produces goalAlignmentScore of 1.0 (no penalty)` (Gap 13)
-- `[ConfidenceScorer] numeric regression: assess without critique matches pre-Phase-48 formula` (Gap 13)
-- `[ConfidenceScorer] respects configurable weight split`
+- ✅ `[ConfidenceScorer] includes goal alignment factor when critique with fulfillment available`
+- ✅ `[ConfidenceScorer] higher goalAlignmentScore increases confidence`
+- ✅ `[ConfidenceScorer] zero goalAlignmentScore decreases confidence`
+- ✅ `[ConfidenceScorer] absent critique produces goalAlignmentScore of 1.0 (no penalty)` (Gap 13)
+- ✅ `[ConfidenceScorer] numeric regression: assess without critique matches pre-Phase-48 formula` (Gap 13)
+- ✅ `[ConfidenceScorer] respects configurable weight split`
+
+**✅ IMPLEMENTED** — `src/services/confidence_scorer.ts`, 6/6 tests passing
 
 ---
 
@@ -684,16 +689,18 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `PlanWriter` writes `request_analysis` to frontmatter whenever `metadata.requestAnalysis` is provided
-- [ ] `FlowRunner.execute()` receives `requestAnalysis` when executing a flow that has associated analysis in its plan frontmatter
-- [ ] Plans without `request_analysis` frontmatter field execute normally with generic criteria (Gap 14)
-- [ ] No `TypeError` from missing `?.` operator when executing old plans
+- [x] `PlanWriter` writes `request_analysis` to frontmatter whenever `metadata.requestAnalysis` is provided
+- [x] `FlowRunner.execute()` receives `requestAnalysis` when executing a flow that has associated analysis in its plan frontmatter
+- [x] Plans without `request_analysis` frontmatter field execute normally with generic criteria (Gap 14)
+- [x] No `TypeError` from missing `?.` operator when executing old plans
 
-**Planned tests** (`tests/flows/flow*runner*analysis_propagation_test.ts`):
+**Planned tests** (`tests/flows/flow_runner_analysis_propagation_test.ts`):
 
-- `[FlowRunner] receives requestAnalysis from plan frontmatter on execution`
-- `[FlowRunner] executes normally when plan has no request_analysis field`
-- `[FlowRunner/GateEvaluator] handles flow request without requestAnalysis, uses static criteria only` (Gap 14)
+- ✅ `[FlowRunner] receives requestAnalysis from plan frontmatter on execution`
+- ✅ `[FlowRunner] executes normally when plan has no request_analysis field`
+- ✅ `[FlowRunner/GateEvaluator] handles flow request without requestAnalysis, uses static criteria only` (Gap 14)
+
+**✅ IMPLEMENTED** — `src/flows/flow_runner.ts` (one-line fix: pass `stepRequest.requestAnalysis` to `gateEvaluator.evaluate()`), 3/3 tests passing
 
 ---
 
@@ -714,16 +721,20 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] `FlowSchema.settings.includeRequestCriteria` field added; defaults to `false`
-- [ ] Flow-level default applies to all gate steps that do not set the flag themselves
-- [ ] Step-level `includeRequestCriteria` overrides flow-level
-- [ ] Existing flows without the setting validate unchanged
+- [x] `FlowSchema.settings.includeRequestCriteria` field added; defaults to `false`
+- [x] Flow-level default applies to all gate steps that do not set the flag themselves
+- [x] Step-level `includeRequestCriteria` overrides flow-level
+- [x] Existing flows without the setting validate unchanged
 
-**Planned tests** (`tests/flows/flow*gate*criteria_test.ts`):
+**Planned tests** (`tests/flows/flow_gate_criteria_test.ts`):
 
-- `[FlowRunner] applies flow-level includeRequestCriteria to gate steps`
-- `[FlowRunner] step-level overrides flow-level setting`
-- `[FlowRunner] existing flows work without includeRequestCriteria`
+- ✅ `[FlowRunner] applies flow-level includeRequestCriteria to gate steps`
+- ✅ `[FlowRunner] step-level overrides flow-level setting`
+- ✅ `[FlowRunner] existing flows work without includeRequestCriteria`
+- ✅ `[FlowSchema] settings.includeRequestCriteria defaults to false`
+- ✅ `[FlowSchema] settings.includeRequestCriteria can be set to true`
+
+**✅ IMPLEMENTED** — `src/shared/schemas/flow.ts` + `src/flows/flow_runner.ts`, 5/5 tests passing
 
 ---
 
@@ -747,20 +758,22 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Dynamic criteria from goals reach gate evaluator
-- [ ] Acceptance criteria from analysis reach reflexive agent
-- [ ] Goal alignment factored into confidence score
-- [ ] Generic-only fallback when no goals extractable
-- [ ] Flow gate steps receive dynamic criteria
+- [x] Dynamic criteria from goals reach gate evaluator
+- [x] Acceptance criteria from analysis reach reflexive agent
+- [x] Goal alignment factored into confidence score
+- [x] Generic-only fallback when no goals extractable
+- [x] Flow gate steps receive dynamic criteria
 
 **Planned tests:**
 
-- `[E2E] request goals generate dynamic evaluation criteria`
-- `[E2E] acceptance criteria propagate to reflexive agent`
-- `[E2E] goal alignment factor in confidence scoring`
-- `[E2E] generic fallback without extractable goals`
-- `[E2E] flow gate with includeRequestCriteria uses dynamic criteria`
-- `[E2E] pre-Phase-45 plan without requestAnalysis falls back to generic-only criteria` (Gap 14)
+- ✅ `[E2E] request goals generate dynamic evaluation criteria`
+- ✅ `[E2E] acceptance criteria propagate to reflexive agent`
+- ✅ `[E2E] goal alignment factor in confidence scoring`
+- ✅ `[E2E] generic fallback without extractable goals`
+- ✅ `[E2E] flow gate with includeRequestCriteria uses dynamic criteria`
+- ✅ `[E2E] pre-Phase-45 plan without requestAnalysis falls back to generic-only criteria` (Gap 14)
+
+**✅ IMPLEMENTED** — `tests/integration/34_dynamic_criteria_pipeline_e2e_test.ts` (NEW), 6/6 tests passing
 
 ---
 
@@ -785,12 +798,14 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Dynamic criteria flow documented with diagram
-- [ ] New criteria listed in criteria table
-- [ ] Gate architecture updated with dynamic criteria
-- [ ] ReflexiveAgent and ConfidenceScorer enhancements documented
+- [x] Dynamic criteria flow documented with diagram
+- [x] New criteria listed in criteria table
+- [x] Gate architecture updated with dynamic criteria
+- [x] ReflexiveAgent and ConfidenceScorer enhancements documented
 
 **Planned tests:** None (documentation-only).
+
+**✅ IMPLEMENTED** in `ARCHITECTURE.md` — `## Acceptance Criteria Propagation (Phase 48)` section added; service table and built-in criteria table updated.
 
 ---
 
@@ -827,12 +842,14 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Success criteria:**
 
-- [ ] Technical spec documents CriteriaGenerator API
-- [ ] `.copilot/` docs list CriteriaGenerator
-- [ ] Cross-reference has acceptance criteria row
-- [ ] `manifest.json` is fresh
+- [x] Technical spec documents CriteriaGenerator API
+- [x] `.copilot/` docs list CriteriaGenerator
+- [x] Cross-reference has acceptance criteria row
+- [x] `manifest.json` is fresh
 
 **Planned tests:** `deno task check:docs` passes.
+
+**✅ IMPLEMENTED** in `docs/dev/ExoFrame_Technical_Spec.md` (`### 7.5 Acceptance Criteria Propagation`), `.copilot/source/exoframe.md` (Phase 48 bullet), `.copilot/cross-reference.md` (new row + topic entries).
 
 ---
 

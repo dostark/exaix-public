@@ -1426,6 +1426,109 @@ exoctl request clarify <id> --cancel            # Cancel Q&A, restore PENDING st
 
 ---
 
+## Acceptance Criteria Propagation (Phase 48)
+
+Phase 48 closes the gap between "what was asked" and "what quality gates evaluate" by propagating extracted acceptance criteria through the entire evaluation pipeline.
+
+### Dynamic Criteria Generation Pipeline
+
+```text
+IRequestAnalysis (Phase 45 output)
+  → CriteriaGenerator.fromAnalysis()
+  → Dynamic EvaluationCriterion[]       (goal_*, ac_* named criteria)
+        ↓
+  Merge with static CRITERIA (from gate config)
+        ↓
+  GateEvaluator.evaluate()              ← combined criteria list
+  ReflexiveAgent.run()                  ← structured requirements in critique prompt
+  ConfidenceScorer.assess()             ← goal alignment factor in score
+```
+
+### Criteria Generation Rules
+
+| Source            | Name prefix | Weight | Required | Condition                             |
+| ----------------- | ----------- | ------ | -------- | ------------------------------------- |
+| Explicit goal P1  | `goal_`     | 2.0    | true     | `priority === 1`                      |
+| Explicit goal P2+ | `goal_`     | 1.0    | true     | `priority >= 2`                       |
+| Acceptance crit.  | `ac_`       | 1.5    | true     | Always                                |
+| Max generated     | —           | —      | —        | Capped at 10 (`MAX_DYNAMIC_CRITERIA`) |
+
+Generated criteria are sorted descending by weight, then merged with static criteria (static wins on name collision).
+
+### Gate Configuration: `includeRequestCriteria`
+
+The flag `includeRequestCriteria` can be set at **step level** or **flow level** (step overrides flow):
+
+```yaml
+# Flow-level default (all gate steps inherit)
+settings:
+  includeRequestCriteria: true
+
+# Step-level override
+evaluate:
+  agent: quality-judge
+  criteria: ["code_correctness"]
+  includeRequestCriteria: false # explicitly disables for this step
+```
+
+When `includeRequestCriteria: true` and `IRequestAnalysis` is available, `GateEvaluator` merges dynamic criteria with the static list before calling the judge.
+
+### New Built-In Criteria (Phase 48)
+
+| Criterion               | Weight | Required | Category     | Description                                      |
+| ----------------------- | ------ | -------- | ------------ | ------------------------------------------------ |
+| `GOAL_ALIGNMENT`        | 2.5    | Yes      | Completeness | Every primary goal from the request is addressed |
+| `TASK_FULFILLMENT`      | 2.0    | Yes      | Completeness | All explicitly stated requirements are fulfilled |
+| `REQUEST_UNDERSTANDING` | 1.5    | No       | Correctness  | Response demonstrates correct task understanding |
+
+New criterion sets added to `CRITERION_SETS`:
+
+| Set                   | Members                                                                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `GOAL_ALIGNED_REVIEW` | `GOAL_ALIGNMENT`, `TASK_FULFILLMENT`, `REQUEST_UNDERSTANDING`, `CODE_CORRECTNESS`, `CODE_COMPLETENESS`                             |
+| `FULL_QUALITY_GATE`   | `GOAL_ALIGNMENT`, `TASK_FULFILLMENT`, `CODE_CORRECTNESS`, `CODE_COMPLETENESS`, `NO_SECURITY_ISSUES`, `HAS_TESTS`, `ERROR_HANDLING` |
+
+### ReflexiveAgent Enhanced Critique
+
+When `IRequestAnalysis` is passed to `ReflexiveAgent.run(blueprint, request, analysis?)`, the critique prompt is enhanced with structured requirements:
+
+```text
+## Specific Requirements to Verify
+Goals:
+  [E] Implement login feature (priority 1)
+  [E] Add tests (priority 2)
+
+## Acceptance Criteria
+  • Login must work with OAuth2
+
+For each requirement, state: ✅ MET / ⚠️ PARTIAL / ❌ MISSING
+```
+
+The critique output includes `requirementsFulfillment: IRequirementFulfillment[]` — a per-requirement MET/PARTIAL/MISSING status array.
+
+### ConfidenceScorer Goal Alignment Factor
+
+When `assess(request, response, traceId?, critique?)` receives a `critique` with `requirementsFulfillment`:
+
+```text
+metCount = MET_count + 0.5 × PARTIAL_count
+goalAlignmentScore = metCount / totalCount    (clamped 0–1)
+
+finalScore = rawScore × 0.7 + goalAlignmentScore × 100 × 0.3
+```
+
+When `critique` is absent or `requirementsFulfillment` is empty, `goalAlignmentScore` defaults to **1.0** — no penalty for pre-Phase-48 flows.
+
+Weights are configurable via `IConfidenceScorerConfig.goalAlignmentWeight` / `existingScoreWeight` (defaults 0.3 / 0.7, from constants `GOAL_ALIGNMENT_CONFIDENCE_WEIGHT` / `EXISTING_SCORE_CONFIDENCE_WEIGHT`).
+
+### New Service
+
+| Service                | Purpose                                                 | Source file                          |
+| ---------------------- | ------------------------------------------------------- | ------------------------------------ |
+| **Criteria Generator** | Dynamic `EvaluationCriterion[]` from `IRequestAnalysis` | `src/services/criteria_generator.ts` |
+
+---
+
 ## Blueprint Management System
 
 ```mermaid
@@ -1648,62 +1751,63 @@ graph LR
 
 ## Component Responsibilities
 
-| Component                | Responsibility                                   | Key Files                                           | Edition  |
-| ------------------------ | ------------------------------------------------ | --------------------------------------------------- | -------- |
-| **CLI Layer**            | Human interface for system control               | `src/cli/*.ts`                                      | 🟢 All   |
-| **Daemon**               | Background orchestration engine                  | `src/main.ts`                                       | 🟢 All   |
-| **Request Watcher**      | Detect new requests in Workspace/Requests        | `src/services/watcher.ts`                           | 🟢 All   |
-| **Plan Watcher**         | Detect approved plans                            | `src/services/watcher.ts`                           | 🟢 All   |
-| **Request Processor**    | Parse requests, generate plans                   | `src/services/request_processor.ts`                 | 🟢 All   |
-| **Request Router**       | Route requests to Agent/Flow runners             | `src/services/request_router.ts`                    | 🟢 All   |
-| **Request Analyzer**     | `src/services/request_analysis/`                 | Intent, requirements & complexity extraction        | 🟢 All   |
-| **Request Quality Gate** | Pre-execution quality scoring and Q&A refinement | `src/services/quality_gate/request_quality_gate.ts` | 🟢 All   |
-| **Clarification Engine** | Multi-turn Q&A loop for request refinement       | `src/services/quality_gate/clarification_engine.ts` | 🟢 All   |
-| **Plan Executor**        | Execute approved plans                           | `src/services/plan_executor.ts`                     | 🟢 All   |
-| **Agent Runner**         | Execute agent logic with LLM                     | `src/services/agent_runner.ts`                      | 🟢 All   |
-| **Flow Runner**          | Execute multi-agent flows                        | `src/flows/flow_runner.ts`                          | 🟢 All   |
-| **Event Logger**         | Write to Activity Journal                        | `src/services/event_logger.ts`                      | 🟢 All   |
-| **Config Service**       | Load and validate exo.config.toml                | `src/config/service.ts`                             | 🟢 All   |
-| **Workspace Execution**  | Agent environment and path resolution            | `src/services/workspace_execution_context.ts`       | 🟢 All   |
-| **Database Service**     | Edition-tiered journal operations                | `src/services/db.ts`                                | 🟢 All   |
-| **Git Service**          | Git operations with trace metadata               | `src/services/git_service.ts`                       | 🟢 All   |
-| **Provider Factory**     | Create LLM provider instances                    | `src/ai/provider_factory.ts`                        | 🟢 All   |
-| **Context Loader**       | Load context for agent execution                 | `src/services/context_loader.ts`                    | 🟢 All   |
-| **Portal Commands**      | Manage external project access                   | `src/cli/portal_commands.ts`                        | 🟢 All   |
-| **Blueprint Commands**   | Manage agent templates                           | `src/cli/blueprint_commands.ts`                     | 🟢 All   |
-| **Dashboard Commands**   | Launch terminal dashboard                        | `src/cli/dashboard_commands.ts`                     | 🟢 All   |
-| **TUI Dashboard**        | Multi-view terminal UI (7-9 views)               | `src/tui/*.ts`                                      | 🟢 All   |
-| **Web UI**               | Browser-based approval interface                 | `src/web/*`                                         | 🔵 Team+ |
-| **Parsers**              | Parse markdown + frontmatter                     | `src/parsers/*.ts`                                  | 🟢 All   |
-| **Plan Parser**          | Shared structured plan parsing utility           | `src/services/structured_plan_parser.ts`            | 🟢 All   |
-| **Schemas**              | Zod validation layer                             | `src/schemas/*.ts`                                  | 🟢 All   |
-| **MCP Client**           | Connect to external MCP servers                  | `src/mcp/client.ts`                                 | 🟢 All   |
-| **MCP Server**           | JSON-RPC server for tool execution               | `src/mcp/server.ts`                                 | 🔵 Team+ |
-| **Blueprint Loader**     | Unified blueprint parsing                        | `src/services/blueprint_loader.ts`                  | 🟢 All   |
-| **Output Validator**     | Schema validation with JSON repair               | `src/services/output_validator.ts`                  | 🟢 All   |
-| **Retry Policy**         | Exponential backoff with jitter                  | `src/services/retry_policy.ts`                      | 🟢 All   |
-| **Plan Adapter**         | JSON validation and markdown conversion          | `src/services/plan_adapter.ts`                      | 🟢 All   |
-| **Plan Writer**          | Format results into structured plans             | `src/services/plan_writer.ts`                       | 🟢 All   |
-| **Request Common**       | Blueprints and request building utilities        | `src/services/request_common.ts`                    | 🟢 All   |
-| **Review Registry**      | Agent-created review management                  | `src/services/review_registry.ts`                   | 🟢 All   |
-| **Path Resolver**        | Portal alias and security path resolution        | `src/services/path_resolver.ts`                     | 🟢 All   |
-| **Skills Service**       | Procedural memory (skills) management            | `src/services/skills.ts`                            | 🟢 All   |
-| **Mission Reporter**     | Execution reports and memory updates             | `src/services/mission_reporter.ts`                  | 🟢 All   |
-| **Prompt Context**       | Structured prompt building utilities             | `src/services/prompt_context.ts`                    | 🟢 All   |
-| **Reflexive Agent**      | Self-critique improvement loop                   | `src/services/reflexive_agent.ts`                   | 🟢 All   |
-| **Tool Reflector**       | Tool result evaluation and retry                 | `src/services/tool_reflector.ts`                    | 🟢 All   |
-| **Session Memory**       | Memory context injection                         | `src/services/session_memory.ts`                    | 🟢 All   |
-| **Confidence Scorer**    | Output confidence assessment                     | `src/services/confidence_scorer.ts`                 | 🟢 All   |
-| **Condition Evaluator**  | Flow condition expression eval                   | `src/flows/condition_evaluator.ts`                  | 🟢 All   |
-| **Gate Evaluator**       | Quality gate checkpoint validation               | `src/flows/gate_evaluator.ts`                       | 🟢 All   |
-| **Judge Evaluator**      | LLM-as-a-Judge assessment                        | `src/flows/judge_evaluator.ts`                      | 🟢 All   |
-| **Feedback Loop**        | Iterative refinement control                     | `src/flows/feedback_loop.ts`                        | 🟢 All   |
-| **Evaluation Criteria**  | Quality standards validation                     | `src/flows/evaluation_criteria.ts`                  | 🟢 All   |
-| **Notification Service** | Memory update and system notifications           | `src/services/notification.ts`                      | 🟢 All   |
-| **Health Check Service** | System health and resource monitoring            | `src/services/health_check_service.ts`              | 🟢 All   |
-| **Graceful Shutdown**    | Process termination and cleanup management       | `src/services/graceful_shutdown.ts`                 | 🟢 All   |
-| **Governance Dashboard** | Compliance monitoring and risk scoring           | `src/web/governance/*`                              | 🟣 Ent   |
-| **Compliance Reporter**  | Regulatory compliance exports                    | `src/services/compliance.ts`                        | 🟣 Ent   |
+| Component                | Responsibility                                    | Key Files                                           | Edition  |
+| ------------------------ | ------------------------------------------------- | --------------------------------------------------- | -------- |
+| **CLI Layer**            | Human interface for system control                | `src/cli/*.ts`                                      | 🟢 All   |
+| **Daemon**               | Background orchestration engine                   | `src/main.ts`                                       | 🟢 All   |
+| **Request Watcher**      | Detect new requests in Workspace/Requests         | `src/services/watcher.ts`                           | 🟢 All   |
+| **Plan Watcher**         | Detect approved plans                             | `src/services/watcher.ts`                           | 🟢 All   |
+| **Request Processor**    | Parse requests, generate plans                    | `src/services/request_processor.ts`                 | 🟢 All   |
+| **Request Router**       | Route requests to Agent/Flow runners              | `src/services/request_router.ts`                    | 🟢 All   |
+| **Request Analyzer**     | `src/services/request_analysis/`                  | Intent, requirements & complexity extraction        | 🟢 All   |
+| **Request Quality Gate** | Pre-execution quality scoring and Q&A refinement  | `src/services/quality_gate/request_quality_gate.ts` | 🟢 All   |
+| **Clarification Engine** | Multi-turn Q&A loop for request refinement        | `src/services/quality_gate/clarification_engine.ts` | 🟢 All   |
+| **Plan Executor**        | Execute approved plans                            | `src/services/plan_executor.ts`                     | 🟢 All   |
+| **Agent Runner**         | Execute agent logic with LLM                      | `src/services/agent_runner.ts`                      | 🟢 All   |
+| **Flow Runner**          | Execute multi-agent flows                         | `src/flows/flow_runner.ts`                          | 🟢 All   |
+| **Event Logger**         | Write to Activity Journal                         | `src/services/event_logger.ts`                      | 🟢 All   |
+| **Config Service**       | Load and validate exo.config.toml                 | `src/config/service.ts`                             | 🟢 All   |
+| **Workspace Execution**  | Agent environment and path resolution             | `src/services/workspace_execution_context.ts`       | 🟢 All   |
+| **Database Service**     | Edition-tiered journal operations                 | `src/services/db.ts`                                | 🟢 All   |
+| **Git Service**          | Git operations with trace metadata                | `src/services/git_service.ts`                       | 🟢 All   |
+| **Provider Factory**     | Create LLM provider instances                     | `src/ai/provider_factory.ts`                        | 🟢 All   |
+| **Context Loader**       | Load context for agent execution                  | `src/services/context_loader.ts`                    | 🟢 All   |
+| **Portal Commands**      | Manage external project access                    | `src/cli/portal_commands.ts`                        | 🟢 All   |
+| **Blueprint Commands**   | Manage agent templates                            | `src/cli/blueprint_commands.ts`                     | 🟢 All   |
+| **Dashboard Commands**   | Launch terminal dashboard                         | `src/cli/dashboard_commands.ts`                     | 🟢 All   |
+| **TUI Dashboard**        | Multi-view terminal UI (7-9 views)                | `src/tui/*.ts`                                      | 🟢 All   |
+| **Web UI**               | Browser-based approval interface                  | `src/web/*`                                         | 🔵 Team+ |
+| **Parsers**              | Parse markdown + frontmatter                      | `src/parsers/*.ts`                                  | 🟢 All   |
+| **Plan Parser**          | Shared structured plan parsing utility            | `src/services/structured_plan_parser.ts`            | 🟢 All   |
+| **Schemas**              | Zod validation layer                              | `src/schemas/*.ts`                                  | 🟢 All   |
+| **MCP Client**           | Connect to external MCP servers                   | `src/mcp/client.ts`                                 | 🟢 All   |
+| **MCP Server**           | JSON-RPC server for tool execution                | `src/mcp/server.ts`                                 | 🔵 Team+ |
+| **Blueprint Loader**     | Unified blueprint parsing                         | `src/services/blueprint_loader.ts`                  | 🟢 All   |
+| **Output Validator**     | Schema validation with JSON repair                | `src/services/output_validator.ts`                  | 🟢 All   |
+| **Retry Policy**         | Exponential backoff with jitter                   | `src/services/retry_policy.ts`                      | 🟢 All   |
+| **Plan Adapter**         | JSON validation and markdown conversion           | `src/services/plan_adapter.ts`                      | 🟢 All   |
+| **Plan Writer**          | Format results into structured plans              | `src/services/plan_writer.ts`                       | 🟢 All   |
+| **Request Common**       | Blueprints and request building utilities         | `src/services/request_common.ts`                    | 🟢 All   |
+| **Review Registry**      | Agent-created review management                   | `src/services/review_registry.ts`                   | 🟢 All   |
+| **Path Resolver**        | Portal alias and security path resolution         | `src/services/path_resolver.ts`                     | 🟢 All   |
+| **Skills Service**       | Procedural memory (skills) management             | `src/services/skills.ts`                            | 🟢 All   |
+| **Mission Reporter**     | Execution reports and memory updates              | `src/services/mission_reporter.ts`                  | 🟢 All   |
+| **Prompt Context**       | Structured prompt building utilities              | `src/services/prompt_context.ts`                    | 🟢 All   |
+| **Reflexive Agent**      | Self-critique improvement loop                    | `src/services/reflexive_agent.ts`                   | 🟢 All   |
+| **Tool Reflector**       | Tool result evaluation and retry                  | `src/services/tool_reflector.ts`                    | 🟢 All   |
+| **Session Memory**       | Memory context injection                          | `src/services/session_memory.ts`                    | 🟢 All   |
+| **Confidence Scorer**    | Output confidence assessment                      | `src/services/confidence_scorer.ts`                 | 🟢 All   |
+| **Criteria Generator**   | Dynamic evaluation criteria from request analysis | `src/services/criteria_generator.ts`                | 🟢 All   |
+| **Condition Evaluator**  | Flow condition expression eval                    | `src/flows/condition_evaluator.ts`                  | 🟢 All   |
+| **Gate Evaluator**       | Quality gate checkpoint validation                | `src/flows/gate_evaluator.ts`                       | 🟢 All   |
+| **Judge Evaluator**      | LLM-as-a-Judge assessment                         | `src/flows/judge_evaluator.ts`                      | 🟢 All   |
+| **Feedback Loop**        | Iterative refinement control                      | `src/flows/feedback_loop.ts`                        | 🟢 All   |
+| **Evaluation Criteria**  | Quality standards validation                      | `src/flows/evaluation_criteria.ts`                  | 🟢 All   |
+| **Notification Service** | Memory update and system notifications            | `src/services/notification.ts`                      | 🟢 All   |
+| **Health Check Service** | System health and resource monitoring             | `src/services/health_check_service.ts`              | 🟢 All   |
+| **Graceful Shutdown**    | Process termination and cleanup management        | `src/services/graceful_shutdown.ts`                 | 🟢 All   |
+| **Governance Dashboard** | Compliance monitoring and risk scoring            | `src/web/governance/*`                              | 🟣 Ent   |
+| **Compliance Reporter**  | Regulatory compliance exports                     | `src/services/compliance.ts`                        | 🟣 Ent   |
 
 ---
 
@@ -1858,13 +1962,16 @@ graph TB
 
 ### Built-in Evaluation Criteria
 
-| Criteria           | Description                           | Use Case                  |
-| ------------------ | ------------------------------------- | ------------------------- |
-| `CODE_CORRECTNESS` | Validates syntax and semantics        | Code generation steps     |
-| `HAS_TESTS`        | Ensures test coverage exists          | TDD workflows             |
-| `FOLLOWS_SPEC`     | Matches specification requirements    | Implementation validation |
-| `IS_SECURE`        | Checks security best practices        | Security-critical flows   |
-| `PERFORMANCE_OK`   | Validates performance characteristics | Optimization workflows    |
+| Criteria                | Description                                   | Use Case                         |
+| ----------------------- | --------------------------------------------- | -------------------------------- |
+| `CODE_CORRECTNESS`      | Validates syntax and semantics                | Code generation steps            |
+| `HAS_TESTS`             | Ensures test coverage exists                  | TDD workflows                    |
+| `FOLLOWS_SPEC`          | Matches specification requirements            | Implementation validation        |
+| `IS_SECURE`             | Checks security best practices                | Security-critical flows          |
+| `PERFORMANCE_OK`        | Validates performance characteristics         | Optimization workflows           |
+| `GOAL_ALIGNMENT`        | Every primary goal from the request addressed | Goal-aware gates (Phase 48)      |
+| `TASK_FULFILLMENT`      | All stated requirements fulfilled             | Requirement-aware gates (Ph. 48) |
+| `REQUEST_UNDERSTANDING` | Correct understanding of task demonstrated    | Validation gates (Phase 48)      |
 
 ### Condition Expression Syntax
 

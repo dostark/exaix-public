@@ -1017,14 +1017,17 @@ Steps can include `condition` field for conditional execution:
 
 **Built-in Evaluation Criteria:**
 
-| Criterion             | Description                       | Weight |
-| --------------------- | --------------------------------- | ------ |
-| `CODE_CORRECTNESS`    | Syntactic and logical correctness | 2.0    |
-| `CODE_COMPLETENESS`   | All requirements addressed        | 1.5    |
-| `HAS_TESTS`           | Test coverage present             | 1.0    |
-| `NO_SECURITY_ISSUES`  | No obvious vulnerabilities        | 2.0    |
-| `FOLLOWS_CONVENTIONS` | Style and naming conventions      | 0.8    |
-| `ERROR_HANDLING`      | Proper error handling             | 1.0    |
+| Criterion               | Description                       | Weight |
+| ----------------------- | --------------------------------- | ------ |
+| `CODE_CORRECTNESS`      | Syntactic and logical correctness | 2.0    |
+| `CODE_COMPLETENESS`     | All requirements addressed        | 1.5    |
+| `HAS_TESTS`             | Test coverage present             | 1.0    |
+| `NO_SECURITY_ISSUES`    | No obvious vulnerabilities        | 2.0    |
+| `FOLLOWS_CONVENTIONS`   | Style and naming conventions      | 0.8    |
+| `ERROR_HANDLING`        | Proper error handling             | 1.0    |
+| `GOAL_ALIGNMENT`        | Every primary goal is addressed   | 2.5    |
+| `TASK_FULFILLMENT`      | All stated requirements fulfilled | 2.0    |
+| `REQUEST_UNDERSTANDING` | Correct task understanding        | 1.5    |
 
 **Feedback Loop Pattern:**
 
@@ -1740,6 +1743,57 @@ All fields are optional; defaults are applied from `src/shared/constants.ts`.
 | Event name                 | Payload fields                          |
 | -------------------------- | --------------------------------------- |
 | `request.quality_assessed` | `score`, `recommendation`, `issueCount` |
+
+---
+
+### 7.5 Acceptance Criteria Propagation (Phase 48)
+
+Phase 48 connects the `IRequestAnalysis` output from Phase 45 to all quality evaluation components — ensuring gates, critique, and confidence scoring evaluate against the _specific_ goals and acceptance criteria of the original request, not generic heuristics.
+
+#### 7.5.1 CriteriaGenerator Service
+
+**Path:** `src/services/criteria_generator.ts`
+
+Transforms an `IRequestAnalysis` into a list of `EvaluationCriterion` objects ready for direct use by `GateEvaluator`.
+
+**API:**
+
+```typescript
+class CriteriaGenerator implements ICriteriaGeneratorService {
+  /** Generate request-specific criteria from extracted analysis. */
+  fromAnalysis(analysis: IRequestAnalysis): EvaluationCriterion[];
+}
+```
+
+**Generation rules:**
+
+| Source            | Name prefix | Weight | Required | Condition        |
+| ----------------- | ----------- | ------ | -------- | ---------------- |
+| Explicit goal P1  | `goal_`     | 2.0    | true     | `priority === 1` |
+| Explicit goal P2+ | `goal_`     | 1.0    | true     | `priority >= 2`  |
+| Acceptance crit.  | `ac_`       | 1.5    | true     | Always           |
+
+Output is sorted descending by weight, capped at `MAX_DYNAMIC_CRITERIA` (10). Name sanitization: `s.toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 50)`.
+
+#### 7.5.2 Gate Configuration: `includeRequestCriteria`
+
+Both `GateEvaluateSchema` (YAML) and `GateConfigSchema` (programmatic) accept `includeRequestCriteria: boolean` (default `false`). The flag can also be set at **flow level** via `FlowSchema.settings.includeRequestCriteria`; step level wins on conflict.
+
+When enabled and `IRequestAnalysis` is available, `GateEvaluator.evaluate()` merges dynamic criteria with the configured static list (static names win on collision).
+
+#### 7.5.3 Enhanced ReflexiveAgent Critique
+
+`ReflexiveAgent.run(blueprint, request, analysis?)` accepts an optional third parameter. When provided, the critique prompt includes a structured requirements block and the critique output carries `requirementsFulfillment: IRequirementFulfillment[]` — a per-requirement MET / PARTIAL / MISSING breakdown.
+
+#### 7.5.4 ConfidenceScorer Goal Alignment
+
+`ConfidenceScorer.assess(request, response, traceId?, critique?)` accepts an optional `ICritique` from a prior `ReflexiveAgent` run. When `critique.requirementsFulfillment` is present:
+
+```text
+finalScore = rawScore × 0.7 + goalAlignmentScore × 100 × 0.3
+```
+
+where `goalAlignmentScore = (MET + 0.5 × PARTIAL) / total`. Absent critique → `goalAlignmentScore = 1.0` (no penalty for pre-Phase-48 callers). Weights are configurable via `IConfidenceScorerConfig`.
 
 ---
 

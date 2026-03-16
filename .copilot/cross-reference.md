@@ -11,29 +11,30 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 ## Task → Agent Doc Quick Reference
 
-| Task Type | Primary Doc | Secondary Docs |
-| ----------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Write unit tests | [tests/testing.md](tests/testing.md) | [source/exoframe.md](source/exoframe.md) |
-| Refactor code | [source/exoframe.md](source/exoframe.md) | [tests/testing.md](tests/testing.md) |
-| Update documentation | [docs/documentation.md](docs/documentation.md) | - |
-| Fix TypeScript errors | [source/exoframe.md](source/exoframe.md) | [copilot/exoframe.md](copilot/exoframe.md) |
-| Add new feature | [source/exoframe.md](source/exoframe.md) + [tests/testing.md](tests/testing.md) | [docs/documentation.md](docs/documentation.md) |
-| Compose commit message | [prompts/commit-message.md](prompts/commit-message.md) | [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md) |
-| Debug test failures | [tests/testing.md](tests/testing.md) | [source/exoframe.md](source/exoframe.md) |
-| Fix CI failures | [tests/testing.md](tests/testing.md) (#CI) | [source/exoframe.md](source/exoframe.md) |
-| Security audit | [.copilot/tests/testing.md](tests/testing.md) (#Security Tests) | [.copilot/source/exoframe.md](source/exoframe.md) (#System Constraints) |
-| Claude-specific guidance | [providers/claude.md](providers/claude.md) | [README.md](README.md) |
-| RAG/embeddings usage | [providers/claude-rag.md](providers/claude-rag.md) | [README.md](README.md) (#Building embeddings) |
-| VS Code Copilot setup | [copilot/exoframe.md](copilot/exoframe.md) | [README.md](README.md) |
-| OpenAI integration | [providers/openai.md](providers/openai.md) | [README.md](README.md) |
-| OpenAI RAG/embeddings usage | [providers/openai-rag.md](providers/openai-rag.md) | [providers/openai.md](providers/openai.md) |
-| Google integration | [providers/google.md](providers/google.md) | [README.md](README.md) |
-| Gemini Long-Context | [providers/google-long-context.md](providers/google-long-context.md) | [providers/google.md](providers/google.md) |
-| Instruction gaps / self-improvement | [process/self-improvement.md](process/self-improvement.md) | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md) |
-| Architecture review / improvement | [process/review-research-improvement.md](process/review-research-improvement.md) | [planning/](planning/) |
-| SDD / request quality methodology | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
-| Request quality gate / clarification | [source/exoframe.md](source/exoframe.md) | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md) |
-| Portal knowledge / codebase analysis | [source/exoframe.md](source/exoframe.md) | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md) |
+| Task Type                                     | Primary Doc                                                                                | Secondary Docs                                                                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Write unit tests                              | [tests/testing.md](tests/testing.md)                                                       | [source/exoframe.md](source/exoframe.md)                                                                                          |
+| Refactor code                                 | [source/exoframe.md](source/exoframe.md)                                                   | [tests/testing.md](tests/testing.md)                                                                                              |
+| Update documentation                          | [docs/documentation.md](docs/documentation.md)                                             | -                                                                                                                                 |
+| Fix TypeScript errors                         | [source/exoframe.md](source/exoframe.md)                                                   | [copilot/exoframe.md](copilot/exoframe.md)                                                                                        |
+| Add new feature                               | [source/exoframe.md](source/exoframe.md) + [tests/testing.md](tests/testing.md)            | [docs/documentation.md](docs/documentation.md)                                                                                    |
+| Compose commit message                        | [prompts/commit-message.md](prompts/commit-message.md)                                     | [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md)                                      |
+| Debug test failures                           | [tests/testing.md](tests/testing.md)                                                       | [source/exoframe.md](source/exoframe.md)                                                                                          |
+| Fix CI failures                               | [tests/testing.md](tests/testing.md) (#CI)                                                 | [source/exoframe.md](source/exoframe.md)                                                                                          |
+| Security audit                                | [.copilot/tests/testing.md](tests/testing.md) (#Security Tests)                            | [.copilot/source/exoframe.md](source/exoframe.md) (#System Constraints)                                                           |
+| Claude-specific guidance                      | [providers/claude.md](providers/claude.md)                                                 | [README.md](README.md)                                                                                                            |
+| RAG/embeddings usage                          | [providers/claude-rag.md](providers/claude-rag.md)                                         | [README.md](README.md) (#Building embeddings)                                                                                     |
+| VS Code Copilot setup                         | [copilot/exoframe.md](copilot/exoframe.md)                                                 | [README.md](README.md)                                                                                                            |
+| OpenAI integration                            | [providers/openai.md](providers/openai.md)                                                 | [README.md](README.md)                                                                                                            |
+| OpenAI RAG/embeddings usage                   | [providers/openai-rag.md](providers/openai-rag.md)                                         | [providers/openai.md](providers/openai.md)                                                                                        |
+| Google integration                            | [providers/google.md](providers/google.md)                                                 | [README.md](README.md)                                                                                                            |
+| Gemini Long-Context                           | [providers/google-long-context.md](providers/google-long-context.md)                       | [providers/google.md](providers/google.md)                                                                                        |
+| Instruction gaps / self-improvement           | [process/self-improvement.md](process/self-improvement.md)                                 | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md)                                                              |
+| Architecture review / improvement             | [process/review-research-improvement.md](process/review-research-improvement.md)           | [planning/](planning/)                                                                                                            |
+| SDD / request quality methodology             | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
+| Request quality gate / clarification          | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)                                            |
+| Acceptance criteria / goal-aligned evaluation | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)                      |
+| Portal knowledge / codebase analysis          | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)                                |
 
 ## Search by Topic
 
@@ -63,6 +64,10 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 - **`architecture`** → [process/review-research-improvement.md](process/review-research-improvement.md)
 - **`improvement-planning`** → [process/review-research-improvement.md](process/review-research-improvement.md), [planning/](planning/)
 - **`portal-knowledge`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`acceptance-criteria`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`goal-alignment`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`dynamic-criteria`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`criteria-generator`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
 - **`codebase-analysis`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
 - **`architecture-inference`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
 
