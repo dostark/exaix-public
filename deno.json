@@ -12,6 +12,8 @@
     "setup": "deno run --allow-all scripts/setup_db.ts",
     "migrate": "deno run --allow-read --allow-write --allow-env --allow-ffi --allow-run scripts/migrate_db.ts",
     "cli": "deno run --allow-all src/cli/exoctl.ts",
+    "scenario:test": "deno test --allow-all tests/scenario_framework/",
+    "scenario:test:unit": "deno test --allow-all tests/scenario_framework/tests/unit/",
     "test": "deno test --allow-all",
     "test:security": "deno test --allow-all --filter \"[security]\" tests/",
     "test:ci": "deno test --allow-all tests_infra/",

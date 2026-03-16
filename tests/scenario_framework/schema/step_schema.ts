@@ -1,0 +1,235 @@
+/**
+ * @module ScenarioFrameworkStepSchema
+ * @path tests/scenario_framework/schema/step_schema.ts
+ * @description Defines the Phase 50 Step 1 Zod contracts for scenario steps,
+ * criteria, portal declarations, and criterion result payloads used by the
+ * scenario framework.
+ * @architectural-layer Test
+ * @dependencies [zod]
+ * @related-files [tests/scenario_framework/schema/scenario_schema.ts, tests/scenario_framework/runner/config.ts, tests/scenario_framework/tests/unit/framework_contract_test.ts]
+ */
+
+import { z } from "zod";
+
+const SCHEMA_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+const NON_EMPTY_STRING = z.string().min(1);
+
+export enum ScenarioExecutionMode {
+  AUTO = "auto",
+  STEP = "step",
+  MANUAL_CHECKPOINT = "manual-checkpoint",
+}
+
+export enum ScenarioStepType {
+  SHELL = "shell",
+  EXOCTL = "exoctl",
+  WAIT_FOR_FILE = "wait-for-file",
+  WAIT_FOR_STATUS = "wait-for-status",
+  WAIT_FOR_JSON_FIELD = "wait-for-json-field",
+  JOURNAL_ASSERT = "journal-assert",
+  FRONTMATTER_ASSERT = "frontmatter-assert",
+  FILE_CONTAINS = "file-contains",
+  JSON_ASSERT = "json-assert",
+  MANUAL_REVIEW = "manual-review",
+  CLEANUP = "cleanup",
+}
+
+export enum CriterionKind {
+  FILE_EXISTS = "file-exists",
+  FILE_FOUND = "file-found",
+  FILE_NOT_EXISTS = "file-not-exists",
+  TEXT_CONTAINS = "text-contains",
+  JSON_PATH_EXISTS = "json-path-exists",
+  JSON_PATH_EQUALS = "json-path-equals",
+  JSON_PATH_EQUALS_ANY = "json-path-equals-any",
+  FRONTMATTER_FIELD_EXISTS = "frontmatter-field-exists",
+  FRONTMATTER_FIELD_EQUALS = "frontmatter-field-equals",
+  JOURNAL_EVENT_EXISTS = "journal-event-exists",
+  COMMAND_EXIT_CODE = "command-exit-code",
+  STATUS_EQUALS = "status-equals",
+  PORTAL_MOUNTED = "portal-mounted",
+  ENV_VAR_PRESENT = "env-var-present",
+}
+
+export enum CriterionPhase {
+  INPUT = "input",
+  OUTPUT = "output",
+}
+
+export enum CriterionStatus {
+  PASSED = "passed",
+  FAILED = "failed",
+  SKIPPED = "skipped",
+  ERROR = "error",
+  TIMEOUT = "timeout",
+  BLOCKED = "blocked",
+}
+
+const ScenarioExecutionModeSchema = z.nativeEnum(ScenarioExecutionMode);
+const ScenarioStepTypeSchema = z.nativeEnum(ScenarioStepType);
+const CriterionKindSchema = z.nativeEnum(CriterionKind);
+const CriterionPhaseSchema = z.nativeEnum(CriterionPhase);
+const CriterionStatusSchema = z.nativeEnum(CriterionStatus);
+
+export const PortalMountSchema = z.object({
+  alias: NON_EMPTY_STRING,
+  source_path: z.string().min(1).startsWith("/"),
+}).strict();
+
+export type IPortalMount = z.infer<typeof PortalMountSchema>;
+
+const BaseCriterionSchema = z.object({
+  id: NON_EMPTY_STRING,
+  kind: CriterionKindSchema,
+  message: z.string().min(1).optional(),
+}).strict();
+
+const FileExistsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.FILE_EXISTS),
+  path: NON_EMPTY_STRING,
+}).strict();
+
+const FileFoundCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.FILE_FOUND),
+  path_pattern: NON_EMPTY_STRING,
+}).strict();
+
+const FileNotExistsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.FILE_NOT_EXISTS),
+  path: NON_EMPTY_STRING,
+}).strict();
+
+const TextContainsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.TEXT_CONTAINS),
+  path: NON_EMPTY_STRING,
+  contains: NON_EMPTY_STRING,
+}).strict();
+
+const JsonPathExistsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.JSON_PATH_EXISTS),
+  path: NON_EMPTY_STRING,
+  target_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const JsonPathEqualsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.JSON_PATH_EQUALS),
+  path: NON_EMPTY_STRING,
+  equals: z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  target_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const JsonPathEqualsAnyCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.JSON_PATH_EQUALS_ANY),
+  path: NON_EMPTY_STRING,
+  values: z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])).min(1),
+  target_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const FrontmatterFieldExistsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.FRONTMATTER_FIELD_EXISTS),
+  field: NON_EMPTY_STRING,
+  target_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const FrontmatterFieldEqualsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.FRONTMATTER_FIELD_EQUALS),
+  field: NON_EMPTY_STRING,
+  equals: z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  target_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const JournalEventExistsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.JOURNAL_EVENT_EXISTS),
+  event_type: NON_EMPTY_STRING,
+  journal_file: NON_EMPTY_STRING.optional(),
+}).strict();
+
+const CommandExitCodeCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.COMMAND_EXIT_CODE),
+  equals: z.number().int(),
+}).strict();
+
+const StatusEqualsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.STATUS_EQUALS),
+  equals: NON_EMPTY_STRING,
+}).strict();
+
+const PortalMountedCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.PORTAL_MOUNTED),
+  alias: NON_EMPTY_STRING,
+}).strict();
+
+const EnvVarPresentCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.ENV_VAR_PRESENT),
+  env_var: NON_EMPTY_STRING,
+}).strict();
+
+export const CriterionSchema = z.discriminatedUnion("kind", [
+  FileExistsCriterionSchema,
+  FileFoundCriterionSchema,
+  FileNotExistsCriterionSchema,
+  TextContainsCriterionSchema,
+  JsonPathExistsCriterionSchema,
+  JsonPathEqualsCriterionSchema,
+  JsonPathEqualsAnyCriterionSchema,
+  FrontmatterFieldExistsCriterionSchema,
+  FrontmatterFieldEqualsCriterionSchema,
+  JournalEventExistsCriterionSchema,
+  CommandExitCodeCriterionSchema,
+  StatusEqualsCriterionSchema,
+  PortalMountedCriterionSchema,
+  EnvVarPresentCriterionSchema,
+]);
+
+export type ICriterion = z.infer<typeof CriterionSchema>;
+
+export const CriterionResultSchema = z.object({
+  criterion_id: NON_EMPTY_STRING,
+  kind: CriterionKindSchema,
+  phase: CriterionPhaseSchema,
+  status: CriterionStatusSchema,
+  message: NON_EMPTY_STRING,
+  evidence_refs: z.array(z.string().min(1)),
+  observed_value: z.unknown().optional(),
+  expected_value: z.unknown().optional(),
+}).strict();
+
+export type ICriterionResult = z.infer<typeof CriterionResultSchema>;
+
+export const ScenarioStepSchema = z.object({
+  id: NON_EMPTY_STRING,
+  type: ScenarioStepTypeSchema,
+  name: NON_EMPTY_STRING.optional(),
+  command: NON_EMPTY_STRING.optional(),
+  args: z.array(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
+  timeout_sec: z.number().int().positive().optional(),
+  checkpoint: NON_EMPTY_STRING.optional(),
+  instructions: NON_EMPTY_STRING.optional(),
+  continue_on_failure: z.boolean().default(false),
+  artifact_refs: z.array(z.string().min(1)).optional(),
+  input_criteria: z.array(CriterionSchema),
+  output_criteria: z.array(CriterionSchema),
+}).strict().superRefine((step, ctx) => {
+  if (step.type === ScenarioStepType.MANUAL_REVIEW && !step.instructions) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "manual-review steps require instructions",
+      path: ["instructions"],
+    });
+  }
+
+  if (step.type === ScenarioStepType.EXOCTL && !step.command) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "exoctl steps require a command",
+      path: ["command"],
+    });
+  }
+});
+
+export type IScenarioStep = z.infer<typeof ScenarioStepSchema>;
+
+export const ScenarioSchemaVersionSchema = z.string().regex(SCHEMA_VERSION_PATTERN);
+
+export type IScenarioExecutionMode = z.infer<typeof ScenarioExecutionModeSchema>;
