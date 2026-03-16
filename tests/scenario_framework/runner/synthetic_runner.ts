@@ -1,0 +1,260 @@
+/**
+ * @module ScenarioFrameworkSyntheticRunner
+ * @path tests/scenario_framework/runner/synthetic_runner.ts
+ * @description Implements a lightweight synthetic scenario harness for Phase
+ * 50 Step 9 integration tests by composing the existing loader, step
+ * execution, criterion evaluation, mode control, and manifest persistence.
+ * @architectural-layer Test
+ * @dependencies [scenario_loader, step_executor, assertions, evidence_collector, modes, step_schema]
+ * @related-files [tests/scenario_framework/tests/integration/synthetic_runner_test.ts, tests/scenario_framework/runner/scenario_loader.ts]
+ */
+
+import { evaluateCriterion, evaluateStepOutcome, type IScenarioStepOutcome, StepFailureStage } from "./assertions.ts";
+import { type IRunManifest, writeRunManifest } from "./evidence_collector.ts";
+import { type IRunScenarioInModeResult, runScenarioInMode } from "./modes.ts";
+import { type ILoadedScenario, loadScenarioFromYamlFile } from "./scenario_loader.ts";
+import { executeScenarioStep, type IScenarioStepExecutionResult } from "./step_executor.ts";
+import {
+  CriterionPhase,
+  CriterionStatus,
+  type ICriterionResult,
+  type IScenarioStep,
+  type ScenarioExecutionMode,
+  ScenarioStepType,
+} from "../schema/step_schema.ts";
+
+export interface IRunSyntheticScenarioOptions {
+  frameworkHome: string;
+  scenarioPath: string;
+  workspaceRoot: string;
+  outputDir: string;
+  mode: ScenarioExecutionMode;
+  startStepIndex?: number;
+  interactiveAllowed?: boolean;
+  exoctlExecutable?: string;
+  env?: { [key: string]: string };
+  portalAliases?: string[];
+}
+
+export interface IRunSyntheticScenarioResult {
+  loadedScenario: ILoadedScenario;
+  stepOutcomes: IScenarioStepOutcome[];
+  runResult: IRunScenarioInModeResult;
+  manifest: IRunManifest;
+  manifestPath: string;
+}
+
+export async function runSyntheticScenario(
+  options: IRunSyntheticScenarioOptions,
+): Promise<IRunSyntheticScenarioResult> {
+  const loadedScenario = await loadScenarioFromYamlFile({
+    frameworkHome: options.frameworkHome,
+    scenarioPath: options.scenarioPath,
+  });
+  const stepOutcomes: IScenarioStepOutcome[] = [];
+
+  const runResult = await runScenarioInMode({
+    scenarioId: loadedScenario.scenario.id,
+    steps: loadedScenario.steps,
+    mode: options.mode,
+    interactiveAllowed: options.interactiveAllowed,
+    startStepIndex: options.startStepIndex,
+    executeStep: async ({ step }) => {
+      const outcome = await executeSyntheticStep({
+        step,
+        workspaceRoot: options.workspaceRoot,
+        exoctlExecutable: options.exoctlExecutable,
+        env: options.env,
+        portalAliases: options.portalAliases ?? loadedScenario.scenario.portals.map((portal) => portal.alias),
+      });
+
+      stepOutcomes.push(outcome);
+
+      return toModeExecutionResult(outcome);
+    },
+  });
+
+  const manifest = buildRunManifest({
+    loadedScenario,
+    stepOutcomes,
+    mode: options.mode,
+    runResult,
+  });
+  const manifestPath = await writeRunManifest({
+    outputDir: options.outputDir,
+    manifest,
+  });
+
+  return {
+    loadedScenario,
+    stepOutcomes,
+    runResult,
+    manifest,
+    manifestPath,
+  };
+}
+
+interface IExecuteSyntheticStepOptions {
+  step: IScenarioStep;
+  workspaceRoot: string;
+  exoctlExecutable?: string;
+  env?: { [key: string]: string };
+  portalAliases: string[];
+}
+
+async function executeSyntheticStep(
+  options: IExecuteSyntheticStepOptions,
+): Promise<IScenarioStepOutcome> {
+  const inputResults = await evaluateInputCriteria(options);
+  if (hasFailedCriterion(inputResults)) {
+    return {
+      stepId: options.step.id,
+      status: CriterionStatus.FAILED,
+      failureStage: CriterionPhase.INPUT,
+      criterionResults: inputResults,
+    };
+  }
+
+  const executionResult = await executeScenarioStep({
+    step: options.step,
+    exoctlExecutable: options.exoctlExecutable,
+    cwd: options.workspaceRoot,
+    env: {
+      ...(options.env ?? {}),
+      ...(options.step.env ?? {}),
+    },
+  });
+
+  const outputOutcome = await evaluateStepOutcome({
+    workspaceRoot: options.workspaceRoot,
+    step: {
+      ...options.step,
+      input_criteria: [],
+    },
+    executionResult,
+    env: options.env,
+    portalAliases: options.portalAliases,
+  });
+
+  return {
+    stepId: options.step.id,
+    status: outputOutcome.status,
+    failureStage: outputOutcome.failureStage,
+    criterionResults: [...inputResults, ...outputOutcome.criterionResults],
+    executionResult,
+  };
+}
+
+async function evaluateInputCriteria(
+  options: IExecuteSyntheticStepOptions,
+): Promise<ICriterionResult[]> {
+  const results: ICriterionResult[] = [];
+
+  for (const criterion of options.step.input_criteria) {
+    results.push(
+      await evaluateCriterion({
+        workspaceRoot: options.workspaceRoot,
+        phase: CriterionPhase.INPUT,
+        criterion,
+        env: options.env,
+        portalAliases: options.portalAliases,
+      }),
+    );
+  }
+
+  return results;
+}
+
+function hasFailedCriterion(results: ICriterionResult[]): boolean {
+  return results.some((result) => result.status !== CriterionStatus.PASSED);
+}
+
+function toModeExecutionResult(
+  outcome: IScenarioStepOutcome,
+): IScenarioStepExecutionResult {
+  if (outcome.executionResult === undefined) {
+    const timestamp = new Date().toISOString();
+    return {
+      stepId: outcome.stepId,
+      stepType: ScenarioStepType.SHELL,
+      startedAt: timestamp,
+      completedAt: timestamp,
+      durationMs: 0,
+      exitCode: 1,
+      stdout: "",
+      stderr: "",
+      combinedOutput: "",
+    };
+  }
+
+  if (outcome.status === CriterionStatus.PASSED) {
+    return outcome.executionResult;
+  }
+
+  return {
+    ...outcome.executionResult,
+    exitCode: outcome.executionResult.exitCode === 0 ? 1 : outcome.executionResult.exitCode,
+  };
+}
+
+interface IBuildRunManifestOptions {
+  loadedScenario: ILoadedScenario;
+  stepOutcomes: IScenarioStepOutcome[];
+  mode: ScenarioExecutionMode;
+  runResult: IRunScenarioInModeResult;
+}
+
+function buildRunManifest(options: IBuildRunManifestOptions): IRunManifest {
+  return {
+    scenarioId: options.loadedScenario.scenario.id,
+    pack: options.loadedScenario.scenario.pack,
+    mode: options.mode,
+    outcome: mapScenarioOutcome(options.runResult),
+    steps: options.stepOutcomes.map((outcome) => ({
+      stepId: outcome.stepId,
+      stepType: resolveStepType(options.loadedScenario.steps, outcome.stepId),
+      executionStatus: mapExecutionStatus(outcome),
+      criterionResults: outcome.criterionResults,
+    })),
+  };
+}
+
+function resolveStepType(
+  steps: IScenarioStep[],
+  stepId: string,
+): IScenarioStep["type"] {
+  const step = steps.find((candidate) => candidate.id === stepId);
+  if (!step) {
+    throw new Error(`synthetic manifest missing step definition: ${stepId}`);
+  }
+
+  return step.type;
+}
+
+function mapScenarioOutcome(runResult: IRunScenarioInModeResult): string {
+  if (runResult.status === "completed") {
+    return runResult.outcome ?? "success";
+  }
+
+  if (runResult.status === "failed") {
+    return runResult.outcome ?? "scenario-failure";
+  }
+
+  if (runResult.status === "paused") {
+    return "paused";
+  }
+
+  return runResult.skipReason ?? "skipped";
+}
+
+function mapExecutionStatus(outcome: IScenarioStepOutcome): string {
+  if (outcome.status === CriterionStatus.PASSED) {
+    return "passed";
+  }
+
+  if (outcome.failureStage === StepFailureStage.EXECUTION) {
+    return "execution-failed";
+  }
+
+  return "failed";
+}

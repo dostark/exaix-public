@@ -8,6 +8,7 @@
  * @related-files [tests/scenario_framework/schema/scenario_schema.ts, tests/scenario_framework/tests/unit/framework_contract_test.ts, tests/scenario_framework/README.md]
  */
 
+import { resolve } from "@std/path";
 import { z } from "zod";
 import { ScenarioExecutionMode } from "../schema/step_schema.ts";
 
@@ -42,6 +43,12 @@ export interface IPortalMountPlanInput {
 export interface IPortalMountPlan {
   action: PortalLifecycleAction;
   frameworkOwned: boolean;
+}
+
+export interface IRuntimeConfigResolutionOptions {
+  executionDirectory: string;
+  fileConfig?: Partial<IRuntimeConfig>;
+  cliFlags?: IScenarioRunnerCliFlags;
 }
 
 const DEFAULT_RUNTIME_TIMEOUT_SEC = 120;
@@ -87,6 +94,24 @@ export type IRuntimeConfig = z.infer<typeof RuntimeConfigSchema>;
 
 export function loadRuntimeConfig(rawConfig: unknown): IRuntimeConfig {
   return RuntimeConfigSchema.parse(rawConfig);
+}
+
+export function resolveRuntimeConfigForExecution(
+  options: IRuntimeConfigResolutionOptions,
+): IRuntimeConfig {
+  const fileConfig = options.fileConfig ?? {};
+  const frameworkHome = resolve(fileConfig.framework_home ?? options.executionDirectory);
+  const portals = normalizePortalPaths(fileConfig.portals);
+
+  return RuntimeConfigSchema.parse({
+    ...fileConfig,
+    framework_home: frameworkHome,
+    workspace_path: resolve(options.cliFlags?.workspace ?? fileConfig.workspace_path ?? ""),
+    output_dir: resolve(options.cliFlags?.output ?? fileConfig.output_dir ?? ""),
+    portals,
+    mode: options.cliFlags?.mode ?? fileConfig.mode ?? ScenarioExecutionMode.AUTO,
+    profile: options.cliFlags?.profile ?? fileConfig.profile,
+  });
 }
 
 export function resolveScenarioSelection(
@@ -173,3 +198,18 @@ export const ScenarioRunnerCliFlagSchema = z.object({
 }).strict();
 
 export type IScenarioRunnerCliFlags = z.infer<typeof ScenarioRunnerCliFlagSchema>;
+
+function normalizePortalPaths(
+  portals?: { [key: string]: string },
+): { [key: string]: string } | undefined {
+  if (!portals) {
+    return undefined;
+  }
+
+  const normalizedPortals: { [key: string]: string } = {};
+  for (const [alias, sourcePath] of Object.entries(portals)) {
+    normalizedPortals[alias] = resolve(sourcePath);
+  }
+
+  return normalizedPortals;
+}

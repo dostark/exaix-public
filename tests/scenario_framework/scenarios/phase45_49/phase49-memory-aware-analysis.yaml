@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+id: "phase49-memory-aware-analysis"
+title: "Phase 49 memory-aware analysis enriches request understanding"
+pack: "phase45_49"
+tags: ["phase49", "analysis", "smoke"]
+request_fixture: "fixtures/requests/phase45_49/phase49_memory_aware_analysis.md"
+mode_support: ["auto", "step"]
+portals: []
+steps:
+  - id: "phase49-create-memory-aware-request"
+    type: "exoctl"
+    command: "request create"
+    args: ["--analyze", "--from-file", "fixtures/requests/phase45_49/phase49_memory_aware_analysis.md"]
+    input_criteria:
+      - id: "phase49-request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/phase45_49/phase49_memory_aware_analysis.md"
+    output_criteria:
+      - id: "phase49-request-create-exit-code"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "phase49-analysis-check"
+    type: "json-assert"
+    input_criteria:
+      - id: "phase49-analysis-json-available"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"
+    output_criteria:
+      - id: "phase49-analysis-goal-present"
+        kind: "json-path-exists"
+        path: "$.goals[0]"
+        target_file: "Workspace/Requests/latest/_analysis.json"

@@ -1,0 +1,21 @@
+schema_version: "1.0.0"
+id: "__SCENARIO_ID__"
+title: "__SCENARIO_TITLE__"
+pack: "__SCENARIO_PACK__"
+tags: [__SCENARIO_TAGS__]
+request_fixture: "__REQUEST_FIXTURE__"
+mode_support: ["auto"]
+portals: []
+steps:
+  - id: "create-request"
+    type: "exoctl"
+    command: "request create"
+    args: ["--from-file", "__REQUEST_FIXTURE__"]
+    input_criteria:
+      - id: "request-fixture-exists"
+        kind: "file-exists"
+        path: "__REQUEST_FIXTURE__"
+    output_criteria:
+      - id: "request-command-succeeded"
+        kind: "command-exit-code"
+        equals: 0

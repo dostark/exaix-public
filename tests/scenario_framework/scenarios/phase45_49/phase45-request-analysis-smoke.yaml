@@ -1,0 +1,31 @@
+schema_version: "1.0.0"
+id: "phase45-request-analysis-smoke"
+title: "Phase 45 request analysis produces a smoke-level analysis artifact"
+pack: "phase45_49"
+tags: ["phase45", "smoke", "analysis"]
+request_fixture: "fixtures/requests/phase45_49/phase45_request_analysis_smoke.md"
+mode_support: ["auto", "step"]
+portals: []
+steps:
+  - id: "create-request-analysis"
+    type: "exoctl"
+    command: "request create"
+    args: ["--analyze", "--from-file", "fixtures/requests/phase45_49/phase45_request_analysis_smoke.md"]
+    input_criteria:
+      - id: "phase45-request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/phase45_49/phase45_request_analysis_smoke.md"
+    output_criteria:
+      - id: "phase45-request-command-succeeded"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "phase45-analysis-artifact"
+    type: "wait-for-file"
+    input_criteria:
+      - id: "phase45-request-created"
+        kind: "command-exit-code"
+        equals: 0
+    output_criteria:
+      - id: "phase45-analysis-file-found"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"

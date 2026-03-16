@@ -1,0 +1,21 @@
+schema_version: "1.0.0"
+id: "workspace-health-smoke"
+title: "Workspace health smoke validates the baseline request path"
+pack: "smoke"
+tags: ["smoke", "workspace", "placeholder"]
+request_fixture: "fixtures/requests/shared/workspace_health_smoke.md"
+mode_support: ["auto"]
+portals: []
+steps:
+  - id: "workspace-health-request"
+    type: "exoctl"
+    command: "request create"
+    args: ["--from-file", "fixtures/requests/shared/workspace_health_smoke.md"]
+    input_criteria:
+      - id: "workspace-health-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/shared/workspace_health_smoke.md"
+    output_criteria:
+      - id: "workspace-health-request-exit-code"
+        kind: "command-exit-code"
+        equals: 0

@@ -710,11 +710,11 @@ Without strong evidence capture, the framework becomes another opaque script ins
 
 ### Actions
 
-- [ ] Add a deployment script under `tests/scenario_framework/scripts/`.
-- [ ] Support copying the framework into an arbitrary target directory.
-- [ ] Rewrite runtime config to use external absolute paths provided at execution time.
-- [ ] Verify the deployed framework can target a separate ExoFrame workspace under test.
-- [ ] Verify the deployed framework can mount one or more non-ExoFrame portals as part of scenario setup.
+- [x] Add a deployment script under `tests/scenario_framework/scripts/`.
+- [x] Support copying the framework into an arbitrary target directory.
+- [x] Rewrite runtime config to use external absolute paths provided at execution time.
+- [x] Verify the deployed framework can target a separate ExoFrame workspace under test.
+- [x] Verify the deployed framework can mount one or more non-ExoFrame portals as part of scenario setup.
 
 ### Justification
 
@@ -722,27 +722,29 @@ This forces the framework to behave like an external validation tool and prevent
 
 ### Success Criteria
 
-- [ ] The framework can run from a destination outside `~/git/ExoFrame` and `~/ExoFrame`.
-- [ ] No runner path assumptions require execution from the repo root.
-- [ ] External portal mounts can target arbitrary repositories provided by scenario config.
-- [ ] Deployed runs can still locate fixtures, scenarios, and outputs correctly.
+- [x] The framework can run from a destination outside `~/git/ExoFrame` and `~/ExoFrame`.
+- [x] No runner path assumptions require execution from the repo root.
+- [x] External portal mounts can target arbitrary repositories provided by scenario config.
+- [x] Deployed runs can still locate fixtures, scenarios, and outputs correctly.
 
 ### Planned Unit Tests
 
-- [ ] Deployment planner rewrites framework paths relative to the external destination correctly.
-- [ ] Runtime config resolves explicit workspace, portal, and output paths without repo-root assumptions.
-- [ ] Portal mount preparation accepts non-ExoFrame repository paths.
-- [ ] Deployment manifest records copied framework assets deterministically.
+- [x] Deployment planner rewrites framework paths relative to the external destination correctly.
+- [x] Runtime config resolves explicit workspace, portal, and output paths without repo-root assumptions.
+- [x] Portal mount preparation accepts non-ExoFrame repository paths.
+- [x] Deployment manifest records copied framework assets deterministically.
+
+**✅ IMPLEMENTED** — `tests/scenario_framework/scripts/deploy_framework.ts`, `tests/scenario_framework/runner/config.ts`, 4/4 Step 6 tests passing
 
 ## Step 7: Implement the Initial Phase 45–49 Scenario Pack
 
 ### Actions
 
-- [ ] Create one or more scenarios per phase covering the primary new behavior.
-- [ ] Store each request in a dedicated fixture file.
-- [ ] Add assertions that map to actual observable artifacts, not assumptions.
-- [ ] Add smoke tags for a reduced fast path.
-- [ ] Define a CI-safe subset list for the initial Phase 45-49 pack.
+- [x] Create one or more scenarios per phase covering the primary new behavior.
+- [x] Store each request in a dedicated fixture file.
+- [x] Add assertions that map to actual observable artifacts, not assumptions.
+- [x] Add smoke tags for a reduced fast path.
+- [x] Define a CI-safe subset list for the initial Phase 45-49 pack.
 
 ### Justification
 
@@ -750,25 +752,27 @@ Phases 45–49 are the immediate business need and provide a realistic proving g
 
 ### Success Criteria
 
-- [ ] The initial pack validates the key behaviors of Phases 45–49.
-- [ ] At least one scenario runs in `auto` mode and `step` mode successfully.
-- [ ] At least one curated subset runs successfully in CI mode.
-- [ ] Scenarios rely on file-based request fixtures and deployed-workspace observables only.
+- [x] The initial pack validates the key behaviors of Phases 45–49.
+- [x] At least one scenario runs in `auto` mode and `step` mode successfully.
+- [x] At least one curated subset runs successfully in CI mode.
+- [x] Scenarios rely on file-based request fixtures and deployed-workspace observables only.
 
 ### Planned Unit Tests
 
-- [ ] Scenario selection logic resolves the Phase 45–49 pack by id, path, and tag.
-- [ ] CI-safe scenario list excludes scenarios marked manual-only or provider-live-only.
-- [ ] Scenario metadata for the Phase 45–49 pack satisfies schema and criteria requirements.
+- [x] Scenario selection logic resolves the Phase 45–49 pack by id, path, and tag.
+- [x] CI-safe scenario list excludes scenarios marked manual-only or provider-live-only.
+- [x] Scenario metadata for the Phase 45–49 pack satisfies schema and criteria requirements.
+
+**✅ IMPLEMENTED** — `tests/scenario_framework/runner/scenario_catalog.ts`, `tests/scenario_framework/scenarios/phase45_49/`, 3/3 Step 7 tests passing
 
 ## Step 8: Generalize for Future Packs
 
 ### Actions
 
-- [ ] Separate framework internals from pack-specific scenario data.
-- [ ] Add tags, pack selection, and filtering capabilities.
-- [ ] Create a template and authoring guide for new scenario packs.
-- [ ] Prove the design can host at least one non-45-49 placeholder pack.
+- [x] Separate framework internals from pack-specific scenario data.
+- [x] Add tags, pack selection, and filtering capabilities.
+- [x] Create a template and authoring guide for new scenario packs.
+- [x] Prove the design can host at least one non-45-49 placeholder pack.
 
 ### Justification
 
@@ -776,24 +780,26 @@ The framework should become a general validation asset rather than a one-off har
 
 ### Success Criteria
 
-- [ ] A new pack can be added without modifying core runner architecture.
-- [ ] Pack selection works by path, id, or tag.
-- [ ] The framework documentation explains how to add unrelated scenarios later.
+- [x] A new pack can be added without modifying core runner architecture.
+- [x] Pack selection works by path, id, or tag.
+- [x] The framework documentation explains how to add unrelated scenarios later.
 
 ### Planned Unit Tests
 
-- [ ] Runner can load two unrelated packs without pack-specific code branches.
-- [ ] Tag filtering returns the expected scenario subset across packs.
-- [ ] Scenario template generation produces a valid starter document for a new pack.
+- [x] Runner can load two unrelated packs without pack-specific code branches.
+- [x] Tag filtering returns the expected scenario subset across packs.
+- [x] Scenario template generation produces a valid starter document for a new pack.
+
+**✅ IMPLEMENTED** — `tests/scenario_framework/runner/scenario_catalog.ts`, `tests/scenario_framework/runner/scenario_templates.ts`, `tests/scenario_framework/scenarios/smoke/`, `tests/scenario_framework/templates/scenario_template.yaml`, 3/3 Step 8 tests passing
 
 ## Step 9: Add Internal Unit and Integration Tests for the Framework Itself
 
 ### Actions
 
-- [ ] Create a dedicated internal test suite under `tests/scenario_framework/tests/`.
-- [ ] Add unit tests for schema validation, fixture loading, criteria evaluation, mode control, deployment config, and manifest generation.
-- [ ] Add lightweight framework integration tests using local fake steps and fake evidence outputs.
-- [ ] Ensure the framework test suite can run quickly without requiring a deployed workspace or live LLM provider.
+- [x] Create a dedicated internal test suite under `tests/scenario_framework/tests/`.
+- [x] Add unit tests for schema validation, fixture loading, criteria evaluation, mode control, deployment config, and manifest generation.
+- [x] Add lightweight framework integration tests using local fake steps and fake evidence outputs.
+- [x] Ensure the framework test suite can run quickly without requiring a deployed workspace or live LLM provider.
 
 ### Justification
 
@@ -801,17 +807,19 @@ The framework itself is infrastructure. If its contracts are not tested independ
 
 ### Success Criteria
 
-- [ ] Internal framework unit tests cover the critical runner, schema, and manifest logic.
-- [ ] Lightweight integration tests verify end-to-end runner behavior against synthetic scenarios.
-- [ ] The internal framework test suite runs deterministically in local development and CI.
-- [ ] Failures in framework logic are distinguishable from failures in deployed-workspace scenarios.
+- [x] Internal framework unit tests cover the critical runner, schema, and manifest logic.
+- [x] Lightweight integration tests verify end-to-end runner behavior against synthetic scenarios.
+- [x] The internal framework test suite runs deterministically in local development and CI.
+- [x] Failures in framework logic are distinguishable from failures in deployed-workspace scenarios.
 
 ### Planned Unit Tests
 
-- [ ] Synthetic scenario completes successfully through the runner without touching a real workspace.
-- [ ] Synthetic failing scenario emits the expected criterion-level manifest.
-- [ ] Synthetic checkpoint scenario pauses and resumes correctly.
-- [ ] Synthetic CI scenario selection honors tags and explicit scenario ids.
+- [x] Synthetic scenario completes successfully through the runner without touching a real workspace.
+- [x] Synthetic failing scenario emits the expected criterion-level manifest.
+- [x] Synthetic checkpoint scenario pauses and resumes correctly.
+- [x] Synthetic CI scenario selection honors tags and explicit scenario ids.
+
+**✅ IMPLEMENTED** — `tests/scenario_framework/runner/synthetic_runner.ts`, `tests/scenario_framework/tests/integration/synthetic_runner_test.ts`, full internal framework suite 44/44 passing
 
 ---
 
