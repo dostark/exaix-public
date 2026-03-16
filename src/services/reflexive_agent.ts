@@ -29,6 +29,7 @@ import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { IServiceContext } from "./common/types.ts";
 import { RequirementFulfillmentSchema } from "../flows/evaluation_criteria.ts";
 import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
+import { MAX_CRITIQUE_REQUIREMENTS } from "../shared/constants.ts";
 
 export interface IReflexiveAgentConfig extends IAgentRunnerConfig {
   maxIterations?: number;
@@ -359,6 +360,27 @@ export class ReflexiveAgent {
     return finalResult!;
   }
 
+  private buildEnhancedCritiquePrompt(analysis: IRequestAnalysis): string {
+    const sortedGoals = [...analysis.goals].sort((a, b) => a.priority - b.priority);
+    const goalSlice = sortedGoals.slice(0, MAX_CRITIQUE_REQUIREMENTS);
+    const acSlice = analysis.acceptanceCriteria.slice(
+      0,
+      Math.max(0, MAX_CRITIQUE_REQUIREMENTS - goalSlice.length),
+    );
+
+    const goalsSection = goalSlice
+      .map((g) => `- ${g.explicit ? "[E]" : "[I]"} ${g.description}`)
+      .join("\n");
+    const acSection = acSlice.map((ac) => `- ${ac}`).join("\n");
+
+    return "\n\n## Specific Requirements to Verify\n" +
+      (goalsSection || "(none)") +
+      "\n\n## Acceptance Criteria\n" +
+      (acSection || "(none)") +
+      "\n\nFor each requirement, state: \u2705 MET / \u26a0\ufe0f PARTIAL / \u274c MISSING" +
+      '\nAdd a "requirementsFulfillment" array to your JSON response listing each requirement and its status.';
+  }
+
   public async critique(
     request: IParsedRequest,
     response: IAgentExecutionResult,
@@ -370,18 +392,7 @@ export class ReflexiveAgent {
 
     // Append structured requirements section when analysis is provided
     if (requestAnalysis) {
-      const goalsSection = requestAnalysis.goals
-        .map((g) => `- ${g.explicit ? "[E]" : "[I]"} ${g.description}`)
-        .join("\n");
-      const acSection = requestAnalysis.acceptanceCriteria
-        .map((ac) => `- ${ac}`)
-        .join("\n");
-      critiquePrompt += "\n\n## Specific Requirements to Verify\n" +
-        (goalsSection || "(none)") +
-        "\n\n## Acceptance Criteria\n" +
-        (acSection || "(none)") +
-        "\n\nFor each requirement, state: \u2705 MET / \u26a0\ufe0f PARTIAL / \u274c MISSING" +
-        '\nAdd a "requirementsFulfillment" array to your JSON response listing each requirement and its status.';
+      critiquePrompt += this.buildEnhancedCritiquePrompt(requestAnalysis);
     }
 
     const critiqueBlueprint: IBlueprint = {
