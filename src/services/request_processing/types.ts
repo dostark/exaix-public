@@ -27,6 +27,12 @@ export interface IRequestFrontmatter {
   assessed_at?: string;
   /** Path to the sibling `_clarification.json` file when a Q&A session exists. */
   clarification_session_path?: string;
+  /** Explicit acceptance criteria parsed from YAML frontmatter (Phase 49). */
+  acceptance_criteria?: string[];
+  /** Expected outcomes parsed from YAML frontmatter (Phase 49). */
+  expected_outcomes?: string[];
+  /** Scope constraints parsed from YAML frontmatter (Phase 49). */
+  scope?: { include?: string[]; exclude?: string[] };
 }
 
 export interface ParsedRequestFile {

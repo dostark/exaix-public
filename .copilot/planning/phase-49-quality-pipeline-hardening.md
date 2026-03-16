@@ -568,11 +568,13 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `IRequestFrontmatter` has `acceptance_criteria?: string[]`
-- [ ] `IRequestFrontmatter` has `expected_outcomes?: string[]`
-- [ ] `IRequestFrontmatter` has `scope?: { include?: string[]; exclude?: string[] }`
-- [ ] Existing frontmatter without new fields still valid
-- [ ] TypeScript compiles
+- [x] `IRequestFrontmatter` has `acceptance_criteria?: string[]`
+- [x] `IRequestFrontmatter` has `expected_outcomes?: string[]`
+- [x] `IRequestFrontmatter` has `scope?: { include?: string[]; exclude?: string[] }`
+- [x] Existing frontmatter without new fields still valid
+- [x] TypeScript compiles
+
+✅ IMPLEMENTED — `src/services/request_processing/types.ts` updated; 8 tests added in `tests/services/request_processing/frontmatter_structured_test.ts`
 
 **Planned tests** (`tests/services/request_processing/frontmatter_structured_test.ts`):
 
