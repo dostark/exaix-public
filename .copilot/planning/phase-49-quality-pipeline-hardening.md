@@ -609,12 +609,14 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] Parser extracts `acceptance_criteria` array from frontmatter
-- [ ] Parser extracts `expected_outcomes` array from frontmatter
-- [ ] Parser extracts `scope` object from frontmatter
-- [ ] Gracefully handles malformed `acceptance_criteria` (warns, strips, doesn't fail)
-- [ ] Gracefully handles malformed `scope` (non-object value — warns, strips, doesn't fail)
-- [ ] Existing request files parse unchanged
+- [x] Parser extracts `acceptance_criteria` array from frontmatter
+- [x] Parser extracts `expected_outcomes` array from frontmatter
+- [x] Parser extracts `scope` object from frontmatter
+- [x] Gracefully handles malformed `acceptance_criteria` (warns, strips, doesn't fail)
+- [x] Gracefully handles malformed `scope` (non-object value — warns, strips, doesn't fail)
+- [x] Existing request files parse unchanged
+
+✅ IMPLEMENTED — runtime guards added to `src/services/request_processing/request_parser.ts`; 8 tests in `tests/services/request_processing/request_parser_structured_test.ts`
 
 **Planned tests** (`tests/services/request_processing/request_parser_structured_test.ts`):
 
