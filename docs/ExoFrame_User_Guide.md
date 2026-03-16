@@ -646,20 +646,22 @@ exoctl request analyze "Existing Request Subject" --engine llm
 
 **Options:**
 
-| Option            | Short | Description                                                                      |
-| ----------------- | ----- | -------------------------------------------------------------------------------- |
-| `--agent`         | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
-| `--flow`          |       | Target multi-agent flow (mutually exclusive with --agent)                        |
-| `--priority`      | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
-| `--portal`        |       | Portal alias for project context                                                 |
-| `--target-branch` |       | Target/base branch when working inside a portal (stored as `target_branch`)      |
-| `--skills`        |       | Comma-separated list of skills to inject (e.g., `documentation-driven,file-ops`) |
-| `--file`          | `-f`  | Read description from file                                                       |
-| `--interactive`   | `-i`  | Interactive mode with prompts                                                    |
-| `--dry-run`       |       | Preview without creating                                                         |
-| `--json`          |       | Machine-readable output                                                          |
-| `--analyze`       |       | Trigger immediate intent analysis (Phase 45)                                     |
-| `--engine`        | `-e`  | Analysis engine: `heuristic` (default), `llm`                                    |
+| Option                  | Short | Description                                                                      |
+| ----------------------- | ----- | -------------------------------------------------------------------------------- |
+| `--agent`               | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
+| `--flow`                |       | Target multi-agent flow (mutually exclusive with --agent)                        |
+| `--priority`            | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
+| `--portal`              |       | Portal alias for project context                                                 |
+| `--target-branch`       |       | Target/base branch when working inside a portal (stored as `target_branch`)      |
+| `--skills`              |       | Comma-separated list of skills to inject (e.g., `documentation-driven,file-ops`) |
+| `--file`                | `-f`  | Read description from file                                                       |
+| `--acceptance-criteria` |       | Repeatable acceptance criterion; stored in frontmatter as `acceptance_criteria`  |
+| `--expected-outcome`    |       | Repeatable expected outcome; stored in frontmatter as `expected_outcomes`        |
+| `--interactive`         | `-i`  | Interactive mode with prompts                                                    |
+| `--dry-run`             |       | Preview without creating                                                         |
+| `--json`                |       | Machine-readable output                                                          |
+| `--analyze`             |       | Trigger immediate intent analysis (Phase 45)                                     |
+| `--engine`              | `-e`  | Analysis engine: `heuristic` (default), `llm`                                    |
 
 **Example workflow:**
 
@@ -691,11 +693,23 @@ $ exoctl request list
    Created: user@example.com @ 2025-11-27T10:30:00.000Z
 ```
 
+**Structured criteria example:**
+
+```bash
+exoctl request "Implement file upload validation" \
+  --agent senior-coder \
+  --acceptance-criteria "All existing tests pass" \
+  --acceptance-criteria "Payloads over 1MB are rejected" \
+  --expected-outcome "Upload endpoint documents size limits"
+```
+
+Explicit criteria improve request quality in three ways: they raise the analyzer's confidence about what success looks like, they feed directly into downstream evaluation, and they reduce clarification churn for borderline requests.
+
 **Why CLI instead of manual files?**
 
 | Aspect         | Manual File Creation     | `exoctl request`           |
 | -------------- | ------------------------ | -------------------------- |
-| Frontmatter    | Must write TOML manually | Auto-generated             |
+| Frontmatter    | Must write YAML manually | Auto-generated             |
 | Trace ID       | Must generate UUID       | Auto-generated             |
 | Validation     | None until daemon reads  | Immediate                  |
 | Audit trail    | Not logged               | Logged to Activity Journal |
@@ -1673,17 +1687,52 @@ Implement user authentication for the API...
 
 **Request Files** (`Workspace/Requests/request-*.md`):
 
-| Field        | Type     | Required | Example                                  |
-| ------------ | -------- | -------- | ---------------------------------------- |
-| `trace_id`   | string   | ✓        | `"550e8400-e29b-41d4-a716-446655440000"` |
-| `created`    | datetime | ✓        | `2025-11-28T10:30:00.000Z`               |
-| `status`     | string   | ✓        | `pending`, `processing`, `completed`     |
-| `priority`   | string   | ✓        | `low`, `normal`, `high`, `critical`      |
-| `agent`      | string   | ✓        | `default`, `senior_coder`, `architect`   |
-| `source`     | string   | ✓        | `cli`, `file`, `interactive`             |
-| `created_by` | string   | ✓        | `user@example.com`                       |
-| `portal`     | string   |          | `MyProject` (optional project context)   |
-| `tags`       | array    |          | `[feature, api]` (optional tags)         |
+| Field                 | Type     | Required | Example                                               |
+| --------------------- | -------- | -------- | ----------------------------------------------------- |
+| `trace_id`            | string   | ✓        | `"550e8400-e29b-41d4-a716-446655440000"`              |
+| `created`             | datetime | ✓        | `2025-11-28T10:30:00.000Z`                            |
+| `status`              | string   | ✓        | `pending`, `processing`, `completed`                  |
+| `priority`            | string   | ✓        | `low`, `normal`, `high`, `critical`                   |
+| `agent`               | string   | ✓        | `default`, `senior_coder`, `architect`                |
+| `source`              | string   | ✓        | `cli`, `file`, `interactive`                          |
+| `created_by`          | string   | ✓        | `user@example.com`                                    |
+| `portal`              | string   |          | `MyProject` (optional project context)                |
+| `target_branch`       | string   |          | `main` (review base branch for portal work)           |
+| `acceptance_criteria` | array    |          | `[`"All tests pass"`,`"Endpoint returns 200"`]`       |
+| `expected_outcomes`   | array    |          | `[`"API docs updated"`]`                              |
+| `scope`               | object   |          | `{ include: ["src/api/"], exclude: ["src/legacy/"] }` |
+| `tags`                | array    |          | `[feature, api]` (optional tags)                      |
+
+#### Structured Request Quality Fields
+
+When you already know what "done" means, put it in frontmatter instead of burying it in prose. ExoFrame treats these fields as explicit, high-confidence signals during analysis and evaluation.
+
+```yaml
+---
+trace_id: "550e8400-e29b-41d4-a716-446655440000"
+created: 2025-11-28T10:30:00.000Z
+status: pending
+priority: high
+agent: senior-coder
+source: cli
+created_by: user@example.com
+acceptance_criteria:
+  - All existing tests pass
+  - Input validation rejects payloads larger than 1MB
+expected_outcomes:
+  - Upload endpoint available at /api/v2/upload
+scope:
+  include: ["src/api/", "tests/api/"]
+  exclude: ["src/legacy/"]
+---
+```
+
+CLI flags map directly to these fields:
+
+- `--acceptance-criteria` → `acceptance_criteria`
+- `--expected-outcome` → `expected_outcomes`
+
+Use them when you want fewer clarification rounds and more reliable evaluation against your actual requirements.
 
 **Plan Files** (`Workspace/Plans/*.md`):
 
@@ -1722,6 +1771,16 @@ created: 2025-11-28T10:30:00.000Z
 
 # Arrays (inline format)
 tags: [feature, api, urgent]
+
+# Arrays (block format)
+acceptance_criteria:
+  - All tests pass
+  - Endpoint returns 200
+
+# Nested objects
+scope:
+  include: [src/api/, tests/api/]
+  exclude: [src/legacy/]
 
 # Booleans
 approved: true

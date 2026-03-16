@@ -1,6 +1,6 @@
 # Phase 49: Quality Pipeline Hardening — Minor Gaps
 
-## Status: PLANNING
+## Status: IN PROGRESS
 
 A collection of smaller improvements to the quality evaluation pipeline that complement Phases 45–47 but are independently valuable and lower in complexity.
 
@@ -76,9 +76,9 @@ The existing generic prompt continues to work unchanged. This is a non-breaking 
 ### Goals
 
 - [ ] Add `requestAnalysis` optional field to `IReflexiveAgentConfig`.
-- [ ] Build a `buildEnhancedCritiquePrompt()` that merges generic dimensions with specific requirements.
-- [ ] Add `requirementsFulfillment` field to `CritiqueSchema` output for structured tracking.
-- [ ] Write tests for enhanced critique with and without analysis context.
+- [x] Build a `buildEnhancedCritiquePrompt()` that merges generic dimensions with specific requirements.
+- [x] Add `requirementsFulfillment` field to `CritiqueSchema` output for structured tracking.
+- [x] Write tests for enhanced critique with and without analysis context.
 
 ---
 
@@ -123,10 +123,10 @@ This is a wiring change — `SessionMemory` already produces the right data; it 
 
 ### Goals
 
-- [ ] Make `SessionMemory.enhance()` callable from `RequestProcessor` before agent execution.
-- [ ] Pass memory context to `RequestAnalyzer` (when available).
+- [x] Make `SessionMemory.enhance()` callable from `RequestProcessor` before agent execution.
+- [x] Pass memory context to `RequestAnalyzer` (when available).
 - [ ] Add "similar past requests" as a signal for quality assessment.
-- [ ] Write tests for memory-enhanced request analysis.
+- [x] Write tests for memory-enhanced request analysis.
 
 ---
 
@@ -200,10 +200,10 @@ private estimateFromContent(body: string): TaskComplexity | null {
 
 ### Goals
 
-- [ ] Add content-based heuristics to `classifyTaskComplexity()`.
-- [ ] Accept optional `IRequestAnalysis` parameter for primary classification.
-- [ ] Remove underscore from `_request` parameter — it's now used.
-- [ ] Write tests for complexity classification with various request patterns.
+- [x] Add content-based heuristics to `classifyTaskComplexity()`.
+- [x] Accept optional `IRequestAnalysis` parameter for primary classification.
+- [x] Remove underscore from `_request` parameter — it's now used.
+- [x] Write tests for complexity classification with various request patterns.
 
 ---
 
@@ -300,11 +300,11 @@ These structured fields feed directly into:
 
 ### Goals
 
-- [ ] Add `acceptance_criteria`, `expected_outcomes`, and `scope` to `IRequestFrontmatter`.
-- [ ] Update `RequestParser` to handle YAML list fields.
-- [ ] Update `buildParsedRequest()` to include structured expectations in context.
-- [ ] Add `--acceptance-criteria` option to `exoctl request create`.
-- [ ] Write tests for parsing and propagating structured expectations.
+- [x] Add `acceptance_criteria`, `expected_outcomes`, and `scope` to `IRequestFrontmatter`.
+- [x] Update `RequestParser` to handle YAML list fields.
+- [x] Update `buildParsedRequest()` to include structured expectations in context.
+- [x] Add `--acceptance-criteria` option to `exoctl request create`.
+- [x] Write tests for parsing and propagating structured expectations.
 
 ---
 
@@ -334,7 +334,7 @@ These structured fields feed directly into:
 - [ ] Existing `ReflexiveAgent` instantiations compile without changes
 - [ ] TypeScript compiles with `deno check`
 
-**Planned tests:** None (type-only change; validated by compile and Step 2 tests).
+**Test status:** None. This remains a type-only follow-up and is not yet implemented.
 
 ---
 
@@ -377,11 +377,11 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `buildEnhancedCritiquePrompt()` extracted in `src/services/reflexive_agent.ts`; 4 tests in `tests/services/reflexive_agent_enhanced_prompt_test.ts`
 
-**Planned tests** (`tests/services/reflexive_agent_enhanced_prompt_test.ts`):
+**Implemented tests** (`tests/services/reflexive_agent_enhanced_prompt_test.ts`):
 
-- `[buildEnhancedCritiquePrompt] caps requirements at MAX_CRITIQUE_REQUIREMENTS` ← **new** (not in Phase 48)
-- `[buildEnhancedCritiquePrompt] handles analysis with no goals` ← verify not already covered
-- *(skip tests already passing in `reflexive_agent_criteria_test.ts`)*
+- [x] `[buildEnhancedCritiquePrompt] caps requirements at MAX_CRITIQUE_REQUIREMENTS` ← **new** (not in Phase 48)
+- [x] `[buildEnhancedCritiquePrompt] handles analysis with no goals`
+- [x] Complementary enhanced-critique coverage remains in `tests/services/reflexive_agent_criteria_test.ts`
 
 ---
 
@@ -400,7 +400,7 @@ These structured fields feed directly into:
 - [x] Each entry has `requirement` string and `status`
 - [x] Optional `note` field for explanation
 
-**Planned tests** — verify coverage in `tests/services/reflexive_agent_criteria_test.ts` rather than creating a new file.
+**Implemented tests** — verified in `tests/services/reflexive_agent_criteria_test.ts` rather than creating a new file.
 
 ---
 
@@ -419,7 +419,7 @@ These structured fields feed directly into:
 - [x] Critique result includes fulfillment data
 - [x] Handles LLM not returning fulfillment gracefully (optional field)
 
-**Planned tests** — verify coverage in `tests/services/reflexive_agent_criteria_test.ts`.
+**Implemented tests** — verified in `tests/services/reflexive_agent_criteria_test.ts`.
 
 ---
 
@@ -458,12 +458,12 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `src/services/request_processor.ts` updated; `MEMORY_CONTEXT_KEY` added to constants; 3 tests in `tests/services/request_processor_memory_test.ts`
 
-**Planned tests** (`tests/services/request_processor_memory_test.ts`):
+**Implemented tests** (`tests/services/request_processor_memory_test.ts`):
 
-- `[RequestProcessor] calls SessionMemoryService.enhanceRequest() before analysis`
-- `[RequestProcessor] stores memory context on request context`
-- `[RequestProcessor] handles missing SessionMemoryService gracefully`
-- `[RequestProcessor] does not call enhanceRequest() when sessionMemory is undefined`
+- [x] `[RequestProcessor] calls SessionMemoryService.enhanceRequest() before analysis`
+- [x] `[RequestProcessor] stores memory context on request context`
+- [x] `[RequestProcessor] handles missing SessionMemoryService gracefully`
+- [x] `[RequestProcessor] does not call enhanceRequest() when sessionMemory is undefined`
 
 ---
 
@@ -491,18 +491,20 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `IRequestAnalysisContext` has optional `memories?: EnhancedRequest` field
-- [ ] `analyze()` accepts the field via existing `context` parameter (no signature break)
-- [ ] `heuristic_analyzer.ts` and `llm_analyzer.ts` updated to handle the new field
-- [ ] Memory context used as additional signal in LLM prompt
-- [ ] Analysis works without memory context (backward compatible)
+- [x] `IRequestAnalysisContext` has optional `memories?: EnhancedRequest` field
+- [x] `analyze()` accepts the field via existing `context` parameter (no signature break)
+- [x] `heuristic_analyzer.ts` and `llm_analyzer.ts` updated to handle the new field
+- [x] Memory context used as additional signal in LLM prompt
+- [x] Analysis works without memory context (backward compatible)
 
-**Planned tests** (`tests/services/request_analysis/analyzer_memory_test.ts`):
+✅ IMPLEMENTED — `0840ef9`
 
-- `[RequestAnalyzer] uses memory context in analysis when provided`
-- `[RequestAnalyzer] includes memory snippets in LLM prompt`
-- `[RequestAnalyzer] works without memory context`
-- `[RequestAnalyzer] memory informs complexity classification`
+**Implemented tests** (`tests/services/request_analysis/analyzer_memory_test.ts`):
+
+- [x] `[RequestAnalyzer] uses memory context in analysis when provided`
+- [x] `[RequestAnalyzer] includes memory snippets in LLM prompt`
+- [x] `[RequestAnalyzer] works without memory context`
+- [x] `[RequestAnalyzer] memory informs complexity classification`
 
 ---
 
@@ -539,17 +541,17 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `src/services/request_processor.ts` `checkContentHeuristics()` updated; 4 boundary tests added to `tests/services/request_processor_complexity_test.ts`
 
-**Planned tests** (`tests/services/request_processor_complexity_test.ts` — new file, but assertions must use constant values not literals):
+**Implemented tests** (`tests/services/request_processor_complexity_test.ts` — assertions use constant values, not literals):
 
-- `[classifyTaskComplexity] uses analysis.complexity as primary signal`
-- `[classifyTaskComplexity] falls back to content heuristics without analysis`
-- `[classifyTaskComplexity] falls back to agent ID without content signal`
-- `[classifyTaskComplexity] content: short body → SIMPLE`
-- `[classifyTaskComplexity] content: many bullets → COMPLEX`
-- `[classifyTaskComplexity] content: many file refs → COMPLEX`
-- `[classifyTaskComplexity] content: long body → COMPLEX`
-- `[classifyTaskComplexity] maps analysis "simple" to TaskComplexity.SIMPLE`
-- `[classifyTaskComplexity] maps analysis "epic" to TaskComplexity.COMPLEX`
+- [x] `[classifyTaskComplexity] uses analysis.complexity as primary signal`
+- [x] `[classifyTaskComplexity] falls back to content heuristics without analysis`
+- [x] `[classifyTaskComplexity] falls back to agent ID without content signal`
+- [x] `[classifyTaskComplexity] content: short body → SIMPLE`
+- [x] `[classifyTaskComplexity] content: many bullets → COMPLEX`
+- [x] `[classifyTaskComplexity] content: many file refs → COMPLEX`
+- [x] `[classifyTaskComplexity] content: long body → COMPLEX`
+- [x] `[classifyTaskComplexity] maps analysis "simple" to TaskComplexity.SIMPLE`
+- [x] `[classifyTaskComplexity] maps analysis "epic" to TaskComplexity.COMPLEX`
 
 ---
 
@@ -582,12 +584,12 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `src/services/request_processing/types.ts` updated; 8 tests added in `tests/services/request_processing/frontmatter_structured_test.ts`
 
-**Planned tests** (`tests/services/request_processing/frontmatter_structured_test.ts`):
+**Implemented tests** (`tests/services/request_processing/frontmatter_structured_test.ts`):
 
-- `[IRequestFrontmatter] validates acceptance_criteria array`
-- `[IRequestFrontmatter] validates expected_outcomes array`
-- `[IRequestFrontmatter] validates scope includes/excludes`
-- `[IRequestFrontmatter] validates without new fields (backward compat)`
+- [x] `[IRequestFrontmatter] validates acceptance_criteria array`
+- [x] `[IRequestFrontmatter] validates expected_outcomes array`
+- [x] `[IRequestFrontmatter] validates scope includes/excludes`
+- [x] `[IRequestFrontmatter] validates without new fields (backward compat)`
 
 ---
 
@@ -622,14 +624,14 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — runtime guards added to `src/services/request_processing/request_parser.ts`; 8 tests in `tests/services/request_processing/request_parser_structured_test.ts`
 
-**Planned tests** (`tests/services/request_processing/request_parser_structured_test.ts`):
+**Implemented tests** (`tests/services/request_processing/request_parser_structured_test.ts`):
 
-- `[RequestParser] extracts acceptance_criteria from frontmatter`
-- `[RequestParser] extracts expected_outcomes from frontmatter`
-- `[RequestParser] extracts scope from frontmatter`
-- `[RequestParser] handles malformed acceptance_criteria gracefully`
-- `[RequestParser] handles malformed scope (non-object value) gracefully` ← **new, from Gap C2**
-- `[RequestParser] parses existing files without new fields`
+- [x] `[RequestParser] extracts acceptance_criteria from frontmatter`
+- [x] `[RequestParser] extracts expected_outcomes from frontmatter`
+- [x] `[RequestParser] extracts scope from frontmatter`
+- [x] `[RequestParser] handles malformed acceptance_criteria gracefully`
+- [x] `[RequestParser] handles malformed scope (non-object value) gracefully` ← **new, from Gap C2**
+- [x] `[RequestParser] parses existing files without new fields`
 
 ---
 
@@ -656,12 +658,12 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `src/services/request_common.ts` updated; 4 tests in `tests/services/request_common_structured_test.ts`
 
-**Planned tests** (`tests/services/request_common_structured_test.ts`):
+**Implemented tests** (`tests/services/request_common_structured_test.ts`):
 
-- `[buildParsedRequest] includes acceptance_criteria in context`
-- `[buildParsedRequest] includes expected_outcomes in context`
-- `[buildParsedRequest] includes scope in context`
-- `[buildParsedRequest] works without structured expectations`
+- [x] `[buildParsedRequest] includes acceptance_criteria in context`
+- [x] `[buildParsedRequest] includes expected_outcomes in context`
+- [x] `[buildParsedRequest] includes scope in context`
+- [x] `[buildParsedRequest] works without structured expectations`
 
 ---
 
@@ -698,12 +700,12 @@ These structured fields feed directly into:
 
 ✅ IMPLEMENTED — `src/cli/exoctl.ts`, `src/cli/handlers/request_create_handler.ts`, `src/cli/command_builders/request_actions.ts` updated; 4 tests in `tests/cli/commands/request_create_criteria_test.ts`
 
-**Planned tests** (`tests/cli/commands/request_create_criteria_test.ts`):
+**Implemented tests** (`tests/cli/commands/request_create_criteria_test.ts`):
 
-- `[request create] writes acceptance_criteria to frontmatter`
-- `[request create] writes multiple criteria from repeated flags`
-- `[request create] writes expected_outcomes to frontmatter`
-- `[request create] creates request without criteria flags`
+- [x] `[request create] writes acceptance_criteria to frontmatter`
+- [x] `[request create] writes multiple criteria from repeated flags`
+- [x] `[request create] writes expected_outcomes to frontmatter`
+- [x] `[request create] creates request without criteria flags`
 
 ---
 
@@ -737,7 +739,7 @@ These structured fields feed directly into:
 - [x] Grouped under `// === Quality Pipeline Hardening ===` section header
 - [x] No magic literals in Step 7 `checkContentHeuristics()` after this step commits
 
-**Planned tests:** None (validated through usage in Steps 2 and 7).
+**Test status:** None. This is validated through usage in Steps 2 and 7.
 
 **✅ IMPLEMENTED** — `src/shared/constants.ts`, thresholds match existing code (`>= 8` bullets, `>= 5` file refs, `< 50` body chars).
 
@@ -749,7 +751,7 @@ These structured fields feed directly into:
 
 **Files to create:**
 
-- `tests/integration/quality_hardening_e2e_test.ts` (NEW)
+- `tests/integration/35_quality_hardening_e2e_test.ts` (NEW)
 
 **Architecture notes:**
 
@@ -761,17 +763,19 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] Enhanced critique with requirements when analysis available
-- [ ] Memory context improves analysis when available
-- [ ] Content-based complexity classification works end-to-end
-- [ ] Structured frontmatter criteria flow through pipeline
+- [x] Enhanced critique with requirements when analysis available
+- [x] Memory context improves analysis when available
+- [x] Content-based complexity classification works end-to-end
+- [x] Structured frontmatter criteria flow through pipeline
 
-**Planned tests:**
+✅ IMPLEMENTED — `tests/integration/35_quality_hardening_e2e_test.ts`; targeted run passed with 8/8 tests green.
 
-- `[E2E] Gap 1: reflexive agent enhanced critique with goals`
-- `[E2E] Gap 2: memory context feeds into analysis`
-- `[E2E] Gap 3: content-based complexity classification`
-- `[E2E] Gap 4: structured frontmatter criteria in evaluation`
+**Implemented tests:**
+
+- [x] `[E2E] Gap 1: reflexive agent enhanced critique with goals`
+- [x] `[E2E] Gap 2: memory context feeds into analysis`
+- [x] `[E2E] Gap 3: content-based complexity classification`
+- [x] `[E2E] Gap 4: structured frontmatter criteria in evaluation`
 
 ---
 
@@ -797,12 +801,14 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] ReflexiveAgent enhancement documented
-- [ ] SessionMemory early call documented
-- [ ] Task complexity multi-signal approach documented
-- [ ] Structured frontmatter documented with example
+- [x] ReflexiveAgent enhancement documented
+- [x] SessionMemory early call documented
+- [x] Task complexity multi-signal approach documented
+- [x] Structured frontmatter documented with example
 
-**Planned tests:** None (documentation-only).
+✅ IMPLEMENTED — `ARCHITECTURE.md` updated with Phase 49 request-analysis, request-processing, structured-frontmatter, and enhanced-critique documentation.
+
+**Test status:** None (documentation-only).
 
 ---
 
@@ -845,12 +851,14 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] User guide documents frontmatter fields and CLI flags
-- [ ] Technical spec covers all four improvements
-- [ ] `.copilot/` docs updated
-- [ ] `manifest.json` is fresh
+- [x] User guide documents frontmatter fields and CLI flags
+- [x] Technical spec covers all four improvements
+- [x] `.copilot/` docs updated
+- [x] `manifest.json` is fresh
 
-**Planned tests:** `deno task check:docs` passes.
+✅ IMPLEMENTED — `docs/ExoFrame_User_Guide.md`, `docs/dev/ExoFrame_Technical_Spec.md`, `.copilot/source/exoframe.md`, `.copilot/cross-reference.md`, and `.copilot/manifest.json` updated.
+
+**Implemented validation:** `deno task check:docs` passes.
 
 ---
 
@@ -871,9 +879,9 @@ Step 10: buildParsedRequest extension  ← depends on Steps 8, 9
 Step 11: CLI --acceptance-criteria     ← depends on Steps 8, 9; also needs IRequestOptions update
 Step  5: SessionMemory early pipeline  ← fresh injection; needs constructor update in RequestProcessor
 Step  6: Memory in RequestAnalyzer     ← depends on Step 5; needs IRequestAnalysisContext update
-Step 13: E2E test                      ← depends on all above
-Step 14: ARCHITECTURE.md               ← depends on Steps 2, 7, 10
-Step 15: Docs + .copilot/             ← depends on Step 14
+Step 13: E2E test                      ← ✅ DONE
+Step 14: ARCHITECTURE.md               ← ✅ DONE
+Step 15: Docs + .copilot/             ← ✅ DONE
 ```
 
 **Parallel waves (revised):**
@@ -960,7 +968,7 @@ Implementing Steps 3 & 4 as written will conflict with existing committed code.
 
 **Impact:** Duplicate implementation → compile errors or silent schema mismatch (Phase 49's `.enum(["MET","PARTIAL","MISSING"])` vs Phase 48's `RequirementFulfillmentSchema` may diverge).
 
-**To fix:** Mark Steps 3 & 4 as **already complete (Phase 48)**. Remove them from the implementation sequence. Redirect their planned tests (`reflexive_agent_critique_schema_test.ts`, `reflexive_agent_gap1_integration_test.ts`) to verify the already-committed behaviour instead.
+**To fix:** Mark Steps 3 & 4 as **already complete (Phase 48)**. Remove them from the implementation sequence. Redirect their verification to the already-committed behaviour in `reflexive_agent_criteria_test.ts` instead.
 
 ---
 
@@ -1102,7 +1110,7 @@ Additionally, `SessionMemoryService` is **not currently used** in `RequestProces
 
 **Location in plan:** Step 9 — "handles malformed acceptance_criteria gracefully"
 
-**Problem:** The planned tests include a malformed `acceptance_criteria` case but not a malformed `scope` case (e.g., `scope: "bad-string"` instead of an object, or `scope: { include: "not-an-array" }`). Given that `scope` is a nested object, YAML cast-to-`IRequestFrontmatter` will silently produce unexpected types on malformed input.
+**Problem:** The original test plan included a malformed `acceptance_criteria` case but not a malformed `scope` case (e.g., `scope: "bad-string"` instead of an object, or `scope: { include: "not-an-array" }`). Given that `scope` is a nested object, YAML cast-to-`IRequestFrontmatter` will silently produce unexpected types on malformed input.
 
 **Impact:** Parser will not warn on malformed `scope`; silent data corruption if consumer assumes `scope.include` is always `string[]`.
 

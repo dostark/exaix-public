@@ -762,15 +762,16 @@ await Promise.all([requestWatcher.start(), planWatcher.start()]);
 **Request Processing Flow:**
 
 1. **File Detection:** RequestWatcher detects new `.md` file in `Workspace/Requests/`
-2. **Analysis Pre-Processing (Phase 45):** RequestAnalyzer extracts structured intent, goals, constraints, and complexity before routing. Results are saved in `_analysis.json` and added to the processing context.
-3. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`)
-4. **Routing Decision:**
+2. **Context Preparation (Phase 49):** `RequestProcessor` parses structured frontmatter, loads `SessionMemoryService.enhanceRequest()` output, and materializes explicit request context before analysis.
+3. **Analysis Pre-Processing (Phase 45 + 49):** RequestAnalyzer extracts structured intent, goals, constraints, and complexity before routing. Results are saved in `_analysis.json` and added to the processing context.
+4. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`) and optional structured expectation fields.
+5. **Routing Decision:**
    - If `flow` field present → Route to FlowRunner (multi-agent)
    - If `agent` field present → Route to AgentRunner (single-agent)
    - If neither field → Use default agent from configuration
-5. **Validation:** Validate routing target exists and is properly configured
-6. **Plan Generation:** Generate appropriate execution plan, including analysis metadata from Step 2.
-7. **Status Update:** Update request status and log to Activity Journal
+6. **Validation:** Validate routing target exists and is properly configured
+7. **Plan Generation:** Generate appropriate execution plan, including analysis metadata from Step 3.
+8. **Status Update:** Update request status and log to Activity Journal
 
 #### 5.8.2.1.1. Request Analysis Layer (Phase 45 ✅ Implemented)
 
@@ -788,6 +789,13 @@ Request Analysis is a mandatory pre-processing step that transforms raw markdown
 - **Goals & Requirements:** Categorized list of user goals (explicit/inferred) and functional requirements.
 - **Complexity Classification:** Mapping to `SIMPLE`, `MEDIUM`, `COMPLEX`, or `EPIC` based on scope and signals. This directly informs provider selection and model tiering.
 - **Ambiguity Detection:** Identification of underspecified areas with impact-level scoring (Low/Med/High).
+
+**Phase 49 hardening additions:**
+
+- **Memory-aware analysis:** `IRequestAnalysisContext.memories` allows both heuristic and LLM analyzers to incorporate `SessionMemory` context before planning.
+- **Structured frontmatter signals:** `acceptance_criteria`, `expected_outcomes`, and `scope` are promoted into parsed request context as explicit requirements.
+- **Content-based complexity fallback:** when analysis is absent or incomplete, request complexity is estimated from body length, bullet count, and file references before falling back to agent heuristics.
+- **Goal-aware critique loop:** the same analysis output is later reused by `ReflexiveAgent` for requirement-by-requirement critique.
 
 **Integration Points:**
 
@@ -833,6 +841,14 @@ priority: medium
 created: "2025-12-20T10:15:00Z"
 source: cli
 created_by: user@example.com
+acceptance_criteria:
+  - Existing auth tests continue to pass
+  - JWT tokens are rejected when expired
+expected_outcomes:
+  - API returns 401 for expired tokens
+scope:
+  include: ["src/api/", "tests/api/"]
+  exclude: ["src/legacy/"]
 ---
 Implement JWT-based authentication for the API endpoints.
 ```
@@ -1567,12 +1583,13 @@ with quality improvements, reliability, and context awareness.
 
 #### 7.3.2 Orchestration Pipeline
 
-Request → Session Memory → Agent Runner → Reflexive Agent → Output Validator → Response
-↓ ↓ ↓ ↓
-Memory Bank Tool Reflector Self-Critique Retry Policy
+Request → Request Processor → Session Memory → Request Analyzer → Agent Runner → Reflexive Agent → Output Validator → Response
+↓ ↓ ↓ ↓ ↓
+Frontmatter Memory Bank Routing Tool Reflector Self-Critique
 
-1. **Session Memory**: Injects relevant context from past interactions
-   (learnings, patterns, executions)
+1. **Request Processor**: Parses YAML frontmatter, normalizes structured expectation fields, and stores shared request context.
+1. **Session Memory**: Injects relevant context from past interactions early in the pipeline so both analysis and execution can consume the same memory snapshot.
+1. **Request Analyzer**: Extracts goals, requirements, ambiguities, and complexity using both request text and optional memory context.
 1. **Agent Runner**: Executes agent with enhanced context
 1. **Tool Reflector**: Evaluates tool call results, retries with alternative
    parameters if needed
@@ -1784,6 +1801,8 @@ When enabled and `IRequestAnalysis` is available, `GateEvaluator.evaluate()` mer
 #### 7.5.3 Enhanced ReflexiveAgent Critique
 
 `ReflexiveAgent.run(blueprint, request, analysis?)` accepts an optional third parameter. When provided, the critique prompt includes a structured requirements block and the critique output carries `requirementsFulfillment: IRequirementFulfillment[]` — a per-requirement MET / PARTIAL / MISSING breakdown.
+
+Phase 49 hardening refines this behavior further: the prompt builder caps injected requirements with `MAX_CRITIQUE_REQUIREMENTS`, preserves generic critique fallback when analysis is absent, and reuses frontmatter-derived acceptance criteria that were propagated into analysis earlier in the request pipeline.
 
 #### 7.5.4 ConfidenceScorer Goal Alignment
 

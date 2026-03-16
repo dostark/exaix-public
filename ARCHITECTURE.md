@@ -237,16 +237,23 @@ ExoFrame follows a **three-tier edition model** to serve different organizationa
 
 The `RequestAnalyzer` performs intent extraction before routing, identifying goals, requirements, constraints, and ambiguities. It classifies complexity and actionability to guide provider selection and execution strategy.
 
+### Phase 49 Hardening Additions
+
+- **Memory-aware analysis**: `RequestProcessor` now retrieves `SessionMemoryService.enhanceRequest()` before analysis and passes the resulting `memoryContext` into `RequestAnalyzer.analyze()`.
+- **Structured request context**: YAML frontmatter fields such as `acceptance_criteria`, `expected_outcomes`, and `scope` are promoted into request context before analysis, giving the analyzer high-confidence explicit requirements.
+- **Multi-signal complexity**: complexity is driven first by `IRequestAnalysis.complexity`, then by content signals such as body length, bullet count, and file references, with agent-ID matching retained only as a fallback.
+
 ### Analysis Modes
-- **Heuristic**: Fast, local-only extraction using regex and keyword mapping. Identifies file paths, tech stack, and simple complexity.
+- **Heuristic**: Fast, local-only extraction using regex and keyword mapping. Identifies file paths, tech stack, frontmatter-derived expectations, and content-based complexity signals.
 - **LLM**: Deep semantic analysis using a language model. Generates structured JSON adhering to `IRequestAnalysis` schema.
 - **Hybrid**: First runs heuristic; escalates to LLM only if actionability score falls below a configured threshold (default: 80).
 
 ### Data Flow
 1. **Trigger**: `exoctl request` (via CLI option) or `RequestProcessor` (daemon) detect a new/updated request.
-2. **Execution**: `RequestAnalyzer.analyze()` runs according to the configured mode.
-3. **Persistence**: Results are saved to a sibling `*_analysis.json` file.
-4. **Consumption**: `RequestRouter` and runners pull analysis context to refine planning and tool selection.
+2. **Preparation**: `RequestProcessor` validates frontmatter, materializes structured request context, and loads relevant session memory before analysis.
+3. **Execution**: `RequestAnalyzer.analyze()` runs according to the configured mode, using memory context when available.
+4. **Persistence**: Results are saved to a sibling `*_analysis.json` file.
+5. **Consumption**: `RequestRouter`, `ReflexiveAgent`, and downstream evaluation layers pull analysis context to refine planning, critique, and tool selection.
 
 ---
 
@@ -354,6 +361,34 @@ graph TD
     N --> P[Write Plan to Workspace/Plans]
     O --> P
 ```
+
+Before routing, `RequestProcessor` also performs two Phase 49 hardening steps that are not shown in older diagrams: it loads relevant `SessionMemory` context for the request, and it merges explicit frontmatter expectations into `request.context`. This gives both `RequestAnalyzer` and later execution layers the same grounded view of user intent.
+
+### Structured Request Frontmatter
+
+Requests can now carry machine-readable expectations directly in YAML frontmatter:
+
+```yaml
+---
+trace_id: "abc-123"
+created: 2026-03-16T10:00:00.000Z
+status: pending
+priority: high
+agent: senior-coder
+source: cli
+created_by: user@example.com
+acceptance_criteria:
+    - All existing tests pass
+    - New endpoint returns 200 for valid input
+expected_outcomes:
+    - Upload endpoint added at /api/v2/upload
+scope:
+    include: ["src/api/", "tests/api/"]
+    exclude: ["src/legacy/"]
+---
+```
+
+These fields are parsed by `RequestParser`, propagated through `buildParsedRequest()`, and made available to analysis, quality gates, and critique/evaluation layers.
 
 ### Request Types
 
@@ -1505,6 +1540,8 @@ For each requirement, state: ✅ MET / ⚠️ PARTIAL / ❌ MISSING
 ```
 
 The critique output includes `requirementsFulfillment: IRequirementFulfillment[]` — a per-requirement MET/PARTIAL/MISSING status array.
+
+To keep critique prompts bounded, the injected requirements block is capped by `MAX_CRITIQUE_REQUIREMENTS`. When no analysis is available, `ReflexiveAgent` falls back to the generic critique template without the structured requirements section.
 
 ### ConfidenceScorer Goal Alignment Factor
 
