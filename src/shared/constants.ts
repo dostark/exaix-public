@@ -1062,3 +1062,55 @@ export const CRITERION_NAME_MAX_LENGTH = 50;
  * Applied after toLowerCase() and before slice(0, CRITERION_NAME_MAX_LENGTH).
  */
 export const CRITERION_NAME_SANITIZE_PATTERN = /[^a-z0-9_]/g;
+
+// === Quality Pipeline Hardening ===
+// Constants for Phase 49 hardening improvements across the quality pipeline.
+
+/**
+ * Maximum number of requirement items (goals + acceptance criteria combined)
+ * injected into the ReflexiveAgent critique prompt when IRequestAnalysis is
+ * available. Items are sorted by goal priority ascending; excess items are
+ * truncated. Prevents critique-prompt bloat on large requests.
+ */
+export const MAX_CRITIQUE_REQUIREMENTS = 10;
+
+/**
+ * Minimum number of bullet/list items in a request body that triggers a
+ * COMPLEX complexity classification in checkContentHeuristics().
+ * Requests with >= this many bullets (lines starting with "- " or "* ") are
+ * considered multi-requirement and promoted to TaskComplexity.COMPLEX.
+ */
+export const COMPLEXITY_BULLET_THRESHOLD_HIGH = 8;
+
+/**
+ * Maximum number of bullet items below which a request qualifies as a
+ * SIMPLE complexity candidate (combined with other low-signal checks).
+ */
+export const COMPLEXITY_BULLET_THRESHOLD_LOW = 2;
+
+/**
+ * Minimum number of distinct file references in a request body that triggers
+ * a COMPLEX complexity classification in checkContentHeuristics().
+ * File references are detected by COMPLEXITY_FILE_REF_PATTERN.
+ */
+export const COMPLEXITY_FILE_REF_THRESHOLD_HIGH = 5;
+
+/**
+ * Minimum request body character count that triggers a COMPLEX complexity
+ * classification in checkContentHeuristics().
+ */
+export const COMPLEXITY_BODY_LENGTH_HIGH = 500;
+
+/**
+ * Maximum request body character count below which a request qualifies as a
+ * SIMPLE complexity candidate (combined with other low-signal checks).
+ */
+export const COMPLEXITY_BODY_LENGTH_LOW = 50;
+
+/**
+ * Regex used by checkContentHeuristics() to detect file references in a
+ * request body. Matches typical source-file paths and file extensions across
+ * the most common programming languages.
+ * Applied with the 'gi' flags (global, case-insensitive).
+ */
+export const COMPLEXITY_FILE_REF_PATTERN = /(\/[\w.-]+|[a-z0-9_]+\.(ts|js|md|json|py|go|rs|c|cpp|h))/gi;

@@ -717,13 +717,15 @@ These structured fields feed directly into:
 
 **Success criteria:**
 
-- [ ] `MAX_CRITIQUE_REQUIREMENTS` constant exported
-- [ ] All five complexity threshold constants exported
-- [ ] `COMPLEXITY_FILE_REF_PATTERN` regex constant exported
-- [ ] Grouped under `// === Quality Pipeline Hardening ===` section header
-- [ ] No magic literals in Step 7 `checkContentHeuristics()` after this step commits
+- [x] `MAX_CRITIQUE_REQUIREMENTS` constant exported
+- [x] All five complexity threshold constants exported
+- [x] `COMPLEXITY_FILE_REF_PATTERN` regex constant exported
+- [x] Grouped under `// === Quality Pipeline Hardening ===` section header
+- [x] No magic literals in Step 7 `checkContentHeuristics()` after this step commits
 
 **Planned tests:** None (validated through usage in Steps 2 and 7).
+
+**✅ IMPLEMENTED** — `src/shared/constants.ts`, thresholds match existing code (`>= 8` bullets, `>= 5` file refs, `< 50` body chars).
 
 ---
 
@@ -927,8 +929,6 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 > **Files read:** `src/services/reflexive_agent.ts`, `src/shared/schemas/request_analysis.ts`, `src/shared/schemas/mod.ts`, `src/services/session_memory.ts`, `src/services/request_processor.ts`, `src/services/agent_runner.ts`, `src/shared/interfaces/i_request_analyzer_service.ts`, `src/services/request_analysis/request_analyzer.ts`, `src/services/request_processing/types.ts`, `src/services/request_processing/request_parser.ts`, `src/services/request_common.ts`, `src/shared/types/request.ts`, `src/cli/commands/request_commands.ts`, `src/shared/interfaces/i_request_quality_gate_service.ts`, `src/shared/constants.ts`
 
 ### Summary
-
-**5 critical · 4 feasibility · 2 testing · 2 conceptual**
 
 ---
 
