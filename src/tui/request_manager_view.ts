@@ -88,6 +88,7 @@ export const STATUS_ICONS: Record<string, string> = {
   [RequestStatus.COMPLETED]: TUI_STATUS_ICONS.completed,
   [RequestStatus.CANCELLED]: TUI_STATUS_ICONS.cancelled,
   [RequestStatus.FAILED]: TUI_STATUS_ICONS.failed,
+  [RequestStatus.ANALYZING]: "🔍",
 };
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -97,6 +98,7 @@ export const STATUS_COLORS: Record<string, string> = {
   [RequestStatus.COMPLETED]: "green",
   [RequestStatus.CANCELLED]: "dim",
   [RequestStatus.FAILED]: "red",
+  [RequestStatus.ANALYZING]: "magenta",
 };
 
 // --- Phase 13.6: Key bindings ---

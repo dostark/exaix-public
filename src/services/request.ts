@@ -257,12 +257,16 @@ export class RequestService {
     const { metadata } = await this.show(filename);
 
     const analyzer = new RequestAnalyzer({
-      mode: options.mode || AnalysisMode.HEURISTIC,
+      mode: options.mode || (this.config.request_analysis?.mode as AnalysisMode) || AnalysisMode.HYBRID,
+      actionabilityThreshold: this.config.request_analysis?.actionability_threshold,
+      inferAcceptanceCriteria: this.config.request_analysis?.infer_acceptance_criteria,
     });
 
     const analysis = await analyzer.analyze(body, {
       agentId: metadata.agent,
       priority: metadata.priority,
+      requestFilePath: path,
+      traceId: metadata.trace_id,
     });
 
     await saveAnalysis(path, analysis);

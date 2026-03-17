@@ -19,6 +19,8 @@ export const RequestStatus = {
   REFINING: "refining",
   /** LLM-based automatic enrichment of the request body is in progress. */
   ENRICHING: "enriching",
+  /** Intent analysis is currently in progress. */
+  ANALYZING: "analyzing",
 } as const;
 
 export type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
@@ -34,6 +36,7 @@ export const REQUEST_STATUS_VALUES = [
   RequestStatus.NEEDS_CLARIFICATION,
   RequestStatus.REFINING,
   RequestStatus.ENRICHING,
+  RequestStatus.ANALYZING,
 ] as const;
 
 export function isRequestStatus(value: unknown): value is RequestStatus {

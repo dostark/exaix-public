@@ -11,7 +11,7 @@ import type { RequestCommands } from "../commands/request_commands.ts";
 import { addTokenFields } from "./display_helpers.ts";
 import { RequestPriority } from "../../shared/enums.ts";
 import { isRequestStatus, REQUEST_STATUS_VALUES, RequestStatus } from "../../shared/status/request_status.ts";
-import { AnalysisMode } from "../../shared/types/request.ts";
+import { AnalysisMode, type IRequestAnalysis } from "../../shared/types/request.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { IDisplayService } from "../../shared/interfaces/i_display_service.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../shared/types/json.ts";
@@ -266,6 +266,7 @@ function printRequestResult(
     flow?: string;
     status: string;
     subject?: string;
+    analysis?: IRequestAnalysis;
   },
   json: boolean,
   _dryRun: boolean,
@@ -289,5 +290,21 @@ function printRequestResult(
         status: result.status,
       }) as Record<string, JSONValue>,
     );
+
+    if (result.analysis) {
+      const { analysis } = result;
+      const analysisData: JSONObject = {
+        complexity: analysis.complexity,
+        actionability: `${analysis.actionabilityScore}%`,
+        ambiguities: analysis.ambiguities.length,
+        goals: analysis.goals.length,
+        requirements: analysis.requirements.length,
+      };
+      display.info(
+        "request.analysis",
+        result.trace_id.slice(0, 8),
+        toSafeJson(analysisData) as Record<string, JSONValue>,
+      );
+    }
   }
 }

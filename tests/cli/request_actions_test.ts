@@ -9,6 +9,7 @@ import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
 import {
   handleRequestAnalyze,
+  handleRequestCreate,
   handleRequestShow,
   type IRequestActionContext,
 } from "../../src/cli/command_builders/request_actions.ts";
@@ -210,6 +211,48 @@ Deno.test("handleRequestAnalyze: default to hybrid (DEFAULT_ANALYZER_MODE)", asy
   assertEquals(calls[0].a, "request.analyzed");
   if (calls[0].c) {
     assertEquals(calls[0].c.mode, "hybrid");
+  }
+});
+
+Deno.test("handleRequestCreate: displays analysis when analyze=true", async () => {
+  const { display, calls } = createDisplay();
+  const requestCommands = {
+    create: () =>
+      Promise.resolve({
+        trace_id: "trace-6",
+        filename: "request-trace-6.md",
+        status: "pending",
+        priority: "normal",
+        agent: "coder",
+        created: "time",
+        created_by: "tester",
+        subject: "Build app",
+        analysis: {
+          complexity: "medium",
+          actionabilityScore: 90,
+          ambiguities: [],
+          goals: [],
+          requirements: [],
+          metadata: { mode: "heuristic", durationMs: 10, analyzedAt: "now" },
+        },
+      }),
+  };
+
+  const context: IRequestActionContext = {
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
+    display,
+  };
+
+  await handleRequestCreate(context, { analyze: true }, "Build an app");
+
+  // Should have 2 calls: request.created and request.analysis
+  // (printRequestResult is called by handleRequestCreate)
+  assertEquals(calls.length, 2);
+  assertEquals(calls[0].a, "request.created");
+  assertEquals(calls[1].a, "request.analysis");
+  if (calls[1].c) {
+    assertEquals(calls[1].c.complexity, "medium");
+    assertEquals(calls[1].c.actionability, "90%");
   }
 });
 

@@ -275,7 +275,9 @@ export const __test_command = new Command()
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
       .option("--analyze", "Trigger immediate intent analysis for the request")
-      .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm", { default: AnalysisMode.HEURISTIC })
+      .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm, hybrid", {
+        default: AnalysisMode.HEURISTIC,
+      })
       .action(async (options, description?: string) => {
         await handleRequestCreate({ requestCommands, display }, options as RequestCreateOptions, description);
       })
@@ -311,9 +313,10 @@ export const __test_command = new Command()
         "analyze <id:string>",
         new Command()
           .description("Trigger intent analysis for an existing request by ID or subject")
-          .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm", {
+          .option("-e, --engine <engine:string>", "Analysis engine: heuristic, llm, hybrid", {
             default: AnalysisMode.HEURISTIC,
           })
+          .option("--force", "Force fresh analysis even if results are cached")
           .option("--json", "Output in JSON format")
           .action(async (options: RequestAnalyzeOptions, ...id: string[]) => {
             await handleRequestAnalyze({ requestCommands, display }, id[0], options);

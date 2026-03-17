@@ -21,7 +21,7 @@ import {
 } from "../../shared/types/request.ts";
 import { resolveSubject } from "../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
-import { AnalysisMode } from "../../shared/types/request.ts";
+import { AnalysisMode, type IRequestAnalysis } from "../../shared/types/request.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
   RequestPriority.LOW,
@@ -70,10 +70,12 @@ export class RequestCreateHandler extends BaseCommand {
         description: trimmedDescription,
       });
 
+      const initialStatus = options.analyze ? RequestStatus.ANALYZING : RequestStatus.PENDING;
+
       const frontmatterFields: Record<string, string | boolean> = {
         trace_id,
         created,
-        status: RequestStatus.PENDING,
+        status: initialStatus,
         priority,
         agent,
         source,
@@ -94,11 +96,16 @@ export class RequestCreateHandler extends BaseCommand {
       // Write file
       await Deno.writeTextFile(path, content);
 
+      let analysis: IRequestAnalysis | undefined;
+
       // Trigger analysis if requested
       if (options.analyze) {
-        await this.requests.analyze(trace_id, {
+        analysis = await this.requests.analyze(trace_id, {
           mode: options.analysis_engine === AnalysisMode.LLM ? AnalysisMode.LLM : AnalysisMode.HEURISTIC,
+          force: true, // Force fresh analysis
         });
+        // Move back to PENDING to trigger daemon processing
+        await this.requests.updateRequestStatus(trace_id, RequestStatus.PENDING);
       }
 
       // Log activity using DisplayService
@@ -132,6 +139,7 @@ export class RequestCreateHandler extends BaseCommand {
         created_by,
         source,
         subject,
+        analysis,
       };
     } catch (error) {
       await DefaultErrorStrategy.handle({

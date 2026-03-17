@@ -371,6 +371,7 @@ export class RequestProcessor {
       case RequestStatus.NEEDS_CLARIFICATION:
       // Gap §1: REFINING → skip (active Q&A session; FileWatcher must not interrupt)
       case RequestStatus.REFINING:
+      case RequestStatus.ANALYZING:
         return true;
       default:
         return false;
