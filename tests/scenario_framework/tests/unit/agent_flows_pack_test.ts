@@ -39,7 +39,10 @@ Deno.test("[ScenarioFrameworkAgentFlowsPack] scenario selection logic resolves t
 
   assertEquals(byId.map((scenario: IScenario) => scenario.id), ["request-analysis-smoke"]);
   assertEquals(byPath.map((scenario: IScenario) => scenario.id), ["quality-gate-clarification"]);
-  assertEquals(byTag.map((scenario: IScenario) => scenario.id), ["acceptance-criteria-propagation"]);
+  assertEquals(byTag.map((scenario: IScenario) => scenario.id).sort(), [
+    "acceptance-criteria-propagation",
+    "framework-matching-validation",
+  ]);
 });
 
 Deno.test("[ScenarioFrameworkAgentFlowsPack] CI-safe scenario list excludes scenarios marked manual-only or provider-live-only", async () => {

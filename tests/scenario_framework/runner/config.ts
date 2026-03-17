@@ -88,6 +88,7 @@ export const RuntimeConfigSchema = z.object({
   mode: z.nativeEnum(ScenarioExecutionMode).default(ScenarioExecutionMode.AUTO),
   timeout_sec: z.number().int().positive().default(DEFAULT_RUNTIME_TIMEOUT_SEC),
   allow_dirty_workspace: z.boolean().default(false),
+  verbose: z.boolean().default(false),
 }).strict();
 
 export type IRuntimeConfig = z.infer<typeof RuntimeConfigSchema>;
@@ -111,6 +112,7 @@ export function resolveRuntimeConfigForExecution(
     portals,
     mode: options.cliFlags?.mode ?? fileConfig.mode ?? ScenarioExecutionMode.AUTO,
     profile: options.cliFlags?.profile ?? fileConfig.profile,
+    verbose: options.cliFlags?.verbose ?? fileConfig.verbose ?? false,
   });
 }
 
@@ -195,6 +197,7 @@ export const ScenarioRunnerCliFlagSchema = z.object({
   pack: z.array(NON_EMPTY_STRING).optional(),
   tag: z.array(NON_EMPTY_STRING).optional(),
   dry_run: z.boolean().optional(),
+  verbose: z.boolean().optional(),
 }).strict();
 
 export type IScenarioRunnerCliFlags = z.infer<typeof ScenarioRunnerCliFlagSchema>;

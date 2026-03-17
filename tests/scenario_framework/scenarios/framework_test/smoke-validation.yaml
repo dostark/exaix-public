@@ -1,0 +1,38 @@
+schema_version: "1.0.0"
+id: framework-smoke-validation
+title: Validate framework execution and evidence collection
+pack: framework_test
+tags: [smoke, framework]
+request_fixture: fixtures/requests/framework_test/smoke.md
+mode_support: [auto]
+
+portals:
+  - alias: portal-exoframe
+    source_path: "/home/dkasymov/git/ExoFrame"
+
+steps:
+  - id: execute-analysis
+    type: exoctl
+    name: "Run request analysis"
+    command: "request"
+    args: ["--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe"]
+    input_criteria: []
+    output_criteria:
+      - id: check-analysis-artifact
+        kind: file-found
+        path_pattern: "**/_analysis.json"
+      - id: verify-goal-extraction
+        kind: json-path-equals
+        target_file: "_analysis.json"
+        path: "$.goals[0]"
+        equals: "Analyze the core architecture of the ExoFrame Scenario Framework"
+        similarity_threshold: 0.8
+
+  - id: check-journal
+    type: journal-assert
+    name: "Verify quality pipeline execution"
+    input_criteria: []
+    output_criteria:
+      - id: event-logged
+        kind: journal-event-exists
+        event_type: "request.quality_assessed"

@@ -34,6 +34,7 @@ export interface IRunSyntheticScenarioOptions {
   exoctlExecutable?: string;
   env?: { [key: string]: string };
   portalAliases?: string[];
+  verbose?: boolean;
 }
 
 export interface IRunSyntheticScenarioResult {
@@ -66,6 +67,7 @@ export async function runSyntheticScenario(
         exoctlExecutable: options.exoctlExecutable,
         env: options.env,
         portalAliases: options.portalAliases ?? loadedScenario.scenario.portals.map((portal) => portal.alias),
+        verbose: options.verbose,
       });
 
       stepOutcomes.push(outcome);
@@ -100,6 +102,7 @@ interface IExecuteSyntheticStepOptions {
   exoctlExecutable?: string;
   env?: { [key: string]: string };
   portalAliases: string[];
+  verbose?: boolean;
 }
 
 async function executeSyntheticStep(
@@ -123,6 +126,7 @@ async function executeSyntheticStep(
       ...(options.env ?? {}),
       ...(options.step.env ?? {}),
     },
+    verbose: options.verbose,
   });
 
   const outputOutcome = await evaluateStepOutcome({

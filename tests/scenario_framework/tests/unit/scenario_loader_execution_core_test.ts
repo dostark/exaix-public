@@ -197,3 +197,30 @@ Deno.test("[ScenarioFrameworkExecutionCore] runtime config loader rejects unknow
     "Unrecognized key",
   );
 });
+
+Deno.test("[ScenarioFrameworkExecutionCore] execution core logs the full command when verbose is enabled", async () => {
+  const originalLog = console.log;
+  let loggedMessage = "";
+  console.log = (...args: string[]) => {
+    loggedMessage += args.join(" ");
+  };
+
+  try {
+    await executeScenarioStep({
+      step: {
+        id: "verbose-echo",
+        type: ScenarioStepType.SHELL,
+        command: "echo",
+        args: ["verbose test"],
+        input_criteria: [],
+        output_criteria: [],
+        continue_on_failure: false,
+      },
+      verbose: true,
+    });
+
+    assertStringIncludes(loggedMessage, "> echo verbose test");
+  } finally {
+    console.log = originalLog;
+  }
+});

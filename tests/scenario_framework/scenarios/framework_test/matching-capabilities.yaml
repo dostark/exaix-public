@@ -1,0 +1,33 @@
+schema_version: "1.0.0"
+id: framework-matching-validation
+title: Validate regex flags and fuzzy text similarity
+pack: framework_test
+tags: [criteria, framework]
+request_fixture: fixtures/requests/framework_test/regex_test.md
+mode_support: [auto]
+portals: []
+
+steps:
+  - id: create-readme
+    type: exoctl
+    command: "request"
+    args: ["--file", "$REQUEST_FIXTURE"]
+    input_criteria: []
+    output_criteria:
+      - id: regex-case-insensitive
+        kind: text-matches
+        path: "README.md"
+        flags: "i"
+        matches:
+          - "exo-test" # Should pass even if LLM writes "Exo-Test"
+      - id: regex-dotall
+        kind: text-matches
+        path: "README.md"
+        flags: "s"
+        matches:
+          - "Features.*bullet points" # Should pass across multiple lines
+      - id: fuzzy-body-match
+        kind: text-contains
+        path: "README.md"
+        contains: "Exo-Test README for project features"
+        similarity_threshold: 0.7

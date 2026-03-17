@@ -28,7 +28,7 @@ Deno.test("[ScenarioFrameworkPackGeneralization] runner can load two unrelated p
     packs: ["smoke"],
   });
 
-  assertEquals(allPacks, ["agent_flows", "provider_live", "smoke"]);
+  assertEquals(allPacks, ["agent_flows", "framework_test", "provider_live", "smoke"]);
   assertEquals(smokePack.map((scenario: IScenario) => scenario.id), ["workspace-health-smoke"]);
 });
 
@@ -42,6 +42,7 @@ Deno.test("[ScenarioFrameworkPackGeneralization] tag filtering returns the expec
   assertEquals(
     smokeTagged.map((scenario: IScenario) => scenario.id).sort(),
     [
+      "framework-smoke-validation",
       "memory-aware-analysis",
       "portal-knowledge-snapshot",
       "request-analysis-smoke",

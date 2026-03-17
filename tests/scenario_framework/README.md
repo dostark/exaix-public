@@ -25,6 +25,7 @@ To run scenarios against a deployed workspace:
 - `-t, --tag <tag>`: Filter scenarios by tag (e.g., `smoke`).
 - `-d, --dry-run`: Validate selection and config without executing.
 - `-c, --config <path>`: Load configuration from a YAML/JSON file.
+- `-v, --verbose`: Show full CLI commands being executed in terminal.
 
 ### 2. Deploy the Framework
 

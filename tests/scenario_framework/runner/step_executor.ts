@@ -16,6 +16,7 @@ export interface IExecuteScenarioStepOptions {
   exoctlExecutable?: string;
   cwd?: string;
   env?: { [key: string]: string };
+  verbose?: boolean;
 }
 
 export interface IScenarioStepExecutionResult {
@@ -39,6 +40,10 @@ export async function executeScenarioStep(
   const startedAtEpochMs = Date.now();
   const startedAt = new Date(startedAtEpochMs).toISOString();
   const commandSpec = buildCommandSpec(options);
+
+  if (options.verbose) {
+    console.log(`\n%c > ${commandSpec.executable} ${commandSpec.args.join(" ")}`, "color: green; font-weight: bold;");
+  }
 
   const output = await new Deno.Command(commandSpec.executable, {
     args: commandSpec.args,

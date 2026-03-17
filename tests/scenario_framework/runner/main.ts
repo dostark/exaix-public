@@ -36,6 +36,7 @@ await new Command()
   .option("-P, --pack <name:string>", "Run all scenarios in a named pack (repeatable)", { collect: true })
   .option("-t, --tag <tag:string>", "Filter by tag (repeatable)", { collect: true })
   .option("-d, --dry-run", "Validate configuration and scenario definitions without executing any steps")
+  .option("-v, --verbose", "Show full CLI commands executed in each step")
   .action(async (options) => {
     // 1. Resolve framework home (directory containing the runner entry point)
     const frameworkHome = resolve(new URL(".", import.meta.url).pathname, "..");
@@ -60,6 +61,7 @@ await new Command()
         output: options.output,
         mode: options.mode as ScenarioExecutionMode,
         profile: options.profile as ScenarioCiProfile,
+        verbose: options.verbose,
       },
     });
 
@@ -116,6 +118,7 @@ await new Command()
           outputDir: runtimeConfig.output_dir,
           mode: runtimeConfig.mode,
           interactiveAllowed: runtimeConfig.mode !== ScenarioExecutionMode.AUTO,
+          verbose: runtimeConfig.verbose,
         });
 
         console.log(`Outcome: ${result.manifest.outcome}`);
