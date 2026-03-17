@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkScenarioSchema
  * @path tests/scenario_framework/schema/scenario_schema.ts
- * @description Defines the Phase 50 Step 1 top-level scenario schema for the
+ * @description Defines the Step 1 top-level scenario schema for the
  * scenario framework.
  * @architectural-layer Test
  * @dependencies [zod, step_schema]

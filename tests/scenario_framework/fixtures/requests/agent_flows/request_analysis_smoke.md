@@ -1,4 +1,4 @@
-# Phase 45 Request Analysis Smoke
+# Request Analysis Smoke
 
 Analyze this request and extract goals, constraints, and likely outputs.
 

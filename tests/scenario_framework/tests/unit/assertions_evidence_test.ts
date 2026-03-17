@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkAssertionsEvidenceTest
  * @path tests/scenario_framework/tests/unit/assertions_evidence_test.ts
- * @description RED-first tests for Phase 50 Step 5. Verifies criterion
+ * @description RED-first tests for Step 5. Verifies criterion
  * evaluation, step outcome classification, and deterministic evidence/manifest
  * writing before the assertion and evidence modules exist.
  * @architectural-layer Test
@@ -171,6 +171,81 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] JSON, file, frontmatter, and jo
   }
 });
 
+Deno.test("[ScenarioFrameworkAssertionsEvidence] text-matches criterion validates multiple regex patterns in any order", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-text-matches-" });
+
+  try {
+    const readmePath = join(workspaceRoot, "README.md");
+    await Deno.writeTextFile(
+      readmePath,
+      "Project Title\n\nFeatures:\n- [x] Task 1\n- [ ] Task 2\n\nTech Stack: Deno 1.40",
+    );
+
+    const successResult = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "readme-check-success",
+        kind: CriterionKind.TEXT_MATCHES,
+        path: "README.md",
+        matches: [
+          "Project Title",
+          "\\[x\\] Task 1",
+          "Tech Stack: Deno \\d+\\.\\d+",
+        ],
+      },
+    });
+
+    const outOfOrderResult = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "readme-check-order",
+        kind: CriterionKind.TEXT_MATCHES,
+        path: "README.md",
+        matches: [
+          "Tech Stack",
+          "Project Title",
+        ],
+      },
+    });
+
+    const failureResult = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "readme-check-fail",
+        kind: CriterionKind.TEXT_MATCHES,
+        path: "README.md",
+        matches: [
+          "Project Title",
+          "Missing Section",
+        ],
+      },
+    });
+
+    const caseInsensitiveResult = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "readme-check-case",
+        kind: CriterionKind.TEXT_MATCHES,
+        path: "README.md",
+        matches: ["project title"],
+        flags: "i",
+      },
+    });
+
+    assertEquals(successResult.status, CriterionStatus.PASSED);
+    assertEquals(outOfOrderResult.status, CriterionStatus.PASSED);
+    assertEquals(failureResult.status, CriterionStatus.FAILED);
+    assertEquals(caseInsensitiveResult.status, CriterionStatus.PASSED);
+    assertStringIncludes(failureResult.message, "Missing: Missing Section");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
 Deno.test("[ScenarioFrameworkAssertionsEvidence] evidence collector writes the expected manifest shape for success and failure cases", async () => {
   const outputDir = await Deno.makeTempDir({ prefix: "scenario-framework-evidence-" });
 
@@ -178,7 +253,7 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] evidence collector writes the e
     const manifestPath = await writeRunManifest({
       outputDir,
       manifest: {
-        scenarioId: "phase50-step5-manifest",
+        scenarioId: "step5-manifest",
         pack: "smoke",
         mode: "auto",
         outcome: "scenario-failure",
@@ -210,7 +285,7 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] evidence collector writes the e
       >;
     };
 
-    assertEquals(manifest.scenarioId, "phase50-step5-manifest");
+    assertEquals(manifest.scenarioId, "step5-manifest");
     assertEquals(manifest.outcome, "scenario-failure");
     assertEquals(manifest.steps[0].criterionResults[0].criterion_id, "missing-file");
   } finally {
@@ -235,7 +310,7 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] failure manifests include step 
     const manifestPath = await writeRunManifest({
       outputDir,
       manifest: {
-        scenarioId: "phase50-step5-failure-manifest",
+        scenarioId: "step5-failure-manifest",
         pack: "smoke",
         mode: "auto",
         outcome: "scenario-failure",

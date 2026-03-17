@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkPackGeneralizationTest
  * @path tests/scenario_framework/tests/unit/pack_generalization_test.ts
- * @description RED-first tests for Phase 50 Step 8. Verifies cross-pack
+ * @description RED-first tests for Step 8. Verifies cross-pack
  * catalog loading, tag filtering across unrelated packs, and starter template
  * generation before general pack authoring support exists.
  * @architectural-layer Test
@@ -28,7 +28,7 @@ Deno.test("[ScenarioFrameworkPackGeneralization] runner can load two unrelated p
     packs: ["smoke"],
   });
 
-  assertEquals(allPacks, ["phase45_49", "smoke"]);
+  assertEquals(allPacks, ["agent_flows", "provider_live", "smoke"]);
   assertEquals(smokePack.map((scenario: IScenario) => scenario.id), ["workspace-health-smoke"]);
 });
 
@@ -40,11 +40,11 @@ Deno.test("[ScenarioFrameworkPackGeneralization] tag filtering returns the expec
   });
 
   assertEquals(
-    smokeTagged.map((scenario: IScenario) => scenario.id),
+    smokeTagged.map((scenario: IScenario) => scenario.id).sort(),
     [
-      "phase45-request-analysis-smoke",
-      "phase46-portal-knowledge-snapshot",
-      "phase49-memory-aware-analysis",
+      "memory-aware-analysis",
+      "portal-knowledge-snapshot",
+      "request-analysis-smoke",
       "workspace-health-smoke",
     ],
   );

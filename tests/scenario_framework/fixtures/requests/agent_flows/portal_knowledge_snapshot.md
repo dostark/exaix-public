@@ -1,4 +1,4 @@
-# Phase 46 Portal Knowledge Snapshot
+# Portal Knowledge Snapshot
 
 Mount the sample portal and gather a lightweight knowledge snapshot.
 

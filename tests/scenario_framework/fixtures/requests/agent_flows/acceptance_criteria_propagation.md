@@ -1,4 +1,4 @@
-# Phase 48 Acceptance Criteria Propagation
+# Acceptance Criteria Propagation
 
 Implement a change that respects the following acceptance criteria:
 

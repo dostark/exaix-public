@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+id: "memory-aware-analysis"
+title: "Memory-aware analysis enriches request understanding"
+pack: "agent_flows"
+tags: ["analysis", "smoke", "memory"]
+request_fixture: "fixtures/requests/agent_flows/memory_aware_analysis.md"
+mode_support: ["auto", "step"]
+portals: []
+steps:
+  - id: "create-memory-aware-request"
+    type: "exoctl"
+    command: "request"
+    args: ["--analyze", "--file", "fixtures/requests/agent_flows/memory_aware_analysis.md"]
+    input_criteria:
+      - id: "request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/agent_flows/memory_aware_analysis.md"
+    output_criteria:
+      - id: "request-create-exit-code"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "analysis-check"
+    type: "json-assert"
+    input_criteria:
+      - id: "analysis-json-available"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"
+    output_criteria:
+      - id: "analysis-goal-present"
+        kind: "json-path-exists"
+        path: "$.goals[0]"
+        target_file: "Workspace/Requests/latest/_analysis.json"

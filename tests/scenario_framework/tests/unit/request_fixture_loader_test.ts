@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkRequestFixtureLoaderTest
  * @path tests/scenario_framework/tests/unit/request_fixture_loader_test.ts
- * @description RED-first tests for Phase 50 Step 2. Verifies request fixture
+ * @description RED-first tests for Step 2. Verifies request fixture
  * loading, fixture format enforcement, and fixture-only scenario validation
  * before the request fixture loader implementation exists.
  * @architectural-layer Test
@@ -50,7 +50,7 @@ interface IScenarioDocumentShape {
 function createValidScenarioDocument(requestFixturePath: string): IScenarioDocumentShape {
   return {
     schema_version: "1.0.0",
-    id: "phase50-step2-fixture-only",
+    id: "step2-fixture-only",
     title: "Fixture-only validation",
     pack: "smoke",
     tags: ["smoke", "fixtures"],
@@ -163,7 +163,7 @@ Deno.test("[ScenarioFrameworkRequestFixtures] shared fixtures can be referenced 
     const scenarioA = ensureScenarioUsesFixtureOnly(createValidScenarioDocument(fixtureRelativePath));
     const scenarioB = ensureScenarioUsesFixtureOnly({
       ...createValidScenarioDocument(fixtureRelativePath),
-      id: "phase50-step2-fixture-only-b",
+      id: "step2-fixture-only-b",
       title: "Fixture-only validation B",
     });
 

@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkDeployFramework
  * @path tests/scenario_framework/scripts/deploy_framework.ts
- * @description Implements Phase 50 Step 6 framework deployment planning and
+ * @description Implements Step 6 framework deployment planning and
  * copying so the scenario framework can run from an external destination with
  * rewritten runtime configuration.
  * @architectural-layer Test

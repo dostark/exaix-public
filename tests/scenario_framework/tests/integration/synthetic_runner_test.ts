@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkSyntheticRunnerIntegrationTest
  * @path tests/scenario_framework/tests/integration/synthetic_runner_test.ts
- * @description RED-first integration tests for Phase 50 Step 9. Verifies the
+ * @description RED-first integration tests for Step 9. Verifies the
  * framework can execute synthetic scenarios end to end without a deployed
  * workspace, emit criterion-level manifests, pause and resume checkpoints, and
  * honor CI scenario selection rules.

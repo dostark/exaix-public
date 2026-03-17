@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkScenarioTemplates
  * @path tests/scenario_framework/runner/scenario_templates.ts
- * @description Implements Phase 50 Step 8 starter-template rendering so new
+ * @description Implements Step 8 starter-template rendering so new
  * scenario packs can be authored without changing core framework code.
  * @architectural-layer Test
  * @dependencies [@std/path]

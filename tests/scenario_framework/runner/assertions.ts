@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkAssertions
  * @path tests/scenario_framework/runner/assertions.ts
- * @description Implements Phase 50 Step 5 criterion evaluation primitives and
+ * @description Implements Step 5 criterion evaluation primitives and
  * per-step failure classification for input validation, command execution, and
  * output validation.
  * @architectural-layer Test
@@ -10,6 +10,7 @@
  */
 
 import { globToRegExp, relative, resolve } from "@std/path";
+import { levenshteinDistance } from "@std/text";
 import { parse as parseYaml } from "@std/yaml";
 import {
   CriterionKind,
@@ -70,6 +71,7 @@ type ICommandExitCodeCriterion = Extract<ICriterion, { kind: CriterionKind.COMMA
 type IStatusEqualsCriterion = Extract<ICriterion, { kind: CriterionKind.STATUS_EQUALS }>;
 type IPortalMountedCriterion = Extract<ICriterion, { kind: CriterionKind.PORTAL_MOUNTED }>;
 type IEnvVarPresentCriterion = Extract<ICriterion, { kind: CriterionKind.ENV_VAR_PRESENT }>;
+type ITextMatchesCriterion = Extract<ICriterion, { kind: CriterionKind.TEXT_MATCHES }>;
 
 interface IKeyValueDocument {
   [key: string]: unknown;
@@ -107,6 +109,8 @@ export async function evaluateCriterion(
       return evaluatePortalMountedCriterion(options);
     case CriterionKind.ENV_VAR_PRESENT:
       return evaluateEnvVarPresentCriterion(options);
+    case CriterionKind.TEXT_MATCHES:
+      return await evaluateTextMatchesCriterion(options);
   }
 }
 
@@ -259,6 +263,21 @@ async function evaluateTextContainsCriterion(
     });
   }
 
+  if (criterion.similarity_threshold !== undefined) {
+    const similarity = getSimilarityScore(content, criterion.contains);
+    if (similarity >= criterion.similarity_threshold) {
+      return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.path));
+    }
+    return buildFailedResult(options, {
+      message: `text in ${criterion.path} not similar enough to: ${criterion.contains} (similarity: ${
+        similarity.toFixed(2)
+      }, threshold: ${criterion.similarity_threshold})`,
+      expectedValue: criterion.contains,
+      observedValue: content,
+      evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.path),
+    });
+  }
+
   if (content.includes(criterion.contains)) {
     return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.path));
   }
@@ -266,6 +285,47 @@ async function evaluateTextContainsCriterion(
   return buildFailedResult(options, {
     message: `expected text in ${criterion.path}: ${criterion.contains}`,
     expectedValue: criterion.contains,
+    observedValue: content,
+    evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.path),
+  });
+}
+
+async function evaluateTextMatchesCriterion(
+  options: IEvaluateCriterionOptions,
+): Promise<ICriterionResult> {
+  const criterion = options.criterion as ITextMatchesCriterion;
+  const content = await safeReadTextFile(options.workspaceRoot, criterion.path);
+
+  if (content === null) {
+    return buildFailedResult(options, {
+      message: `text file not found: ${criterion.path}`,
+      evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.path),
+    });
+  }
+
+  const missingPatterns: string[] = [];
+  const flags = criterion.flags || "s";
+  for (const pattern of criterion.matches) {
+    try {
+      const regex = new RegExp(pattern, flags);
+      if (!regex.test(content)) {
+        missingPatterns.push(pattern);
+      }
+    } catch (e) {
+      return buildFailedResult(options, {
+        message: `invalid regex pattern: ${pattern} - ${(e as Error).message}`,
+        expectedValue: pattern,
+      });
+    }
+  }
+
+  if (missingPatterns.length === 0) {
+    return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.path));
+  }
+
+  return buildFailedResult(options, {
+    message: `text in ${criterion.path} did not match all required patterns. Missing: ${missingPatterns.join(", ")}`,
+    expectedValue: criterion.matches,
     observedValue: content,
     evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.path),
   });
@@ -309,12 +369,19 @@ async function evaluateJsonPathEqualsCriterion(
   }
 
   const selection = readJsonPath(jsonDocument, criterion.path);
-  if (selection.exists && valuesMatch(selection.value, criterion.equals)) {
+  if (selection.exists && valuesMatch(selection.value, criterion.equals, criterion.similarity_threshold)) {
     return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.target_file));
   }
 
+  const failureMessage = criterion.similarity_threshold !== undefined && typeof selection.value === "string" &&
+      typeof criterion.equals === "string"
+    ? `expected JSON path ${criterion.path} to be similar to ${
+      JSON.stringify(criterion.equals)
+    } (threshold: ${criterion.similarity_threshold})`
+    : `expected JSON path ${criterion.path} to equal ${JSON.stringify(criterion.equals)}`;
+
   return buildFailedResult(options, {
-    message: `expected JSON path ${criterion.path} to equal ${JSON.stringify(criterion.equals)}`,
+    message: failureMessage,
     expectedValue: criterion.equals,
     observedValue: selection.value,
     evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.target_file),
@@ -384,7 +451,7 @@ async function evaluateFrontmatterFieldEqualsCriterion(
   }
 
   const observedValue = frontmatter[criterion.field];
-  if (valuesMatch(observedValue, criterion.equals)) {
+  if (valuesMatch(observedValue, criterion.equals, criterion.similarity_threshold)) {
     return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.target_file));
   }
 
@@ -644,8 +711,17 @@ function readJsonPath(document: unknown, jsonPath: string): IJsonPathSelection {
   };
 }
 
-function valuesMatch(left: unknown, right: unknown): boolean {
+function valuesMatch(left: unknown, right: unknown, similarityThreshold?: number): boolean {
+  if (similarityThreshold !== undefined && typeof left === "string" && typeof right === "string") {
+    return getSimilarityScore(left, right) >= similarityThreshold;
+  }
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function getSimilarityScore(a: string, b: string): number {
+  if (a.length === 0 && b.length === 0) return 1;
+  const distance = levenshteinDistance(a, b);
+  return 1 - (distance / Math.max(a.length, b.length));
 }
 
 async function* walkWorkspaceFiles(workspaceRoot: string): AsyncGenerator<string> {

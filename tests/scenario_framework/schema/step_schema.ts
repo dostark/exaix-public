@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkStepSchema
  * @path tests/scenario_framework/schema/step_schema.ts
- * @description Defines the Phase 50 Step 1 Zod contracts for scenario steps,
+ * @description Defines the Step 1 Zod contracts for scenario steps,
  * criteria, portal declarations, and criterion result payloads used by the
  * scenario framework.
  * @architectural-layer Test
@@ -49,6 +49,7 @@ export enum CriterionKind {
   STATUS_EQUALS = "status-equals",
   PORTAL_MOUNTED = "portal-mounted",
   ENV_VAR_PRESENT = "env-var-present",
+  TEXT_MATCHES = "text-matches",
 }
 
 export enum CriterionPhase {
@@ -103,6 +104,7 @@ const TextContainsCriterionSchema = BaseCriterionSchema.extend({
   kind: z.literal(CriterionKind.TEXT_CONTAINS),
   path: NON_EMPTY_STRING,
   contains: NON_EMPTY_STRING,
+  similarity_threshold: z.number().min(0).max(1).optional(),
 }).strict();
 
 const JsonPathExistsCriterionSchema = BaseCriterionSchema.extend({
@@ -115,6 +117,7 @@ const JsonPathEqualsCriterionSchema = BaseCriterionSchema.extend({
   kind: z.literal(CriterionKind.JSON_PATH_EQUALS),
   path: NON_EMPTY_STRING,
   equals: z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  similarity_threshold: z.number().min(0).max(1).optional(),
   target_file: NON_EMPTY_STRING.optional(),
 }).strict();
 
@@ -135,6 +138,7 @@ const FrontmatterFieldEqualsCriterionSchema = BaseCriterionSchema.extend({
   kind: z.literal(CriterionKind.FRONTMATTER_FIELD_EQUALS),
   field: NON_EMPTY_STRING,
   equals: z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  similarity_threshold: z.number().min(0).max(1).optional(),
   target_file: NON_EMPTY_STRING.optional(),
 }).strict();
 
@@ -164,6 +168,13 @@ const EnvVarPresentCriterionSchema = BaseCriterionSchema.extend({
   env_var: NON_EMPTY_STRING,
 }).strict();
 
+const TextMatchesCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.TEXT_MATCHES),
+  path: NON_EMPTY_STRING,
+  matches: z.array(NON_EMPTY_STRING).min(1),
+  flags: z.string().optional(),
+}).strict();
+
 export const CriterionSchema = z.discriminatedUnion("kind", [
   FileExistsCriterionSchema,
   FileFoundCriterionSchema,
@@ -179,6 +190,7 @@ export const CriterionSchema = z.discriminatedUnion("kind", [
   StatusEqualsCriterionSchema,
   PortalMountedCriterionSchema,
   EnvVarPresentCriterionSchema,
+  TextMatchesCriterionSchema,
 ]);
 
 export type ICriterion = z.infer<typeof CriterionSchema>;

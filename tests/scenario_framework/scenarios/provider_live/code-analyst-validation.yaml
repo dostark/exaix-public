@@ -1,0 +1,55 @@
+schema_version: "1.0.0"
+id: "code-analyst-validation"
+title: "Code Analyst agent validation across CLI structure"
+pack: "provider_live"
+tags: ["provider-live", "analysis", "code-analyst"]
+request_fixture: "fixtures/requests/provider_live/code_analyst_cli_structure.md"
+mode_support: ["auto", "step"]
+portals:
+  - alias: "portal-exoframe"
+    source_path: "/home/dkasymov/git/ExoFrame"
+steps:
+  - id: "create-analysis-request"
+    type: "exoctl"
+    command: "request"
+    args:
+      - "--agent"
+      - "code-analyst"
+      - "--portal"
+      - "portal-exoframe"
+      - "--analyze"
+      - "--file"
+      - "fixtures/requests/provider_live/code_analyst_cli_structure.md"
+    input_criteria:
+      - id: "request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/provider_live/code_analyst_cli_structure.md"
+    output_criteria:
+      - id: "request-created"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "wait-for-plan"
+    type: "wait-for-file"
+    input_criteria:
+      - id: "request-exists"
+        kind: "command-exit-code"
+        equals: 0
+    output_criteria:
+      - id: "plan-json-found"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"
+  - id: "validate-analysis-content"
+    type: "json-assert"
+    input_criteria:
+      - id: "analysis-found"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"
+    output_criteria:
+      - id: "has-goals"
+        kind: "json-path-exists"
+        path: "$.goals"
+        target_file: "Workspace/Requests/latest/_analysis.json"
+      - id: "has-complexity"
+        kind: "json-path-exists"
+        path: "$.complexity"
+        target_file: "Workspace/Requests/latest/_analysis.json"

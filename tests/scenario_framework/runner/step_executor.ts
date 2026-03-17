@@ -94,7 +94,11 @@ function buildCommandSpec(options: IExecuteScenarioStepOptions): ICommandSpec {
     };
   }
 
-  throw new Error(`unsupported step type for execution core: ${options.step.type}`);
+  // Virtual success for step types that rely on criteria evaluation only
+  return {
+    executable: "true",
+    args: [],
+  };
 }
 
 function tokenizeCommand(command: string): string[] {

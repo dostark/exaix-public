@@ -1,8 +1,8 @@
 /**
  * @module ScenarioFrameworkSyntheticRunner
  * @path tests/scenario_framework/runner/synthetic_runner.ts
- * @description Implements a lightweight synthetic scenario harness for Phase
- * 50 Step 9 integration tests by composing the existing loader, step
+ * @description Implements a lightweight synthetic scenario harness for
+ * integration tests by composing the existing loader, step
  * execution, criterion evaluation, mode control, and manifest persistence.
  * @architectural-layer Test
  * @dependencies [scenario_loader, step_executor, assertions, evidence_collector, modes, step_schema]

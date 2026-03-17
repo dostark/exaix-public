@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkContractTest
  * @path tests/scenario_framework/tests/unit/framework_contract_test.ts
- * @description RED-first contract tests for Phase 50 Step 1. Verifies the
+ * @description RED-first contract tests for Step 1. Verifies the
  * initial scenario schema, criterion taxonomy, CI profile resolution, runtime
  * configuration validation, and portal lifecycle planner behavior before any
  * runner implementation is added.
@@ -24,11 +24,11 @@ import { CriterionResultSchema, CriterionStatus } from "../../schema/step_schema
 Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () => {
   const result = ScenarioSchema.parse({
     schema_version: "1.0.0",
-    id: "phase49-memory-aware-analysis",
-    title: "Phase 49 memory-aware analysis enriches request understanding",
-    pack: "phase45_49",
-    tags: ["phase49", "analysis", "smoke"],
-    request_fixture: "fixtures/requests/phase45_49/memory_aware_analysis.md",
+    id: "memory-aware-analysis",
+    title: "memory-aware analysis enriches request understanding",
+    pack: "agent_flows",
+    tags: ["analysis", "smoke"],
+    request_fixture: "fixtures/requests/agent_flows/memory_aware_analysis.md",
     mode_support: ["auto", "step", "manual-checkpoint"],
     portals: [
       {
@@ -44,13 +44,13 @@ Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () =>
       {
         id: "create-request",
         type: "exoctl",
-        command: "request create",
-        args: ["--from-file", "fixtures/requests/phase45_49/memory_aware_analysis.md"],
+        command: "request",
+        args: ["--file", "fixtures/requests/agent_flows/memory_aware_analysis.md"],
         input_criteria: [
           {
             id: "request-fixture-exists",
             kind: "file-exists",
-            path: "fixtures/requests/phase45_49/memory_aware_analysis.md",
+            path: "fixtures/requests/agent_flows/memory_aware_analysis.md",
           },
           {
             id: "portal-available",
@@ -77,7 +77,7 @@ Deno.test("[ScenarioFrameworkContract] rejects scenarios missing required metada
   assertThrows(
     () => {
       ScenarioSchema.parse({
-        pack: "phase45_49",
+        pack: "agent_flows",
         tags: ["smoke"],
         request_fixture: "fixtures/requests/shared/request.md",
         mode_support: ["auto"],
@@ -202,7 +202,7 @@ Deno.test("[ScenarioFrameworkContract] rejects invalid criterion result status p
 Deno.test("[ScenarioFrameworkContract] CI profile selection obeys explicit precedence rules", () => {
   const selection = resolveScenarioSelection({
     explicitScenarioIds: ["scenario-a"],
-    explicitPacks: ["phase45_49"],
+    explicitPacks: ["agent_flows"],
     explicitTags: ["smoke"],
     profile: ScenarioCiProfile.CORE,
   });

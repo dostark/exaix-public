@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkEvidenceCollector
  * @path tests/scenario_framework/runner/evidence_collector.ts
- * @description Implements Phase 50 Step 5 evidence copy helpers and run
+ * @description Implements Step 5 evidence copy helpers and run
  * manifest persistence with a deterministic output path.
  * @architectural-layer Test
  * @dependencies [@std/path, step_schema]

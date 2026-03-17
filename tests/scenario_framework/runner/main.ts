@@ -1,0 +1,145 @@
+/**
+ * @module ScenarioFrameworkMain
+ * @path tests/scenario_framework/runner/main.ts
+ * @description CLI entry point for the scenario framework runner.
+ * Implements the CLI interface defined in Contract 7 and 8.
+ */
+
+import { Command, EnumType } from "@cliffy/command";
+import { resolve } from "@std/path";
+import { parse as parseYaml } from "@std/yaml";
+import {
+  IRuntimeConfig,
+  resolveRuntimeConfigForExecution,
+  resolveScenarioSelection,
+  ScenarioCiProfile,
+} from "./config.ts";
+import { ScenarioExecutionMode } from "../schema/step_schema.ts";
+import { listCiSafeScenarios, loadScenarioCatalog, selectScenarioCatalogEntries } from "./scenario_catalog.ts";
+import { runSyntheticScenario } from "./synthetic_runner.ts";
+
+const modeType = new EnumType(ScenarioExecutionMode);
+const profileType = new EnumType(ScenarioCiProfile);
+
+await new Command()
+  .name("scenario-runner")
+  .version("0.1.0")
+  .description("ExoFrame Scenario Test Framework Runner")
+  .type("mode", modeType)
+  .type("profile", profileType)
+  .option("-c, --config <path:string>", "Path to the runtime configuration YAML or JSON file")
+  .option("-w, --workspace <path:string>", "Workspace under test (overrides config file value)")
+  .option("-o, --output <path:string>", "Output directory for evidence and manifests (overrides config)")
+  .option("-m, --mode <mode:mode>", "Execution mode (overrides config)")
+  .option("-p, --profile <profile:profile>", "CI profile filter")
+  .option("-s, --scenario <id:string>", "Run a single named scenario (repeatable)", { collect: true })
+  .option("-P, --pack <name:string>", "Run all scenarios in a named pack (repeatable)", { collect: true })
+  .option("-t, --tag <tag:string>", "Filter by tag (repeatable)", { collect: true })
+  .option("-d, --dry-run", "Validate configuration and scenario definitions without executing any steps")
+  .action(async (options) => {
+    // 1. Resolve framework home (directory containing the runner entry point)
+    const frameworkHome = resolve(new URL(".", import.meta.url).pathname, "..");
+
+    // 2. Load file-based config if provided
+    let fileConfig: Partial<IRuntimeConfig> = {};
+    if (options.config) {
+      const configText = await Deno.readTextFile(options.config);
+      if (options.config.endsWith(".yaml") || options.config.endsWith(".yml")) {
+        fileConfig = parseYaml(configText) as Partial<IRuntimeConfig>;
+      } else {
+        fileConfig = JSON.parse(configText);
+      }
+    }
+
+    // 3. Resolve runtime configuration
+    const runtimeConfig = resolveRuntimeConfigForExecution({
+      executionDirectory: frameworkHome,
+      fileConfig,
+      cliFlags: {
+        workspace: options.workspace,
+        output: options.output,
+        mode: options.mode as ScenarioExecutionMode,
+        profile: options.profile as ScenarioCiProfile,
+      },
+    });
+
+    if (options.dryRun) {
+      console.log("Runtime Configuration (Resolved):");
+      console.log(JSON.stringify(runtimeConfig, null, 2));
+    }
+
+    // 4. Load catalog
+    const catalog = await loadScenarioCatalog({ frameworkHome });
+
+    // 5. Resolve scenario selection
+    const selection = resolveScenarioSelection({
+      explicitScenarioIds: options.scenario,
+      explicitPacks: options.pack,
+      explicitTags: options.tag,
+      profile: runtimeConfig.profile,
+    });
+
+    let selectedEntries = selectScenarioCatalogEntries({
+      catalog,
+      scenarioIds: selection.scenarioIds,
+      packs: selection.packs,
+      tags: selection.tags,
+    });
+
+    // 6. Apply profile filtering if in CI mode (any profile set)
+    if (runtimeConfig.profile) {
+      selectedEntries = listCiSafeScenarios(selectedEntries);
+    }
+
+    if (selectedEntries.length === 0) {
+      console.error("No scenarios selected.");
+      Deno.exit(1);
+    }
+
+    if (options.dryRun) {
+      console.log("\nSelected Scenarios:");
+      selectedEntries.forEach((s) => console.log(`- ${s.id} (${s.scenario_path})`));
+      Deno.exit(0);
+    }
+
+    // 7. Execute scenarios
+    console.log(`Executing ${selectedEntries.length} scenarios...`);
+    let hasFailure = false;
+
+    for (const entry of selectedEntries) {
+      console.log(`\nScenario: ${entry.id}`);
+      try {
+        const result = await runSyntheticScenario({
+          frameworkHome,
+          scenarioPath: entry.scenario_path,
+          workspaceRoot: runtimeConfig.workspace_path,
+          outputDir: runtimeConfig.output_dir,
+          mode: runtimeConfig.mode,
+          interactiveAllowed: runtimeConfig.mode !== ScenarioExecutionMode.AUTO,
+        });
+
+        console.log(`Outcome: ${result.manifest.outcome}`);
+        if (result.manifest.outcome !== "success") {
+          hasFailure = true;
+          if (runtimeConfig.mode === ScenarioExecutionMode.AUTO) {
+            console.error(`Scenario ${entry.id} failed in AUTO mode. Halting.`);
+            break;
+          }
+        }
+      } catch (error) {
+        console.error(`Error executing scenario ${entry.id}:`, error);
+        hasFailure = true;
+        if (runtimeConfig.mode === ScenarioExecutionMode.AUTO) {
+          break;
+        }
+      }
+    }
+
+    if (hasFailure) {
+      Deno.exit(1);
+    } else {
+      console.log("\nAll scenarios completed successfully.");
+      Deno.exit(0);
+    }
+  })
+  .parse(Deno.args);

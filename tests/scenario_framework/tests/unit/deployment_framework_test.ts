@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkDeploymentFrameworkTest
  * @path tests/scenario_framework/tests/unit/deployment_framework_test.ts
- * @description RED-first tests for Phase 50 Step 6. Verifies deployable
+ * @description RED-first tests for Step 6. Verifies deployable
  * framework planning, external runtime config resolution, non-ExoFrame portal
  * path handling, and deterministic deployment manifest writing before the
  * deployment module exists.

@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkModes
  * @path tests/scenario_framework/runner/modes.ts
- * @description Provides the Phase 50 Step 4 execution-mode orchestration,
+ * @description Provides the Step 4 execution-mode orchestration,
  * persisted runner state handling, and scenario selection filtering used by the
  * scenario framework.
  * @architectural-layer Test

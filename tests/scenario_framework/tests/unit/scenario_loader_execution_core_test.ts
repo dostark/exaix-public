@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkScenarioLoaderExecutionCoreTest
  * @path tests/scenario_framework/tests/unit/scenario_loader_execution_core_test.ts
- * @description RED-first tests for Phase 50 Step 3. Verifies YAML scenario
+ * @description RED-first tests for Step 3. Verifies YAML scenario
  * loading, runtime config parsing, and execution-core step handling before the
  * loader and executor implementations exist.
  * @architectural-layer Test
@@ -19,7 +19,7 @@ import { ScenarioStepType } from "../../schema/step_schema.ts";
 function createValidScenarioYaml(requestFixturePath: string): string {
   return [
     'schema_version: "1.0.0"',
-    'id: "phase50-step3-loader"',
+    'id: "step3-loader"',
     'title: "Scenario loader returns ordered validated steps"',
     'pack: "smoke"',
     'tags: ["smoke", "loader"]',
@@ -63,7 +63,7 @@ Deno.test("[ScenarioFrameworkExecutionCore] scenario loader returns ordered vali
       scenarioPath: scenarioRelativePath,
     });
 
-    assertEquals(loadedScenario.scenario.id, "phase50-step3-loader");
+    assertEquals(loadedScenario.scenario.id, "step3-loader");
     assertEquals(loadedScenario.steps.map((step) => step.id), ["first-step", "second-step"]);
     assertStringIncludes(loadedScenario.requestFixture.content, "Load me");
   } finally {

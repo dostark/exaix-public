@@ -1,4 +1,4 @@
-# Phase 47 Quality Gate Clarification
+# Quality Gate Clarification
 
 This request is intentionally underspecified.
 

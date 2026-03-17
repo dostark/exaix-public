@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+id: "acceptance-criteria-propagation"
+title: "Propagates acceptance criteria into evaluation outputs"
+pack: "agent_flows"
+tags: ["provider-live", "criteria"]
+request_fixture: "fixtures/requests/agent_flows/acceptance_criteria_propagation.md"
+mode_support: ["auto"]
+portals: []
+steps:
+  - id: "create-request"
+    type: "exoctl"
+    command: "request"
+    args: ["--file", "fixtures/requests/agent_flows/acceptance_criteria_propagation.md"]
+    input_criteria:
+      - id: "request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/agent_flows/acceptance_criteria_propagation.md"
+    output_criteria:
+      - id: "request-create-exit-code"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "review-criteria"
+    type: "json-assert"
+    input_criteria:
+      - id: "analysis-json-available"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_analysis.json"
+    output_criteria:
+      - id: "goal-propagation-present"
+        kind: "json-path-exists"
+        path: "$.goals[0]"
+        target_file: "Workspace/Requests/latest/_analysis.json"

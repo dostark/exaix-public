@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Scenario Framework Runner Wrapper
+# This script runs the scenario framework runner using Deno.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRAMEWORK_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+deno run --allow-all "$FRAMEWORK_ROOT/runner/main.ts" "$@"

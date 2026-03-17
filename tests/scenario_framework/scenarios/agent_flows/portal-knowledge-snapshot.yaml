@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+id: "portal-knowledge-snapshot"
+title: "Portal knowledge gathers a snapshot for a mounted portal"
+pack: "agent_flows"
+tags: ["smoke", "portal"]
+request_fixture: "fixtures/requests/agent_flows/portal_knowledge_snapshot.md"
+mode_support: ["auto", "step"]
+portals:
+  - alias: "portal-sample-app"
+    source_path: "/tmp/portal-sample-app"
+steps:
+  - id: "portal-mounted"
+    type: "exoctl"
+    command: "portal refresh portal-sample-app"
+    input_criteria:
+      - id: "portal-available"
+        kind: "portal-mounted"
+        alias: "portal-sample-app"
+    output_criteria:
+      - id: "portal-analyze-exit-code"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "knowledge-artifact"
+    type: "wait-for-file"
+    input_criteria:
+      - id: "analyze-succeeded"
+        kind: "command-exit-code"
+        equals: 0
+    output_criteria:
+      - id: "knowledge-json-found"
+        kind: "file-found"
+        path_pattern: "Memory/Projects/*/knowledge.json"

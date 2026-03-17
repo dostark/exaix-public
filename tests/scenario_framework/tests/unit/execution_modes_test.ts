@@ -1,7 +1,7 @@
 /**
  * @module ScenarioFrameworkExecutionModesTest
  * @path tests/scenario_framework/tests/unit/execution_modes_test.ts
- * @description RED-first tests for Phase 50 Step 4. Verifies execution state
+ * @description RED-first tests for Step 4. Verifies execution state
  * persistence, step and manual-checkpoint mode behavior, auto fail-fast
  * control, and CI selection/skip handling before the mode engine exists.
  * @architectural-layer Test
@@ -47,7 +47,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] runner state persists and resumes c
     await writeExecutionState({
       statePath,
       state: {
-        scenarioId: "phase50-step4-resume",
+        scenarioId: "step4-resume",
         mode: ScenarioExecutionMode.STEP,
         nextStepIndex: 1,
         executedStepIds: ["step-1"],
@@ -70,7 +70,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] step mode executes exactly one step
   const steps = [createStep("step-1"), createStep("step-2")];
 
   const result = await runScenarioInMode({
-    scenarioId: "phase50-step-mode",
+    scenarioId: "step-mode",
     steps,
     mode: ScenarioExecutionMode.STEP,
     executeStep: ({ step }) => {
@@ -103,7 +103,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] manual-checkpoint mode pauses only 
   ];
 
   const result = await runScenarioInMode({
-    scenarioId: "phase50-manual-checkpoint",
+    scenarioId: "manual-checkpoint",
     steps,
     mode: ScenarioExecutionMode.MANUAL_CHECKPOINT,
     executeStep: ({ step }) => {
@@ -134,7 +134,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] auto mode halts the scenario on the
   const steps = [createStep("step-1"), createStep("step-2"), createStep("step-3")];
 
   const result = await runScenarioInMode({
-    scenarioId: "phase50-auto-mode",
+    scenarioId: "auto-mode",
     steps,
     mode: ScenarioExecutionMode.AUTO,
     executeStep: ({ step }) => {
@@ -161,7 +161,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] auto mode halts the scenario on the
 
 Deno.test("[ScenarioFrameworkExecutionModes] CI mode rejects interactive-only scenarios with skip reason interactive-not-allowed", async () => {
   const result = await runScenarioInMode({
-    scenarioId: "phase50-ci-skip",
+    scenarioId: "ci-skip",
     steps: [createStep("step-1")],
     mode: ScenarioExecutionMode.STEP,
     interactiveAllowed: false,
@@ -174,7 +174,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] CI mode rejects interactive-only sc
 
 Deno.test("[ScenarioFrameworkExecutionModes] scenario selection by pack, tag, and explicit id list each resolve the correct subset", () => {
   const scenarios: IScenarioSelectionCandidate[] = [
-    { id: "scenario-a", pack: "phase45_49", tags: ["smoke", "analysis"], mode_support: ["auto"] },
+    { id: "scenario-a", pack: "agent_flows", tags: ["smoke", "analysis"], mode_support: ["auto"] },
     { id: "scenario-b", pack: "smoke", tags: ["smoke"], mode_support: ["auto"] },
     { id: "scenario-c", pack: "provider_live", tags: ["live"], mode_support: ["auto"] },
   ];
@@ -186,7 +186,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] scenario selection by pack, tag, an
   });
   const byPack = selectScenariosForExecution({
     scenarios,
-    explicitPacks: ["phase45_49"],
+    explicitPacks: ["agent_flows"],
     profile: ScenarioCiProfile.CORE,
   });
   const byTag = selectScenariosForExecution({

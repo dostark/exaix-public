@@ -9,8 +9,8 @@ portals: []
 steps:
   - id: "workspace-health-request"
     type: "exoctl"
-    command: "request create"
-    args: ["--from-file", "fixtures/requests/shared/workspace_health_smoke.md"]
+    command: "request"
+    args: ["--file", "fixtures/requests/shared/workspace_health_smoke.md"]
     input_criteria:
       - id: "workspace-health-fixture-exists"
         kind: "file-exists"

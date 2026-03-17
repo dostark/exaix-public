@@ -1,0 +1,34 @@
+schema_version: "1.0.0"
+id: "quality-gate-clarification"
+title: "Quality gate pauses for clarification on underspecified requests"
+pack: "agent_flows"
+tags: ["manual-only", "clarification"]
+request_fixture: "fixtures/requests/agent_flows/quality_gate_clarification.md"
+mode_support: ["manual-checkpoint"]
+portals: []
+steps:
+  - id: "create-request"
+    type: "exoctl"
+    command: "request"
+    args: ["--file", "fixtures/requests/agent_flows/quality_gate_clarification.md"]
+    input_criteria:
+      - id: "request-fixture-exists"
+        kind: "file-exists"
+        path: "fixtures/requests/agent_flows/quality_gate_clarification.md"
+    output_criteria:
+      - id: "request-create-exit-code"
+        kind: "command-exit-code"
+        equals: 0
+  - id: "review-clarification"
+    type: "manual-review"
+    checkpoint: "clarification-needed"
+    instructions: "Review the clarification prompts and confirm the request remains blocked pending answers."
+    input_criteria:
+      - id: "clarification-artifact"
+        kind: "file-found"
+        path_pattern: "Workspace/Requests/*/_clarification.json"
+    output_criteria:
+      - id: "review-ready"
+        kind: "text-contains"
+        path: "fixtures/requests/agent_flows/quality_gate_clarification.md"
+        contains: "underspecified"
