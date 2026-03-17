@@ -299,6 +299,26 @@ Deno.test("CLI: portal add/remove/refresh works", async () => {
   }
 });
 
+Deno.test("[regression] CLI: portal analyze and knowledge commands are recognized", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    // These should not return "Unknown command" (exit code 2)
+    // Even if they fail due to missing portal, they should return exit code 1 or 0
+
+    // Analyze help
+    const analyzeHelp = await runExoctl(["portal", "analyze", "--help"], env.tempDir);
+    assertEquals(analyzeHelp.code, 0);
+    assertStringIncludes(analyzeHelp.stdout, "Trigger codebase knowledge analysis");
+
+    // Knowledge help
+    const knowledgeHelp = await runExoctl(["portal", "knowledge", "--help"], env.tempDir);
+    assertEquals(knowledgeHelp.code, 0);
+    assertStringIncludes(knowledgeHelp.stdout, "Display gathered knowledge for a portal");
+  } finally {
+    await env.cleanup();
+  }
+});
+
 Deno.test("[regression] CLI: request --target-branch writes target_branch frontmatter", async () => {
   const env = await TestEnvironment.create();
   try {

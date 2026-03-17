@@ -1126,17 +1126,20 @@ Incremental updates:
 - `[PortalKnowledgeView] displays conventions by category`
 - `[PortalKnowledgeView] displays dependencies with purpose`
 - `[PortalKnowledgeView] shows no-analysis message when missing`
-- `[PortalKnowledgeView] keybinding a triggers re-analysis`
+- [x] `[PortalKnowledgeView] keybinding a triggers re-analysis`
+- [x] `[regression] CLI wiring: portal analyze and knowledge commands are registered`
+- [x] `[regression] CLI: portal analyze and knowledge commands are recognized`
 
 ---
 
-### Step 15: Add CLI Commands: `exoctl portal analyze` and `exoctl portal knowledge`
+### Step 15: Add CLI Commands: `exoctl portal analyze` and `exoctl portal knowledge` [COMPLETED]
 
 **What:** Add two CLI subcommands for manual knowledge management: `analyze` for triggering analysis and `knowledge` for viewing results.
 
 **Files to modify:**
 
-- `src/cli/commands/portal_commands.ts` (add `analyze` and `knowledge` subcommands)
+- [x] `src/cli/commands/portal_commands.ts` (add `analyze` and `knowledge` subcommands)
+- [x] `src/cli/exoctl.ts` (wire subcommands to CLI tree)
 
 **Architecture notes:**
 

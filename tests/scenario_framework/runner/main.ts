@@ -41,15 +41,21 @@ await new Command()
     // 1. Resolve framework home (directory containing the runner entry point)
     const frameworkHome = resolve(new URL(".", import.meta.url).pathname, "..");
 
-    // 2. Load file-based config if provided
+    // 2. Load file-based config if provided or default exists
     let fileConfig: Partial<IRuntimeConfig> = {};
-    if (options.config) {
-      const configText = await Deno.readTextFile(options.config);
-      if (options.config.endsWith(".yaml") || options.config.endsWith(".yml")) {
+    const effectiveConfigPath = options.config ?? resolve(frameworkHome, "runtime_config.json");
+    try {
+      const configText = await Deno.readTextFile(effectiveConfigPath);
+      if (effectiveConfigPath.endsWith(".yaml") || effectiveConfigPath.endsWith(".yml")) {
         fileConfig = parseYaml(configText) as Partial<IRuntimeConfig>;
       } else {
         fileConfig = JSON.parse(configText);
       }
+    } catch (error) {
+      if (options.config) {
+        throw error;
+      }
+      // If none provided and default doesn't exist, proceed with empty fileConfig
     }
 
     // 3. Resolve runtime configuration

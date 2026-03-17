@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-16T18:53:51.596Z",
+  "generated_at": "2026-03-17T15:58:15.823Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1565,6 +1565,18 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk1.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk2.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/phase46-cli-commands-missing.md",
+      "title": "Phase 46 Portal Knowledge Commands Missing in CLI Wiring",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/phase46-cli-commands-missing.md.chunk0.txt",
+        ".copilot/chunks/phase46-cli-commands-missing.md.chunk1.txt",
+        ".copilot/chunks/phase46-cli-commands-missing.md.chunk2.txt",
+        ".copilot/chunks/phase46-cli-commands-missing.md.chunk3.txt",
+        ".copilot/chunks/phase46-cli-commands-missing.md.chunk4.txt"
       ]
     },
     {

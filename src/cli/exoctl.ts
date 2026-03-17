@@ -20,7 +20,13 @@ import { FlowCommands } from "./commands/flow_commands.ts";
 import { DashboardCommands } from "./commands/dashboard_commands.ts";
 import { MemoryCommands } from "./commands/memory_commands.ts";
 import { IJournalCommandOptions, JournalCommands } from "./commands/journal_commands.ts";
-import { MemoryBankSource, PortalExecutionStrategy, PortalStatus, UIOutputFormat } from "../shared/enums.ts";
+import {
+  MemoryBankSource,
+  PortalAnalysisMode,
+  PortalExecutionStrategy,
+  PortalStatus,
+  UIOutputFormat,
+} from "../shared/enums.ts";
 import { AnalysisMode } from "../shared/types/request.ts";
 import { IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
@@ -860,6 +866,48 @@ export const __test_command = new Command()
               await portalCommands.refresh(alias);
             } catch (error) {
               display.error("cli.error", "portal refresh", {
+                message: error instanceof Error ? error.message : "Unknown error",
+              });
+              Deno.exit(1);
+            }
+          }),
+      )
+      .command(
+        "analyze <alias>",
+        new Command()
+          .description("Trigger codebase knowledge analysis for a portal")
+          .option("-m, --mode <mode:string>", "Analysis mode: quick, standard, deep")
+          .option("-f, --force", "Force re-analysis even if fresh knowledge exists")
+          .action(async (options, ...args: string[]) => {
+            const alias = args[0];
+            try {
+              const summary = await portalCommands.analyze(alias, {
+                mode: options.mode as PortalAnalysisMode,
+                force: options.force,
+              });
+              console.log(summary);
+            } catch (error) {
+              display.error("cli.error", "portal analyze", {
+                message: error instanceof Error ? error.message : "Unknown error",
+              });
+              Deno.exit(1);
+            }
+          }),
+      )
+      .command(
+        "knowledge <alias>",
+        new Command()
+          .description("Display gathered knowledge for a portal")
+          .option("--json", "Output in JSON format")
+          .action(async (options, ...args: string[]) => {
+            const alias = args[0];
+            try {
+              const output = await portalCommands.knowledge(alias, {
+                json: options.json,
+              });
+              console.log(output);
+            } catch (error) {
+              display.error("cli.error", "portal knowledge", {
                 message: error instanceof Error ? error.message : "Unknown error",
               });
               Deno.exit(1);

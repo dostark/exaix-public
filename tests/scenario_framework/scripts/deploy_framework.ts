@@ -89,6 +89,16 @@ export async function deployFrameworkToDirectory(
     await Deno.copyFile(sourcePath, destinationPath);
   }
 
+  // Copy deno.json from the repository root to allow dependencies to resolve in the deployed framework.
+  const rootDenoConfig = join(plan.sourceFrameworkRoot, "../../deno.json");
+  const destinationDenoConfig = join(plan.destinationFrameworkRoot, "deno.json");
+  try {
+    await Deno.copyFile(rootDenoConfig, destinationDenoConfig);
+    plan.copiedAssets.push("deno.json");
+  } catch (error) {
+    console.warn(`Warning: Could not copy root deno.json to ${destinationDenoConfig}:`, (error as Error).message);
+  }
+
   await Deno.writeTextFile(
     plan.runtimeConfigPath,
     `${JSON.stringify(plan.resolvedRuntimeConfig, null, 2)}\n`,

@@ -65,6 +65,7 @@ export async function runSyntheticScenario(
         step,
         workspaceRoot: options.workspaceRoot,
         exoctlExecutable: options.exoctlExecutable,
+        requestFixturePath: loadedScenario.requestFixture.absolutePath,
         env: options.env,
         portalAliases: options.portalAliases ?? loadedScenario.scenario.portals.map((portal) => portal.alias),
         verbose: options.verbose,
@@ -100,6 +101,7 @@ interface IExecuteSyntheticStepOptions {
   step: IScenarioStep;
   workspaceRoot: string;
   exoctlExecutable?: string;
+  requestFixturePath: string;
   env?: { [key: string]: string };
   portalAliases: string[];
   verbose?: boolean;
@@ -118,8 +120,13 @@ async function executeSyntheticStep(
     };
   }
 
+  const resolvedStep = {
+    ...options.step,
+    args: options.step.args?.map((arg) => arg.replaceAll("$REQUEST_FIXTURE", options.requestFixturePath)),
+  };
+
   const executionResult = await executeScenarioStep({
-    step: options.step,
+    step: resolvedStep,
     exoctlExecutable: options.exoctlExecutable,
     cwd: options.workspaceRoot,
     env: {
