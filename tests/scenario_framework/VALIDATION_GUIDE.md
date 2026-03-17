@@ -63,10 +63,10 @@ Ensure the system database is ready and the background daemon is running.
 cd "$WORKSPACE_DIR"
 
 # Initialize the SQLite database
-deno task setup
+exoctl setup
 
 # Start the ExoFrame daemon
-deno task start
+exoctl daemon start
 ```
 
 ## 5. Mount Target Portals
@@ -75,15 +75,14 @@ Portals are symlinked repositories that agents will analyze. You should mount th
 
 ```bash
 # Example: Mount the ExoFrame core repository itself
-# Use 'deno task cli' to run the local exoctl within the workspace
-deno task cli portal add "/home/dkasymov/git/ExoFrame" portal-exoframe
+exoctl portal add "/home/dkasymov/git/ExoFrame" portal-exoframe
 
 # Verify the mount
-deno task cli portal list
+exoctl portal list
 
 # Restart the daemon to ensure services recognize the new portal
-deno task stop
-deno task start
+exoctl daemon stop
+exoctl daemon start
 ```
 
 ## 6. Deploy the Scenario Framework
