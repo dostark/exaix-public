@@ -29,22 +29,19 @@ Deploy a fresh ExoFrame runtime. This installs the necessary directory structure
 
 ## 3. Configure the AI/LLM Provider
 
-For real agent validation, you must configure a functional LLM provider. Edit the `exo.config.toml` in your workspace.
+For real agent validation, you must configure a functional LLM provider.
 
 ```bash
 # Navigate to the deployed workspace
 cd "$WORKSPACE_DIR"
 
-# Create/Edit exo.config.toml with your provider details
-cat <<EOF > exo.config.toml
-[ai]
-provider = "anthropic"  # Change to "openai", "google", or "ollama" as needed
-model = "claude-3-5-sonnet-20241022"
+# Initialize your config from the sample
+cp exo.config.sample.toml exo.config.toml
 
-[provider_strategy]
-allow_local = true
-max_daily_cost_usd = 10.00
-EOF
+# Edit exo.config.toml to set your preferred provider and model
+# For example:
+#   [ai] provider = "anthropic"
+#   [ai] model = "claude-3-5-sonnet-20241022"
 
 # Set your API keys (Replace with your actual keys)
 export ANTHROPIC_API_KEY="your-key-here"
@@ -55,15 +52,12 @@ export GOOGLE_API_KEY="your-key-here"
 export EXO_TEST_ENABLE_PAID_LLM=1
 ```
 
-## 4. Initialize the Database and Daemon
+## 4. Start the Daemon
 
-Ensure the system database is ready and the background daemon is running.
+Ensure the background daemon is running.
 
 ```bash
 cd "$WORKSPACE_DIR"
-
-# Initialize the SQLite database
-exoctl setup
 
 # Start the ExoFrame daemon
 exoctl daemon start
