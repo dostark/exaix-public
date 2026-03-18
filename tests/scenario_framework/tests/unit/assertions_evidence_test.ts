@@ -344,3 +344,165 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] failure manifests include step 
     await Deno.remove(workspaceRoot, { recursive: true });
   }
 });
+
+// -----------------------------------------------------------------------------
+// Version Assertion Criteria Tests (Phase 51 Secondary Goal)
+// -----------------------------------------------------------------------------
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion passes when versions match", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-check",
+        kind: CriterionKind.VERSION_EQUALS,
+        version: "1.0.0",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.PASSED);
+    assertEquals(result.observed_value, "1.0.0");
+    assertEquals(result.expected_value, "1.0.0");
+    assertStringIncludes(result.message, "Version matches");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion fails when versions differ", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-check",
+        kind: CriterionKind.VERSION_EQUALS,
+        version: "9.9.9",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.FAILED);
+    assertEquals(result.observed_value, "1.0.0");
+    assertEquals(result.expected_value, "9.9.9");
+    assertStringIncludes(result.message, "Expected version 9.9.9, got 1.0.0");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion passes when version is greater", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-min",
+        kind: CriterionKind.VERSION_GTE,
+        version: "0.9.0",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.PASSED);
+    assertStringIncludes(result.message, ">=");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion fails when version is lower", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-min",
+        kind: CriterionKind.VERSION_GTE,
+        version: "9.0.0",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.FAILED);
+    assertStringIncludes(result.message, "is less than required");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion passes when version is lower", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-max",
+        kind: CriterionKind.VERSION_LTE,
+        version: "9.0.0",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.PASSED);
+    assertStringIncludes(result.message, "<=");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion fails when version is greater", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "binary-version-max",
+        kind: CriterionKind.VERSION_LTE,
+        version: "0.9.0",
+        source: "binary",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.FAILED);
+    assertStringIncludes(result.message, "is greater than maximum");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});
+
+Deno.test("[ScenarioFrameworkAssertionsEvidence] version criteria can check workspace schema version", async () => {
+  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
+
+  try {
+    const result = await evaluateCriterion({
+      workspaceRoot,
+      phase: CriterionPhase.OUTPUT,
+      criterion: {
+        id: "workspace-version-check",
+        kind: CriterionKind.VERSION_EQUALS,
+        version: "1.0.0",
+        source: "workspace",
+      },
+    });
+
+    assertEquals(result.status, CriterionStatus.PASSED);
+    assertEquals(result.observed_value, "1.0.0");
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+});

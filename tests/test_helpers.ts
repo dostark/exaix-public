@@ -126,6 +126,7 @@ export function createStubConfig(config: Config): IConfigService {
     },
     getPortals: () => [...portals],
     getPortal: (alias: string) => portals.find((portal) => portal.alias === alias),
+    getSchemaVersion: () => config.system.schema_version ?? "1.0.0",
   };
 }
 

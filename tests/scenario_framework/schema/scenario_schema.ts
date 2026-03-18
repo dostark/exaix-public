@@ -4,7 +4,7 @@
  * @description Defines the Step 1 top-level scenario schema for the
  * scenario framework.
  * @architectural-layer Test
- * @dependencies [zod, step_schema]
+ * @dependencies [zod, step_schema, version]
  * @related-files [tests/scenario_framework/schema/step_schema.ts, tests/scenario_framework/tests/unit/framework_contract_test.ts]
  */
 
@@ -15,6 +15,7 @@ import {
   ScenarioSchemaVersionSchema,
   ScenarioStepSchema,
 } from "./step_schema.ts";
+import { SCHEMA_VERSION } from "./version.ts";
 
 const NON_EMPTY_STRING = z.string().min(1);
 
@@ -66,3 +67,6 @@ export const ScenarioSchema = z.object({
 });
 
 export type IScenario = z.infer<typeof ScenarioSchema>;
+
+// Re-export version for convenience
+export { SCHEMA_VERSION };

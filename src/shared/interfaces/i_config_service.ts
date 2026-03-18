@@ -62,4 +62,9 @@ export interface IConfigService {
    * Get configuration for a specific portal.
    */
   getPortal(alias: string): IPortalConfigEntry | undefined;
+
+  /**
+   * Get the workspace schema version from the loaded config.
+   */
+  getSchemaVersion(): string;
 }

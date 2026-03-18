@@ -35,6 +35,7 @@ import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
 import { ICliApplicationContext } from "./cli_context.ts";
 import { GitService } from "../services/git_service.ts";
 import { OutputFormat } from "./memory_types.ts";
+import { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } from "../shared/version.ts";
 
 // Extracted action handlers
 import {
@@ -243,7 +244,7 @@ function renderReviewShowCommits(cs: ReviewDetails) {
 
 export const __test_command = new Command()
   .name("exoctl")
-  .version("1.0.0")
+  .version(BINARY_VERSION)
   .description("ExoFrame CLI - Human interface for agent orchestration")
   // Request commands (PRIMARY INTERFACE)
   .command(
@@ -678,14 +679,26 @@ export const __test_command = new Command()
         "status",
         new Command()
           .description("Check daemon status")
-          .action(async () => {
+          .option("--json", "Output as JSON")
+          .action(async (options) => {
             try {
               const status = await daemonCommands.status();
+              if (options.json) {
+                console.log(JSON.stringify({
+                  status: status.running ? "running" : "stopped",
+                  pid: status.pid ?? null,
+                  uptime: status.uptime ?? null,
+                  binary_version: status.version,
+                  workspace_schema_version: status.workspace_schema_version,
+                }));
+                return;
+              }
               display.info("daemon.status", "daemon", {
-                version: status.version,
                 status: status.running ? "Running ✓" : "Stopped ✗",
                 pid: status.pid ?? null,
                 uptime: status.uptime ?? null,
+                binary: status.version,
+                schema: status.workspace_schema_version,
               });
             } catch (error) {
               display.error("cli.error", "daemon status", {
@@ -1491,6 +1504,101 @@ const journalCommand = new Command()
   });
 
 __test_command.command("journal", journalCommand);
+
+// ---------------------------------------------------------------------------
+// version subcommand
+// ---------------------------------------------------------------------------
+
+const versionCommand = new Command()
+  .description("Show ExoFrame binary and workspace schema version information")
+  .option("--json", "Output as JSON")
+  .action((options) => {
+    const onDiskSchemaVersion = (() => {
+      try {
+        return services.config.getSchemaVersion();
+      } catch {
+        return WORKSPACE_SCHEMA_VERSION;
+      }
+    })();
+
+    const wsv = parseSemVerSegments(WORKSPACE_SCHEMA_VERSION);
+    const ondisk = parseSemVerSegments(onDiskSchemaVersion);
+
+    const migrationRequired = wsv.major > ondisk.major ||
+      (wsv.major === ondisk.major && wsv.minor > ondisk.minor);
+    const binaryTooOld = ondisk.major > wsv.major ||
+      (ondisk.major === wsv.major && ondisk.minor > wsv.minor);
+    const compatible = !migrationRequired && !binaryTooOld;
+
+    const compatibilityLabel = migrationRequired
+      ? "⚠️  Minor migration required"
+      : binaryTooOld
+      ? "❌ Binary older than workspace — update exoctl"
+      : "✅ OK";
+
+    if (options.json) {
+      const configPath = (() => {
+        try {
+          return services.config.getConfigPath();
+        } catch {
+          return "";
+        }
+      })();
+      console.log(
+        JSON.stringify({
+          binary_version: BINARY_VERSION,
+          workspace_schema_version: WORKSPACE_SCHEMA_VERSION,
+          on_disk_schema_version: onDiskSchemaVersion,
+          compatible,
+          migration_required: migrationRequired,
+          config_path: configPath,
+        }),
+      );
+      return;
+    }
+
+    const configPath = (() => {
+      try {
+        return services.config.getConfigPath();
+      } catch {
+        return "(not available)";
+      }
+    })();
+
+    console.log("ExoFrame CLI");
+    console.log(`  Binary version:             ${BINARY_VERSION}`);
+    console.log(`  Workspace schema version:   ${WORKSPACE_SCHEMA_VERSION}`);
+    console.log(`  Config path:                ${configPath}`);
+    console.log(`  On-disk schema version:     ${onDiskSchemaVersion}`);
+    console.log(`  Compatibility:              ${compatibilityLabel}`);
+  });
+
+/** Minimal inline SemVer parser (avoids circular import of scripts/check_version.ts) */
+function parseSemVerSegments(v: string): { major: number; minor: number; patch: number } {
+  const [major, minor, patch] = v.split(".").map(Number);
+  return { major: major ?? 0, minor: minor ?? 0, patch: patch ?? 0 };
+}
+
+__test_command.command("version", versionCommand);
+
+// ---------------------------------------------------------------------------
+// migrate subcommand (Step 6)
+// ---------------------------------------------------------------------------
+
+const migrateCommand = new Command()
+  .description("Workspace migration utilities")
+  .command(
+    "check",
+    new Command()
+      .description("Check binary vs workspace schema compatibility")
+      .option("--json", "Output as JSON")
+      .action((options) => {
+        const exitCode = daemonCommands.migrate({ check: true, json: options.json });
+        Deno.exit(exitCode);
+      }),
+  );
+
+__test_command.command("migrate", migrateCommand);
 
 if (!isTestMode()) {
   await __test_command.parse(Deno.args);

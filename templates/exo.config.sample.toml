@@ -49,6 +49,8 @@
 [system]
 # Human-readable config version (optional)
 version = "1.0.0"
+# Workspace schema version (defaults to current WORKSPACE_SCHEMA_VERSION if omitted)
+schema_version = "1.0.0"
 # Log level: debug | info | warn | error
 log_level = "info"
 # Root directory for deployed workspaces (can be absolute or relative)

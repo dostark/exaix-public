@@ -227,4 +227,9 @@ stability_check = true
     // This would update last_verified timestamp if we add it to schema
     // For now, this is a placeholder for future enhancement
   }
+
+  /** Returns the workspace schema version recorded in the loaded config. */
+  public getSchemaVersion(): string {
+    return this.config.system.schema_version;
+  }
 }

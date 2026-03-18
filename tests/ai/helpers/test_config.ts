@@ -19,6 +19,7 @@ import {
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import { IModelProvider } from "../../../src/ai/types.ts";
 import { ProviderFactory } from "../../../src/ai/provider_factory.ts";
+import { WORKSPACE_SCHEMA_VERSION } from "../../../src/shared/version.ts";
 
 /**
  * Create a minimal config for testing.
@@ -44,6 +45,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     },
     system: {
       version: "1.0.0",
+      schema_version: WORKSPACE_SCHEMA_VERSION,
       root: "/tmp/exoframe-test",
       log_level: LogLevel.INFO,
     },

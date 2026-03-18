@@ -5,13 +5,13 @@
  * criteria, portal declarations, and criterion result payloads used by the
  * scenario framework.
  * @architectural-layer Test
- * @dependencies [zod]
+ * @dependencies [zod, version]
  * @related-files [tests/scenario_framework/schema/scenario_schema.ts, tests/scenario_framework/runner/config.ts, tests/scenario_framework/tests/unit/framework_contract_test.ts]
  */
 
 import { z } from "zod";
+import { VERSION_PATTERN } from "./version.ts";
 
-const SCHEMA_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 const NON_EMPTY_STRING = z.string().min(1);
 
 export enum ScenarioExecutionMode {
@@ -50,6 +50,9 @@ export enum CriterionKind {
   PORTAL_MOUNTED = "portal-mounted",
   ENV_VAR_PRESENT = "env-var-present",
   TEXT_MATCHES = "text-matches",
+  VERSION_EQUALS = "version-equals",
+  VERSION_GTE = "version-gte",
+  VERSION_LTE = "version-lte",
 }
 
 export enum CriterionPhase {
@@ -175,6 +178,24 @@ const TextMatchesCriterionSchema = BaseCriterionSchema.extend({
   flags: z.string().optional(),
 }).strict();
 
+const VersionEqualsCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.VERSION_EQUALS),
+  version: NON_EMPTY_STRING,
+  source: z.enum(["binary", "workspace"]).default("binary"),
+}).strict();
+
+const VersionGteCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.VERSION_GTE),
+  version: NON_EMPTY_STRING,
+  source: z.enum(["binary", "workspace"]).default("binary"),
+}).strict();
+
+const VersionLteCriterionSchema = BaseCriterionSchema.extend({
+  kind: z.literal(CriterionKind.VERSION_LTE),
+  version: NON_EMPTY_STRING,
+  source: z.enum(["binary", "workspace"]).default("binary"),
+}).strict();
+
 export const CriterionSchema = z.discriminatedUnion("kind", [
   FileExistsCriterionSchema,
   FileFoundCriterionSchema,
@@ -191,6 +212,9 @@ export const CriterionSchema = z.discriminatedUnion("kind", [
   PortalMountedCriterionSchema,
   EnvVarPresentCriterionSchema,
   TextMatchesCriterionSchema,
+  VersionEqualsCriterionSchema,
+  VersionGteCriterionSchema,
+  VersionLteCriterionSchema,
 ]);
 
 export type ICriterion = z.infer<typeof CriterionSchema>;
@@ -242,6 +266,6 @@ export const ScenarioStepSchema = z.object({
 
 export type IScenarioStep = z.infer<typeof ScenarioStepSchema>;
 
-export const ScenarioSchemaVersionSchema = z.string().regex(SCHEMA_VERSION_PATTERN);
+export const ScenarioSchemaVersionSchema = z.string().regex(VERSION_PATTERN);
 
 export type IScenarioExecutionMode = z.infer<typeof ScenarioExecutionModeSchema>;

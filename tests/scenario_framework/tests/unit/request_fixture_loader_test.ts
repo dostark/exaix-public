@@ -11,6 +11,7 @@
 import { assertEquals, assertRejects, assertStrictEquals } from "@std/assert";
 import { assertStringIncludes, assertThrows } from "@std/assert";
 import { ensureScenarioUsesFixtureOnly, loadRequestFixture } from "../../runner/request_fixtures.ts";
+import { SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
 
 interface IScenarioPortalShape {
   alias: string;
@@ -49,7 +50,7 @@ interface IScenarioDocumentShape {
 
 function createValidScenarioDocument(requestFixturePath: string): IScenarioDocumentShape {
   return {
-    schema_version: "1.0.0",
+    schema_version: SCHEMA_VERSION,
     id: "step2-fixture-only",
     title: "Fixture-only validation",
     pack: "smoke",

@@ -1,0 +1,5 @@
+### 1. `scripts/deploy_workspace.sh`
+- Checks whether `EXO_BIN_PATH` is passed via the environment when generating a deployed workspace copy.
+- If present, it prevents `deno install --global -n exoctl` from polluting the user's `$PATH`.
+- Instead, it generates an isolated `sh` script directly into `$EXO_BIN_PATH/exoctl`.
+- The shim forces `export EXO_CONFIG_PATH` referencing the destination target config, meaning executing `exoctl` from that script naturally anchors its context into that specific sandbox workspace.

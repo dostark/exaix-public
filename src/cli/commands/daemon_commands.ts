@@ -15,6 +15,7 @@ import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { DAEMON_STOP_TIMEOUT_MS } from "../../shared/constants.ts";
 import { isProcessAlive } from "../process_utils.ts";
 import type { JSONObject } from "../../shared/types/json.ts";
+import { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } from "../../shared/version.ts";
 
 import type { IDaemonStatus } from "../../shared/types/daemon.ts";
 
@@ -220,11 +221,12 @@ export class DaemonCommands extends BaseCommand {
    * @returns Status information
    */
   async status(): Promise<IDaemonStatus> {
-    const version = "1.0.0"; // TODO: Load from package.json or version file
+    const version = BINARY_VERSION;
+    const workspace_schema_version = WORKSPACE_SCHEMA_VERSION;
 
     // Check if PID file exists
     if (!await exists(this.pidFile)) {
-      return { running: false, version };
+      return { running: false, version, workspace_schema_version };
     }
 
     // Read PID
@@ -232,7 +234,7 @@ export class DaemonCommands extends BaseCommand {
     const pid = parseInt(pidStr.trim(), 10);
 
     if (isNaN(pid)) {
-      return { running: false, version };
+      return { running: false, version, workspace_schema_version };
     }
 
     // Check if process is running
@@ -241,7 +243,7 @@ export class DaemonCommands extends BaseCommand {
       if (!alive) {
         // Process not running, clean up PID file
         await Deno.remove(this.pidFile).catch(() => {});
-        return { running: false, version };
+        return { running: false, version, workspace_schema_version };
       }
 
       // Get process uptime
@@ -259,10 +261,57 @@ export class DaemonCommands extends BaseCommand {
         pid,
         uptime,
         version,
+        workspace_schema_version,
       };
     } catch {
-      return { running: false, version };
+      return { running: false, version, workspace_schema_version };
     }
+  }
+
+  /**
+   * Check migration compatibility between binary schema version and on-disk workspace schema.
+   * Exit codes: 0 = up to date, 1 = migration required, 2 = binary older than workspace.
+   */
+  migrate(options: { check?: boolean; json?: boolean } = {}): number {
+    if (!options.check) return 0;
+
+    const binaryWsv = WORKSPACE_SCHEMA_VERSION;
+    const onDiskWsv = (() => {
+      try {
+        return this.context.config.getSchemaVersion();
+      } catch {
+        return WORKSPACE_SCHEMA_VERSION;
+      }
+    })();
+
+    const sem = (v: string) => {
+      const [ma, mi, pa] = v.split(".").map(Number);
+      return { major: ma ?? 0, minor: mi ?? 0, patch: pa ?? 0 };
+    };
+
+    const bsv = sem(binaryWsv);
+    const dsv = sem(onDiskWsv);
+
+    let exitCode = 0;
+    let message = `✅ Workspace is up to date (schema ${onDiskWsv})`;
+
+    if (bsv.major > dsv.major || (bsv.major === dsv.major && bsv.minor > dsv.minor)) {
+      exitCode = 1;
+      message = bsv.major > dsv.major
+        ? `❌ Major migration required — manual upgrade needed (binary: ${binaryWsv}, workspace: ${onDiskWsv})`
+        : `⚠️  Workspace migration required — run 'exoctl migrate' (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
+    } else if (dsv.major > bsv.major || (dsv.major === bsv.major && dsv.minor > bsv.minor)) {
+      exitCode = 2;
+      message = `❌ Binary is older than workspace — update exoctl (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
+    }
+
+    if (options.json) {
+      console.log(JSON.stringify({ status: exitCode === 0 ? "ok" : "mismatch", exit_code: exitCode, message }));
+    } else {
+      console.log(message);
+    }
+
+    return exitCode;
   }
 
   /**

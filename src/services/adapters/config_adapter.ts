@@ -78,4 +78,11 @@ export class ConfigAdapter implements IConfigService {
   getPortal(alias: string): IPortalConfigEntry | undefined {
     return this.configService.getPortal(alias);
   }
+
+  /**
+   * Get the workspace schema version from the loaded config.
+   */
+  getSchemaVersion(): string {
+    return this.configService.getSchemaVersion();
+  }
 }

@@ -21,6 +21,7 @@ import {
   SqliteJournalMode,
 } from "../enums.ts";
 import { AnalysisMode } from "../types/request.ts";
+import { WORKSPACE_SCHEMA_VERSION } from "../version.ts";
 
 export interface IPortalConfig {
   alias: string;
@@ -91,6 +92,7 @@ export const ConfigSchema = z.object({
     root: z.string().default(getCwdSafe()),
     log_level: z.nativeEnum(LogLevel).default(LogLevel.INFO),
     version: z.string().optional(),
+    schema_version: z.string().default(WORKSPACE_SCHEMA_VERSION),
   }),
   paths: z.object({
     workspace: z.string().default(DEFAULTS.DEFAULT_WORKSPACE_PATH),

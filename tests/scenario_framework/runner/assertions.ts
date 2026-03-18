@@ -72,6 +72,9 @@ type IStatusEqualsCriterion = Extract<ICriterion, { kind: CriterionKind.STATUS_E
 type IPortalMountedCriterion = Extract<ICriterion, { kind: CriterionKind.PORTAL_MOUNTED }>;
 type IEnvVarPresentCriterion = Extract<ICriterion, { kind: CriterionKind.ENV_VAR_PRESENT }>;
 type ITextMatchesCriterion = Extract<ICriterion, { kind: CriterionKind.TEXT_MATCHES }>;
+type IVersionEqualsCriterion = Extract<ICriterion, { kind: CriterionKind.VERSION_EQUALS }>;
+type IVersionGteCriterion = Extract<ICriterion, { kind: CriterionKind.VERSION_GTE }>;
+type IVersionLteCriterion = Extract<ICriterion, { kind: CriterionKind.VERSION_LTE }>;
 
 interface IKeyValueDocument {
   [key: string]: unknown;
@@ -111,6 +114,12 @@ export async function evaluateCriterion(
       return evaluateEnvVarPresentCriterion(options);
     case CriterionKind.TEXT_MATCHES:
       return await evaluateTextMatchesCriterion(options);
+    case CriterionKind.VERSION_EQUALS:
+      return await evaluateVersionEqualsCriterion(options);
+    case CriterionKind.VERSION_GTE:
+      return await evaluateVersionGteCriterion(options);
+    case CriterionKind.VERSION_LTE:
+      return await evaluateVersionLteCriterion(options);
   }
 }
 
@@ -736,4 +745,95 @@ async function* walkWorkspaceFiles(workspaceRoot: string): AsyncGenerator<string
       yield entryPath;
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+// Version Assertion Criteria (Phase 51 Secondary Goal)
+// -----------------------------------------------------------------------------
+
+async function evaluateVersionEqualsCriterion(
+  options: IEvaluateCriterionOptions,
+): Promise<ICriterionResult> {
+  const criterion = options.criterion as IVersionEqualsCriterion;
+  const { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } = await import(
+    "../../../src/shared/version.ts"
+  );
+
+  const observedVersion = criterion.source === "binary" ? BINARY_VERSION : WORKSPACE_SCHEMA_VERSION;
+  const passed = observedVersion === criterion.version;
+
+  return {
+    criterion_id: criterion.id,
+    kind: CriterionKind.VERSION_EQUALS,
+    phase: options.phase,
+    status: passed ? CriterionStatus.PASSED : CriterionStatus.FAILED,
+    message: passed
+      ? `Version matches: ${observedVersion}`
+      : `Expected version ${criterion.version}, got ${observedVersion}`,
+    evidence_refs: [],
+    observed_value: observedVersion,
+    expected_value: criterion.version,
+  };
+}
+
+async function evaluateVersionGteCriterion(
+  options: IEvaluateCriterionOptions,
+): Promise<ICriterionResult> {
+  const criterion = options.criterion as IVersionGteCriterion;
+  const { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } = await import(
+    "../../../src/shared/version.ts"
+  );
+
+  const observedVersion = criterion.source === "binary" ? BINARY_VERSION : WORKSPACE_SCHEMA_VERSION;
+  const passed = compareVersions(observedVersion, criterion.version) >= 0;
+
+  return {
+    criterion_id: criterion.id,
+    kind: CriterionKind.VERSION_GTE,
+    phase: options.phase,
+    status: passed ? CriterionStatus.PASSED : CriterionStatus.FAILED,
+    message: passed
+      ? `Version ${observedVersion} >= ${criterion.version}`
+      : `Version ${observedVersion} is less than required ${criterion.version}`,
+    evidence_refs: [],
+    observed_value: observedVersion,
+    expected_value: `>= ${criterion.version}`,
+  };
+}
+
+async function evaluateVersionLteCriterion(
+  options: IEvaluateCriterionOptions,
+): Promise<ICriterionResult> {
+  const criterion = options.criterion as IVersionLteCriterion;
+  const { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } = await import(
+    "../../../src/shared/version.ts"
+  );
+
+  const observedVersion = criterion.source === "binary" ? BINARY_VERSION : WORKSPACE_SCHEMA_VERSION;
+  const passed = compareVersions(observedVersion, criterion.version) <= 0;
+
+  return {
+    criterion_id: criterion.id,
+    kind: CriterionKind.VERSION_LTE,
+    phase: options.phase,
+    status: passed ? CriterionStatus.PASSED : CriterionStatus.FAILED,
+    message: passed
+      ? `Version ${observedVersion} <= ${criterion.version}`
+      : `Version ${observedVersion} is greater than maximum ${criterion.version}`,
+    evidence_refs: [],
+    observed_value: observedVersion,
+    expected_value: `<= ${criterion.version}`,
+  };
+}
+
+function compareVersions(a: string, b: string): number {
+  const aParts = a.split(".").map(Number);
+  const bParts = b.split(".").map(Number);
+
+  for (let i = 0; i < 3; i++) {
+    if (aParts[i] < bParts[i]) return -1;
+    if (aParts[i] > bParts[i]) return 1;
+  }
+
+  return 0;
 }

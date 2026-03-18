@@ -11,6 +11,8 @@
     "dev": "deno run --watch --allow-all src/main.ts",
     "setup": "deno run --allow-all scripts/setup_db.ts",
     "migrate": "deno run --allow-read --allow-write --allow-env --allow-ffi --allow-run scripts/migrate_db.ts",
+    "check-version": "deno run -A scripts/check_version.ts",
+    "bump": "deno run -A scripts/check_version.ts --force-patch",
     "cli": "deno run --allow-all src/cli/exoctl.ts",
     "scenario:test": "deno test --allow-all tests/scenario_framework/",
     "scenario:test:unit": "deno test --allow-all tests/scenario_framework/tests/unit/",

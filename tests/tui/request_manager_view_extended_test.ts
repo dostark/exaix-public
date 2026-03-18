@@ -17,6 +17,7 @@ import {
   RequestSource,
   SqliteJournalMode,
 } from "../../src/shared/enums.ts";
+import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import {
   AnalysisMode,
   type IRequest,
@@ -26,7 +27,8 @@ import {
 } from "../../src/shared/types/request.ts";
 import { type IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-import { RequestStatus } from "../../src/shared/status/request_status.ts";
+import { RequestAdapter } from "../../src/services/adapters/request_adapter.ts";
+import { WORKSPACE_SCHEMA_VERSION } from "../../src/shared/version.ts";
 import {
   createLegacyTuiSession,
   createLegacyTuiSessionWithErrors,
@@ -43,8 +45,6 @@ import {
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
-import { type IRequestService as _IRequestService } from "../../src/shared/interfaces/i_request_service.ts";
-import { RequestAdapter } from "../../src/services/adapters/request_adapter.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 // ===== Test Data =====
@@ -814,6 +814,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       root: "/tmp/mock-root",
       log_level: LogLevel.INFO,
       version: "test-version",
+      schema_version: WORKSPACE_SCHEMA_VERSION,
     },
     paths: {
       workspace: "Workspace",
@@ -955,6 +956,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       removePortal: () => Promise.resolve(),
       getPortals: () => [],
       getPortal: () => undefined,
+      getSchemaVersion: () => WORKSPACE_SCHEMA_VERSION,
     },
     db: {
       get: () => undefined,

@@ -18,12 +18,12 @@ import {
   ScenarioCiProfile,
   ScenarioSelectionSource,
 } from "../../runner/config.ts";
-import { ScenarioSchema } from "../../schema/scenario_schema.ts";
+import { ScenarioSchema, SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
 import { CriterionResultSchema, CriterionStatus } from "../../schema/step_schema.ts";
 
 Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () => {
   const result = ScenarioSchema.parse({
-    schema_version: "1.0.0",
+    schema_version: SCHEMA_VERSION,
     id: "memory-aware-analysis",
     title: "memory-aware analysis enriches request understanding",
     pack: "agent_flows",
@@ -94,7 +94,7 @@ Deno.test("[ScenarioFrameworkContract] rejects steps missing criterion ids or ki
   assertThrows(
     () => {
       ScenarioSchema.parse({
-        schema_version: "1.0.0",
+        schema_version: SCHEMA_VERSION,
         id: "missing-criterion-id",
         title: "Missing criterion ids",
         pack: "smoke",
@@ -121,7 +121,7 @@ Deno.test("[ScenarioFrameworkContract] rejects duplicate portal aliases", () => 
   assertThrows(
     () => {
       ScenarioSchema.parse({
-        schema_version: "1.0.0",
+        schema_version: SCHEMA_VERSION,
         id: "duplicate-portals",
         title: "Duplicate portals",
         pack: "smoke",
@@ -152,7 +152,7 @@ Deno.test("[ScenarioFrameworkContract] rejects unsupported criterion kinds", () 
   assertThrows(
     () => {
       ScenarioSchema.parse({
-        schema_version: "1.0.0",
+        schema_version: SCHEMA_VERSION,
         id: "unsupported-criterion-kind",
         title: "Unsupported criterion kind",
         pack: "smoke",

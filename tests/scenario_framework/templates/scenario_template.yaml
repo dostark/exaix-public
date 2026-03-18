@@ -1,3 +1,5 @@
+# Schema version - use the current SCHEMA_VERSION from tests/scenario_framework/schema/version.ts
+# Run `deno task scenario:test` to ensure your scenario is valid against the current schema.
 schema_version: "1.0.0"
 id: "__SCENARIO_ID__"
 title: "__SCENARIO_TITLE__"

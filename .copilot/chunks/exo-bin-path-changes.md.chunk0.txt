@@ -1,0 +1,6 @@
+# Support for Independent Exoctl Installations via EXO_BIN_PATH
+
+## Description
+This issue tracks code edits intended to allow multiple, independent versions of the `exoctl` binary and isolated ExoFrame configurations to coexist on a single machine. The target goal is to decouple the workspace deployment and the test suites from inherently overwriting the developer's global `exoctl` path in `~/.deno/bin/exoctl`.
+
+## Changes Proposed

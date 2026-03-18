@@ -12,4 +12,5 @@ export interface IDaemonStatus {
   pid?: number;
   uptime?: string;
   version: string;
+  workspace_schema_version: string;
 }

@@ -12,6 +12,7 @@
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ScenarioExecutionMode, ScenarioStepType } from "../../schema/step_schema.ts";
+import { SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
 import { selectScenariosForExecution } from "../../runner/modes.ts";
 import { loadScenarioCatalog } from "../../runner/scenario_catalog.ts";
 import { runSyntheticScenario } from "../../runner/synthetic_runner.ts";
@@ -254,7 +255,7 @@ async function writeSyntheticScenario(
   await Deno.writeTextFile(
     join(options.frameworkHome, scenarioPath),
     [
-      'schema_version: "1.0.0"',
+      `schema_version: "${SCHEMA_VERSION}"`,
       `id: "${options.scenarioId}"`,
       `title: "${options.scenarioId}"`,
       'pack: "synthetic"',

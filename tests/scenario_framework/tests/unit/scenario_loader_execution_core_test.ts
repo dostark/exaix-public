@@ -14,11 +14,12 @@ import { join } from "@std/path";
 import { loadRuntimeConfig } from "../../runner/config.ts";
 import { loadScenarioFromYamlFile } from "../../runner/scenario_loader.ts";
 import { executeScenarioStep } from "../../runner/step_executor.ts";
+import { SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
 import { ScenarioStepType } from "../../schema/step_schema.ts";
 
 function createValidScenarioYaml(requestFixturePath: string): string {
   return [
-    'schema_version: "1.0.0"',
+    `schema_version: "${SCHEMA_VERSION}"`,
     'id: "step3-loader"',
     'title: "Scenario loader returns ordered validated steps"',
     'pack: "smoke"',
@@ -84,7 +85,7 @@ Deno.test("[ScenarioFrameworkExecutionCore] scenario loader rejects documents th
     await Deno.writeTextFile(
       join(frameworkHome, scenarioRelativePath),
       [
-        'schema_version: "1.0.0"',
+        `schema_version: "${SCHEMA_VERSION}"`,
         'id: "invalid-scenario"',
         'pack: "smoke"',
         'tags: ["smoke"]',
