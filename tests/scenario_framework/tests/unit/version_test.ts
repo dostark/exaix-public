@@ -7,7 +7,7 @@
  * @related-files [tests/scenario_framework/schema/version.ts, tests/scenario_framework/schema/scenario_schema.ts]
  */
 
-import { assert, assertEquals, assertFalse, assertThrows } from "@std/assert";
+import { assert, assertEquals, assertFalse } from "@std/assert";
 import {
   compareVersions,
   isCompatibleVersion,

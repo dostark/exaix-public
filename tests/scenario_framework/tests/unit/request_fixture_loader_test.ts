@@ -11,7 +11,7 @@
 import { assertEquals, assertRejects, assertStrictEquals } from "@std/assert";
 import { assertStringIncludes, assertThrows } from "@std/assert";
 import { ensureScenarioUsesFixtureOnly, loadRequestFixture } from "../../runner/request_fixtures.ts";
-import { SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
+import { SCHEMA_VERSION } from "../../schema/version.ts";
 
 interface IScenarioPortalShape {
   alias: string;

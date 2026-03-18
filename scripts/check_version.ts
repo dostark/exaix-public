@@ -20,11 +20,34 @@
  *   deno run -A scripts/check_version.ts --force-patch # always bump BINARY_VERSION PATCH
  */
 
-import { join } from "@std/path";
+// ---------------------------------------------------------------------------
+// Exported Types (must be at top per code style)
+// ---------------------------------------------------------------------------
+
+export interface ISemVer {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+export interface Classification {
+  requiresMinor: boolean;
+}
+
+export interface VersionConstants {
+  BINARY_VERSION: string;
+  WORKSPACE_SCHEMA_VERSION: string;
+}
+
+export interface VersionMeta {
+  last_bump_date: string;
+}
 
 // ---------------------------------------------------------------------------
 // Paths (relative to repo root)
 // ---------------------------------------------------------------------------
+
+import { join } from "@std/path";
 
 const REPO_ROOT = new URL("../", import.meta.url).pathname.replace(/\/$/, "");
 const VERSION_FILE = join(REPO_ROOT, "src", "shared", "version.ts");
@@ -46,13 +69,7 @@ const MINOR_TRIGGER_PATTERNS: RegExp[] = [
 // SemVer helpers (exported for unit testing)
 // ---------------------------------------------------------------------------
 
-export interface SemVer {
-  major: number;
-  minor: number;
-  patch: number;
-}
-
-export function parseSemVer(v: string): SemVer {
+export function parseSemVer(v: string): ISemVer {
   const parts = v.split(".");
   if (parts.length !== 3) throw new Error(`Invalid SemVer: "${v}"`);
   const [major, minor, patch] = parts.map((p) => {
@@ -63,7 +80,7 @@ export function parseSemVer(v: string): SemVer {
   return { major, minor, patch };
 }
 
-export function formatSemVer({ major, minor, patch }: SemVer): string {
+export function formatSemVer({ major, minor, patch }: ISemVer): string {
   return `${major}.${minor}.${patch}`;
 }
 
@@ -81,10 +98,6 @@ export function bumpMinor(v: string): string {
 // File classification (exported for unit testing)
 // ---------------------------------------------------------------------------
 
-export interface Classification {
-  requiresMinor: boolean;
-}
-
 export function classifyChanges(files: string[]): Classification {
   const requiresMinor = files.some((f) => MINOR_TRIGGER_PATTERNS.some((re) => re.test(f)));
   return { requiresMinor };
@@ -93,11 +106,6 @@ export function classifyChanges(files: string[]): Classification {
 // ---------------------------------------------------------------------------
 // version.ts I/O (exported for unit testing)
 // ---------------------------------------------------------------------------
-
-export interface VersionConstants {
-  BINARY_VERSION: string;
-  WORKSPACE_SCHEMA_VERSION: string;
-}
 
 export function readVersionFile(path: string = VERSION_FILE): VersionConstants {
   const text = Deno.readTextFileSync(path);
@@ -133,16 +141,12 @@ export function writeVersionFile(
 // .version_meta.json I/O
 // ---------------------------------------------------------------------------
 
-export interface VersionMeta {
-  last_bump_date: string;
-}
-
 export function readMetaFile(path: string = META_FILE): VersionMeta {
   return JSON.parse(Deno.readTextFileSync(path)) as VersionMeta;
 }
 
 export function writeMetaFile(date: string, path: string = META_FILE): void {
-  Deno.writeTextFileSync(path, JSON.stringify({ last_bump_date: date }, null, 0) + "\n");
+  Deno.writeTextFileSync(path, JSON.stringify({ last_bump_date: date }, null, 2) + "\n");
 }
 
 // ---------------------------------------------------------------------------

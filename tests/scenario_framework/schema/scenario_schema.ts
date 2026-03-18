@@ -15,7 +15,6 @@ import {
   ScenarioSchemaVersionSchema,
   ScenarioStepSchema,
 } from "./step_schema.ts";
-import { SCHEMA_VERSION } from "./version.ts";
 
 const NON_EMPTY_STRING = z.string().min(1);
 
@@ -67,6 +66,3 @@ export const ScenarioSchema = z.object({
 });
 
 export type IScenario = z.infer<typeof ScenarioSchema>;
-
-// Re-export version for convenience
-export { SCHEMA_VERSION };

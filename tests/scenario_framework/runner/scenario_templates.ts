@@ -4,11 +4,10 @@
  * @description Implements Step 8 starter-template rendering so new
  * scenario packs can be authored without changing core framework code.
  * @architectural-layer Test
- * @dependencies [@std/path, schema/version]
+ * @dependencies [schema/version]
  * @related-files [tests/scenario_framework/templates/scenario_template.yaml, tests/scenario_framework/tests/unit/pack_generalization_test.ts]
  */
 
-import { resolve } from "@std/path";
 import { SCHEMA_VERSION } from "../schema/version.ts";
 
 export interface IScenarioTemplateOptions {
@@ -18,11 +17,6 @@ export interface IScenarioTemplateOptions {
   tags: string[];
   requestFixture: string;
 }
-
-const SCENARIO_TEMPLATE_PATH = resolve(
-  import.meta.dirname ?? ".",
-  "../templates/scenario_template.yaml",
-);
 
 export function renderScenarioTemplate(
   options: IScenarioTemplateOptions,

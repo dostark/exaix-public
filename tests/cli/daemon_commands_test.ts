@@ -20,6 +20,7 @@ import type { IDisplayService } from "../../src/shared/interfaces/i_display_serv
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { createStubContext, createStubDb } from "../test_helpers.ts";
 import type { JSONObject } from "../../src/shared/types/json.ts";
+import { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } from "../../src/shared/version.ts";
 
 /**
  * Helper class to expose and mock protected methods of DaemonCommands
@@ -819,7 +820,6 @@ await new Promise(() => {}); // Run forever
 // ---------------------------------------------------------------------------
 // Step 5 & 6: version fields in status + migrate --check
 // ---------------------------------------------------------------------------
-import { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } from "../../src/shared/version.ts";
 
 describe("DaemonCommands - version fields in status() (Step 5)", {
   sanitizeResources: false,
@@ -867,7 +867,8 @@ describe("DaemonCommands - migrate() compatibility check (Step 6)", {
   function makeCommandsWithOnDiskSchema(schemaVersion: string): DaemonCommands {
     const ctx = createStubContext();
     // Override getSchemaVersion via getAll config
-    (ctx.config as unknown as { getSchemaVersion: () => string }).getSchemaVersion = () => schemaVersion;
+    const configWithSchema = { ...ctx.config, getSchemaVersion: () => schemaVersion };
+    ctx.config = configWithSchema as typeof ctx.config;
     return new DaemonCommands(ctx);
   }
 

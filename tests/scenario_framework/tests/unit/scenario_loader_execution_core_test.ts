@@ -14,7 +14,7 @@ import { join } from "@std/path";
 import { loadRuntimeConfig } from "../../runner/config.ts";
 import { loadScenarioFromYamlFile } from "../../runner/scenario_loader.ts";
 import { executeScenarioStep } from "../../runner/step_executor.ts";
-import { SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
+import { SCHEMA_VERSION } from "../../schema/version.ts";
 import { ScenarioStepType } from "../../schema/step_schema.ts";
 
 function createValidScenarioYaml(requestFixturePath: string): string {
