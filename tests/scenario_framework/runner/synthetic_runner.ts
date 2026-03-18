@@ -43,6 +43,7 @@ export interface IRunSyntheticScenarioResult {
   runResult: IRunScenarioInModeResult;
   manifest: IRunManifest;
   manifestPath: string;
+  executionLogPath?: string;
 }
 
 export async function runSyntheticScenario(
@@ -88,12 +89,20 @@ export async function runSyntheticScenario(
     manifest,
   });
 
+  const { writeExecutionLog } = await import("./evidence_collector.ts");
+  const executionLogPath = await writeExecutionLog({
+    outputDir: options.outputDir,
+    scenarioId: loadedScenario.scenario.id,
+    stepOutcomes,
+  });
+
   return {
     loadedScenario,
     stepOutcomes,
     runResult,
     manifest,
     manifestPath,
+    executionLogPath,
   };
 }
 

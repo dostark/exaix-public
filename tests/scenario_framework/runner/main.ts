@@ -128,7 +128,9 @@ await new Command()
         });
 
         console.log(`Outcome: ${result.manifest.outcome}`);
-        if (result.manifest.outcome !== "success") {
+        if (result.manifest.outcome !== "success" && result.manifest.outcome !== "paused") {
+          const { reportScenarioFailure } = await import("./reporter.ts");
+          reportScenarioFailure(result);
           hasFailure = true;
           if (runtimeConfig.mode === ScenarioExecutionMode.AUTO) {
             console.error(`Scenario ${entry.id} failed in AUTO mode. Halting.`);
