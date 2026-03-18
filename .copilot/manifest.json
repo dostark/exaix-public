@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-18T14:54:02.062Z",
+  "generated_at": "2026-03-18T15:21:19.786Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1602,6 +1602,16 @@
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk5.txt",
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk6.txt",
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/exo-bin-path-changes.md",
+      "title": "Support for Independent Exoctl Installations via EXO_BIN_PATH",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/exo-bin-path-changes.md.chunk0.txt",
+        ".copilot/chunks/exo-bin-path-changes.md.chunk1.txt",
+        ".copilot/chunks/exo-bin-path-changes.md.chunk2.txt"
       ]
     },
     {

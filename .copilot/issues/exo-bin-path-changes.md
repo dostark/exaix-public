@@ -1,3 +1,12 @@
+---
+title: "Support for Independent Exoctl Installations via EXO_BIN_PATH"
+status: resolved
+priority: medium
+created: 2026-03-18
+updated: 2026-03-18
+labels: [build, scripts, deploy, scenario-framework, environment]
+---
+
 # Support for Independent Exoctl Installations via EXO_BIN_PATH
 
 ## Description
