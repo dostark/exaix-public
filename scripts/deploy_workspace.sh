@@ -89,9 +89,22 @@ if [ "$NORUN" -eq 0 ]; then
   ( cd "$DEST" && deno task cache || true )
   ( cd "$DEST" && deno task setup || true )
 
-  # Install exoctl CLI globally (include config for import map resolution)
-  echo "Installing exoctl CLI..."
-  ( cd "$DEST" && deno install --global --allow-all --force --config deno.json -n exoctl src/cli/exoctl.ts 2>/dev/null || true )
+  # Install exoctl CLI
+  if [ -n "${EXO_BIN_PATH:-}" ]; then
+    EXOCTL_BIN="$EXO_BIN_PATH/exoctl"
+    echo "Writing exoctl shim to $EXOCTL_BIN..."
+    mkdir -p "$EXO_BIN_PATH"
+
+    cat <<EOF > "$EXOCTL_BIN"
+#!/bin/sh
+export EXO_CONFIG_PATH="\${EXO_CONFIG_PATH:-$DEST/exo.config.toml}"
+exec deno run --allow-all --config "$DEST/deno.json" "$DEST/src/cli/exoctl.ts" "\$@"
+EOF
+    chmod +x "$EXOCTL_BIN"
+  else
+    echo "Installing exoctl CLI globally..."
+    ( cd "$DEST" && deno install --global --allow-all --force --config deno.json -n exoctl src/cli/exoctl.ts 2>/dev/null || true )
+  fi
 
   # Check if ~/.deno/bin is in PATH
   if [[ ":$PATH:" != *":$HOME/.deno/bin:"* ]]; then

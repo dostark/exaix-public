@@ -125,6 +125,7 @@ await new Command()
           mode: runtimeConfig.mode,
           interactiveAllowed: runtimeConfig.mode !== ScenarioExecutionMode.AUTO,
           verbose: runtimeConfig.verbose,
+          exoctlExecutable: Deno.env.get("EXO_BIN_PATH") ? `${Deno.env.get("EXO_BIN_PATH")}/exoctl` : undefined,
         });
 
         console.log(`Outcome: ${result.manifest.outcome}`);

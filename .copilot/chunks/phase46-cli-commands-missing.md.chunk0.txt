@@ -1,0 +1,22 @@
+## Problem
+
+The new `analyze` and `knowledge` commands for portal management (introduced in Phase 46) are implemented in the `PortalCommands` class but are not wired to the cliffy command tree in `src/cli/exoctl.ts`. This makes them inaccessible to users via the `exoctl portal` interface.
+
+## Reproduction Steps
+
+```bash
+# 1. Attempt to run portal analysis
+exoctl portal analyze portal-exoframe
+
+# 2. Attempt to view portal knowledge
+exoctl portal knowledge portal-exoframe
+```
+
+## Observed Behavior
+
+Both commands fail with an "Unknown command" error:
+
+```
+error: Unknown command "analyze". Did you mean command "add"?
+error: Unknown command "knowledge". Did you mean command "show"?
+```

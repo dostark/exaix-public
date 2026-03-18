@@ -1,0 +1,12 @@
+However, `src/cli/exoctl.ts` does not include these subcommands in the `.command("portal", ...)` definition.
+
+## Investigation Areas
+
+### CLI Wiring
+- [ ] Add `analyze <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
+- [ ] Add `knowledge <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
+- [ ] Ensure options (like `--mode`, `--force`, `--json`) are properly passed to implementation methods.
+
+## Fix Implementation
+
+**Changes Made:**
