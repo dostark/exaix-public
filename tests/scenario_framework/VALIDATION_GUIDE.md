@@ -15,6 +15,12 @@ export WORKSPACE_DIR="$EXOFFRAME_VALIDATION_ROOT/workspace"
 export FRAMEWORK_DIR="$EXOFFRAME_VALIDATION_ROOT/framework"
 export EVIDENCE_DIR="$EXOFFRAME_VALIDATION_ROOT/evidence"
 
+# Optional: Install the sandbox exoctl binary to a dedicated folder instead of
+# overwriting the global ~/.deno/bin/exoctl. Downstream steps use EXO_BIN_PATH
+# to resolve exoctl and EXO_CONFIG_PATH to pin the config file.
+export EXO_BIN_PATH="$EXOFFRAME_VALIDATION_ROOT/bin"
+export EXO_CONFIG_PATH="$WORKSPACE_DIR/exo.config.toml"
+
 mkdir -p "$EXOFFRAME_VALIDATION_ROOT"
 ```
 
@@ -23,8 +29,16 @@ mkdir -p "$EXOFFRAME_VALIDATION_ROOT"
 Deploy a fresh ExoFrame runtime. This installs the necessary directory structure (`Memory/`, `Blueprints/`, etc.) and system files.
 
 ```bash
-# From the ExoFrame repository root:
+# From the ExoFrame repository root.
+# If EXO_BIN_PATH is set, the deploy script writes an isolated exoctl shim
+# to $EXO_BIN_PATH/exoctl instead of installing globally. The shim will
+# automatically export EXO_CONFIG_PATH so that binary always targets this
+# sandbox workspace regardless of the current working directory.
 ./scripts/deploy_workspace.sh "$WORKSPACE_DIR"
+
+# After deployment, add your sandbox bin folder to PATH so the sandbox
+# binary takes precedence in this shell session:
+export PATH="$EXO_BIN_PATH:$PATH"
 ```
 
 ## 3. Configure the AI/LLM Provider
@@ -59,7 +73,9 @@ Ensure the background daemon is running.
 ```bash
 cd "$WORKSPACE_DIR"
 
-# Start the ExoFrame daemon
+# If EXO_BIN_PATH is set the sandbox exoctl shim is used; otherwise the
+# globally installed exoctl is called. EXO_CONFIG_PATH ensures the daemon
+# reads the config from this specific sandbox workspace.
 exoctl daemon start
 ```
 
@@ -69,7 +85,7 @@ Portals are symlinked repositories that agents will analyze. You should mount th
 
 ```bash
 # Example: Mount the ExoFrame core repository itself
-exoctl portal add "/home/dkasymov/git/ExoFrame" portal-exoframe
+exoctl portal add "$HOME/git/ExoFrame" portal-exoframe
 
 # Verify the mount
 exoctl portal list
@@ -84,7 +100,7 @@ exoctl daemon start
 Package the validation engine and all test assets (scenarios, fixtures) into your sandbox.
 
 ```bash
-# From the ExoFrame repository root:
+cd "$HOME/git/ExoFrame"
 ./tests/scenario_framework/bin/deploy-framework \
   --destination "$FRAMEWORK_DIR" \
   --workspace "$WORKSPACE_DIR" \
@@ -123,3 +139,5 @@ The framework captures full evidence for every execution.
 - **Daemon Issues**: Check `${WORKSPACE_DIR}/.exo/daemon.log` if the daemon fails to start or process requests.
 - **Portal Boundary Errors**: Ensure the `portal-mounted` criterion is passed in your scenario if it depends on external code references.
 - **LLM Failures**: Verify your API keys and check that your `exo.config.toml` matches the requirements for the agent being tested.
+- **Wrong exoctl version**: Run `which exoctl` to confirm the binary path. If `EXO_BIN_PATH` is set, ensure `$EXO_BIN_PATH` appears before `~/.deno/bin` in your `$PATH`. If not, re-export: `export PATH="$EXO_BIN_PATH:$PATH"`.
+- **Config not found**: If `exoctl` cannot find `exo.config.toml`, verify `EXO_CONFIG_PATH` points to the correct file: `echo $EXO_CONFIG_PATH`. The config service checks this variable before falling back to the current working directory.
