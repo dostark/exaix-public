@@ -65,55 +65,47 @@ Request body text.
 `;
 }
 
+async function parseRequestWithFields(
+  extraFields: string,
+): Promise<{ frontmatter: any; logs: LogEntry[] }> {
+  const logs: LogEntry[] = [];
+  const parser = new RequestParser(createLogger(logs));
+  const content = buildRequestContent(extraFields);
+  return await withTempFile(content, async (path) => {
+    const result = await parser.parse(path);
+    assertExists(result);
+    return { frontmatter: result.frontmatter, logs };
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Extraction tests (GREEN — fields present and valid)
 // ---------------------------------------------------------------------------
 
 Deno.test("[RequestParser] extracts acceptance_criteria from frontmatter", async () => {
-  const content = buildRequestContent(
+  const { frontmatter, logs } = await parseRequestWithFields(
     'acceptance_criteria:\n  - "criterion one"\n  - "criterion two"',
   );
-  const logs: LogEntry[] = [];
-  const parser = new RequestParser(createLogger(logs));
-
-  await withTempFile(content, async (path) => {
-    const result = await parser.parse(path);
-    assertExists(result);
-    assertEquals(result.frontmatter.acceptance_criteria, ["criterion one", "criterion two"]);
-    assertEquals(logs.filter((l) => l.level === "warn").length, 0);
-  });
+  assertEquals(frontmatter.acceptance_criteria, ["criterion one", "criterion two"]);
+  assertEquals(logs.filter((l) => l.level === "warn").length, 0);
 });
 
 Deno.test("[RequestParser] extracts expected_outcomes from frontmatter", async () => {
-  const content = buildRequestContent(
+  const { frontmatter, logs } = await parseRequestWithFields(
     'expected_outcomes:\n  - "output file created"\n  - "no lint errors"',
   );
-  const logs: LogEntry[] = [];
-  const parser = new RequestParser(createLogger(logs));
-
-  await withTempFile(content, async (path) => {
-    const result = await parser.parse(path);
-    assertExists(result);
-    assertEquals(result.frontmatter.expected_outcomes, ["output file created", "no lint errors"]);
-    assertEquals(logs.filter((l) => l.level === "warn").length, 0);
-  });
+  assertEquals(frontmatter.expected_outcomes, ["output file created", "no lint errors"]);
+  assertEquals(logs.filter((l) => l.level === "warn").length, 0);
 });
 
 Deno.test("[RequestParser] extracts scope from frontmatter", async () => {
-  const content = buildRequestContent(
+  const { frontmatter, logs } = await parseRequestWithFields(
     'scope:\n  include:\n    - "src/"\n  exclude:\n    - "tests/"',
   );
-  const logs: LogEntry[] = [];
-  const parser = new RequestParser(createLogger(logs));
-
-  await withTempFile(content, async (path) => {
-    const result = await parser.parse(path);
-    assertExists(result);
-    assertExists(result.frontmatter.scope);
-    assertEquals(result.frontmatter.scope.include, ["src/"]);
-    assertEquals(result.frontmatter.scope.exclude, ["tests/"]);
-    assertEquals(logs.filter((l) => l.level === "warn").length, 0);
-  });
+  assertExists(frontmatter.scope);
+  assertEquals(frontmatter.scope.include, ["src/"]);
+  assertEquals(frontmatter.scope.exclude, ["tests/"]);
+  assertEquals(logs.filter((l) => l.level === "warn").length, 0);
 });
 
 // ---------------------------------------------------------------------------

@@ -17,12 +17,27 @@ import { selectScenariosForExecution } from "../../runner/modes.ts";
 import { loadScenarioCatalog } from "../../runner/scenario_catalog.ts";
 import { runSyntheticScenario } from "../../runner/synthetic_runner.ts";
 
-Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic scenario completes successfully without a deployed workspace", async () => {
+interface ISyntheticTestEnv {
+  frameworkHome: string;
+  workspaceRoot: string;
+  outputDir: string;
+}
+
+async function withSyntheticTestEnv(
+  fn: (env: ISyntheticTestEnv) => Promise<void>,
+): Promise<void> {
   const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
   const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-workspace-" });
   const outputDir = await Deno.makeTempDir({ prefix: "scenario-output-" });
-
   try {
+    await fn({ frameworkHome, workspaceRoot, outputDir });
+  } finally {
+    await cleanupTempPaths([frameworkHome, workspaceRoot, outputDir]);
+  }
+}
+
+Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic scenario completes successfully without a deployed workspace", async () => {
+  await withSyntheticTestEnv(async ({ frameworkHome, workspaceRoot, outputDir }) => {
     const scenarioPath = await writeSyntheticScenario({
       frameworkHome,
       scenarioId: "synthetic-success",
@@ -61,17 +76,11 @@ Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic scenario completes succe
     assertEquals(run.runResult.status, "completed");
     assertEquals(run.manifest.outcome, "success");
     assertEquals(run.manifest.steps.map((step: { executionStatus: string }) => step.executionStatus), ["passed"]);
-  } finally {
-    await cleanupTempPaths([frameworkHome, workspaceRoot, outputDir]);
-  }
+  });
 });
 
 Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic failing scenario emits the expected criterion-level manifest", async () => {
-  const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-workspace-" });
-  const outputDir = await Deno.makeTempDir({ prefix: "scenario-output-" });
-
-  try {
+  await withSyntheticTestEnv(async ({ frameworkHome, workspaceRoot, outputDir }) => {
     const scenarioPath = await writeSyntheticScenario({
       frameworkHome,
       scenarioId: "synthetic-failure",
@@ -108,17 +117,11 @@ Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic failing scenario emits t
     assertEquals(run.manifest.outcome, "scenario-failure");
     assertEquals(run.manifest.steps[0].criterionResults[0].criterion_id, "result-status-ok");
     assertEquals(run.manifest.steps[0].criterionResults[0].status, "failed");
-  } finally {
-    await cleanupTempPaths([frameworkHome, workspaceRoot, outputDir]);
-  }
+  });
 });
 
 Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic checkpoint scenario pauses and resumes correctly", async () => {
-  const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-workspace-" });
-  const outputDir = await Deno.makeTempDir({ prefix: "scenario-output-" });
-
-  try {
+  await withSyntheticTestEnv(async ({ frameworkHome, workspaceRoot, outputDir }) => {
     const scenarioPath = await writeSyntheticScenario({
       frameworkHome,
       scenarioId: "synthetic-checkpoint",
@@ -184,15 +187,11 @@ Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic checkpoint scenario paus
 
     assertEquals(resumedRun.runResult.status, "completed");
     assertEquals((await Deno.readTextFile(join(workspaceRoot, "step-three.txt"))).trim(), "three");
-  } finally {
-    await cleanupTempPaths([frameworkHome, workspaceRoot, outputDir]);
-  }
+  });
 });
 
 Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic CI scenario selection honors tags and explicit scenario ids", async () => {
-  const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
-
-  try {
+  await withSyntheticTestEnv(async ({ frameworkHome }) => {
     await writeSyntheticScenario({
       frameworkHome,
       scenarioId: "synthetic-smoke",
@@ -219,9 +218,7 @@ Deno.test("[ScenarioFrameworkSyntheticRunner] synthetic CI scenario selection ho
 
     assertEquals(byTag.map((scenario) => scenario.id), ["synthetic-smoke"]);
     assertEquals(byId.map((scenario) => scenario.id), ["synthetic-manual"]);
-  } finally {
-    await cleanupTempPaths([frameworkHome]);
-  }
+  });
 });
 
 interface ISyntheticScenarioStepDefinition {

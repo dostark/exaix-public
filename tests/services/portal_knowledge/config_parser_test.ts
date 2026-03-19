@@ -119,28 +119,42 @@ Deno.test("[ConfigParser] parses tsconfig.json compiler options", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Test Helpers
+// ---------------------------------------------------------------------------
+
+async function withConfigTest(
+  files: Record<string, string>,
+  fn: (root: string) => Promise<void>,
+): Promise<void> {
+  const root = await makeTempDir();
+  try {
+    for (const [path, content] of Object.entries(files)) {
+      await writeFile(root, path, content);
+    }
+    await fn(root);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // [ConfigParser] detects test framework from dependencies
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] detects test framework from dependencies", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "package.json",
-      JSON.stringify({
+  await withConfigTest(
+    {
+      "package.json": JSON.stringify({
         devDependencies: { "jest": "^29.0.0", "@types/jest": "^29.0.0" },
         scripts: { "test": "jest" },
       }),
-    );
-
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    assertExists(result.techStack);
-    assertEquals(result.techStack!.testFramework, "jest");
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["package.json"]);
+      assertExists(result.techStack);
+      assertEquals(result.techStack!.testFramework, "jest");
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -148,23 +162,18 @@ Deno.test("[ConfigParser] detects test framework from dependencies", async () =>
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] detects web framework from dependencies", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "package.json",
-      JSON.stringify({
+  await withConfigTest(
+    {
+      "package.json": JSON.stringify({
         dependencies: { "express": "^4.18.0" },
       }),
-    );
-
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    assertExists(result.techStack);
-    assertEquals(result.techStack!.framework, "express");
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["package.json"]);
+      assertExists(result.techStack);
+      assertEquals(result.techStack!.framework, "express");
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -172,24 +181,19 @@ Deno.test("[ConfigParser] detects web framework from dependencies", async () => 
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] detects build tool from scripts", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "package.json",
-      JSON.stringify({
+  await withConfigTest(
+    {
+      "package.json": JSON.stringify({
         devDependencies: { "vite": "^5.0.0" },
         scripts: { "build": "vite build", "dev": "vite" },
       }),
-    );
-
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    assertExists(result.techStack);
-    assertEquals(result.techStack!.buildTool, "vite");
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["package.json"]);
+      assertExists(result.techStack);
+      assertEquals(result.techStack!.buildTool, "vite");
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -197,21 +201,18 @@ Deno.test("[ConfigParser] detects build tool from scripts", async () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] reads .gitignore and adds patterns to ignorePatterns", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(root, ".gitignore", "dist\n*.log\n# comment\n\n  node_modules  ");
-
-    const result = await parseConfigFiles(root, [".gitignore"]);
-
-    assertExists(result.ignorePatterns);
-    assertEquals(result.ignorePatterns!.includes("dist"), true);
-    assertEquals(result.ignorePatterns!.includes("*.log"), true);
-    assertEquals(result.ignorePatterns!.includes("node_modules"), true);
-    // Comments and empty lines should be excluded
-    assertEquals(result.ignorePatterns!.some((p) => p.startsWith("#")), false);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  await withConfigTest(
+    { ".gitignore": "dist\n*.log\n# comment\n\n  node_modules  " },
+    async (root) => {
+      const result = await parseConfigFiles(root, [".gitignore"]);
+      assertExists(result.ignorePatterns);
+      assertEquals(result.ignorePatterns!.includes("dist"), true);
+      assertEquals(result.ignorePatterns!.includes("*.log"), true);
+      assertEquals(result.ignorePatterns!.includes("node_modules"), true);
+      // Comments and empty lines should be excluded
+      assertEquals(result.ignorePatterns!.some((p) => p.startsWith("#")), false);
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------

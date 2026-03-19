@@ -14,6 +14,18 @@ import { evaluateCriterion, evaluateStepOutcome } from "../../runner/assertions.
 import { copyEvidenceArtifact, writeRunManifest } from "../../runner/evidence_collector.ts";
 import { CriterionKind, CriterionPhase, CriterionStatus, ScenarioStepType } from "../../schema/step_schema.ts";
 
+async function withTempWorkspace(
+  fn: (workspaceRoot: string) => Promise<void>,
+  prefix = "scenario-framework-",
+): Promise<void> {
+  const workspaceRoot = await Deno.makeTempDir({ prefix });
+  try {
+    await fn(workspaceRoot);
+  } finally {
+    await Deno.remove(workspaceRoot, { recursive: true });
+  }
+}
+
 Deno.test("[ScenarioFrameworkAssertionsEvidence] criterion evaluator distinguishes input validation, execution failure, and output validation failure", async () => {
   const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-assertions-" });
 
@@ -350,9 +362,7 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] failure manifests include step 
 // -----------------------------------------------------------------------------
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion passes when versions match", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const { BINARY_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
@@ -369,15 +379,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion passes
     assertEquals(result.observed_value, BINARY_VERSION);
     assertEquals(result.expected_value, BINARY_VERSION);
     assertStringIncludes(result.message, "Version matches");
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion fails when versions differ", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const { BINARY_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
@@ -394,15 +400,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion fails 
     assertEquals(result.observed_value, BINARY_VERSION);
     assertEquals(result.expected_value, "9.9.9");
     assertStringIncludes(result.message, `Expected version 9.9.9, got ${BINARY_VERSION}`);
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion passes when version is greater", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
@@ -416,15 +418,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion passes wh
 
     assertEquals(result.status, CriterionStatus.PASSED);
     assertStringIncludes(result.message, ">=");
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion fails when version is lower", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
@@ -438,15 +436,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-gte criterion fails whe
 
     assertEquals(result.status, CriterionStatus.FAILED);
     assertStringIncludes(result.message, "is less than required");
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion passes when version is lower", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
@@ -460,15 +454,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion passes wh
 
     assertEquals(result.status, CriterionStatus.PASSED);
     assertStringIncludes(result.message, "<=");
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion fails when version is greater", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
@@ -482,15 +472,11 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-lte criterion fails whe
 
     assertEquals(result.status, CriterionStatus.FAILED);
     assertStringIncludes(result.message, "is greater than maximum");
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });
 
 Deno.test("[ScenarioFrameworkAssertionsEvidence] version criteria can check workspace schema version", async () => {
-  const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
-
-  try {
+  await withTempWorkspace(async (workspaceRoot) => {
     const { WORKSPACE_SCHEMA_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
@@ -505,7 +491,5 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version criteria can check work
 
     assertEquals(result.status, CriterionStatus.PASSED);
     assertEquals(result.observed_value, WORKSPACE_SCHEMA_VERSION);
-  } finally {
-    await Deno.remove(workspaceRoot, { recursive: true });
-  }
+  }, "scenario-framework-version-");
 });

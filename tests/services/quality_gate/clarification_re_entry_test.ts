@@ -48,21 +48,63 @@ function makeRequestFile(
   const extras = Object.entries(extraFields)
     .map(([k, v]) => `${k}: "${v}"`)
     .join("\n");
+
   const content = [
     "---",
-    `trace_id: "trace-001"`,
+    `trace_id: "test-trace"`,
     `created: "2026-01-01T00:00:00.000Z"`,
     `status: "${status}"`,
     `priority: "normal"`,
     `agent: "senior-coder"`,
     `source: ${RequestSource.CLI}`,
-    `created_by: "test-user"`,
+    `created_by: "tester"`,
     extras,
     "---",
-    "Fix something in the system",
+    "Fix something",
   ].join("\n");
+
   Deno.writeTextFileSync(filePath, content);
   return filePath;
+}
+
+async function setupProcessorTestEnv(
+  config: any,
+  tempDir: string,
+): Promise<{
+  workspacePath: string;
+  requestsDir: string;
+  blueprintsPath: string;
+  processorConfig: { workspacePath: string; requestsDir: string; blueprintsPath: string; includeReasoning: boolean };
+}> {
+  const workspacePath = join(tempDir, config.paths.workspace);
+  const requestsDir = join(workspacePath, config.paths.requests);
+  const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
+  await Deno.mkdir(requestsDir, { recursive: true });
+  await Deno.mkdir(blueprintsPath, { recursive: true });
+  const processorConfig = { workspacePath, requestsDir, blueprintsPath, includeReasoning: false };
+  return { workspacePath, requestsDir, blueprintsPath, processorConfig };
+}
+
+function writeTestRequestFile(
+  filePath: string,
+  options: { trace_id: string; status: string; body?: string; priority?: string; agent?: string },
+): void {
+  const { trace_id, status, body = "Fix something", priority = "normal", agent = "senior-coder" } = options;
+  Deno.writeTextFileSync(
+    filePath,
+    [
+      "---",
+      `trace_id: "${trace_id}"`,
+      `created: "2026-01-01T00:00:00.000Z"`,
+      `status: "${status}"`,
+      `priority: "${priority}"`,
+      `agent: "${agent}"`,
+      `source: ${RequestSource.CLI}`,
+      `created_by: "tester"`,
+      "---",
+      body,
+    ].join("\n"),
+  );
 }
 
 function makeSession(requestId: string, status = ClarificationSessionStatus.AGENT_SATISFIED): IClarificationSession {
@@ -220,29 +262,13 @@ Deno.test(
   async () => {
     const { db, config, tempDir, cleanup } = await initTestDbService();
     try {
-      const workspacePath = join(tempDir, config.paths.workspace);
-      const requestsDir = join(workspacePath, config.paths.requests);
-      const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
-      await Deno.mkdir(requestsDir, { recursive: true });
-      await Deno.mkdir(blueprintsPath, { recursive: true });
-      const processorConfig = { workspacePath, requestsDir, blueprintsPath, includeReasoning: false };
-
+      const { requestsDir, processorConfig } = await setupProcessorTestEnv(config, tempDir);
       const filePath = join(requestsDir, "skip-nc.md");
-      Deno.writeTextFileSync(
-        filePath,
-        [
-          "---",
-          `trace_id: "trace-skip-nc"`,
-          `created: "2026-01-01T00:00:00.000Z"`,
-          `status: "${RequestStatus.NEEDS_CLARIFICATION}"`,
-          `priority: "normal"`,
-          `agent: "senior-coder"`,
-          `source: ${RequestSource.CLI}`,
-          `created_by: "tester"`,
-          "---",
-          "Fix something",
-        ].join("\n"),
-      );
+      writeTestRequestFile(filePath, {
+        trace_id: "trace-skip-nc",
+        status: RequestStatus.NEEDS_CLARIFICATION,
+        body: "Fix something",
+      });
 
       const neverCalledGate = makeNeverCalledGate();
       const processor = await buildMinimalProcessor(db, config, processorConfig, neverCalledGate);
@@ -265,29 +291,13 @@ Deno.test(
   async () => {
     const { db, config, tempDir, cleanup } = await initTestDbService();
     try {
-      const workspacePath = join(tempDir, config.paths.workspace);
-      const requestsDir = join(workspacePath, config.paths.requests);
-      const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
-      await Deno.mkdir(requestsDir, { recursive: true });
-      await Deno.mkdir(blueprintsPath, { recursive: true });
-      const processorConfig = { workspacePath, requestsDir, blueprintsPath, includeReasoning: false };
-
+      const { requestsDir, processorConfig } = await setupProcessorTestEnv(config, tempDir);
       const filePath = join(requestsDir, "skip-ref.md");
-      Deno.writeTextFileSync(
-        filePath,
-        [
-          "---",
-          `trace_id: "trace-skip-ref"`,
-          `created: "2026-01-01T00:00:00.000Z"`,
-          `status: "${RequestStatus.REFINING}"`,
-          `priority: "normal"`,
-          `agent: "senior-coder"`,
-          `source: ${RequestSource.CLI}`,
-          `created_by: "tester"`,
-          "---",
-          "Fix something",
-        ].join("\n"),
-      );
+      writeTestRequestFile(filePath, {
+        trace_id: "trace-skip-ref",
+        status: RequestStatus.REFINING,
+        body: "Fix something",
+      });
 
       const neverCalledGate = makeNeverCalledGate();
       const processor = await buildMinimalProcessor(db, config, processorConfig, neverCalledGate);

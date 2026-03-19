@@ -9,7 +9,7 @@
 
 import { join } from "@std/path";
 import { ConfigService } from "../config/service.ts";
-import { GitService, IGitService } from "../services/git_service.ts";
+import { GitService } from "../services/git_service.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
 import { FlowLoader } from "../flows/flow_loader.ts";
@@ -18,6 +18,7 @@ import type { Config } from "../shared/schemas/config.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 import type { ICliApplicationContext } from "./cli_context.ts";
+import { createGitServiceStub, createProviderStub } from "../shared/helpers/stub_factories.ts";
 
 // Concrete services for adapters
 import { MemoryBankService } from "../services/memory_bank.ts";
@@ -69,34 +70,6 @@ function createDatabaseStub(): IDatabaseService {
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
-  };
-}
-
-// Helper to create IGitService-compatible stub
-function createGitServiceStub(): IGitService {
-  return {
-    setRepository: () => {},
-    getRepository: () => "",
-    ensureRepository: () => Promise.resolve(),
-    ensureIdentity: () => Promise.resolve(),
-    createBranch: () => Promise.resolve(""),
-    commit: () => Promise.resolve(""),
-    checkoutBranch: () => Promise.resolve(),
-    getCurrentBranch: () => Promise.resolve(""),
-    getDefaultBranch: () => Promise.resolve("main"),
-    addWorktree: () => Promise.resolve(),
-    removeWorktree: () => Promise.resolve(),
-    pruneWorktrees: () => Promise.resolve(""),
-    listWorktrees: () => Promise.resolve([]),
-    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
-  };
-}
-
-// Helper to create IModelProvider-compatible stub
-function createProviderStub(): IModelProvider {
-  return {
-    id: "stub-provider",
-    generate: () => Promise.resolve(""),
   };
 }
 

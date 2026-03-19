@@ -39,6 +39,37 @@ function createStep(id: string, overrides: Partial<IScenarioStep> = {}): IScenar
   };
 }
 
+function createStepExecutor(
+  executedStepIds: string[],
+  options: { exitCode?: (stepId: string) => number; stderr?: (stepId: string) => string } = {},
+): (opts: { step: IScenarioStep }) => Promise<{
+  stepId: string;
+  stepType: string;
+  startedAt: string;
+  completedAt: string;
+  durationMs: number;
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  combinedOutput: string;
+}> {
+  const { exitCode = () => 0, stderr = () => "" } = options;
+  return ({ step }) => {
+    executedStepIds.push(step.id);
+    return Promise.resolve({
+      stepId: step.id,
+      stepType: step.type,
+      startedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+      durationMs: 0,
+      exitCode: exitCode(step.id),
+      stdout: step.id,
+      stderr: stderr(step.id),
+      combinedOutput: step.id,
+    });
+  };
+}
+
 Deno.test("[ScenarioFrameworkExecutionModes] runner state persists and resumes correctly from the expected next step after interruption", async () => {
   const stateDir = await Deno.makeTempDir({ prefix: "scenario-framework-state-" });
 
@@ -73,20 +104,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] step mode executes exactly one step
     scenarioId: "step-mode",
     steps,
     mode: ScenarioExecutionMode.STEP,
-    executeStep: ({ step }) => {
-      executedStepIds.push(step.id);
-      return Promise.resolve({
-        stepId: step.id,
-        stepType: step.type,
-        startedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        durationMs: 0,
-        exitCode: 0,
-        stdout: step.id,
-        stderr: "",
-        combinedOutput: step.id,
-      });
-    },
+    executeStep: createStepExecutor(executedStepIds),
   });
 
   assertEquals(["step-1"], executedStepIds);
@@ -106,20 +124,7 @@ Deno.test("[ScenarioFrameworkExecutionModes] manual-checkpoint mode pauses only 
     scenarioId: "manual-checkpoint",
     steps,
     mode: ScenarioExecutionMode.MANUAL_CHECKPOINT,
-    executeStep: ({ step }) => {
-      executedStepIds.push(step.id);
-      return Promise.resolve({
-        stepId: step.id,
-        stepType: step.type,
-        startedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        durationMs: 0,
-        exitCode: 0,
-        stdout: step.id,
-        stderr: "",
-        combinedOutput: step.id,
-      });
-    },
+    executeStep: createStepExecutor(executedStepIds),
   });
 
   assertEquals(["step-1", "step-2"], executedStepIds);
@@ -137,20 +142,10 @@ Deno.test("[ScenarioFrameworkExecutionModes] auto mode halts the scenario on the
     scenarioId: "auto-mode",
     steps,
     mode: ScenarioExecutionMode.AUTO,
-    executeStep: ({ step }) => {
-      executedStepIds.push(step.id);
-      return Promise.resolve({
-        stepId: step.id,
-        stepType: step.type,
-        startedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-        durationMs: 0,
-        exitCode: step.id === "step-2" ? 1 : 0,
-        stdout: step.id,
-        stderr: step.id === "step-2" ? "failed" : "",
-        combinedOutput: step.id,
-      });
-    },
+    executeStep: createStepExecutor(executedStepIds, {
+      exitCode: (stepId) => (stepId === "step-2" ? 1 : 0),
+      stderr: (stepId) => (stepId === "step-2" ? "failed" : ""),
+    }),
   });
 
   assertEquals(executedStepIds, ["step-1", "step-2"]);

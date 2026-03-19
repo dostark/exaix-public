@@ -17,6 +17,7 @@ import type { PortalExecutionStrategy } from "../src/shared/enums.ts";
 import { JSONObject, type JSONValue, type LogMetadata } from "../src/shared/types/json.ts";
 import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { LogLevel } from "../src/shared/enums.ts";
+import { createGitServiceStub } from "../src/shared/helpers/stub_factories.ts";
 
 /**
  * Create a fully-typed stub implementation of the DatabaseService used in tests.
@@ -142,24 +143,17 @@ export function createStubProvider(): IModelProvider {
 
 /**
  * Create a stub IGitService for tests.
+ * Returns an object matching `IGitService` with no-op implementations.
+ * @deprecated Use createGitServiceStub from src/shared/helpers/stub_factories.ts instead
  */
-export function createStubGit(): IGitService {
-  return {
-    setRepository: () => {},
+export function createStubGit(overrides: Partial<IGitService> = {}): IGitService {
+  // Backwards compatibility: provide legacy defaults for existing tests
+  const defaults: Partial<IGitService> = {
     getRepository: () => "/mock/repo",
-    ensureRepository: () => Promise.resolve(),
-    ensureIdentity: () => Promise.resolve(),
     createBranch: () => Promise.resolve("feature/test"),
     commit: () => Promise.resolve("abcdef"),
-    checkoutBranch: () => Promise.resolve(),
-    getCurrentBranch: () => Promise.resolve("main"),
-    getDefaultBranch: () => Promise.resolve("main"),
-    addWorktree: () => Promise.resolve(),
-    removeWorktree: () => Promise.resolve(),
-    pruneWorktrees: () => Promise.resolve(""),
-    listWorktrees: () => Promise.resolve([]),
-    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
   };
+  return createGitServiceStub({ ...defaults, ...overrides });
 }
 
 /**

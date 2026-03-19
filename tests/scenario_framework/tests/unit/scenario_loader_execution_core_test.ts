@@ -44,20 +44,34 @@ function createValidScenarioYaml(requestFixturePath: string): string {
   ].join("\n");
 }
 
-Deno.test("[ScenarioFrameworkExecutionCore] scenario loader returns ordered validated steps for a valid scenario document", async () => {
+async function withTempFrameworkHome(
+  fn: (frameworkHome: string) => Promise<void>,
+): Promise<void> {
   const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
-
   try {
+    await fn(frameworkHome);
+  } finally {
+    await Deno.remove(frameworkHome, { recursive: true });
+  }
+}
+
+async function setupFixtureFiles(
+  frameworkHome: string,
+  fixturePath: string,
+  fixtureContent: string,
+): Promise<void> {
+  const fullPath = join(frameworkHome, fixturePath);
+  await Deno.mkdir(join(frameworkHome, ...fixturePath.split("/").slice(0, -1)), { recursive: true });
+  await Deno.writeTextFile(fullPath, fixtureContent);
+}
+
+Deno.test("[ScenarioFrameworkExecutionCore] scenario loader returns ordered validated steps for a valid scenario document", async () => {
+  await withTempFrameworkHome(async (frameworkHome) => {
     const fixtureRelativePath = "fixtures/requests/shared/request.md";
     const scenarioRelativePath = "scenarios/smoke/loader.yaml";
 
-    await Deno.mkdir(join(frameworkHome, "fixtures/requests/shared"), { recursive: true });
-    await Deno.mkdir(join(frameworkHome, "scenarios/smoke"), { recursive: true });
-    await Deno.writeTextFile(join(frameworkHome, fixtureRelativePath), "# Request\n\nLoad me.\n");
-    await Deno.writeTextFile(
-      join(frameworkHome, scenarioRelativePath),
-      createValidScenarioYaml(fixtureRelativePath),
-    );
+    await setupFixtureFiles(frameworkHome, fixtureRelativePath, "# Request\n\nLoad me.\n");
+    await setupFixtureFiles(frameworkHome, scenarioRelativePath, createValidScenarioYaml(fixtureRelativePath));
 
     const loadedScenario = await loadScenarioFromYamlFile({
       frameworkHome,
@@ -67,23 +81,18 @@ Deno.test("[ScenarioFrameworkExecutionCore] scenario loader returns ordered vali
     assertEquals(loadedScenario.scenario.id, "step3-loader");
     assertEquals(loadedScenario.steps.map((step) => step.id), ["first-step", "second-step"]);
     assertStringIncludes(loadedScenario.requestFixture.content, "Load me");
-  } finally {
-    await Deno.remove(frameworkHome, { recursive: true });
-  }
+  });
 });
 
 Deno.test("[ScenarioFrameworkExecutionCore] scenario loader rejects documents that violate schema contracts with a descriptive error", async () => {
-  const frameworkHome = await Deno.makeTempDir({ prefix: "scenario-framework-" });
-
-  try {
+  await withTempFrameworkHome(async (frameworkHome) => {
     const fixtureRelativePath = "fixtures/requests/shared/request.md";
     const scenarioRelativePath = "scenarios/smoke/invalid.yaml";
 
-    await Deno.mkdir(join(frameworkHome, "fixtures/requests/shared"), { recursive: true });
-    await Deno.mkdir(join(frameworkHome, "scenarios/smoke"), { recursive: true });
-    await Deno.writeTextFile(join(frameworkHome, fixtureRelativePath), "# Request\n\nLoad me.\n");
-    await Deno.writeTextFile(
-      join(frameworkHome, scenarioRelativePath),
+    await setupFixtureFiles(frameworkHome, fixtureRelativePath, "# Request\n\nLoad me.\n");
+    await setupFixtureFiles(
+      frameworkHome,
+      scenarioRelativePath,
       [
         `schema_version: "${SCHEMA_VERSION}"`,
         'id: "invalid-scenario"',
@@ -107,9 +116,7 @@ Deno.test("[ScenarioFrameworkExecutionCore] scenario loader rejects documents th
       Error,
       "title",
     );
-  } finally {
-    await Deno.remove(frameworkHome, { recursive: true });
-  }
+  });
 });
 
 Deno.test("[ScenarioFrameworkExecutionCore] shell step executor captures stdout and stderr independently", async () => {

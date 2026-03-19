@@ -36,6 +36,25 @@ const validAnalysisJson = JSON.stringify({
 });
 
 // ---------------------------------------------------------------------------
+// Test Helpers
+// ---------------------------------------------------------------------------
+
+function createCapturingProvider(responseJson: string): { provider: any; capturedPrompt: () => string } {
+  let capturedPrompt = "";
+  return {
+    capturedPrompt: () => capturedPrompt,
+    provider: {
+      id: "capturing",
+      generate: async (prompt: string) => {
+        capturedPrompt = prompt;
+        await Promise.resolve();
+        return responseJson;
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -92,39 +111,23 @@ Deno.test("[LlmAnalyzer] handles LLM returning partial fields", async () => {
 });
 
 Deno.test("[LlmAnalyzer] passes request text in prompt to provider", async () => {
-  let capturedPrompt = "";
-  const capturingProvider = {
-    id: "capturing",
-    generate: async (prompt: string) => {
-      capturedPrompt = prompt;
-      await Promise.resolve();
-      return validAnalysisJson;
-    },
-  };
+  const { provider, capturedPrompt } = createCapturingProvider(validAnalysisJson);
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(capturingProvider, validator);
+  const analyzer = new LlmAnalyzer(provider, validator);
 
   await analyzer.analyze("Implement the new cache layer in CacheService.");
 
-  assertStringIncludes(capturedPrompt, "Implement the new cache layer in CacheService.");
+  assertStringIncludes(capturedPrompt(), "Implement the new cache layer in CacheService.");
 });
 
 Deno.test("[LlmAnalyzer] passes optional context in prompt when provided", async () => {
-  let capturedPrompt = "";
-  const capturingProvider = {
-    id: "capturing",
-    generate: async (prompt: string) => {
-      capturedPrompt = prompt;
-      await Promise.resolve();
-      return validAnalysisJson;
-    },
-  };
+  const { provider, capturedPrompt } = createCapturingProvider(validAnalysisJson);
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(capturingProvider, validator);
+  const analyzer = new LlmAnalyzer(provider, validator);
 
   await analyzer.analyze("Fix the bug.", { agentId: "coder-agent", priority: "high" });
 
-  assertStringIncludes(capturedPrompt, "coder-agent");
+  assertStringIncludes(capturedPrompt(), "coder-agent");
 });
 
 Deno.test("[LlmAnalyzer] uses OutputValidator for schema validation", async () => {

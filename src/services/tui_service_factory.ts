@@ -28,6 +28,8 @@ import { DisplayAdapter } from "./adapters/display_adapter.ts";
 import { ContextCardGenerator } from "./context_card_generator.ts";
 import { PortalService } from "./portal.ts";
 
+import { createGitServiceStub } from "../shared/helpers/stub_factories.ts";
+
 import { MemoryBankService } from "./memory_bank.ts";
 import { MemoryExtractorService } from "./memory_extractor.ts";
 import { SkillsService } from "./skills.ts";
@@ -47,7 +49,6 @@ import type { IJournalService } from "../shared/interfaces/i_journal_service.ts"
 import type { Config } from "../shared/schemas/config.ts";
 import type { IConfigService, IPortalConfigEntry } from "../shared/interfaces/i_config_service.ts";
 import type { ICliApplicationContext } from "../cli/cli_context.ts";
-import type { IGitService } from "../shared/interfaces/i_git_service.ts";
 import type { IModelProvider } from "../ai/types.ts";
 
 /**
@@ -117,22 +118,10 @@ export function createTuiServices(
     generate: () => Promise.resolve(""),
   };
 
-  const gitStub: IGitService = {
-    setRepository: () => {},
+  const gitStub = createGitServiceStub({
     getRepository: () => config.system.root,
-    ensureRepository: () => Promise.resolve(),
-    ensureIdentity: () => Promise.resolve(),
-    createBranch: () => Promise.resolve(""),
-    commit: () => Promise.resolve(""),
-    checkoutBranch: () => Promise.resolve(),
-    getCurrentBranch: () => Promise.resolve("main"),
     getDefaultBranch: () => Promise.resolve("main"),
-    addWorktree: () => Promise.resolve(),
-    removeWorktree: () => Promise.resolve(),
-    pruneWorktrees: () => Promise.resolve(""),
-    listWorktrees: () => Promise.resolve([]),
-    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
-  };
+  });
 
   const displayAdapter = new DisplayAdapter(new EventLogger({ prefix: "[TUI]" }));
 

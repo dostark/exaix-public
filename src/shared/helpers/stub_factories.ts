@@ -1,0 +1,48 @@
+/**
+ * @module StubFactories
+ * @path src/cli/helpers/stub_factories.ts
+ * @description Shared factory functions for creating stub implementations of
+ * core services used in CLI initialization and testing.
+ * @architectural-layer CLI
+ * @dependencies [i_git_service, i_model_provider]
+ * @related-files [src/cli/init.ts, src/services/tui_service_factory.ts, tests/test_helpers.ts]
+ */
+
+import type { IGitService } from "../../shared/interfaces/i_git_service.ts";
+import type { IModelProvider } from "../../ai/types.ts";
+
+/**
+ * Create a stub IGitService with no-op implementations.
+ * Useful for CLI initialization and testing.
+ */
+export function createGitServiceStub(overrides: Partial<IGitService> = {}): IGitService {
+  const base: IGitService = {
+    setRepository: () => {},
+    getRepository: () => "",
+    ensureRepository: () => Promise.resolve(),
+    ensureIdentity: () => Promise.resolve(),
+    createBranch: () => Promise.resolve(""),
+    commit: () => Promise.resolve(""),
+    checkoutBranch: () => Promise.resolve(),
+    getCurrentBranch: () => Promise.resolve("main"),
+    getDefaultBranch: () => Promise.resolve("main"),
+    addWorktree: () => Promise.resolve(),
+    removeWorktree: () => Promise.resolve(),
+    pruneWorktrees: () => Promise.resolve(""),
+    listWorktrees: () => Promise.resolve([]),
+    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
+  };
+  return { ...base, ...overrides };
+}
+
+/**
+ * Create a stub IModelProvider with minimal implementation.
+ * Useful for CLI initialization and testing.
+ */
+export function createProviderStub(overrides: Partial<IModelProvider> = {}): IModelProvider {
+  const base: IModelProvider = {
+    id: "stub-provider",
+    generate: () => Promise.resolve(""),
+  };
+  return { ...base, ...overrides };
+}
