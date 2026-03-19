@@ -116,7 +116,8 @@ Deno.test("git branches prints list (calls gitCommands.listBranches)", async () 
 
 Deno.test("daemon status prints info (calls daemonCommands.status)", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.daemonCommands.status = () => Promise.resolve({ version: "v1", running: true, pid: 999, uptime: "1m" });
+    ctx.daemonCommands.status = () =>
+      Promise.resolve({ version: "v1", workspace_schema_version: "1.0.0", running: true, pid: 999, uptime: "1m" });
     const out = await captureConsoleOutput(async () => {
       await mod.__test_command.parse(["daemon", "status"]);
     });

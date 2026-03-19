@@ -10,7 +10,7 @@
  */
 
 /** SemVer of the exoctl binary and ExoFrame daemon. */
-export const BINARY_VERSION = "1.0.0";
+export const BINARY_VERSION = "1.0.1";
 
 /**
  * SemVer of the deployed workspace structure (config schema, SQLite tables, folder layout).
