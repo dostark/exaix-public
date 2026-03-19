@@ -9,7 +9,7 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { assessHeuristic } from "../../../src/services/quality_gate/heuristic_assessor.ts";
-import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
+import { ANALYZER_VERSION } from "../../../src/shared/constants.ts";
 import {
   RequestQualityIssueType,
   RequestQualityRecommendation,

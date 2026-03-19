@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Migration_Planning.Flow
  * @path Blueprints/Flows/migration_planning.flow.ts
@@ -6,6 +5,8 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 /**
  * Migration Planning Flow
@@ -21,7 +22,7 @@ export default defineFlow({
   id: "migration-planning",
   name: "Migration Planning Flow",
   description: "Plan code migrations with impact analysis, risk assessment, and step-by-step execution plan",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["typescript-patterns", "code-review"],
   steps: [
     {

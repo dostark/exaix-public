@@ -26,12 +26,12 @@ import { PlanValidationError } from "./plan_adapter.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
 import {
-  ANALYZER_VERSION,
   COMPLEXITY_BODY_LENGTH_LOW,
   COMPLEXITY_BULLET_THRESHOLD_HIGH,
   COMPLEXITY_FILE_REF_PATTERN,
   COMPLEXITY_FILE_REF_THRESHOLD_HIGH,
   DEFAULT_ANALYZER_MODE,
+  DEFAULT_MCP_VERSION,
   MEMORY_CONTEXT_KEY,
   PORTAL_CONTEXT_KEY,
   PORTAL_KNOWLEDGE_KEY,
@@ -119,7 +119,7 @@ export class RequestProcessor {
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
-    const healthChecker = new HealthCheckService(ANALYZER_VERSION, config);
+    const healthChecker = new HealthCheckService(DEFAULT_MCP_VERSION, config);
     this.providerSelector = new ProviderSelector(
       ProviderRegistry,
       this.costTracker,

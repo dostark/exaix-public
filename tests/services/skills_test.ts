@@ -18,6 +18,7 @@ import { exists } from "@std/fs";
 import { SkillsService } from "../../src/services/skills.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { getMemorySkillsDir } from "../helpers/paths_helper.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../src/shared/constants.ts";
 
 type TestDbContext = Awaited<ReturnType<typeof initTestDbService>>;
 

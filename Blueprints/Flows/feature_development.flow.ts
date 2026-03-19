@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Feature_Development.Flow
  * @path Blueprints/Flows/feature_development.flow.ts
@@ -6,12 +5,14 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 export default defineFlow({
   id: "feature-development",
   name: "Feature Development Flow",
   description: "End-to-end feature development from requirements to implementation",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["typescript-patterns"],
   steps: [
     {

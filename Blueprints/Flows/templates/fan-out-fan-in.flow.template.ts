@@ -5,6 +5,7 @@
  */
 
 import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../src/shared/constants.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
 
 /**
@@ -25,7 +26,7 @@ export default defineFlow({
   id: "fan-out-fan-in-template",
   name: "Fan-Out/Fan-In Flow Template",
   description: "Template for parallel processing with result aggregation",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "distribute",

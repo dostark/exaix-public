@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module ResearchSynthesis.Flow
  * @path Blueprints/Flows/examples/analysis/research-synthesis.flow.ts
@@ -6,6 +5,8 @@ import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../../src/shared/constants.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
  * Research Synthesis Flow
@@ -22,7 +23,7 @@ export default defineFlow({
   id: "research-synthesis-flow",
   name: "Research Synthesis and Analysis",
   description: "Multi-source research synthesis with comprehensive analysis and recommendations",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "literature-review",

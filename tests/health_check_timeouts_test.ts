@@ -9,6 +9,7 @@ import { assertEquals } from "@std/assert";
 import { HealthCheckService, type IHealthCheck } from "../src/services/health_check_service.ts";
 import { HealthCheckVerdict, HealthStatus } from "../src/shared/enums.ts";
 import { createTestConfig } from "./ai/helpers/test_config.ts";
+import { DEFAULT_MCP_VERSION } from "../src/shared/constants.ts";
 
 class SlowCheck {
   name = "slow_check";
@@ -29,7 +30,7 @@ Deno.test("[health] slow check times out and is reported as FAIL", async () => {
     memory_critical_percent: 95,
   };
 
-  const svc = new HealthCheckService("test", config);
+  const svc = new HealthCheckService(DEFAULT_MCP_VERSION, config);
   svc.registerCheck(new SlowCheck() as Partial<IHealthCheck> as IHealthCheck);
 
   const report = await svc.checkHealth();

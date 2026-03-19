@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Code_Review.Flow
  * @path Blueprints/Flows/code_review.flow.ts
@@ -6,12 +5,14 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 export default defineFlow({
   id: "code-review",
   name: "Code Review Flow",
   description: "Automated code review workflow with multiple agents",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["code-review"],
   steps: [
     {

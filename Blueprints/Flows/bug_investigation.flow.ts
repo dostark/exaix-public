@@ -6,6 +6,7 @@
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
 
 /**
  * Bug Investigation Flow
@@ -21,7 +22,7 @@ export default defineFlow({
   id: "bug-investigation",
   name: "Bug Investigation Flow",
   description: "Systematic bug investigation from report to root cause analysis and fix proposal",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["error-handling", "code-review"],
   steps: [
     {

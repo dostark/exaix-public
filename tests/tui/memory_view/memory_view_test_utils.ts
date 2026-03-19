@@ -27,6 +27,7 @@ import {
 import { type IMemoryService } from "../../../src/tui/memory_view/types.ts";
 import { MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
 import { DialogBase } from "../../../src/tui/helpers/dialog_base.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../../src/shared/constants.ts";
 // ===== Interfaces =====
 
 export interface IMemoryViewServiceOptions {
@@ -190,7 +191,7 @@ export function createMockProjectMemory(portal: string): IProjectMemory {
 
 export function createMockGlobalMemory(): IGlobalMemory {
   return {
-    version: "1.0.0",
+    version: DEFAULT_GLOBAL_MEMORY_VERSION,
     updated_at: new Date().toISOString(),
     patterns: [
       {

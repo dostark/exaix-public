@@ -12,6 +12,7 @@ import { ConditionEvaluator, IConditionContext } from "../../src/flows/condition
 import { IFlow, IFlowStep } from "../../src/shared/schemas/flow.ts";
 import { IStepResult } from "../../src/flows/flow_runner.ts";
 import { JSONValue } from "../../src/shared/types/json.ts";
+import { DEFAULT_FLOW_VERSION } from "../../src/shared/constants.ts";
 
 const createContext = (
   results: Record<string, { success: boolean; content?: string; data?: JSONValue }> = {},

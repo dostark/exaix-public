@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Documentation.Flow
  * @path Blueprints/Flows/documentation.flow.ts
@@ -6,12 +5,14 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 export default defineFlow({
   id: "documentation",
   name: "Documentation Generation Flow",
   description: "Generate comprehensive documentation from code and requirements",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["documentation-driven"],
   steps: [
     {

@@ -37,6 +37,7 @@ import {
   wrapText,
 } from "../../src/tui/helpers/markdown_renderer.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../src/shared/constants.ts";
 
 // ===== Mock Service with Full Data =====
 

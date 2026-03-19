@@ -61,6 +61,7 @@ import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { type ITreeNode } from "../../src/tui/helpers/tree_view.ts";
 import { IPortalService } from "../../src/shared/interfaces/i_portal_service.ts";
 import { IJournalService } from "../../src/shared/interfaces/i_journal_service.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../src/shared/constants.ts";
 
 export interface IPortalInfoOverrides {
   alias?: string;

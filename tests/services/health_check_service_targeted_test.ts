@@ -8,9 +8,10 @@
 import { assertEquals } from "@std/assert";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { HealthCheckVerdict, HealthStatus } from "../../src/shared/enums.ts";
+import { DEFAULT_MCP_VERSION } from "../../src/shared/constants.ts";
 
 Deno.test("HealthCheckService.checkProvider: caches results", async () => {
-  const svc = new HealthCheckService("1.0.0");
+  const svc = new HealthCheckService(DEFAULT_MCP_VERSION);
   let calls = 0;
 
   svc.registerCheck({
@@ -31,7 +32,7 @@ Deno.test("HealthCheckService.checkProvider: caches results", async () => {
 });
 
 Deno.test("HealthCheckService.checkHealth: aggregates degraded/unhealthy", async () => {
-  const svc = new HealthCheckService("1.0.0");
+  const svc = new HealthCheckService(DEFAULT_MCP_VERSION);
 
   svc.registerCheck({
     name: "warn",

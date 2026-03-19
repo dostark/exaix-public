@@ -6,6 +6,7 @@
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
 
 /**
  * Onboarding Documentation Flow
@@ -22,7 +23,7 @@ export default defineFlow({
   id: "onboarding-docs",
   name: "Onboarding Documentation Flow",
   description: "Generate comprehensive onboarding documentation for a codebase",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["documentation-driven"],
   steps: [
     {

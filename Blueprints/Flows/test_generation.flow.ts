@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Test_Generation.Flow
  * @path Blueprints/Flows/test_generation.flow.ts
@@ -6,6 +5,8 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../src/shared/constants.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 /**
  * Test Suite Generation Flow
@@ -21,7 +22,7 @@ export default defineFlow({
   id: "test-generation",
   name: "Test Suite Generation Flow",
   description: "Generate comprehensive test suites including unit, integration, and edge case tests",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["tdd-methodology", "typescript-patterns"],
   steps: [
     {

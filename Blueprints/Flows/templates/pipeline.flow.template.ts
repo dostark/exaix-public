@@ -19,13 +19,14 @@
  */
 
 import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../src/shared/constants.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
 
 export default defineFlow({
   id: "pipeline-template",
   name: "Pipeline Flow Template",
   description: "Template for sequential pipeline workflows",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "initialize",

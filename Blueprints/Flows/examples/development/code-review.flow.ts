@@ -5,6 +5,7 @@
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../../src/shared/constants.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
@@ -24,7 +25,7 @@ export default defineFlow({
   id: "code-review-flow",
   name: "Comprehensive Code Review",
   description: "Multi-perspective code review with specialized analysis and synthesis",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "security-analysis",

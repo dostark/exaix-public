@@ -18,7 +18,8 @@ import {
   ScenarioCiProfile,
   ScenarioSelectionSource,
 } from "../../runner/config.ts";
-import { ScenarioSchema, SCHEMA_VERSION } from "../../schema/scenario_schema.ts";
+import { ScenarioSchema } from "../../schema/scenario_schema.ts";
+import { SCHEMA_VERSION } from "../../schema/version.ts";
 import { CriterionResultSchema, CriterionStatus } from "../../schema/step_schema.ts";
 
 Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () => {

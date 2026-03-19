@@ -5,6 +5,7 @@
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../../src/shared/constants.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
@@ -22,7 +23,7 @@ export default defineFlow({
   id: "feature-development-flow",
   name: "Feature Development Workflow",
   description: "End-to-end feature development with planning, implementation, testing, and documentation",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "requirements-analysis",

@@ -19,6 +19,7 @@ import type { IAgentExecutor, IFlowEventLogger, IFlowStepRequest } from "../../s
 import type { IAgentExecutionResult } from "../../src/services/agent_runner.ts";
 import type { DatabaseService } from "../../src/services/db.ts";
 import { JSONValue } from "../../src/shared/types/json.ts";
+import { DEFAULT_FLOW_VERSION } from "../../src/shared/constants.ts";
 
 describe("Example Flows - Step 7.9", {
   sanitizeResources: false,

@@ -22,13 +22,14 @@
  */
 
 import { defineFlow } from "../../../src/flows/define_flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../../src/shared/constants.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../../src/shared/enums.ts";
 
 export default defineFlow({
   id: "staged-template",
   name: "Staged Flow Template",
   description: "Template for multi-stage processing workflows",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [
     {
       id: "stage-1-planning",

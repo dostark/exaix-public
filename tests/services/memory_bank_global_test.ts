@@ -28,6 +28,7 @@ import {
 import { MemoryStatus } from "../../src/shared/status/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../src/shared/constants.ts";
 
 // ===== ILearning Schema Tests =====
 
@@ -132,7 +133,7 @@ Deno.test("LearningSchema: rejects invalid status", () => {
 
 Deno.test("GlobalMemorySchema: validates empty global memory", () => {
   const globalMem: IGlobalMemory = {
-    version: "1.0.0",
+    version: DEFAULT_GLOBAL_MEMORY_VERSION,
     updated_at: "2026-01-04T12:00:00Z",
     learnings: [],
     patterns: [],
@@ -151,7 +152,7 @@ Deno.test("GlobalMemorySchema: validates empty global memory", () => {
 
 Deno.test("GlobalMemorySchema: validates populated global memory", () => {
   const globalMem = {
-    version: "1.0.0",
+    version: DEFAULT_GLOBAL_MEMORY_VERSION,
     updated_at: "2026-01-04T12:00:00Z",
     learnings: [
       createSampleLearning({
@@ -238,7 +239,7 @@ Deno.test("MemoryBankService: getGlobalMemory returns initialized memory", async
 
     const globalMem = await service.getGlobalMemory();
     assertExists(globalMem);
-    assertEquals(globalMem.version, "1.0.0");
+    assertEquals(globalMem.version, DEFAULT_GLOBAL_MEMORY_VERSION);
     assertEquals(globalMem.learnings, []);
     assertEquals(globalMem.patterns, []);
     assertEquals(globalMem.anti_patterns, []);

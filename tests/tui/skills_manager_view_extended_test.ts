@@ -29,6 +29,7 @@ import {
   testSkillsSessionRender,
 } from "./helpers.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION } from "../../src/shared/constants.ts";
 
 // ===== Test Data =====
 

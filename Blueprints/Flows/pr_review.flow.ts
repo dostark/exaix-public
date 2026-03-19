@@ -6,6 +6,7 @@
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
+import { DEFAULT_FLOW_VERSION } from '../../src/shared/constants.ts';
 
 /**
  * PR Review Flow
@@ -21,7 +22,7 @@ export default defineFlow({
   id: "pr-review",
   name: "Pull Request Review Flow",
   description: "Comprehensive PR review covering code quality, security, performance, and documentation",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   defaultSkills: ["code-review"],
   steps: [
     {
