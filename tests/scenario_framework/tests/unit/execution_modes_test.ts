@@ -44,7 +44,7 @@ function createStepExecutor(
   options: { exitCode?: (stepId: string) => number; stderr?: (stepId: string) => string } = {},
 ): (opts: { step: IScenarioStep }) => Promise<{
   stepId: string;
-  stepType: string;
+  stepType: ScenarioStepType;
   startedAt: string;
   completedAt: string;
   durationMs: number;

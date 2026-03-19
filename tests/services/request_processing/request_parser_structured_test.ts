@@ -71,11 +71,15 @@ async function parseRequestWithFields(
   const logs: LogEntry[] = [];
   const parser = new RequestParser(createLogger(logs));
   const content = buildRequestContent(extraFields);
-  return await withTempFile(content, async (path) => {
-    const result = await parser.parse(path);
+  const tmpPath = await Deno.makeTempFile({ suffix: ".md" });
+  try {
+    await Deno.writeTextFile(tmpPath, content);
+    const result = await parser.parse(tmpPath);
     assertExists(result);
     return { frontmatter: result.frontmatter, logs };
-  });
+  } finally {
+    await Deno.remove(tmpPath);
+  }
 }
 
 // ---------------------------------------------------------------------------
