@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Pr_Review.Flow
  * @path Blueprints/Flows/pr_review.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 /**
  * PR Review Flow

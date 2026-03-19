@@ -15,6 +15,7 @@ import { exists } from "@std/fs";
 import type { IDatabaseService } from "./db.ts";
 import { MemoryBankSource, MemoryScope, SkillStatus } from "../shared/enums.ts";
 import { extractKeywords } from "../helpers/text.ts";
+import { DEFAULT_SKILL_INDEX_VERSION } from "../shared/constants.ts";
 import {
   type ISkill,
   type ISkillIndex,
@@ -558,7 +559,7 @@ export class SkillsService implements ISkillsService {
     }
 
     return {
-      version: "1.0.0",
+      version: DEFAULT_SKILL_INDEX_VERSION,
       updated_at: new Date().toISOString(),
       skills,
     };

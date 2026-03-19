@@ -16,4 +16,4 @@ export const BINARY_VERSION = "1.0.1";
  * SemVer of the deployed workspace structure (config schema, SQLite tables, folder layout).
  * A MINOR or MAJOR bump means workspace migration is required before this binary runs.
  */
-export const WORKSPACE_SCHEMA_VERSION = "1.3.0";
+export const WORKSPACE_SCHEMA_VERSION = "1.5.0";

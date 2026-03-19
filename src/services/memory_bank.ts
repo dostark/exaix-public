@@ -18,7 +18,7 @@ import type { IDatabaseService } from "./db.ts";
 import { JSONValue } from "../shared/types/json.ts";
 import { ActivityType, MemoryBankSource, MemoryReferenceType, MemoryScope, MemoryType } from "../shared/enums.ts";
 import { MemoryStatus } from "../shared/status/memory_status.ts";
-import { LOCK_ACQUIRE_TIMEOUT_MS } from "../shared/constants.ts";
+import { DEFAULT_GLOBAL_MEMORY_VERSION, LOCK_ACQUIRE_TIMEOUT_MS } from "../shared/constants.ts";
 import {
   ExecutionMemorySchema,
   GlobalMemorySchema,
@@ -506,7 +506,7 @@ export class MemoryBankService implements IMemoryBankService {
 
     const now = new Date().toISOString();
     const emptyGlobal: IGlobalMemory = {
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       updated_at: now,
       learnings: [],
       patterns: [],

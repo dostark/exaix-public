@@ -10,6 +10,7 @@
 import { z } from "zod";
 import { FlowConsensusMethod, FlowGateOnFail, FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
 import { JSONValueSchema } from "../types/json.ts";
+import { DEFAULT_FLOW_VERSION } from "../constants.ts";
 
 // Gate evaluation configuration schema
 export const GateEvaluateSchema = z.object({
@@ -99,7 +100,7 @@ export const FlowSchema = z.object({
   id: z.string().min(1, "Flow ID cannot be empty"),
   name: z.string().min(1, "Flow name cannot be empty"),
   description: z.string().min(1, "Flow description cannot be empty"),
-  version: z.string().default("1.0.0"),
+  version: z.string().default(DEFAULT_FLOW_VERSION),
   steps: z.array(FlowStepSchema).min(1, "Flow must have at least one step"),
   output: z.object({
     from: z.union([z.string(), z.array(z.string())]),

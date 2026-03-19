@@ -14,6 +14,7 @@ import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
 import { DataFormat } from "../shared/enums.ts";
 import { JSONValue } from "../shared/types/json.ts";
+import { DEFAULT_BLUEPRINT_VERSION } from "../shared/constants.ts";
 
 /**
  * Fully loaded and validated blueprint
@@ -89,7 +90,7 @@ export const RuntimeBlueprintFrontmatterSchema = z.object({
   capabilities: z.array(z.string()).default([]),
 
   /** Semantic version */
-  version: z.string().default("1.0.0"),
+  version: z.string().default(DEFAULT_BLUEPRINT_VERSION),
 
   /** Description */
   description: z.string().optional(),

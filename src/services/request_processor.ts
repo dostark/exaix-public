@@ -26,6 +26,7 @@ import { PlanValidationError } from "./plan_adapter.ts";
 import { RequestStatus } from "../shared/status/request_status.ts";
 import { PlanStatus } from "../shared/status/plan_status.ts";
 import {
+  ANALYZER_VERSION,
   COMPLEXITY_BODY_LENGTH_LOW,
   COMPLEXITY_BULLET_THRESHOLD_HIGH,
   COMPLEXITY_FILE_REF_PATTERN,
@@ -118,7 +119,7 @@ export class RequestProcessor {
   ) {
     // Initialize services
     this.costTracker = costTracker ?? new CostTracker(db, config);
-    const healthChecker = new HealthCheckService("1.0.0", config);
+    const healthChecker = new HealthCheckService(ANALYZER_VERSION, config);
     this.providerSelector = new ProviderSelector(
       ProviderRegistry,
       this.costTracker,

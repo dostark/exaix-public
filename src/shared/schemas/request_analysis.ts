@@ -12,6 +12,7 @@
  */
 
 import { z } from "zod";
+import { ANALYZER_VERSION } from "../constants.ts";
 
 // ============================================================================
 // Enums
@@ -143,7 +144,7 @@ export const RequestAnalysisMetadataSchema = z.object({
   /** Analysis strategy that produced this result. */
   mode: z.nativeEnum(AnalysisMode),
   /** Semantic version of the analyzer that produced this result. */
-  analyzerVersion: z.string().default("1.0.0"),
+  analyzerVersion: z.string().default(ANALYZER_VERSION),
 });
 
 export type IRequestAnalysisMetadata = z.infer<typeof RequestAnalysisMetadataSchema>;

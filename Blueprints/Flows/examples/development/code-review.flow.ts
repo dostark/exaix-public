@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module CodeReview.Flow
  * @path Blueprints/Flows/examples/development/code-review.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
  * Code Review Flow

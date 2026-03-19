@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module FeatureDevelopment.Flow
  * @path Blueprints/Flows/examples/development/feature-development.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
  * Feature Development Flow

@@ -107,6 +107,9 @@ export function createTuiServices(
       return config.portals || [];
     },
     getPortal: (alias: string) => (config.portals || []).find((p) => p.alias === alias),
+    getSchemaVersion(): string {
+      return "1.0.0"; // dummy schema version for TUI context
+    },
   };
 
   const providerStub: IModelProvider = {

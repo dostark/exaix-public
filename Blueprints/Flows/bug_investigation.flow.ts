@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 /**
  * @module Bug_Investigation.Flow
  * @path Blueprints/Flows/bug_investigation.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
  */
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 
 /**
  * Bug Investigation Flow

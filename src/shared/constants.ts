@@ -651,6 +651,18 @@ export const DEFAULT_ANALYZER_MODE = "hybrid";
 /** Semantic version of the request analyzer. Bump on breaking schema changes. */
 export const ANALYZER_VERSION = "1.0.0";
 
+/** Semantic version for blueprints. Bump on breaking schema changes. */
+export const DEFAULT_BLUEPRINT_VERSION = "1.0.0";
+
+/** Semantic version for skill indexes. Bump on breaking schema changes. */
+export const DEFAULT_SKILL_INDEX_VERSION = "1.0.0";
+
+/** Semantic version for flows. Bump on breaking schema changes. */
+export const DEFAULT_FLOW_VERSION = "1.0.0";
+
+/** Semantic version for global memory. Bump on breaking schema changes. */
+export const DEFAULT_GLOBAL_MEMORY_VERSION = "1.0.0";
+
 /** Baseline actionability score before bonuses/penalties are applied. */
 export const HEURISTIC_SCORE_BASELINE = 70;
 

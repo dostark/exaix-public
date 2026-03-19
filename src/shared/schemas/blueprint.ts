@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import { DEFAULT_BLUEPRINT_VERSION } from "../constants.ts";
 
 // ============================================================================
 // Blueprint Interfaces
@@ -87,7 +88,7 @@ export const BlueprintFrontmatterSchema = z.object({
   created_by: z.string(),
 
   /** Semantic version */
-  version: z.string().regex(/^\d+\.\d+\.\d+$/).default("1.0.0"),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/).default(DEFAULT_BLUEPRINT_VERSION),
 
   /** Optional description */
   description: z.string().optional(),

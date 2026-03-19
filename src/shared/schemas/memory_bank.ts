@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import { DEFAULT_SKILL_INDEX_VERSION } from "../constants.ts";
 import {
   ActivityType,
   ConfidenceLevel,
@@ -423,7 +424,7 @@ export const SkillIndexEntrySchema = z.object({
  * Skill index for the Memory/Skills/ directory
  */
 export const SkillIndexSchema = z.object({
-  version: z.string().default("1.0.0"),
+  version: z.string().default(DEFAULT_SKILL_INDEX_VERSION),
   updated_at: z.string().datetime(),
   skills: z.array(SkillIndexEntrySchema),
 });

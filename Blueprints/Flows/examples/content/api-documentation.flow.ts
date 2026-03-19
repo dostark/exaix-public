@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module ApiDocumentation.Flow
  * @path Blueprints/Flows/examples/content/api-documentation.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
  * API Documentation Flow

@@ -1,4 +1,3 @@
-import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 /**
  * @module SecurityAudit.Flow
  * @path Blueprints/Flows/examples/operations/security-audit.flow.ts
@@ -6,6 +5,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.
  */
 
 import { defineFlow } from "../../../../src/flows/define_flow.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../../../src/shared/enums.ts";
 
 /**
  * Security Audit Flow
