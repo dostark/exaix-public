@@ -15,7 +15,7 @@ steps:
     type: exoctl
     name: "Run request analysis"
     command: "request"
-    args: ["--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe"]
+    args: ["--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe", "--analyze", "--engine", "heuristic"]
     input_criteria: []
     output_criteria:
       - id: check-analysis-artifact
