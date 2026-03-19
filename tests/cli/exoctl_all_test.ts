@@ -8,6 +8,7 @@
 import "./helpers/set_test_mode.ts";
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
+import { BINARY_VERSION } from "../../src/shared/version.ts";
 import { ExoPathDefaults } from "../../src/shared/constants.ts";
 import {
   FlowInputSource,
@@ -748,7 +749,7 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
       (Deno as typeof Deno & { exit: (code?: number) => never }).exit = origExit;
       console.log = origLog;
     }
-    assertStringIncludes(out, "1.0.0");
+    assertStringIncludes(out, BINARY_VERSION);
   });
 });
 

@@ -353,20 +353,21 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion passes
   const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
 
   try {
+    const { BINARY_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
       criterion: {
         id: "binary-version-check",
         kind: CriterionKind.VERSION_EQUALS,
-        version: "1.0.0",
+        version: BINARY_VERSION,
         source: "binary",
       },
     });
 
     assertEquals(result.status, CriterionStatus.PASSED);
-    assertEquals(result.observed_value, "1.0.0");
-    assertEquals(result.expected_value, "1.0.0");
+    assertEquals(result.observed_value, BINARY_VERSION);
+    assertEquals(result.expected_value, BINARY_VERSION);
     assertStringIncludes(result.message, "Version matches");
   } finally {
     await Deno.remove(workspaceRoot, { recursive: true });
@@ -377,6 +378,7 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion fails 
   const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
 
   try {
+    const { BINARY_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
@@ -389,9 +391,9 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version-equals criterion fails 
     });
 
     assertEquals(result.status, CriterionStatus.FAILED);
-    assertEquals(result.observed_value, "1.0.0");
+    assertEquals(result.observed_value, BINARY_VERSION);
     assertEquals(result.expected_value, "9.9.9");
-    assertStringIncludes(result.message, "Expected version 9.9.9, got 1.0.0");
+    assertStringIncludes(result.message, `Expected version 9.9.9, got ${BINARY_VERSION}`);
   } finally {
     await Deno.remove(workspaceRoot, { recursive: true });
   }
@@ -489,19 +491,20 @@ Deno.test("[ScenarioFrameworkAssertionsEvidence] version criteria can check work
   const workspaceRoot = await Deno.makeTempDir({ prefix: "scenario-framework-version-" });
 
   try {
+    const { WORKSPACE_SCHEMA_VERSION } = await import("../../../../src/shared/version.ts");
     const result = await evaluateCriterion({
       workspaceRoot,
       phase: CriterionPhase.OUTPUT,
       criterion: {
         id: "workspace-version-check",
         kind: CriterionKind.VERSION_EQUALS,
-        version: "1.0.0",
+        version: WORKSPACE_SCHEMA_VERSION,
         source: "workspace",
       },
     });
 
     assertEquals(result.status, CriterionStatus.PASSED);
-    assertEquals(result.observed_value, "1.0.0");
+    assertEquals(result.observed_value, WORKSPACE_SCHEMA_VERSION);
   } finally {
     await Deno.remove(workspaceRoot, { recursive: true });
   }

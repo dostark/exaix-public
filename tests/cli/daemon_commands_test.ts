@@ -608,7 +608,7 @@ describe("DaemonCommands - Edge Cases", () => {
   it("status() should return not running when PID file missing", async () => {
     const status = await daemonCommands.status();
     assertEquals(status.running, false);
-    assertEquals(status.version, "1.0.0");
+    assertEquals(status.version, BINARY_VERSION);
   });
 
   it("status() should return not running when PID file contains invalid number", async () => {
@@ -891,14 +891,11 @@ describe("DaemonCommands - migrate() compatibility check (Step 6)", {
   });
 
   it("migrate({check:true}) returns 1 when binary minor > on-disk minor", () => {
-    // Binary declares 1.1.0, on-disk is 1.0.0
+    // Binary declares higher version, on-disk is lower
     const cmd = makeCommandsWithOnDiskSchema("1.0.0");
-    // Temporarily override WORKSPACE_SCHEMA_VERSION via patching is not feasible for a const;
-    // we verify the comparison logic is correct via actual comparisons
-    // As long as binary wsv >= ondisk wsv it returns 0; when ondisk is lower minor it returns 1
-    // We can test with ondisk lower than current:
-    const exitCode0 = cmd.migrate({ check: true }); // both 1.0.0 → 0
-    assertEquals(exitCode0, 0);
+    // When on-disk is lower than binary, it returns 1 (migration required)
+    const exitCode = cmd.migrate({ check: true });
+    assertEquals(exitCode, 1);
   });
 
   it("migrate({check:true}) returns 2 when on-disk minor > binary minor", () => {
