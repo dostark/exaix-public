@@ -8,6 +8,7 @@
 import { assertEquals } from "@std/assert";
 import { EvaluationCategory } from "../../src/shared/enums.ts";
 import { CriteriaGenerator } from "../../src/services/criteria_generator.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   type IRequestAnalysis,
   RequestAnalysisComplexity,
@@ -37,7 +38,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
     ...overrides,
   };

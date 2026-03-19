@@ -87,7 +87,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements IMemoryS
 
   override getGlobalMemory(): Promise<IGlobalMemory | null> {
     return Promise.resolve({
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       updated_at: new Date().toISOString(),
       patterns: [
         {

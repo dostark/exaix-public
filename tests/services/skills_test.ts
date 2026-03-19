@@ -55,7 +55,7 @@ Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
     const skill = await service.createSkill({
       skill_id: "test-skill",
       name: "Test Skill",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "A test skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -84,7 +84,7 @@ Deno.test("SkillsService: getSkill retrieves created skill", async () => {
     await service.createSkill({
       skill_id: "get-test-skill",
       name: "Get Test Skill",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Test get operation",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -115,7 +115,7 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
     await service.createSkill({
       skill_id: "list-skill-1",
       name: "List Skill 1",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "First skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -127,7 +127,7 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
     await service.createSkill({
       skill_id: "list-skill-2",
       name: "List Skill 2",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Second skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.DRAFT,
@@ -157,7 +157,7 @@ Deno.test("SkillsService: updateSkill modifies skill", async () => {
     await service.createSkill({
       skill_id: "update-test",
       name: "Update Test",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Before update",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.DRAFT,
@@ -185,7 +185,7 @@ Deno.test("SkillsService: activateSkill changes draft to active", async () => {
     await service.createSkill({
       skill_id: "activate-test",
       name: "Activate Test",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "To be activated",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.DRAFT,
@@ -207,7 +207,7 @@ Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () =>
     await service.createSkill({
       skill_id: "deprecate-test",
       name: "Deprecate Test",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "To be deprecated",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -231,7 +231,7 @@ Deno.test("SkillsService: matchSkills returns skills matching keywords", async (
     await service.createSkill({
       skill_id: "keyword-match",
       name: "Keyword Match",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Matches keywords",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -258,7 +258,7 @@ Deno.test("SkillsService: matchSkills returns skills matching task types", async
     await service.createSkill({
       skill_id: "tasktype-match",
       name: "Task Type Match",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Matches task types",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -284,7 +284,7 @@ Deno.test("SkillsService: matchSkills returns skills matching file patterns", as
     await service.createSkill({
       skill_id: "filepattern-match",
       name: "File IPattern Match",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Matches file patterns",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -310,7 +310,7 @@ Deno.test("SkillsService: matchSkills excludes non-active skills", async () => {
     await service.createSkill({
       skill_id: "draft-skill",
       name: "Draft Skill",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "A draft skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.DRAFT,
@@ -335,7 +335,7 @@ Deno.test("SkillsService: matchSkills extracts keywords from request text", asyn
     await service.createSkill({
       skill_id: "text-extract",
       name: "Text Extract",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Test keyword extraction",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -362,7 +362,7 @@ Deno.test("SkillsService: matchSkills respects maxSkillsPerRequest limit", async
       await service.createSkill({
         skill_id: `limit-test-${i}`,
         name: `Limit Test ${i}`,
-        version: "1.0.0",
+        version: DEFAULT_GLOBAL_MEMORY_VERSION,
         description: "Limit test",
         scope: MemoryScope.GLOBAL,
         status: SkillStatus.ACTIVE,
@@ -390,7 +390,7 @@ Deno.test("SkillsService: buildSkillContext generates markdown context", async (
     await service.createSkill({
       skill_id: "context-test",
       name: "Context Test Skill",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "For context building",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -424,7 +424,7 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
     await service.createSkill({
       skill_id: "multi-1",
       name: "Multi Skill 1",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "First skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -436,7 +436,7 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
     await service.createSkill({
       skill_id: "multi-2",
       name: "Multi Skill 2",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "Second skill",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,
@@ -463,7 +463,7 @@ Deno.test("SkillsService: deriveSkillFromLearnings creates skill with derived_fr
     const skill = await service.deriveSkillFromLearnings(learningIds, {
       skill_id: "derived-skill",
       name: "Derived Skill",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       source: MemoryBankSource.LEARNED,
       description: "Derived from learnings",
       scope: MemoryScope.GLOBAL,
@@ -486,7 +486,7 @@ Deno.test("SkillsService: rebuildIndex scans all skill directories", async () =>
     await service.createSkill({
       skill_id: "index-learned",
       name: "Learned Index Test",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       description: "In learned dir",
       scope: MemoryScope.GLOBAL,
       status: SkillStatus.ACTIVE,

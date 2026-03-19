@@ -91,7 +91,7 @@ describe("Example Flows - Step 7.9", {
         id: "code-review",
         name: "Automated Code Review",
         description: "Multi-stage code review with linting, security, and human feedback",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "lint",
@@ -152,7 +152,7 @@ describe("Example Flows - Step 7.9", {
         id: "feature-development",
         name: "Feature Development Workflow",
         description: "End-to-end feature development from requirements to documentation",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "analyze-requirements",
@@ -210,7 +210,7 @@ describe("Example Flows - Step 7.9", {
         id: "research-synthesis",
         name: "Research Synthesis Workflow",
         description: "Multi-perspective research with parallel analysis and synthesis",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "researcher-1",
@@ -264,7 +264,7 @@ describe("Example Flows - Step 7.9", {
         id: "api-documentation",
         name: "API Documentation Generator",
         description: "Automated API documentation generation from code",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "analyze-api",
@@ -310,7 +310,7 @@ describe("Example Flows - Step 7.9", {
         id: "security-audit",
         name: "Security Audit Workflow",
         description: "Comprehensive security assessment with multiple analysis types",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "static-analysis",

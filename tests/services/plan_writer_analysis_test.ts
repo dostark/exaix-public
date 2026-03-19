@@ -9,6 +9,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { type IAgentExecutionResult, type IRequestMetadata, PlanWriter } from "../../src/services/plan_writer.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
   type IRequestAnalysis,
@@ -33,7 +34,7 @@ function createMockAnalysis(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 42,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

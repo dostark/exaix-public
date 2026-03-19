@@ -9,6 +9,7 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { assessHeuristic } from "../../../src/services/quality_gate/heuristic_assessor.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   RequestQualityIssueType,
   RequestQualityRecommendation,
@@ -42,7 +43,7 @@ function makeAnalysis(overrides: Partial<IRequestAnalysis> = {}): IRequestAnalys
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
     ...overrides,
   };

@@ -90,7 +90,7 @@ Deno.test("SkillsManagerView: getCachedSkills returns copy of skills", async () 
     sampleSkill({
       id: "extra",
       name: "Extra",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.ACTIVE,
       source: MemoryBankSource.CORE,
     }),
@@ -472,7 +472,7 @@ Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)",
     sampleSkill({
       id: "long-instructions",
       name: "Long Instructions",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.ACTIVE,
       source: MemoryBankSource.PROJECT,
       description: "Skill with long instructions",

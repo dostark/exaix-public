@@ -11,6 +11,8 @@
 // This module contains constants used exclusively in test files.
 // For production constants, see src/config/constants.ts
 
+import { DEFAULT_BLUEPRINT_VERSION, DEFAULT_SKILL_INDEX_VERSION } from "../../src/shared/constants.ts";
+
 // Test Prompts
 export const REGRESSION_TEST_PROMPT = "Hello, reply with 'OK'";
 export const TEST_LOG_PREVIEW_LENGTH = 50;
@@ -80,7 +82,7 @@ export const TEST_SKILL_ID = "quality-skill";
 export const TEST_SKILL_NAME = "Quality Skill";
 export const TEST_SKILL_DESCRIPTION = "Improve code quality through refactoring.";
 export const TEST_SKILL_INSTRUCTIONS = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6";
-export const TEST_SKILL_VERSION = "1.0.0";
+export const TEST_SKILL_VERSION = DEFAULT_SKILL_INDEX_VERSION;
 export const TEST_SKILL_KEYWORD = "refactor";
 export const TEST_SKILL_TASK_TYPE = "code";
 export const TEST_SKILL_TAG = "quality";
@@ -130,7 +132,7 @@ export const TEST_BLUEPRINT_YAML_CAPABILITY_ONE = "alpha";
 export const TEST_BLUEPRINT_YAML_CAPABILITY_TWO = "beta";
 export const TEST_BLUEPRINT_YAML_CREATED = "2026-02-10T00:00:00Z";
 export const TEST_BLUEPRINT_YAML_CREATED_BY = "tester";
-export const TEST_BLUEPRINT_YAML_VERSION = "1.0.0";
+export const TEST_BLUEPRINT_YAML_VERSION = DEFAULT_BLUEPRINT_VERSION;
 export const TEST_BLUEPRINT_MISSING_AGENT_ID = "missing-agent";
 export const TEST_BLUEPRINT_NO_FRONTMATTER_ID = "no-frontmatter";
 export const TEST_BLUEPRINT_NO_FRONTMATTER_CONTENT = "No frontmatter content";

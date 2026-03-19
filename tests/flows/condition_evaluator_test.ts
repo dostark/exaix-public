@@ -35,7 +35,7 @@ const createContext = (
   flow: {
     id: "test-flow",
     name: "Test Flow",
-    version: "1.0.0",
+    version: DEFAULT_FLOW_VERSION,
   },
 });
 
@@ -64,7 +64,7 @@ const mockFlow: IFlow = {
   id: "test-flow",
   name: "Test Flow",
   description: "Test flow for conditions",
-  version: "1.0.0",
+  version: DEFAULT_FLOW_VERSION,
   steps: [],
   output: { from: "final", format: FlowOutputFormat.MARKDOWN },
   settings: { maxParallelism: 3, failFast: true, includeRequestCriteria: false },

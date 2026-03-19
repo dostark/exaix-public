@@ -8,6 +8,7 @@
 
 import { assertEquals } from "@std/assert";
 import { FlowGateOnFail, FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/shared/enums.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   FlowRunner,
   type IAgentExecutor,
@@ -96,7 +97,7 @@ function makeRawAnalysis(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

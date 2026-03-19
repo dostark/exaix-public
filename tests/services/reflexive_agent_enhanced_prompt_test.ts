@@ -9,6 +9,7 @@
  * @dependencies [src/services/reflexive_agent.ts, src/shared/constants.ts]
  * @related-files [.copilot/planning/phase-49-quality-pipeline-hardening.md]
  */
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import { assertEquals, assertExists } from "@std/assert";
 import { createReflexiveAgent, ReflexiveAgent as _ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
 import type { IRequestAnalysis } from "../../src/shared/schemas/request_analysis.ts";
@@ -75,7 +76,7 @@ function makeAnalysisWithNGoals(n: number): IRequestAnalysis {
       analyzedAt: "2025-01-01T00:00:00.000Z",
       durationMs: 50,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

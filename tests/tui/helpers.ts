@@ -851,7 +851,7 @@ export function sampleSkill(overrides: ISkillSummaryOverrides = {}): ISkillSumma
     status: SkillStatus.ACTIVE,
     skill_id: `skill-${Math.floor(Math.random() * 1e6)}`,
     name: "Test Skill",
-    version: "1.0.0",
+    version: DEFAULT_GLOBAL_MEMORY_VERSION,
     description: "Test skill description",
     triggers: {
       keywords: ["test"],
@@ -871,7 +871,7 @@ export function sampleTestSkills(): ISkillSummary[] {
     {
       id: "tdd-methodology",
       name: "TDD Methodology",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.ACTIVE,
       source: MemoryBankSource.CORE,
       description: "Test-Driven Development methodology",
@@ -885,7 +885,7 @@ export function sampleTestSkills(): ISkillSummary[] {
     {
       id: "security-first",
       name: "Security First",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.ACTIVE,
       source: MemoryBankSource.CORE,
       description: "Security-focused development",
@@ -896,14 +896,14 @@ export function sampleTestSkills(): ISkillSummary[] {
     {
       id: "project-conventions",
       name: "Project Conventions",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.ACTIVE,
       source: MemoryBankSource.PROJECT,
     },
     {
       id: "learned-pattern",
       name: "Learned Pattern",
-      version: "1.0.0",
+      version: DEFAULT_GLOBAL_MEMORY_VERSION,
       status: SkillStatus.DRAFT,
       source: MemoryBankSource.LEARNED,
     },

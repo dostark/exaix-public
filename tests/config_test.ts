@@ -12,12 +12,12 @@ import { LogLevel, ProviderCostTier } from "../src/shared/enums.ts";
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/shared/schemas/config.ts";
 import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { DEFAULT_MCP_VERSION, ExoPathDefaults } from "../src/shared/constants.ts";
 
 Deno.test("ConfigSchema accepts valid minimal config", () => {
   const validConfig = {
     system: {
-      version: "1.0.0",
+      version: DEFAULT_MCP_VERSION,
       log_level: "info",
     },
     paths: { ...ExoPathDefaults },
@@ -44,7 +44,7 @@ Deno.test("ConfigSchema rejects invalid log_level", () => {
 Deno.test("ConfigSchema applies defaults for missing agents section", () => {
   const configWithoutAgents = {
     system: {
-      version: "1.0.0",
+      version: DEFAULT_MCP_VERSION,
       log_level: "info",
     },
     paths: { ...ExoPathDefaults },
@@ -58,7 +58,7 @@ Deno.test("ConfigSchema applies defaults for missing agents section", () => {
 Deno.test("ConfigSchema applies defaults for missing watcher section", () => {
   const configWithoutWatcher = {
     system: {
-      version: "1.0.0",
+      version: DEFAULT_MCP_VERSION,
       log_level: "info",
     },
     paths: { ...ExoPathDefaults },
@@ -77,7 +77,7 @@ Deno.test("ConfigService computes checksum", async () => {
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",
-    version: "1.0.0",
+    version: DEFAULT_MCP_VERSION,
   });
 
   try {
@@ -106,7 +106,7 @@ Deno.test("ConfigService loads config successfully", async () => {
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",
-    version: "1.0.0",
+    version: DEFAULT_MCP_VERSION,
   });
 
   try {
@@ -141,7 +141,7 @@ Deno.test("ConfigService handles missing config file", async (t) => {
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",
-    version: "1.0.0",
+    version: DEFAULT_MCP_VERSION,
   });
 
   try {
@@ -665,7 +665,7 @@ runtime = "./Runtime"`,
 
 Deno.test("ConfigSchema accepts provider_strategy section", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: {
       workspace: "Workspace",
       runtime: ".exo",
@@ -695,7 +695,7 @@ Deno.test("ConfigSchema accepts provider_strategy section", () => {
 
 Deno.test("ConfigSchema accepts provider_strategy.fallback_chains", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     provider_strategy: {
       fallback_chains: {
@@ -717,7 +717,7 @@ Deno.test("ConfigSchema accepts provider_strategy.fallback_chains", () => {
 
 Deno.test("ConfigSchema accepts provider_strategy.budgets", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     provider_strategy: {
       budgets: {
@@ -737,7 +737,7 @@ Deno.test("ConfigSchema accepts provider_strategy.budgets", () => {
 
 Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     provider_strategy: {
       task_routing: {
@@ -941,7 +941,7 @@ Deno.test("[regression] Sample config includes required provider strategy entrie
 
 Deno.test("ConfigSchema accepts providers.* overrides", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     providers: {
       google: {
@@ -976,7 +976,7 @@ Deno.test("ConfigSchema accepts providers.* overrides", () => {
 
 Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
   };
 
@@ -994,7 +994,7 @@ Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
 
 Deno.test("ConfigSchema rejects unknown provider names in fallback_chains", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     provider_strategy: {
       fallback_chains: {
@@ -1009,7 +1009,7 @@ Deno.test("ConfigSchema rejects unknown provider names in fallback_chains", () =
 
 Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     providers: {
       google: {
@@ -1024,7 +1024,7 @@ Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
 
 Deno.test("ConfigSchema accepts valid cost_tier values", () => {
   const config = {
-    system: { version: "1.0.0" },
+    system: { version: DEFAULT_MCP_VERSION },
     paths: { ...ExoPathDefaults },
     providers: {
       google: {
@@ -1047,7 +1047,7 @@ Deno.test("ConfigSchema accepts valid cost_tier values", () => {
 Deno.test("ConfigSchema validation: rejects invalid default_model", () => {
   // Config with default_model pointing to nothing
   const config = {
-    system: { version: "1.0.0", log_level: "info" },
+    system: { version: DEFAULT_MCP_VERSION, log_level: "info" },
     paths: { memory: "M", blueprints: "B", runtime: "R" },
     agents: { default_model: "non_existent_model" },
     models: {
@@ -1067,7 +1067,7 @@ Deno.test("ConfigSchema validation: rejects invalid default_model", () => {
 
 Deno.test("ConfigSchema validation: rejects invalid fallback_chain target (with message check)", () => {
   const config = {
-    system: { version: "1.0.0", log_level: "info" },
+    system: { version: DEFAULT_MCP_VERSION, log_level: "info" },
     paths: { memory: "M", blueprints: "B", runtime: "R" },
     provider_strategy: {
       fallback_chains: {

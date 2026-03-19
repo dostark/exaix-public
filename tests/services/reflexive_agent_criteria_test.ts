@@ -8,6 +8,7 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { createReflexiveAgent, CritiqueSchema } from "../../src/services/reflexive_agent.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   IRequestAnalysis,
   RequestAnalysisComplexity,
@@ -38,7 +39,7 @@ const SAMPLE_ANALYSIS: IRequestAnalysis = {
     analyzedAt: "2025-01-01T00:00:00.000Z",
     durationMs: 50,
     mode: AnalysisMode.HEURISTIC,
-    analyzerVersion: "1.0.0",
+    analyzerVersion: ANALYZER_VERSION,
   },
 };
 

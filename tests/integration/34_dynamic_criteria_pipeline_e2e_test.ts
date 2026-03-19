@@ -9,6 +9,7 @@
  * @dependencies [GateEvaluator, CriteriaGenerator, ReflexiveAgent, ConfidenceScorer, FlowRunner]
  * @related-files [.copilot/planning/phase-48-acceptance-criteria-propagation.md]
  */
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 import { assert, assertEquals, assertGreater, assertStringIncludes } from "@std/assert";
 import {
@@ -64,7 +65,7 @@ function makeAnalysisWithGoals(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }
@@ -85,7 +86,7 @@ function makeAnalysisNoGoals(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 5,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

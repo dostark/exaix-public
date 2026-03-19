@@ -9,6 +9,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/shared/enums.ts";
 import { z, ZodError } from "zod";
 import { FlowSchema, FlowStepSchema } from "../../src/shared/schemas/flow.ts";
+import { DEFAULT_FLOW_VERSION } from "../../src/shared/constants.ts";
 
 // Test FlowStep schema validation
 Deno.test("FlowStepSchema: validates valid step definition", () => {
@@ -200,7 +201,7 @@ Deno.test("FlowSchema: validates complete flow definition", () => {
     id: "code-review",
     name: "Code Review Flow",
     description: "Automated code review process",
-    version: "1.0.0",
+    version: DEFAULT_FLOW_VERSION,
     steps: [
       {
         id: "lint",
@@ -414,7 +415,7 @@ Deno.test("IFlow as Flow schemas: can be imported and used by other modules", ()
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow description",
-    version: "1.0.0",
+    version: DEFAULT_FLOW_VERSION,
     steps: [testStep],
     output: {
       from: ["test-step"],

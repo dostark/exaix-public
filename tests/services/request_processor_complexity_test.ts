@@ -9,6 +9,7 @@
 
 import { assertEquals } from "@std/assert";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import { buildParsedRequest } from "../../src/services/request_common.ts";
 import { RequestSource, TaskComplexity } from "../../src/shared/enums.ts";
 import {
@@ -76,7 +77,7 @@ function createTestAnalysis(complexity: RequestAnalysisComplexity): IRequestAnal
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

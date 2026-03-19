@@ -101,7 +101,7 @@ function createLearning(overrides: Partial<ILearning> = {}): ILearning {
 
 function createGlobalMemory(overrides: Partial<IGlobalMemory> = {}): IGlobalMemory {
   return {
-    version: "1.0.0",
+    version: DEFAULT_GLOBAL_MEMORY_VERSION,
     updated_at: new Date().toISOString(),
     learnings: [],
     patterns: [],
