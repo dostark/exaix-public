@@ -276,44 +276,48 @@ Deno.test("[PortalKnowledgeService] getOrAnalyze returns cached when fresh", asy
   }
 });
 
-Deno.test("[PortalKnowledgeService] getOrAnalyze returns stale knowledge immediately without blocking", async () => {
-  const tempDir = await makeTempPortal();
-  try {
-    let _bgAnalysisTriggered = false;
-    // Provider call records whether background analysis ran
-    const slowProvider: IModelProvider = {
-      id: "slow",
-      generate: () => {
-        _bgAnalysisTriggered = true;
-        return Promise.resolve("# Overview updated");
-      },
-    };
+Deno.test(
+  "[PortalKnowledgeService] getOrAnalyze returns stale knowledge immediately without blocking",
+  { sanitizeOps: false, sanitizeResources: false },
+  async () => {
+    const tempDir = await makeTempPortal();
+    try {
+      let _bgAnalysisTriggered = false;
+      // Provider call records whether background analysis ran
+      const slowProvider: IModelProvider = {
+        id: "slow",
+        generate: () => {
+          _bgAnalysisTriggered = true;
+          return Promise.resolve("# Overview updated");
+        },
+      };
 
-    const svc = new PortalKnowledgeService(
-      makeConfig({ staleness: 0, useLlmInference: false }),
-      makeMockMemoryBank(),
-      slowProvider,
-      undefined,
-      makeMockDb(),
-      makeMockDocRunner(),
-    );
-    // Populate cache
-    const stale = await svc.analyze("bg-portal", tempDir, PortalAnalysisMode.QUICK);
+      const svc = new PortalKnowledgeService(
+        makeConfig({ staleness: 0, useLlmInference: false }),
+        makeMockMemoryBank(),
+        slowProvider,
+        undefined,
+        makeMockDb(),
+        makeMockDocRunner(),
+      );
+      // Populate cache
+      const stale = await svc.analyze("bg-portal", tempDir, PortalAnalysisMode.QUICK);
 
-    // getOrAnalyze with staleness=0 → returns stale immediately
-    const start = Date.now();
-    await new Promise((r) => setTimeout(r, 5));
-    const returned = await svc.getOrAnalyze("bg-portal", tempDir);
-    const elapsed = Date.now() - start;
+      // getOrAnalyze with staleness=0 → returns stale immediately
+      const start = Date.now();
+      await new Promise((r) => setTimeout(r, 5));
+      const returned = await svc.getOrAnalyze("bg-portal", tempDir);
+      const elapsed = Date.now() - start;
 
-    // It should return the stale knowledge (same gatheredAt as initial)
-    assertEquals(returned.gatheredAt, stale.gatheredAt, "Should return stale knowledge");
-    // Should return fast (not wait for LLM)
-    assertEquals(elapsed < 2000, true, "Should return stale knowledge without blocking");
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
-});
+      // It should return the stale knowledge (same gatheredAt as initial)
+      assertEquals(returned.gatheredAt, stale.gatheredAt, "Should return stale knowledge");
+      // Should return fast (not wait for LLM)
+      assertEquals(elapsed < 2000, true, "Should return stale knowledge without blocking");
+    } finally {
+      await Deno.remove(tempDir, { recursive: true });
+    }
+  },
+);
 
 Deno.test("[PortalKnowledgeService] getOrAnalyze triggers async background re-analysis when stale", {
   sanitizeOps: false,
