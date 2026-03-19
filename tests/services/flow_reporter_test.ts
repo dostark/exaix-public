@@ -17,6 +17,7 @@ import type { IFlow, IFlowInput } from "../../src/shared/schemas/flow.ts";
 import type { IFlowResult, IStepResult } from "../../src/flows/flow_runner.ts";
 import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
+import { DEFAULT_FLOW_VERSION } from "../../src/shared/constants.ts";
 
 describe("FlowReporter", () => {
   let tempDir: string;
@@ -65,7 +66,7 @@ describe("FlowReporter", () => {
         id: "test-flow",
         name: "Test Flow",
         description: "A test flow",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "step1",
@@ -194,7 +195,7 @@ describe("FlowReporter", () => {
         id: "failed-flow",
         name: "Failed Flow",
         description: "A flow that fails",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [
           {
             id: "step1",
@@ -262,7 +263,7 @@ describe("FlowReporter", () => {
         id: "filename-test",
         name: "Filename Test",
         description: "Test filename generation",
-        version: "1.0.0",
+        version: DEFAULT_FLOW_VERSION,
         steps: [{
           id: "step1",
           name: "Step 1",

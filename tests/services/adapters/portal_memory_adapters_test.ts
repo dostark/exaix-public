@@ -9,6 +9,7 @@
 import { assertEquals } from "@std/assert";
 import { PortalAdapter } from "../../../src/services/adapters/portal_adapter.ts";
 import type { IPortalDetails, IPortalInfo } from "../../../src/shared/types/portal.ts";
+import { DEFAULT_SKILL_INDEX_VERSION } from "../../../src/shared/constants.ts";
 import {
   ArchiveStatus,
   DaemonStatus,
@@ -552,7 +553,8 @@ function createMockDaemonCommands(
     start: () => Promise.resolve(),
     stop: () => Promise.resolve(),
     restart: () => Promise.resolve(),
-    status: () => Promise.resolve({ running: false, version: "0.0.0", workspace_schema_version: "1.0.0" }),
+    status: () =>
+      Promise.resolve({ running: false, version: "0.0.0", workspace_schema_version: DEFAULT_SKILL_INDEX_VERSION }),
     getConfig: () =>
       configRoot
         ? {
@@ -595,7 +597,8 @@ Deno.test("DaemonServiceAdapter: start/stop/restart delegate", async () => {
 
 Deno.test("DaemonServiceAdapter: getStatus returns RUNNING when daemon is running", async () => {
   const commands = createMockDaemonCommands({
-    status: () => Promise.resolve({ running: true, version: "1.0.0", workspace_schema_version: "1.0.0" }),
+    status: () =>
+      Promise.resolve({ running: true, version: "1.0.0", workspace_schema_version: DEFAULT_SKILL_INDEX_VERSION }),
   });
   const adapter = new DaemonServiceAdapter(commands);
   assertEquals(await adapter.getStatus(), DaemonStatus.RUNNING);
@@ -603,7 +606,8 @@ Deno.test("DaemonServiceAdapter: getStatus returns RUNNING when daemon is runnin
 
 Deno.test("DaemonServiceAdapter: getStatus returns STOPPED when daemon is stopped", async () => {
   const commands = createMockDaemonCommands({
-    status: () => Promise.resolve({ running: false, version: "1.0.0", workspace_schema_version: "1.0.0" }),
+    status: () =>
+      Promise.resolve({ running: false, version: "1.0.0", workspace_schema_version: DEFAULT_SKILL_INDEX_VERSION }),
   });
   const adapter = new DaemonServiceAdapter(commands);
   assertEquals(await adapter.getStatus(), DaemonStatus.STOPPED);

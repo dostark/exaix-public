@@ -23,6 +23,7 @@ import {
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../src/shared/types/request.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 // ============================================================
 // Mock infrastructure
@@ -65,7 +66,7 @@ function makeAnalysis(): IRequestAnalysis {
       analyzedAt: new Date().toISOString(),
       durationMs: 5,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 }

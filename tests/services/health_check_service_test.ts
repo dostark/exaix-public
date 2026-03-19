@@ -6,9 +6,8 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import { ExecutionStatus, HealthCheckVerdict, HealthStatus, MockStrategy } from "../../src/shared/enums.ts";
-
 import { createMockConfig } from "../helpers/config.ts";
 import {
   DatabaseHealthCheck,
@@ -27,12 +26,12 @@ import { initTestDbService } from "../helpers/db.ts";
  */
 
 Deno.test("HealthCheckService: initializes with version", () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   assertEquals(service.version, "1.0.0");
 });
 
 Deno.test("HealthCheckService: registers health checks", () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   const mockCheck = {
     name: "test",
     critical: false,
@@ -45,7 +44,7 @@ Deno.test("HealthCheckService: registers health checks", () => {
 });
 
 Deno.test("HealthCheckService: returns healthy status when all checks pass", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   const mockCheck = {
     name: "test",
     critical: false,
@@ -64,7 +63,7 @@ Deno.test("HealthCheckService: returns healthy status when all checks pass", asy
 });
 
 Deno.test("HealthCheckService: returns degraded status when non-critical check fails", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   const mockCheck = {
     name: "test",
     critical: false,
@@ -80,7 +79,7 @@ Deno.test("HealthCheckService: returns degraded status when non-critical check f
 });
 
 Deno.test("HealthCheckService: returns unhealthy status when critical check fails", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   const mockCheck = {
     name: "test",
     critical: true,
@@ -123,7 +122,7 @@ Deno.test("HealthCheckService: handles check timeouts", async () => {
 });
 
 Deno.test("HealthCheckService: runs checks in parallel", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   let check1Executed = false;
   let check2Executed = false;
 
@@ -350,7 +349,7 @@ Deno.test("initializeHealthChecks: configures checks with appropriate criticalit
 });
 
 Deno.test("HTTP Endpoint Integration: formats health status for HTTP response", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const service = new HealthCheckService(ANALYZER_VERSION);
   const mockCheck = {
     name: "test",
     critical: false,
@@ -373,7 +372,7 @@ Deno.test("HTTP Endpoint Integration: formats health status for HTTP response", 
 
 Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async () => {
   // Test healthy status
-  const healthyService = new HealthCheckService("1.0.0");
+  const healthyService = new HealthCheckService(ANALYZER_VERSION);
   healthyService.registerCheck({
     name: "test",
     critical: false,
@@ -384,7 +383,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   assertEquals(healthyStatus.status, HealthStatus.HEALTHY);
 
   // Test degraded status
-  const degradedService = new HealthCheckService("1.0.0");
+  const degradedService = new HealthCheckService(ANALYZER_VERSION);
   degradedService.registerCheck({
     name: "test",
     critical: false,
@@ -395,7 +394,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   assertEquals(degradedStatus.status, HealthStatus.DEGRADED);
 
   // Test unhealthy status
-  const unhealthyService = new HealthCheckService("1.0.0");
+  const unhealthyService = new HealthCheckService(ANALYZER_VERSION);
   unhealthyService.registerCheck({
     name: "test",
     critical: true,

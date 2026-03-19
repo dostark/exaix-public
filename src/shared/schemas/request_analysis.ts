@@ -201,3 +201,5 @@ export const RequestAnalysisSchema = z.object({
 });
 
 export type IRequestAnalysis = z.infer<typeof RequestAnalysisSchema>;
+
+export { AnalysisMode };

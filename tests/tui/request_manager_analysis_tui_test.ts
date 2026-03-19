@@ -9,13 +9,14 @@ import { MinimalRequestServiceMock, RequestManagerTuiSession } from "../../src/t
 import { RequestFormatter } from "../../src/tui/request_manager/formatters.ts";
 import {
   AmbiguityImpact,
+  AnalysisMode,
   IRequestAnalysis,
   RequestAnalysisComplexity,
   RequestTaskType,
 } from "../../src/shared/schemas/request_analysis.ts";
-import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { RequestStatus } from "../../src/shared/status/request_status.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", async () => {
   const analysis: IRequestAnalysis = {
@@ -35,7 +36,7 @@ Deno.test("RequestManagerTuiSession - Detail View includes Analysis section", as
       analyzedAt: new Date().toISOString(),
       durationMs: 100,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 
@@ -95,7 +96,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats analysis correctly",
       analyzedAt: new Date().toISOString(),
       durationMs: 50,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 
@@ -126,7 +127,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats complexity badge wit
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 
@@ -149,7 +150,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats complexity badge wit
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 
@@ -175,7 +176,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - formats actionability score 
         analyzedAt: new Date().toISOString(),
         durationMs: 0,
         mode: AnalysisMode.HEURISTIC,
-        analyzerVersion: "1.0.0",
+        analyzerVersion: ANALYZER_VERSION,
       },
     };
     const lines = RequestFormatter.formatAnalysisSection(analysis);
@@ -206,7 +207,7 @@ Deno.test("RequestFormatter.formatAnalysisSection - shows ambiguity summary", ()
       analyzedAt: new Date().toISOString(),
       durationMs: 0,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
 

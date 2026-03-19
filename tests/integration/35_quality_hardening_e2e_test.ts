@@ -26,6 +26,7 @@ import type { EnhancedRequest } from "../../src/services/session_memory.ts";
 import type { IModelProvider } from "../../src/ai/types.ts";
 import type { IRequestAnalysis } from "../../src/shared/schemas/request_analysis.ts";
 import type { IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   ANALYSIS_COMPLEX_BULLET_THRESHOLD,
   ANALYSIS_COMPLEX_CHAR_THRESHOLD,
@@ -67,7 +68,7 @@ function makeAnalysis(
       analyzedAt: new Date().toISOString(),
       durationMs: 5,
       mode: AnalysisMode.LLM,
-      analyzerVersion: "1",
+      analyzerVersion: ANALYZER_VERSION,
     },
     ...override,
   };

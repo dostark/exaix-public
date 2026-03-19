@@ -11,6 +11,7 @@ import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { RequestPriority, RequestSource } from "../../src/shared/enums.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { createStubConfig, createStubDisplay } from "../test_helpers.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 function createTestRequestService(root: string, overrides?: {
   userIdentity?: string;
@@ -474,7 +475,7 @@ Deno.test("RequestService.analyze: returns cached analysis when force=false and 
         analyzedAt: new Date().toISOString(),
         durationMs: 0,
         mode: AnalysisMode.HEURISTIC,
-        analyzerVersion: "1.0.0",
+        analyzerVersion: ANALYZER_VERSION,
       },
     };
     await saveAnalysis(filePath, cachedAnalysis);
@@ -525,7 +526,7 @@ Deno.test("RequestService.analyze: re-analyzes when force=true even with cache",
         analyzedAt: new Date().toISOString(),
         durationMs: 0,
         mode: AnalysisMode.HEURISTIC,
-        analyzerVersion: "1.0.0",
+        analyzerVersion: ANALYZER_VERSION,
       },
     };
     await saveAnalysis(filePath, cachedAnalysis);

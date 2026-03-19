@@ -6,6 +6,7 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 import {
   EvaluationCategory,
   HealthCheckVerdict,
@@ -76,7 +77,7 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Mock health check to return healthy for both providers
     healthService.registerCheck({
@@ -110,7 +111,7 @@ Deno.test("ProviderSelector: throws error when no suitable provider found", asyn
     ProviderRegistry.clear();
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
@@ -154,7 +155,7 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Set up high cost for expensive provider
     await costTracker.trackRequest("expensive-provider", 100000); // ~$1
@@ -210,7 +211,7 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Mock health checks
     healthService.registerCheck({
@@ -269,7 +270,7 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Mock health checks
     healthService.registerCheck({
@@ -320,7 +321,7 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Mock health checks - unhealthy provider fails
     healthService.registerCheck({
@@ -371,7 +372,7 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Mock health checks
     healthService.registerCheck({
@@ -425,7 +426,7 @@ Deno.test("ProviderSelector: env provider selected when healthy and allowed", as
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
     healthService.registerCheck({
       name: "mock",
       critical: false,
@@ -470,7 +471,7 @@ Deno.test("ProviderSelector: env provider fallback when unregistered or unhealth
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
     healthService.registerCheck({
       name: "mock",
       critical: false,
@@ -520,7 +521,7 @@ Deno.test("ProviderSelector: blocks paid env provider in test mode", async () =>
     });
 
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
     healthService.registerCheck({
       name: PROVIDER_OPENAI,
       critical: false,
@@ -550,7 +551,7 @@ Deno.test("ProviderSelector: enforces budget constraints", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const costTracker = new CostTracker(db);
-    const healthService = new HealthCheckService("1.0.0");
+    const healthService = new HealthCheckService(ANALYZER_VERSION);
 
     // Track enough usage to exceed budget
     await costTracker.trackRequest(PROVIDER_OPENAI, 500000); // $0.50 at $0.001/1K

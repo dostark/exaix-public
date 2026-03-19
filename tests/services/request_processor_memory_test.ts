@@ -21,6 +21,7 @@ import { RequestStatus } from "../../src/shared/status/request_status.ts";
 import { type EnhancedRequest, SessionMemoryService } from "../../src/services/session_memory.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockProvider } from "../helpers/mock_provider.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,7 +43,7 @@ function makePassthroughAnalyzer(): IRequestAnalyzerService {
       analyzedAt: new Date().toISOString(),
       durationMs: 10,
       mode: AnalysisMode.HEURISTIC,
-      analyzerVersion: "1.0.0",
+      analyzerVersion: ANALYZER_VERSION,
     },
   };
   return {

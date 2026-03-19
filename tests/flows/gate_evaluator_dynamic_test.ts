@@ -16,6 +16,7 @@ import {
 import { AnalysisMode } from "../../src/shared/types/request.ts";
 import { FlowGateOnFail } from "../../src/shared/enums.ts";
 import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 const BASE_CONFIG: GateConfig = {
   agent: "judge-agent",
@@ -55,7 +56,7 @@ const SAMPLE_ANALYSIS: IRequestAnalysis = {
     analyzedAt: "2025-01-01T00:00:00.000Z",
     durationMs: 100,
     mode: AnalysisMode.HEURISTIC,
-    analyzerVersion: "1.0.0",
+    analyzerVersion: ANALYZER_VERSION,
   },
 };
 

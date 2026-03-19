@@ -2,6 +2,7 @@
 // Tests provider switching, fallback chains, budget enforcement, and concurrent requests
 
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
+import { ANALYZER_VERSION } from "../src/shared/constants.ts";
 import { HealthCheckVerdict } from "../src/shared/enums.ts";
 import { TestEnvironment } from "../tests/integration/helpers/test_environment.ts";
 import { ProviderSelector } from "../src/ai/provider_selector.ts";
@@ -64,7 +65,7 @@ You are an expert developer. Provide detailed technical analysis and implementat
 
       // Set up services
       const costTracker = new CostTracker(env.db);
-      const healthCheck = new HealthCheckService("1.0.0");
+      const healthCheck = new HealthCheckService(ANALYZER_VERSION);
 
       // Create provider selector with budget constraints
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
@@ -113,7 +114,7 @@ You are an expert developer. Provide detailed technical analysis and implementat
 
     try {
       const costTracker = new CostTracker(env.db);
-      const healthCheck = new HealthCheckService("1.0.0");
+      const healthCheck = new HealthCheckService(ANALYZER_VERSION);
 
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
 
@@ -144,7 +145,7 @@ Deno.test("Provider Strategy: Free-to-paid fallback scenarios", async (t) => {
 
     try {
       const costTracker = new CostTracker(env.db);
-      const healthCheck = new HealthCheckService("1.0.0");
+      const healthCheck = new HealthCheckService(ANALYZER_VERSION);
 
       // Register a failing health check for free provider
       healthCheck.registerCheck({
@@ -182,7 +183,7 @@ Deno.test("Provider Strategy: Multi-provider concurrent requests", async (t) => 
 
     try {
       const costTracker = new CostTracker(env.db);
-      const healthCheck = new HealthCheckService("1.0.0");
+      const healthCheck = new HealthCheckService(ANALYZER_VERSION);
 
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
 
