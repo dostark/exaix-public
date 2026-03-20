@@ -93,6 +93,20 @@ fi
 echo "✅ Pre-push checks passed!\n"
 `;
 
+const COMMIT_MSG_CONTENT = `#!/bin/sh
+# ExoFrame Commit-msg Hook
+echo "\n🔍 Validating Commit Message Structure..."
+
+# Run the validation script pointing to the commit message file
+deno task check-commit-msg "$1"
+if [ $? -ne 0 ]; then
+  echo "❌ Error: Invalid commit message format. Commit blocked."
+  exit 1
+fi
+
+echo "✅ Commit message valid!\n"
+`;
+
 async function installHooks() {
   console.log("🛠️ Installing ExoFrame Git Hooks...");
 
@@ -109,14 +123,17 @@ async function installHooks() {
 
   const preCommitPath = join(HOOKS_DIR, "pre-commit");
   const prePushPath = join(HOOKS_DIR, "pre-push");
+  const commitMsgPath = join(HOOKS_DIR, "commit-msg");
 
   await Deno.writeTextFile(preCommitPath, PRE_COMMIT_CONTENT);
   await Deno.writeTextFile(prePushPath, PRE_PUSH_CONTENT);
+  await Deno.writeTextFile(commitMsgPath, COMMIT_MSG_CONTENT);
 
   // Make them executable
   if (Deno.build.os !== "windows") {
     await Deno.chmod(preCommitPath, 0o755);
     await Deno.chmod(prePushPath, 0o755);
+    await Deno.chmod(commitMsgPath, 0o755);
   }
 
   console.log("✅ Hooks installed successfully in .git/hooks/");
@@ -124,6 +141,7 @@ async function installHooks() {
     "   - pre-commit: fmt, lint, style/boundary, docs drift, markdown lint (staged .md only), complexity, architecture",
   );
   console.log("   - pre-push: type-check, security tests");
+  console.log("   - commit-msg: structured commit message validation");
 }
 
 if (import.meta.main) {

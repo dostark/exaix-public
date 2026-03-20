@@ -135,13 +135,15 @@ Create comprehensive tests in `tests/scripts/check_commit_msg_test.ts`.
 ---
 
 ### Step 3 — Git Hook Integration
-1.  Create `.githooks/commit-msg`.
-2.  Update `deno.json` with `check-commit-msg` task.
-3.  Ensure the hook is executable.
+1.  [x] Create `.githooks/commit-msg`.
+2.  [x] Update `deno.json` with `check-commit-msg` task.
+3.  [x] Ensure the hook is executable (integrated into `scripts/setup_hooks.ts`).
 
 **Success criteria**:
-- Running `git commit` with a bad message is blocked.
-- Running `git commit` with a good message succeeds.
+- [x] Running `git commit` with a bad message is blocked.
+- [x] Running `git commit` with a good message succeeds.
+
+**✅ IMPLEMENTED** — `scripts/setup_hooks.ts`, `tests/scripts/setup_hooks_test.ts`
 
 ---
 
