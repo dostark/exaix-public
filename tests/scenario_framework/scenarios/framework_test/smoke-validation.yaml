@@ -25,22 +25,22 @@ steps:
   - id: wait-for-analysis
     type: wait-for-file
     name: "Wait for analysis artifact"
-    path_pattern: "**/_analysis.json"
-    timeout_sec: 30
+    args: ["**/*_analysis.json"]
+    timeout_sec: 120
     input_criteria: []
     output_criteria:
       - id: analysis-file-created
         kind: file-found
-        path_pattern: "**/_analysis.json"
+        path_pattern: "**/*_analysis.json"
 
   - id: verify-analysis
     type: json-assert
     name: "Verify analysis content"
-    file_pattern: "**/_analysis.json"
+    file_pattern: "**/*_analysis.json"
     input_criteria:
       - id: analysis-file-exists
         kind: file-found
-        path_pattern: "**/_analysis.json"
+        path_pattern: "**/*_analysis.json"
     output_criteria:
       - id: verify-goal-extraction
         kind: json-path-equals

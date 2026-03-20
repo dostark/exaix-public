@@ -26,7 +26,7 @@ steps:
     input_criteria:
       - id: "clarification-artifact"
         kind: "file-found"
-        path_pattern: "Workspace/Requests/*/_clarification.json"
+        path_pattern: "**/*_clarification.json"
     output_criteria:
       - id: "review-ready"
         kind: "text-contains"

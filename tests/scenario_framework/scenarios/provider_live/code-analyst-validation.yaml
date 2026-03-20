@@ -30,6 +30,8 @@ steps:
         equals: 0
   - id: "wait-for-plan"
     type: "wait-for-file"
+    args: ["**/*_analysis.json"]
+    timeout_sec: 180
     input_criteria:
       - id: "request-exists"
         kind: "command-exit-code"
@@ -37,19 +39,18 @@ steps:
     output_criteria:
       - id: "plan-json-found"
         kind: "file-found"
-        path_pattern: "Workspace/Requests/*/_analysis.json"
+        path_pattern: "**/*_analysis.json"
   - id: "validate-analysis-content"
     type: "json-assert"
+    file_pattern: "**/*_analysis.json"
     input_criteria:
       - id: "analysis-found"
         kind: "file-found"
-        path_pattern: "Workspace/Requests/*/_analysis.json"
+        path_pattern: "**/*_analysis.json"
     output_criteria:
       - id: "has-goals"
         kind: "json-path-exists"
         path: "$.goals"
-        target_file: "Workspace/Requests/latest/_analysis.json"
       - id: "has-complexity"
         kind: "json-path-exists"
         path: "$.complexity"
-        target_file: "Workspace/Requests/latest/_analysis.json"

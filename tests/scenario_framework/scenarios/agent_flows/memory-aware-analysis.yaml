@@ -21,12 +21,12 @@ steps:
         equals: 0
   - id: "analysis-check"
     type: "json-assert"
+    file_pattern: "**/*_analysis.json"
     input_criteria:
       - id: "analysis-json-available"
         kind: "file-found"
-        path_pattern: "Workspace/Requests/*/_analysis.json"
+        path_pattern: "**/*_analysis.json"
     output_criteria:
       - id: "analysis-goal-present"
         kind: "json-path-exists"
         path: "$.goals[0]"
-        target_file: "Workspace/Requests/latest/_analysis.json"

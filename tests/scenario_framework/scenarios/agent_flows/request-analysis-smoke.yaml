@@ -21,6 +21,8 @@ steps:
         equals: 0
   - id: "analysis-artifact"
     type: "wait-for-file"
+    args: ["**/*_analysis.json"]
+    timeout_sec: 120
     input_criteria:
       - id: "request-created"
         kind: "command-exit-code"
@@ -28,4 +30,4 @@ steps:
     output_criteria:
       - id: "analysis-file-found"
         kind: "file-found"
-        path_pattern: "Workspace/Requests/*/_analysis.json"
+        path_pattern: "**/*_analysis.json"

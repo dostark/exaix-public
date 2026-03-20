@@ -4,12 +4,14 @@
  * @description Executes individual scenario steps for the initial Step 3
  * execution core, capturing stdout, stderr, exit code, timestamps, and
  * combined output for shell and exoctl step kinds.
+ * Supports wait-for-file steps with polling and timeout.
  * @architectural-layer Test
  * @dependencies [step_schema]
  * @related-files [tests/scenario_framework/runner/config.ts, tests/scenario_framework/tests/unit/scenario_loader_execution_core_test.ts]
  */
 
 import { type IScenarioStep, ScenarioStepType } from "../schema/step_schema.ts";
+import { globToRegExp, resolve } from "@std/path";
 
 export interface IExecuteScenarioStepOptions {
   step: IScenarioStep;
@@ -33,12 +35,19 @@ export interface IScenarioStepExecutionResult {
 
 const TEXT_DECODER = new TextDecoder();
 const WHITESPACE_PATTERN = /\s+/;
+const WAIT_FOR_FILE_POLL_INTERVAL_MS = 2000; // Check every 2 seconds
 
 export async function executeScenarioStep(
   options: IExecuteScenarioStepOptions,
 ): Promise<IScenarioStepExecutionResult> {
   const startedAtEpochMs = Date.now();
   const startedAt = new Date(startedAtEpochMs).toISOString();
+
+  // Handle wait-for-file step type with polling
+  if (options.step.type === ScenarioStepType.WAIT_FOR_FILE) {
+    return await executeWaitForFileStep(options, startedAt, startedAtEpochMs);
+  }
+
   const commandSpec = buildCommandSpec(options);
 
   if (options.verbose) {
@@ -69,6 +78,110 @@ export async function executeScenarioStep(
     stderr,
     combinedOutput: `${stdout}${stderr}`,
   };
+}
+
+async function executeWaitForFileStep(
+  options: IExecuteScenarioStepOptions,
+  startedAt: string,
+  startedAtEpochMs: number,
+): Promise<IScenarioStepExecutionResult> {
+  const timeoutSec = options.step.timeout_sec ?? 120; // Default 2 minutes
+  const pathPattern = options.step.args?.[0] || "**/*_analysis.json";
+  const workspaceRoot = options.cwd || Deno.cwd();
+  const timeoutMs = timeoutSec * 1000;
+
+  const pattern = globToRegExp(pathPattern);
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeoutMs) {
+    // Search for matching files
+    const found = await findMatchingFiles(workspaceRoot, pattern);
+
+    if (found.length > 0) {
+      const completedAtEpochMs = Date.now();
+      const completedAt = new Date(completedAtEpochMs).toISOString();
+
+      if (options.verbose) {
+        console.log(
+          `\n%c > File found after ${completedAtEpochMs - startedAtEpochMs}ms: ${found[0]}`,
+          "color: green; font-weight: bold;",
+        );
+      }
+
+      return {
+        stepId: options.step.id,
+        stepType: options.step.type,
+        startedAt,
+        completedAt,
+        durationMs: completedAtEpochMs - startedAtEpochMs,
+        exitCode: 0,
+        stdout: `File found: ${found[0]}`,
+        stderr: "",
+        combinedOutput: `File found: ${found[0]}`,
+      };
+    }
+
+    // Wait before next poll
+    await new Promise((resolve) => setTimeout(resolve, WAIT_FOR_FILE_POLL_INTERVAL_MS));
+  }
+
+  // Timeout reached
+  const completedAtEpochMs = Date.now();
+  const completedAt = new Date(completedAtEpochMs).toISOString();
+
+  if (options.verbose) {
+    console.log(`\n%c > Timeout after ${timeoutMs}ms waiting for: ${pathPattern}`, "color: red; font-weight: bold;");
+  }
+
+  return {
+    stepId: options.step.id,
+    stepType: options.step.type,
+    startedAt,
+    completedAt,
+    durationMs: completedAtEpochMs - startedAtEpochMs,
+    exitCode: 1,
+    stdout: "",
+    stderr: `Timeout after ${timeoutSec}s waiting for file matching: ${pathPattern}`,
+    combinedOutput: `Timeout after ${timeoutSec}s waiting for file matching: ${pathPattern}`,
+  };
+}
+
+async function findMatchingFiles(root: string, pattern: RegExp): Promise<string[]> {
+  const matches: string[] = [];
+
+  try {
+    for await (const entry of Deno.readDir(root)) {
+      await checkEntry(entry, root, pattern, matches);
+    }
+  } catch {
+    // Directory not accessible
+  }
+
+  return matches;
+}
+
+async function checkEntry(
+  entry: Deno.DirEntry,
+  basePath: string,
+  pattern: RegExp,
+  matches: string[],
+): Promise<void> {
+  const fullPath = resolve(basePath, entry.name);
+
+  if (entry.isFile && pattern.test(entry.name)) {
+    matches.push(fullPath);
+    return;
+  }
+
+  if (entry.isDirectory && !entry.name.startsWith(".")) {
+    try {
+      for await (const subEntry of Deno.readDir(fullPath)) {
+        await checkEntry(subEntry, fullPath, pattern, matches);
+      }
+    } catch {
+      // Directory not accessible
+    }
+  }
 }
 
 interface ICommandSpec {
