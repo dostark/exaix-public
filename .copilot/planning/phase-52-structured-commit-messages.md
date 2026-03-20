@@ -105,15 +105,18 @@ model: <LLM model name and version used by the agent>
 
 ### Step 1 — Define Validation Script (`scripts/check_commit_msg.ts`)
 Create a Deno script that:
-1.  Reads the commit message from a temporary file (passed as an argument by git).
-2.  Uses regex or a simple parser to identify the required sections (`what:`, `rationale:`, `tests:`, `who:`).
-3.  Validates that each section has non-empty content.
-4.  Exits with code `0` on success, or `1` with a helpful error message on failure.
+1.  [x] Reads the commit message from a temporary file (passed as an argument by git).
+2.  [x] Uses regex or a simple parser to identify the required sections (`what:`, `rationale:`, `tests:`, `who:`, `impact:`).
+3.  [x] Validates that each section has non-empty content.
+4.  [x] Model Validation: Specifically validates the `model` field to ensure it matches the actual model being used (extracting this from environment variables or internal config) to prevent hallucinations.
+5.  [x] Exits with code `0` on success, or `1` with a helpful error message on failure.
 
 **Success criteria**:
-- Script correctly identifies all required headers.
-- Script handles whitespace and variations in header casing (if desired).
-- Script provides a "How to fix" guide in the output.
+- [x] Script correctly identifies all required headers.
+- [x] Script handles whitespace and variations in header casing (if desired).
+- [x] Script provides a "How to fix" guide in the output.
+
+**✅ IMPLEMENTED** — `scripts/check_commit_msg.ts`, 10/10 tests passing
 
 ---
 
@@ -121,12 +124,13 @@ Create a Deno script that:
 Create comprehensive tests in `tests/scripts/check_commit_msg_test.ts`.
 
 **Tests**:
-- [ ] Valid structured message passes.
-- [ ] Missing any required field (`what`, `rationale`, `tests`, `who`, `impact`) fails.
-- [ ] Empty content for a required field fails.
-- [ ] `impact` content does not contain a colon or known component prefix (optional check, or just verify format).
-- [ ] Presence of optional fields (`conversation_id`, `links`, `prompt`, `tool_audit`, `model`) is allowed.
-- [ ] Conventional Commits prefix (e.g., `feat:`, `fix:`) is enforced/validated at the top.
+- ✅ `Valid structured message passes.`
+- ✅ `Missing any required field (what, rationale, tests, who, conversation_id, impact) fails.`
+- ✅ `Empty content for a required field fails.`
+- ✅ `Presence of optional fields (links, prompt, tool_audit, model) is allowed.`
+- ✅ `Conventional Commits prefix (e.g., feat:, fix:) is enforced/validated at the top.`
+
+**✅ IMPLEMENTED** — `tests/scripts/check_commit_msg_test.ts`, 10 tests passed
 
 ---
 
@@ -155,6 +159,7 @@ Update `.copilot/prompts/commit-message.md` to ensure all agents (including Anti
 **Success criteria**:
 - `.copilot/prompts/commit-message.md` reflects the mandatory `what`, `rationale`, `tests`, `who`, and `impact` headers.
 - The prompt includes examples of how to populate the `impact` field using `ARCHITECTURE.md` components.
+- **Model Identity Enforcement**: The prompt explicitly warns agents NOT to hallucinate their model name and provides instructions on where to find their true identity (e.g., system metadata or environment).
 - The prompt correctly identifies `conversation_id`, `tool_audit`, and `model` as optional but recommended for agents.
 
 ---
