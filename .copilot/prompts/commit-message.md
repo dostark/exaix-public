@@ -2,78 +2,66 @@
 agent: general
 scope: dev
 title: "Detailed Commit Message Prompt"
-short_summary: "Example prompt for creating structured, informative commit messages."
-version: "0.1"
-topics: ["git", "commit", "documentation", "best-practices"]
+short_summary: "Enforces structured, informative commit messages for agents and human developers."
+version: "0.2"
+topics: ["git", "commit", "documentation", "best-practices", "structured-logging"]
 ---
 
 ```text
 Key points
-- Review changes with `git status` and `git diff` before committing
-- Use conventional commit format: `<type>(<scope>): <summary>`
-- Reference Implementation Plan steps and issues
-- Wrap body at 72 chars, keep summary ≤72 chars
-- Prefer structured body sections for readability: Context, Changes, Validation, References
+- Review changes with `git status` and `git diff` before committing.
+- Use conventional commit format for the subject line: `<type>(<scope>): <summary>`.
+- ALL commits (non-auto) MUST follow the ExoFrame structured format in the body.
+- Wrap all body text at 72 chars.
+
+Mandatory Schema:
+[type]: [subject]
+
+what: <detailed explanation on what this commit is about>
+rationale: <why this change was made>
+tests: <which tests were used for validation and their summary status>
+who: <agent name (e.g., Antigravity)>
+impact: <component from ARCHITECTURE.md>: <details of impact>
+
+Optional Fields:
+conversation_id: <originating session ID>
+links: <links to plan or issue>
+prompt: <summary of the prompt(s) used>
+tool_audit: <list of key tools used (e.g., run_command, replace_file_content)>
+model: <YOUR actual model name and version>
+
+⚠️ CRITICAL: Identity Accuracy
+- DO NOT hallucinate your model name or agent name.
+- Identify yourself as "Antigravity".
+- Use the actual underlying model name (e.g., "Gemini") for the model field.
 
 Canonical prompt (short):
-"You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references."
+"You've completed [work]. Create a MANDATORY structured commit message.
+Review changes first, then follow the schema: subject line, then what:, rationale:, tests:, who:, and impact: (grounded in ARCHITECTURE.md).
+Ensure you identify your actual model correctly (e.g., Gemini) to prevent hallucinations."
 
-Examples
-- Example prompt: "I've completed Step 10.5 - Claude agent interaction enhancements. Create a detailed commit message."
-- Example prompt: "Fixed bug in PathResolver validation. Create commit message referencing issue #123."
-- Example prompt: "Refactored EventLogger to use CircuitBreaker. Create commit message with breaking change note."
+Examples:
+- "feat(scripts): add commit validator (Step 1)
 
-Do / Don't
-- ✅ Do review actual changes before writing message
-- ✅ Do reference Implementation Plan steps: "Implements Step X.Y"
-- ✅ Do use imperative mood in summary ("Add" not "Added")
-- ✅ Do explain WHY in body, not just WHAT
-- ✅ Do keep summary ≤72 chars, body wrapped at 72
-- ✅ Do include testing verification and file changes
-- ✅ Do format body with short section headers for non-trivial commits
-- ✅ Do create commits with a real multiline message (editor or heredoc)
-- ❌ Don't exceed 72 chars for summary line
-- ❌ Don't forget to list breaking changes if any
-- ❌ Don't use vague summaries like "updated files" or "WIP"
-- ❌ Don't chain multiple `-m` flags to assemble commit bodies
-- ❌ Don't use --no-verify; all pre-commit hooks MUST pass before any commit
+  what: Implemented validator script...
+  rationale: To enforce rules...
+  tests: 10/10 tests passed...
+  who: Antigravity
+  impact: scripts: added validation logic
+  model: Gemini"
 
-Recommended detailed format:
-`<type>(<scope>): <summary>`
-
-`Context:`
-- One short paragraph describing why this change is needed.
-
-`Changes:`
-- Bullet list of the most important code/doc/test updates.
-
-`Validation:`
-- Commands or checks run (for example: `deno check`, `deno lint`).
-
-`References:`
-- Optional issue links, plan step, or breaking-change note.
-
-Recommended command pattern (single multiline message):
-`git commit -F - <<'COMMIT_MSG'`
-`<type>(<scope>): <summary>`
-
-`Context:`
-`<why this change is needed>`
-
-`Changes:`
-`- <important change 1>`
-`- <important change 2>`
-
-`Validation:`
-`- <checks run>`
-
-`References:`
-`- <issue/plan step/breaking change note>`
-`COMMIT_MSG`
+Do / Don't:
+- ✅ Do use a blank line after the subject line.
+- ✅ Do reference specific components from ARCHITECTURE.md in the impact field.
+- ✅ Do list actual tool usage in tool_audit.
+- ✅ Do include your real identity.
+- ❌ Don't use a single paragraph for everything.
+- ❌ Don't skip mandatory fields like rationale or tests.
+- ❌ Don't use --no-verify.
+- ❌ Don't hallucinate model versions.
 
 Expected Response Pattern:
-1. Show `git add` command for changed files
-2. Show a single multiline commit command (heredoc or editor flow), not chained `-m` flags
-3. Include summary plus structured body sections (Context/Changes/Validation/References)
-4. List specific changes and testing verification
+1. Show `git add` for changed files.
+2. Show a single `git commit` command using heredoc or multiple `-m` flags to ensure the full structured body is included.
+3. Verify all mandatory headers are present and correctly filled.
 ```

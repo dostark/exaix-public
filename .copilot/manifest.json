@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-19T14:43:18.221Z",
+  "generated_at": "2026-03-20T10:48:43.697Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -125,20 +125,20 @@
       "agent": "general",
       "scope": "dev",
       "title": "Detailed Commit Message Prompt",
-      "short_summary": "Example prompt for creating structured, informative commit messages.",
-      "version": "0.1",
+      "short_summary": "Enforces structured, informative commit messages for agents and human developers.",
+      "version": "0.2",
       "topics": [
         "git",
         "commit",
         "documentation",
-        "best-practices"
+        "best-practices",
+        "structured-logging"
       ],
       "chunks": [
         ".copilot/chunks/commit-message.md.chunk0.txt",
         ".copilot/chunks/commit-message.md.chunk1.txt",
         ".copilot/chunks/commit-message.md.chunk2.txt",
-        ".copilot/chunks/commit-message.md.chunk3.txt",
-        ".copilot/chunks/commit-message.md.chunk4.txt"
+        ".copilot/chunks/commit-message.md.chunk3.txt"
       ]
     },
     {

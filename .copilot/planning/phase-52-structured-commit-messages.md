@@ -1,6 +1,6 @@
 # Phase 52: Structured Commit Messages and Git Hooks
 
-## Status: 🗓️ PLANNING
+## Status: ✅ IMPLEMENTED
 
 ## Executive Summary
 
@@ -150,8 +150,10 @@ Create comprehensive tests in `tests/scripts/check_commit_msg_test.ts`.
 ---
 
 ### Step 4 — Documentation and Templates
-1.  Create `templates/commit_msg.template`.
-2.  (Optional) Update `.gitconfig` or project setup scripts to suggest using the structured format.
+1.  [x] Create `templates/commit_msg.template`.
+2.  [x] (Optional) Update `.gitconfig` or project setup scripts to suggest using the structured format.
+
+**✅ IMPLEMENTED** — `templates/commit_msg.template`, `tests/scripts/commit_template_test.ts`
 
 ---
 
@@ -159,10 +161,12 @@ Create comprehensive tests in `tests/scripts/check_commit_msg_test.ts`.
 Update `.copilot/prompts/commit-message.md` to ensure all agents (including Antigravity and VS Code Copilot) are instructed to use the new structured format by default.
 
 **Success criteria**:
-- `.copilot/prompts/commit-message.md` reflects the mandatory `what`, `rationale`, `tests`, `who`, and `impact` headers.
-- The prompt includes examples of how to populate the `impact` field using `ARCHITECTURE.md` components.
-- **Model Identity Enforcement**: The prompt explicitly warns agents NOT to hallucinate their model name and provides instructions on where to find their true identity (e.g., system metadata or environment).
-- The prompt correctly identifies `conversation_id`, `tool_audit`, and `model` as optional but recommended for agents.
+- [x] `.copilot/prompts/commit-message.md` reflects the mandatory `what`, `rationale`, `tests`, `who`, and `impact` headers.
+- [x] The prompt includes examples of how to populate the `impact` field using `ARCHITECTURE.md` components.
+- [x] **Model Identity Enforcement**: The prompt explicitly warns agents NOT to hallucinate their model name and provides instructions on where to find their true identity (e.g., system metadata or environment).
+- [x] The prompt correctly identifies `conversation_id`, `tool_audit`, and `model` as optional but recommended for agents.
+
+**✅ IMPLEMENTED** — `.copilot/prompts/commit-message.md`, `tests/scripts/commit_prompt_test.ts`
 
 ---
 

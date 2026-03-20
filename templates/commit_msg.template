@@ -1,0 +1,18 @@
+[type]: [subject]
+
+what: <detailed explanation on what this commit is about>
+
+rationale: <why this commit was made>
+
+tests: <which tests were used for validation and their summary status>
+
+who: <agent name / human name>
+
+impact: <component from ARCHITECTURE.md>: <details of impact>
+
+[optional fields]
+conversation_id: <ID of the conversation or session>
+links: <links to a planning document or issue>
+prompt: <summary of the prompt(s) used for this change>
+tool_audit: <list of key tools used during implementation>
+model: <LLM model name and version used by the agent>

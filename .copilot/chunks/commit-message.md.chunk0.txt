@@ -1,10 +1,15 @@
 ```text
 Key points
-- Review changes with `git status` and `git diff` before committing
-- Use conventional commit format: `<type>(<scope>): <summary>`
-- Reference Implementation Plan steps and issues
-- Wrap body at 72 chars, keep summary ≤72 chars
-- Prefer structured body sections for readability: Context, Changes, Validation, References
+- Review changes with `git status` and `git diff` before committing.
+- Use conventional commit format for the subject line: `<type>(<scope>): <summary>`.
+- ALL commits (non-auto) MUST follow the ExoFrame structured format in the body.
+- Wrap all body text at 72 chars.
 
-Canonical prompt (short):
-"You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references."
+Mandatory Schema:
+[type]: [subject]
+
+what: <detailed explanation on what this commit is about>
+rationale: <why this change was made>
+tests: <which tests were used for validation and their summary status>
+who: <agent name (e.g., Antigravity)>
+impact: <component from ARCHITECTURE.md>: <details of impact>
