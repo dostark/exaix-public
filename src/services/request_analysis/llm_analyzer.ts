@@ -142,7 +142,7 @@ export class LlmAnalyzer {
       return fallback;
     }
 
-    const result = this.validator.validate<IRequestAnalysis>(raw, RequestAnalysisSchema);
+    const result = this.validator.parseAndValidate<IRequestAnalysis>(raw, RequestAnalysisSchema);
     const durationMs = Date.now() - startMs;
 
     if (result.success && result.value) {

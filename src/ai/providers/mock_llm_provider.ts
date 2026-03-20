@@ -149,10 +149,10 @@ export class MockLLMProvider implements IModelProvider {
       this.loadRecordingsFromDir(options.fixtureDir);
     }
 
-    // For recorded strategy without recordings, add default patterns as fallback
+    // For recorded or pattern strategy without recordings/patterns, add default patterns as fallback
     // Only if patterns were not explicitly provided (even if empty)
     if (
-      strategy === MockStrategy.RECORDED &&
+      (strategy === MockStrategy.RECORDED || strategy === MockStrategy.PATTERN) &&
       this.recordings.length === 0 &&
       this.patterns.length === 0 &&
       !("patterns" in options)
@@ -514,6 +514,39 @@ I will execute this step according to the plan.
       },
 
       // Planning patterns (for plan generation requests)
+      {
+        pattern: /analyze/i,
+        response: `<thought>
+I will analyze the request and provide a detailed architectural assessment.
+</thought>
+
+<content>
+{
+  "goals": [
+    {
+      "description": "Analyze the core architecture of the ExoFrame Scenario Framework",
+      "explicit": true,
+      "priority": 1
+    }
+  ],
+  "requirements": [],
+  "constraints": [],
+  "acceptanceCriteria": [],
+  "ambiguities": [],
+  "actionabilityScore": 100,
+  "complexity": "medium",
+  "taskType": "analysis",
+  "tags": ["smoke", "framework"],
+  "referencedFiles": [],
+  "metadata": {
+    "analyzedAt": "2026-03-20T18:00:00Z",
+    "durationMs": 100,
+    "mode": "llm",
+    "analyzerVersion": "1.0.0"
+  }
+}
+</content>`,
+      },
       {
         pattern: /implement|add|create/i,
         response: `<thought>

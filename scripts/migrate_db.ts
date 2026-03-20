@@ -7,8 +7,13 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { MigrationDirection } from "../src/shared/enums.ts";
 
+import { ConfigService } from "../src/config/service.ts";
+
+const configService = new ConfigService();
+const cfg = configService.get();
+
 const ROOT = Deno.cwd();
-const RUNTIME_DIR = join(ROOT, ".exo");
+const RUNTIME_DIR = join(cfg.system.root!, cfg.paths.runtime!);
 const DB_PATH = join(RUNTIME_DIR, "journal.db");
 const MIGRATIONS_DIR = join(ROOT, "migrations");
 

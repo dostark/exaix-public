@@ -3,6 +3,7 @@
  * @description Script: ci
  */
 import { Command } from "jsr:@cliffy/command@^1.0.0-rc.8";
+import { join, resolve } from "@std/path";
 
 /**
  * Global dry-run state
@@ -12,7 +13,11 @@ let isDryRun = false;
 /**
  * Runner helper to execute a command and return promise
  */
-async function run(cmd: string[], description: string): Promise<boolean> {
+async function run(
+  cmd: string[],
+  description: string,
+  options: { env?: Record<string, string>; cwd?: string } = {},
+): Promise<boolean> {
   console.log(`\n⏳ Starting: ${description}...${isDryRun ? " (DRY RUN)" : ""}`);
 
   if (isDryRun) {
@@ -25,6 +30,8 @@ async function run(cmd: string[], description: string): Promise<boolean> {
     args: cmd.slice(1),
     stdout: "inherit",
     stderr: "inherit",
+    env: options.env,
+    cwd: options.cwd,
   });
 
   const { code } = await command.output();
@@ -501,6 +508,189 @@ const fixCommand = new Command()
     if (!await fixUnusedImports(paths, options.fmt)) Deno.exit(1);
   });
 
+const scenariosCommand = new Command()
+  .description("Run scenario framework validation")
+  .option("-p, --profile <profile:string>", "Scenario profile to run", { default: "ci-smoke" })
+  .option("--workspace <path:string>", "Optional workspace override")
+  .action(async (options) => {
+    // 1. Prepare temp directories
+    const tempDir = await Deno.makeTempDir({ prefix: "exo-ci-scenario-" });
+    const frameworkDest = join(tempDir, "framework");
+    const workspaceDest = options.workspace ?? join(tempDir, "workspace");
+    const outputDest = join(tempDir, "output");
+
+    await Deno.mkdir(frameworkDest, { recursive: true });
+    if (!options.workspace) {
+      await Deno.mkdir(workspaceDest, { recursive: true });
+    }
+    await Deno.mkdir(outputDest, { recursive: true });
+
+    const binDir = join(tempDir, "bin");
+    await Deno.mkdir(binDir, { recursive: true });
+
+    console.log(`📂 Prepared temp directory: ${tempDir}`);
+
+    const exoctlPath = resolve("src/cli/exoctl.ts");
+    const shimPath = join(binDir, "exoctl");
+    const shimContent = `#!/bin/bash\ndeno run -A "${exoctlPath}" "$@"\n`;
+    await Deno.writeTextFile(shimPath, shimContent);
+    await Deno.chmod(shimPath, 0o755);
+
+    // 2. Initialize Workspace for exoctl with a minimal config
+    try {
+      const minimalConfig = `
+[system]
+root = "${workspaceDest.replace(/\\/g, "/")}"
+log_level = "info"
+
+[paths]
+workspace = "Workspace"
+runtime = ".exo"
+memory = "Memory"
+portals = "Portals"
+blueprints = "Blueprints"
+
+[agent_flows]
+# Required for some scenarios
+blueprints_path = "${join(resolve("tests/scenario_framework"), "Blueprints").replace(/\\/g, "/")}"
+
+[ai]
+provider = "mock"
+model = "test"
+
+[ai.mock]
+strategy = "pattern"
+`;
+      await Deno.writeTextFile(join(workspaceDest, "exo.config.toml"), minimalConfig.trim());
+      console.log("✅ Initialized minimal workspace config for CI");
+    } catch (error) {
+      console.error(`❌ Failed to create minimal config: ${error}`);
+      Deno.exit(1);
+    }
+
+    // 3. Deploy Framework
+    const deploySuccess = await run([
+      "deno",
+      "run",
+      "-A",
+      "tests/scenario_framework/scripts/deploy_cli.ts",
+      "--destination",
+      frameworkDest,
+      "--workspace",
+      workspaceDest,
+      "--output",
+      outputDest,
+    ], "Deploying Framework");
+
+    if (!deploySuccess) Deno.exit(1);
+
+    // 4. Create dummy portals and mount them
+    // Create portal-sample-app directory if it doesn't exist (required for some scenarios)
+    const samplePortalDir = "/tmp/portal-sample-app";
+    try {
+      await Deno.mkdir(samplePortalDir, { recursive: true });
+      // Minor hack: also ensure a .git dir exists so exoctl thinks it's a repo
+      await Deno.mkdir(join(samplePortalDir, ".git"), { recursive: true });
+      console.log(`✅ Created dummy portal at: ${samplePortalDir}`);
+    } catch {
+      // ignore
+    }
+
+    const configPath = join(workspaceDest, "exo.config.toml");
+    const portalEnv = { ...Deno.env.toObject(), EXO_CONFIG_PATH: configPath };
+
+    // 3. Initialize Database Schema
+    console.log("🗄️ Initializing database...");
+    await run(
+      [
+        "deno",
+        "run",
+        "-A",
+        "scripts/migrate_db.ts",
+        "up",
+      ],
+      "Running Database Migrations",
+      { env: portalEnv },
+    );
+
+    console.log("🔗 Mounting portals...");
+    // Mount portal-sample-app
+    await run(
+      [
+        "deno",
+        "run",
+        "-A",
+        exoctlPath,
+        "portal",
+        "add",
+        samplePortalDir,
+        "portal-sample-app",
+      ],
+      "Mounting portal-sample-app",
+      { env: portalEnv },
+    );
+
+    // Mount portal-exoframe pointing to THIS repo
+    await run(
+      [
+        "deno",
+        "run",
+        "-A",
+        exoctlPath,
+        "portal",
+        "add",
+        Deno.cwd(),
+        "portal-exoframe",
+      ],
+      "Mounting portal-exoframe",
+      { env: portalEnv },
+    );
+
+    // 5. Run Scenarios with Mock AI Provider
+    // We set EXO_LLM_PROVIDER=mock to ensure no real LLM calls are made in CI
+    const env = {
+      ...Deno.env.toObject(),
+      EXO_LLM_PROVIDER: "mock",
+      EXO_LLM_STRATEGY: "pattern",
+      EXO_CONFIG_PATH: configPath,
+    };
+
+    console.log(`🚀 Running scenarios with Mock AI Provider (Config: ${configPath})...`);
+    const runStart = Date.now();
+    const runnerPath = join(frameworkDest, "scenario_framework", "runner", "main.ts");
+
+    const command = new Deno.Command("deno", {
+      args: [
+        "run",
+        "-A",
+        runnerPath,
+        "--profile",
+        options.profile,
+        "--workspace",
+        workspaceDest,
+        "--output",
+        outputDest,
+      ],
+      env: {
+        ...env,
+        // Inform the scenario runner how to run exoctl
+        EXO_BIN_PATH: binDir,
+      },
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+
+    const { code } = await command.output();
+    const duration = Date.now() - runStart;
+
+    if (code === 0) {
+      console.log(`✅ Scenarios passed: ${options.profile} in ${duration}ms`);
+    } else {
+      console.error(`❌ Scenarios failed: ${options.profile} (Exit code: ${code})`);
+      Deno.exit(1);
+    }
+  });
+
 await new Command()
   .name("exo-ci")
   .version("0.1.0")
@@ -517,4 +707,5 @@ await new Command()
   .command("build", buildCommand)
   .command("all", allCommand)
   .command("fix", fixCommand)
+  .command("scenarios", scenariosCommand)
   .parse(Deno.args);

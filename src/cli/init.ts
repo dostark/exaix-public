@@ -213,7 +213,7 @@ export async function initializeServices(
 
     const displayLocal = new EventLogger({});
     displayLocal.warn("cli.config_missing", "system", {
-      message: "Configuration failed to load. Running in degraded mode (read-only/stub).",
+      message: `Configuration failed to load (${err}). Running in degraded mode (read-only/stub).`,
       hint: "Ensure 'exo.config.toml' exists in current directory or root.",
     });
 

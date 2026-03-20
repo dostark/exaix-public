@@ -10,7 +10,7 @@
 import { z } from "zod";
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
-import { ensureDir } from "@std/fs";
+import { ensureDirSync } from "@std/fs";
 import type { Config } from "../shared/schemas/config.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../shared/constants.ts";
@@ -69,7 +69,7 @@ export class DatabaseService implements IDatabaseService {
     const dbPath = join(dbDir, "journal.db");
 
     // Ensure database directory exists (fixes CI issues with temp directories)
-    ensureDir(dbDir);
+    ensureDirSync(dbDir);
 
     this.db = new Database(dbPath);
     // Enable configured SQLite features
