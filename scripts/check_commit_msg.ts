@@ -37,9 +37,13 @@ const VALID_MODELS = [
 /**
  * Validates a commit message string.
  * @param text The full commit message.
+ * @param options Validation options including changed file count for metrics.
  * @returns Object with success status and list of error messages.
  */
-export function validateCommitMsg(text: string): { success: boolean; errors: string[] } {
+export function validateCommitMsg(
+  text: string,
+  options: { changedFileCount?: number } = {},
+): { success: boolean; errors: string[] } {
   const errors: string[] = [];
   const lines = text.split("\n");
 
@@ -69,25 +73,31 @@ export function validateCommitMsg(text: string): { success: boolean; errors: str
   } else {
     const type = typeMatch[1];
     if (!VALID_TYPES.includes(type)) {
-      errors.push(
-        `Invalid commit type "${type}". Allowed types: ${VALID_TYPES.join(", ")}.`,
-      );
+      errors.push(`Invalid commit type "${type}". Allowed types: ${VALID_TYPES.join(", ")}.`);
     }
   }
 
   // 3. Extract fields and validate
   const fieldMap = new Map<string, string>();
-  // Match fields like "what: content" at the start of a line
-  const fieldRegex = /^(\w+):\s*(.*)/;
+  let currentField: string | null = null;
+  let currentContent: string[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    const match = line.match(fieldRegex);
-    if (match) {
-      const field = match[1].toLowerCase();
-      const content = match[2].trim();
-      fieldMap.set(field, content);
+    const line = lines[i];
+    const fieldMatch = line.match(/^(\w+):\s*(.*)/);
+
+    if (fieldMatch) {
+      if (currentField) {
+        fieldMap.set(currentField, currentContent.join("\n").trim());
+      }
+      currentField = fieldMatch[1].toLowerCase();
+      currentContent = [fieldMatch[2]];
+    } else if (currentField) {
+      currentContent.push(line);
     }
+  }
+  if (currentField) {
+    fieldMap.set(currentField, currentContent.join("\n").trim());
   }
 
   for (const field of REQUIRED_FIELDS) {
@@ -98,15 +108,28 @@ export function validateCommitMsg(text: string): { success: boolean; errors: str
     }
   }
 
-  // 4. Specific Impact validation
-  if (fieldMap.has("impact")) {
-    const impact = fieldMap.get("impact")!;
+  const what = fieldMap.get("what") || "";
+  const rationale = fieldMap.get("rationale") || "";
+  const impact = fieldMap.get("impact") || "";
+
+  // 4. Specific Impact validation & Component Traceability
+  if (impact) {
     // Requirement: <component>: <details>
-    // We check if it contains a colon separating component from details.
     if (!impact.includes(":")) {
       errors.push(
         `Impact field must follow the format "<component>: <details>" (e.g., "ReqProc: added validation").`,
       );
+    } else {
+      // Component Traceability: Every component must appear in 'what'
+      // We assume multiple components might be separated by semicolon or just listed
+      const components = impact.split(";").map((s) => s.split(":")[0].trim());
+      for (const comp of components) {
+        if (comp && !what.toLowerCase().includes(comp.toLowerCase())) {
+          errors.push(
+            `Component Traceability failed: Component "${comp}" mentioned in impact but missing from the "what:" explanation.`,
+          );
+        }
+      }
     }
   }
 
@@ -119,6 +142,31 @@ export function validateCommitMsg(text: string): { success: boolean; errors: str
         `Model "${model}" appears to be hallucinated or unknown. Use a real model name (e.g., Gemini, Claude, Antigravity).`,
       );
     }
+  }
+
+  // 6. Metrics: Structural Bloom
+  const changedFileCount = options.changedFileCount || 0;
+  if (changedFileCount > 3) {
+    // Count bullet points starting with - or * followed by a space
+    const bulletRegex = /^[ \t]*[-*] /gm;
+    const bullets = (what.match(bulletRegex) || []).length;
+    if (bullets < 2) {
+      errors.push(
+        `Structural Bloom: Changes affect ${changedFileCount} files. Please use at least two bullet points in the "what:" section to break down the changes.`,
+      );
+    }
+  }
+
+  // 7. Metrics: Density Threshold
+  const combined = (what + " " + rationale).trim();
+  const words = combined.split(/\s+/).filter((w) => w.length > 0);
+  const wordCount = words.length;
+  // Threshold: 5 words per file, capped at 50
+  const requiredWords = Math.min(50, changedFileCount * 5);
+  if (wordCount < requiredWords) {
+    errors.push(
+      `Density Threshold: Your description is only ${wordCount} words. Based on ${changedFileCount} files changed, at least ${requiredWords} words of detail (across what/rationale) are required.`,
+    );
   }
 
   return { success: errors.length === 0, errors };
@@ -134,7 +182,22 @@ if (import.meta.main) {
 
   try {
     const text = Deno.readTextFileSync(commitMsgFile);
-    const { success, errors } = validateCommitMsg(text);
+
+    // Try to get changed file count from git if available
+    let changedFileCount = 0;
+    try {
+      const process = new Deno.Command("git", {
+        args: ["diff", "--cached", "--name-only"],
+        stdout: "piped",
+      });
+      const output = await process.output();
+      const files = new TextDecoder().decode(output.stdout).trim();
+      changedFileCount = files ? files.split("\n").length : 0;
+    } catch (_e) {
+      // Not in a git repo or git not found, default to 0
+    }
+
+    const { success, errors } = validateCommitMsg(text, { changedFileCount });
 
     if (!success) {
       console.error("\n❌ Structured Commit Message Validation Failed:");
@@ -154,7 +217,7 @@ if (import.meta.main) {
     Deno.exit(0);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`Error reading commit message file: ${msg}`);
+    console.error(`Error processing commit message: ${msg}`);
     Deno.exit(1);
   }
 }

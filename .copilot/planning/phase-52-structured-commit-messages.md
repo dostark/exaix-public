@@ -29,7 +29,7 @@ Currently, commit messages in ExoFrame are largely unstructured. While some comm
 - [ ] Implement a git `commit-msg` hook to enforce this validation locally.
 - [ ] Integrate the validation into the CI pipeline to ensure compliance across all PRs.
 - [ ] Provide a commit message template for users and agents.
-- [ ] Implement commit detail metrics (Density, Structure, Coverage).
+- [x] Implement commit detail metrics (Density, Structure, Coverage).
 
 ### Secondary Goals
 - [ ] Add support for "optional" fields like `links` and `prompt` summary.
@@ -171,17 +171,19 @@ Update `.copilot/prompts/commit-message.md` to ensure all agents (including Anti
 
 ---
 
-### Phase 52.2 — Commit Detail Metrics (PROPOSAL)
+### Phase 52.2 — Commit Detail Metrics
 Refine `scripts/check_commit_msg.ts` to enforce description depth based on change volume and complexity.
 
 **Prioritized Specification:**
-1.  **Component Traceability**: Every architectural claim in the `impact:` header must be technically justified in the `what:` section.
-2.  **Structural Bloom**: Mandatory bullet points for changes affecting more than 3 files.
-3.  **Density Threshold**: A minimum word-to-file ratio (e.g., 5 words per file, capped at 50 total words) to prevent "summary fatigue".
+1.  [x] **Component Traceability**: Every architectural claim in the `impact:` header must be technically justified in the `what:` section.
+2.  [x] **Structural Bloom**: Mandatory bullet points for changes affecting more than 3 files.
+3.  [x] **Density Threshold**: A minimum word-to-file ratio (e.g., 5 words per file, capped at 50 total words) to prevent "summary fatigue".
 
 **Success criteria**:
-- Validation script accurately identifies referenced components and file counts.
-- Commits are rejected if they lack sufficient detail relative to change volume.
+- [x] Validation script accurately identifies referenced components and file counts.
+- [x] Commits are rejected if they lack sufficient detail relative to change volume.
+
+**✅ IMPLEMENTED** — `scripts/check_commit_msg.ts`, `tests/scripts/check_commit_msg_test.ts`
 
 ---
 
