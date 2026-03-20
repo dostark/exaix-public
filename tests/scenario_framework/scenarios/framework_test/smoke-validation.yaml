@@ -11,11 +11,19 @@ portals:
     source_path: "/home/dkasymov/git/ExoFrame"
 
 steps:
+  - id: cleanup-workspace
+    type: shell
+    name: "Clean up existing analysis artifacts"
+    command: "sh"
+    args: ["-c", "rm -f Workspace/Requests/*_analysis.json"]
+    input_criteria: []
+    output_criteria: []
+
   - id: execute-analysis
     type: exoctl
     name: "Run request analysis"
     command: "request"
-    args: ["--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe", "--analyze", "--engine", "heuristic"]
+    args: ["--analyze", "--engine", "llm", "--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe"]
     input_criteria: []
     output_criteria:
       - id: request-created

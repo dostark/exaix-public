@@ -10,11 +10,11 @@ steps:
   - id: "create-memory-aware-request"
     type: "exoctl"
     command: "request"
-    args: ["--analyze", "--file", "fixtures/requests/agent_flows/memory_aware_analysis.md"]
+    args: ["--analyze", "--file", "$REQUEST_FIXTURE"]
     input_criteria:
       - id: "request-fixture-exists"
         kind: "file-exists"
-        path: "fixtures/requests/agent_flows/memory_aware_analysis.md"
+        path: "$REQUEST_FIXTURE"
     output_criteria:
       - id: "request-create-exit-code"
         kind: "command-exit-code"

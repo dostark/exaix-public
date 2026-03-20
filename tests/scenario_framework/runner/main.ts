@@ -8,15 +8,11 @@
 import { Command, EnumType } from "@cliffy/command";
 import { resolve } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";
-import {
-  IRuntimeConfig,
-  resolveRuntimeConfigForExecution,
-  resolveScenarioSelection,
-  ScenarioCiProfile,
-} from "./config.ts";
+import { IRuntimeConfig, resolveRuntimeConfigForExecution, ScenarioCiProfile } from "./config.ts";
 import { ScenarioExecutionMode } from "../schema/step_schema.ts";
-import { listCiSafeScenarios, loadScenarioCatalog, selectScenarioCatalogEntries } from "./scenario_catalog.ts";
+import { IScenarioCatalogEntry, loadScenarioCatalog } from "./scenario_catalog.ts";
 import { runSyntheticScenario } from "./synthetic_runner.ts";
+import { selectScenariosForExecution } from "./modes.ts";
 
 const modeType = new EnumType(ScenarioExecutionMode);
 const profileType = new EnumType(ScenarioCiProfile);
@@ -79,25 +75,14 @@ await new Command()
     // 4. Load catalog
     const catalog = await loadScenarioCatalog({ frameworkHome });
 
-    // 5. Resolve scenario selection
-    const selection = resolveScenarioSelection({
+    // 5. Resolve and apply scenario selection (including profile filtering)
+    const selectedEntries = selectScenariosForExecution({
+      scenarios: catalog,
       explicitScenarioIds: options.scenario,
       explicitPacks: options.pack,
       explicitTags: options.tag,
       profile: runtimeConfig.profile,
-    });
-
-    let selectedEntries = selectScenarioCatalogEntries({
-      catalog,
-      scenarioIds: selection.scenarioIds,
-      packs: selection.packs,
-      tags: selection.tags,
-    });
-
-    // 6. Apply profile filtering if in CI mode (any profile set)
-    if (runtimeConfig.profile) {
-      selectedEntries = listCiSafeScenarios(selectedEntries);
-    }
+    }) as IScenarioCatalogEntry[];
 
     if (selectedEntries.length === 0) {
       console.error("No scenarios selected.");

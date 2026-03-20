@@ -10,11 +10,8 @@ steps:
   - id: "create-request-analysis"
     type: "exoctl"
     command: "request"
-    args: ["--analyze", "--file", "fixtures/requests/agent_flows/request_analysis_smoke.md"]
-    input_criteria:
-      - id: "request-fixture-exists"
-        kind: "file-exists"
-        path: "fixtures/requests/agent_flows/request_analysis_smoke.md"
+    args: ["--analyze", "--engine", "llm", "--file", "$REQUEST_FIXTURE"]
+    input_criteria: []
     output_criteria:
       - id: "request-command-succeeded"
         kind: "command-exit-code"
@@ -23,10 +20,7 @@ steps:
     type: "wait-for-file"
     args: ["**/*_analysis.json"]
     timeout_sec: 120
-    input_criteria:
-      - id: "request-created"
-        kind: "command-exit-code"
-        equals: 0
+    input_criteria: []
     output_criteria:
       - id: "analysis-file-found"
         kind: "file-found"

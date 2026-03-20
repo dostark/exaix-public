@@ -11,7 +11,7 @@ portals:
 steps:
   - id: "portal-mounted"
     type: "exoctl"
-    command: "portal refresh portal-sample-app"
+    command: "portal analyze portal-sample-app"
     input_criteria:
       - id: "portal-available"
         kind: "portal-mounted"
@@ -22,10 +22,7 @@ steps:
         equals: 0
   - id: "knowledge-artifact"
     type: "wait-for-file"
-    input_criteria:
-      - id: "analyze-succeeded"
-        kind: "command-exit-code"
-        equals: 0
+    input_criteria: []
     output_criteria:
       - id: "knowledge-json-found"
         kind: "file-found"

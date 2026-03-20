@@ -34,7 +34,7 @@ export interface IScenarioCatalogSelectionOptions {
 
 const DEFAULT_SCENARIOS_DIRECTORY = "scenarios";
 const SCENARIO_FILE_EXTENSIONS = [".yaml", ".yml"] as const;
-const CI_EXCLUDED_TAGS = ["manual-only", "provider-live", "live"] as const;
+export const CI_EXCLUDED_TAGS = ["manual-only", "provider-live", "live"] as const;
 
 export async function loadScenarioCatalog(
   options: ILoadScenarioCatalogOptions,

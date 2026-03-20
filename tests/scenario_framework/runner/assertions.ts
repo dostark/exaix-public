@@ -9,7 +9,7 @@
  * @related-files [tests/scenario_framework/runner/evidence_collector.ts, tests/scenario_framework/schema/step_schema.ts, tests/scenario_framework/tests/unit/assertions_evidence_test.ts]
  */
 
-import { globToRegExp, relative, resolve } from "@std/path";
+import { globToRegExp, isAbsolute, relative, resolve } from "@std/path";
 import { levenshteinDistance } from "@std/text";
 import { parse as parseYaml } from "@std/yaml";
 import {
@@ -296,6 +296,10 @@ async function evaluateTextContainsCriterion(
     });
   }
 
+  if (content.includes(criterion.contains)) {
+    return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.path));
+  }
+
   if (criterion.similarity_threshold !== undefined) {
     const similarity = getSimilarityScore(content, criterion.contains);
     if (similarity >= criterion.similarity_threshold) {
@@ -309,10 +313,6 @@ async function evaluateTextContainsCriterion(
       observedValue: content,
       evidenceRefs: buildEvidenceRefs(options.workspaceRoot, criterion.path),
     });
-  }
-
-  if (content.includes(criterion.contains)) {
-    return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, criterion.path));
   }
 
   return buildFailedResult(options, {
@@ -644,6 +644,9 @@ function buildFailedResult(
 }
 
 function resolveCriterionPath(workspaceRoot: string, relativePath: string): string {
+  if (isAbsolute(relativePath)) {
+    return relativePath;
+  }
   const resolvedPath = resolve(workspaceRoot, relativePath);
   const workspacePrefix = `${resolve(workspaceRoot)}/`;
   if (resolvedPath !== resolve(workspaceRoot) && !resolvedPath.startsWith(workspacePrefix)) {

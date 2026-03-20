@@ -119,7 +119,20 @@ interface IExecuteSyntheticStepOptions {
 async function executeSyntheticStep(
   options: IExecuteSyntheticStepOptions,
 ): Promise<IScenarioStepOutcome> {
-  const inputResults = await evaluateInputCriteria(options);
+  const env = {
+    ...Deno.env.toObject(),
+    ...(options.env ?? {}),
+    ...(options.step.env ?? {}),
+    REQUEST_FIXTURE: options.requestFixturePath,
+  };
+
+  const resolvedStep = expandVariablesInStep(options.step, env);
+
+  const inputResults = await evaluateInputCriteria({
+    ...options,
+    step: resolvedStep,
+  });
+
   if (hasFailedCriterion(inputResults)) {
     return {
       stepId: options.step.id,
@@ -129,30 +142,19 @@ async function executeSyntheticStep(
     };
   }
 
-  const resolvedStep = {
-    ...options.step,
-    args: options.step.args?.map((arg) => arg.replaceAll("$REQUEST_FIXTURE", options.requestFixturePath)),
-  };
-
   const executionResult = await executeScenarioStep({
     step: resolvedStep,
     exoctlExecutable: options.exoctlExecutable,
     cwd: options.workspaceRoot,
-    env: {
-      ...(options.env ?? {}),
-      ...(options.step.env ?? {}),
-    },
+    env,
     verbose: options.verbose,
   });
 
   const outputOutcome = await evaluateStepOutcome({
     workspaceRoot: options.workspaceRoot,
-    step: {
-      ...options.step,
-      input_criteria: [],
-    },
+    step: resolvedStep,
     executionResult,
-    env: options.env,
+    env,
     portalAliases: options.portalAliases,
   });
 
@@ -277,4 +279,31 @@ function mapExecutionStatus(outcome: IScenarioStepOutcome): string {
   }
 
   return "failed";
+}
+
+function expandVariablesInStep(step: IScenarioStep, env: Record<string, string>): IScenarioStep {
+  const expand = (str: string) => {
+    if (!str) return str;
+    let res = str;
+    for (const [key, value] of Object.entries(env)) {
+      res = res.replaceAll(`$${key}`, value);
+    }
+    return res;
+  };
+
+  return {
+    ...step,
+    command: step.command ? expand(step.command) : step.command,
+    args: step.args?.map(expand),
+    input_criteria: step.input_criteria.map((c: any) => ({
+      ...c,
+      path: c.path ? expand(c.path) : c.path,
+      target_file: c.target_file ? expand(c.target_file) : c.target_file,
+    })),
+    output_criteria: step.output_criteria.map((c: any) => ({
+      ...c,
+      path: c.path ? expand(c.path) : c.path,
+      target_file: c.target_file ? expand(c.target_file) : c.target_file,
+    })),
+  } as IScenarioStep;
 }

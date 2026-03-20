@@ -17,7 +17,7 @@ import { ExoPathDefaults } from "../shared/constants.ts";
 import type { Config } from "../shared/schemas/config.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
-import type { ICliApplicationContext } from "./cli_context.ts";
+import type { ICliApplicationContext, IPortalKnowledgeConfig } from "./cli_context.ts";
 import { createGitServiceStub, createProviderStub } from "../shared/helpers/stub_factories.ts";
 
 // Concrete services for adapters
@@ -31,6 +31,7 @@ import { ContextCardGenerator } from "../services/context_card_generator.ts";
 import { PortalService } from "../services/portal.ts";
 import { RequestService } from "../services/request.ts";
 import { PlanService } from "../services/plan.ts";
+import { PortalKnowledgeService } from "../services/portal_knowledge/portal_knowledge_service.ts";
 
 // Adapters
 import {
@@ -47,6 +48,7 @@ import {
   RequestAdapter,
   SkillsAdapter,
 } from "../services/adapters/mod.ts";
+import { OutputValidator } from "../services/output_validator.ts";
 
 export interface IServiceContext extends ICliApplicationContext {
   success: boolean;
@@ -142,9 +144,35 @@ export async function initializeServices(
     const flowValidator = new FlowValidatorImpl(flowLoader, blueprintsPath);
     const contextCards = new ContextCardGenerator(cfg);
 
+    const validatorLocal = new OutputValidator();
     const portals = new PortalService(cfg, configAdapter, contextCards, displayAdapter);
-    const requests = new RequestService(cfg, configAdapter, displayAdapter, userIdentityGetter, dbLocal);
+    const requests = new RequestService(
+      cfg,
+      configAdapter,
+      displayAdapter,
+      userIdentityGetter,
+      providerLocal,
+      validatorLocal,
+      dbLocal,
+    );
     const plans = new PlanService(cfg, configAdapter, dbLocal, displayAdapter, userIdentityGetter);
+    const portalKnowledgeConfig: IPortalKnowledgeConfig = {
+      autoAnalyzeOnMount: cfg.portal_knowledge.auto_analyze_on_mount,
+      defaultMode: cfg.portal_knowledge.default_mode,
+      quickScanLimit: cfg.portal_knowledge.quick_scan_limit,
+      maxFilesToRead: cfg.portal_knowledge.max_files_to_read,
+      staleness: cfg.portal_knowledge.staleness_hours,
+      useLlmInference: cfg.portal_knowledge.use_llm_inference,
+      ignorePatterns: cfg.portal_knowledge.ignore_patterns,
+    };
+
+    const portalKnowledge = new PortalKnowledgeService(
+      portalKnowledgeConfig,
+      memoryBank,
+      providerLocal,
+      undefined,
+      dbLocal,
+    );
 
     return {
       success: true,
@@ -163,6 +191,8 @@ export async function initializeServices(
       portals: new PortalAdapter(portals),
       requests: new RequestAdapter(requests),
       plans: new PlanAdapter(plans),
+      portalKnowledge: portalKnowledge,
+      portalKnowledgeConfig: portalKnowledgeConfig,
     };
   } catch (err) {
     // Fallback minimal stubs (same as runtime fallback)

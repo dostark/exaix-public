@@ -10,11 +10,11 @@ steps:
   - id: "workspace-health-request"
     type: "exoctl"
     command: "request"
-    args: ["--file", "fixtures/requests/shared/workspace_health_smoke.md"]
+    args: ["--file", "$REQUEST_FIXTURE"]
     input_criteria:
       - id: "workspace-health-fixture-exists"
         kind: "file-exists"
-        path: "fixtures/requests/shared/workspace_health_smoke.md"
+        path: "$REQUEST_FIXTURE"
     output_criteria:
       - id: "workspace-health-request-exit-code"
         kind: "command-exit-code"

@@ -18,6 +18,7 @@ import {
 } from "./config.ts";
 import { type IScenarioStepExecutionResult } from "./step_executor.ts";
 import { type IScenarioStep, ScenarioExecutionMode } from "../schema/step_schema.ts";
+import { CI_EXCLUDED_TAGS } from "./scenario_catalog.ts";
 
 export interface IExecutionState {
   scenarioId: string;
@@ -173,13 +174,21 @@ function filterByProfileDefaults(
   scenarios: ISelectableScenario[],
   selection: IResolvedScenarioSelection,
 ): ISelectableScenario[] {
+  // Always filter to AUTO-supported and non-excluded tags for CI profiles
+  const ciSafe = scenarios.filter((scenario) => {
+    if (!scenario.mode_support.includes(ScenarioExecutionMode.AUTO)) {
+      return false;
+    }
+    return !scenario.tags.some((tag) => (CI_EXCLUDED_TAGS as readonly string[]).includes(tag));
+  });
+
   if (selection.profile === ScenarioCiProfile.SMOKE) {
-    return scenarios.filter((scenario) => scenario.tags.includes("smoke"));
+    return ciSafe.filter((scenario) => scenario.tags.includes("smoke"));
   }
 
   if (selection.profile === ScenarioCiProfile.CORE) {
-    return scenarios.filter((scenario) => scenario.pack !== "provider_live");
+    return ciSafe.filter((scenario) => scenario.pack !== "provider_live");
   }
 
-  return [...scenarios];
+  return ciSafe;
 }

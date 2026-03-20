@@ -20,6 +20,8 @@ import { loadAnalysis, RequestAnalyzer, saveAnalysis } from "./request_analysis/
 import { IDatabaseService } from "./db.ts";
 import { AnalysisMode } from "../shared/types/request.ts";
 import { JSONValue } from "../shared/types/json.ts";
+import { IModelProvider } from "../ai/types.ts";
+import { IOutputValidator } from "./output_validator.ts";
 
 export class RequestService {
   private requestsDir: string;
@@ -29,6 +31,8 @@ export class RequestService {
     private configService: IConfigService,
     private display: IDisplayService,
     private userIdentityGetter: () => Promise<string>,
+    private provider?: IModelProvider,
+    private validator?: IOutputValidator,
     private db?: IDatabaseService,
   ) {
     const root = config.system.root!;
@@ -264,8 +268,8 @@ export class RequestService {
         actionabilityThreshold: this.config.request_analysis?.actionability_threshold,
         inferAcceptanceCriteria: this.config.request_analysis?.infer_acceptance_criteria,
       },
-      undefined,
-      undefined,
+      this.provider,
+      this.validator,
       this.db,
     );
 

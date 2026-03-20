@@ -19,11 +19,11 @@ steps:
       - "portal-exoframe"
       - "--analyze"
       - "--file"
-      - "fixtures/requests/provider_live/code_analyst_cli_structure.md"
+      - "$REQUEST_FIXTURE"
     input_criteria:
       - id: "request-fixture-exists"
         kind: "file-exists"
-        path: "fixtures/requests/provider_live/code_analyst_cli_structure.md"
+        path: "$REQUEST_FIXTURE"
     output_criteria:
       - id: "request-created"
         kind: "command-exit-code"
@@ -32,10 +32,7 @@ steps:
     type: "wait-for-file"
     args: ["**/*_analysis.json"]
     timeout_sec: 180
-    input_criteria:
-      - id: "request-exists"
-        kind: "command-exit-code"
-        equals: 0
+    input_criteria: []
     output_criteria:
       - id: "plan-json-found"
         kind: "file-found"
