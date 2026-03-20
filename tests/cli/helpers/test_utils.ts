@@ -46,6 +46,10 @@ sqlite.busy_timeout_ms = 5000
 
 [agents]
 default_model = "mock:test"
+
+[models."mock:test"]
+provider = "mock"
+model = "test"
 `;
   await Deno.writeTextFile(configPath, configContent);
   // Set EXO_CONFIG_PATH before any CLI code loads

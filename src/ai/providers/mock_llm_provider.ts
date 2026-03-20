@@ -515,7 +515,7 @@ I will execute this step according to the plan.
 
       // Planning patterns (for plan generation requests)
       {
-        pattern: /analyze/i,
+        pattern: /intent analyzer/i,
         response: `<thought>
 I will analyze the request and provide a detailed architectural assessment.
 </thought>

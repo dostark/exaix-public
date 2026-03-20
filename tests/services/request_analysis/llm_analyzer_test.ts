@@ -8,7 +8,11 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../../../src/ai/providers.ts";
-import { createOutputValidator } from "../../../src/services/output_validator.ts";
+import {
+  createOutputValidator,
+  type IOutputValidator,
+  type IValidationResult,
+} from "../../../src/services/output_validator.ts";
 import { LlmAnalyzer } from "../../../src/services/request_analysis/llm_analyzer.ts";
 import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
@@ -131,18 +135,34 @@ Deno.test("[LlmAnalyzer] passes optional context in prompt when provided", async
 });
 
 Deno.test("[LlmAnalyzer] uses OutputValidator for schema validation", async () => {
-  let validateCalled = false;
-  const mockValidator = {
+  let parseAndValidateCalled = false;
+  const mockValidator: IOutputValidator = {
     parseXMLTags: (raw: string) => ({ thought: "", content: raw, raw }),
-    validate: <T>(content: string, _schema: unknown) => {
-      validateCalled = true;
+    validate: () => ({ success: false, repairAttempted: false, repairSucceeded: false, raw: "" }),
+    validateWithSchema: () => ({ success: false, repairAttempted: false, repairSucceeded: false, raw: "" }),
+    parseAndValidate: <T>(content: string, _schema: unknown) => {
+      parseAndValidateCalled = true;
       // Delegate to real parser for correctness
       const parsed = JSON.parse(content);
-      return { success: true, value: parsed as T, repairAttempted: false, repairSucceeded: false, raw: content };
+      return {
+        success: true,
+        value: parsed as T,
+        repairAttempted: false,
+        repairSucceeded: false,
+        raw: content,
+      };
     },
-    validateWithSchema: () => ({ success: false, repairAttempted: false, repairSucceeded: false, raw: "" }),
-    parseAndValidate: () => ({ success: false, repairAttempted: false, repairSucceeded: false, raw: "" }),
-    parseAndValidateWithSchema: () => ({ success: false, repairAttempted: false, repairSucceeded: false, raw: "" }),
+    parseAndValidateWithSchema: <K extends string>(
+      raw: string,
+      _schemaName: K,
+    ): IValidationResult<unknown> => {
+      return {
+        success: false,
+        repairAttempted: false,
+        repairSucceeded: false,
+        raw: raw,
+      };
+    },
     getMetrics: () => ({
       totalAttempts: 0,
       successfulValidations: 0,
@@ -157,7 +177,7 @@ Deno.test("[LlmAnalyzer] uses OutputValidator for schema validation", async () =
 
   await analyzer.analyze("Fix bug.");
 
-  assertEquals(validateCalled, true);
+  assertEquals(parseAndValidateCalled, true);
 });
 
 Deno.test("[LlmAnalyzer] returns fallback analysis on validation failure", async () => {
