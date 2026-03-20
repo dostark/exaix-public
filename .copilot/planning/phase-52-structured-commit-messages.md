@@ -24,11 +24,11 @@ Currently, commit messages in ExoFrame are largely unstructured. While some comm
 ## Phase Goals
 
 ### Primary Goals
-- [ ] Define a canonical structure for commit messages.
-- [ ] Implement `scripts/check_commit_msg.ts` to validate commit messages.
-- [ ] Implement a git `commit-msg` hook to enforce this validation locally.
-- [ ] Integrate the validation into the CI pipeline to ensure compliance across all PRs.
-- [ ] Provide a commit message template for users and agents.
+- [x] Define a canonical structure for commit messages.
+- [x] Implement `scripts/check_commit_msg.ts` to validate commit messages.
+- [x] Implement a git `commit-msg` hook to enforce this validation locally.
+- [x] Integrate the validation into the CI pipeline to ensure compliance across all PRs.
+- [x] Provide a commit message template for users and agents.
 - [x] Implement commit detail metrics (Density, Structure, Coverage).
 
 ### Secondary Goals
