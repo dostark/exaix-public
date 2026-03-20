@@ -1602,4 +1602,7 @@ __test_command.command("migrate", migrateCommand);
 
 if (!isTestMode()) {
   await __test_command.parse(Deno.args);
+  if (services.db && services.db.close) {
+    await services.db.close();
+  }
 }

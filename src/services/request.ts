@@ -17,6 +17,7 @@ import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
 import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 import { loadAnalysis, RequestAnalyzer, saveAnalysis } from "./request_analysis/mod.ts";
+import { IDatabaseService } from "./db.ts";
 import { AnalysisMode } from "../shared/types/request.ts";
 import { JSONValue } from "../shared/types/json.ts";
 
@@ -28,6 +29,7 @@ export class RequestService {
     private configService: IConfigService,
     private display: IDisplayService,
     private userIdentityGetter: () => Promise<string>,
+    private db?: IDatabaseService,
   ) {
     const root = config.system.root!;
     const workspace = config.paths.workspace!;
@@ -256,11 +258,16 @@ export class RequestService {
     // Get metadata from show() to get priority/agent
     const { metadata } = await this.show(filename);
 
-    const analyzer = new RequestAnalyzer({
-      mode: options.mode || (this.config.request_analysis?.mode as AnalysisMode) || AnalysisMode.HYBRID,
-      actionabilityThreshold: this.config.request_analysis?.actionability_threshold,
-      inferAcceptanceCriteria: this.config.request_analysis?.infer_acceptance_criteria,
-    });
+    const analyzer = new RequestAnalyzer(
+      {
+        mode: options.mode || (this.config.request_analysis?.mode as AnalysisMode) || AnalysisMode.HYBRID,
+        actionabilityThreshold: this.config.request_analysis?.actionability_threshold,
+        inferAcceptanceCriteria: this.config.request_analysis?.infer_acceptance_criteria,
+      },
+      undefined,
+      undefined,
+      this.db,
+    );
 
     const analysis = await analyzer.analyze(body, {
       agentId: metadata.agent,

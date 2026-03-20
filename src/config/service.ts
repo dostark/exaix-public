@@ -21,18 +21,15 @@ export class ConfigService {
   private config: Config;
   private checksum: string = "";
 
-  constructor(configPath: string = "exo.config.toml") {
-    // Always use the provided configPath argument if present
+  constructor(configPath?: string) {
+    const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
+
     if (configPath) {
       this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
+    } else if (envConfigPath) {
+      this.configPath = isAbsolute(envConfigPath) ? envConfigPath : join(Deno.cwd(), envConfigPath);
     } else {
-      // Fallback to EXO_CONFIG_PATH if no argument provided
-      const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
-      if (envConfigPath) {
-        this.configPath = envConfigPath;
-      } else {
-        this.configPath = join(Deno.cwd(), "exo.config.toml");
-      }
+      this.configPath = join(Deno.cwd(), "exo.config.toml");
     }
     // Never mutate configPath in test mode; always use the explicit path
     this.config = this.load();

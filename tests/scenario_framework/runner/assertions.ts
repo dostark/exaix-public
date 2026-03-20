@@ -23,7 +23,6 @@ import {
 import type { IScenarioStepExecutionResult } from "./step_executor.ts";
 
 const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n?/;
-const DEFAULT_JOURNAL_FILE = "journal.ndjson";
 const JSON_PATH_ROOT = "$";
 
 export enum StepFailureStage {
@@ -39,6 +38,7 @@ export interface IEvaluateCriterionOptions {
   executionResult?: IScenarioStepExecutionResult;
   env?: { [key: string]: string };
   portalAliases?: string[];
+  exoctlExecutable?: string;
 }
 
 export interface IEvaluateStepOutcomeOptions {
@@ -47,6 +47,8 @@ export interface IEvaluateStepOutcomeOptions {
   executionResult?: IScenarioStepExecutionResult;
   env?: { [key: string]: string };
   portalAliases?: string[];
+  verbose?: boolean;
+  exoctlExecutable?: string;
 }
 
 export interface IScenarioStepOutcome {
@@ -126,13 +128,32 @@ export async function evaluateCriterion(
 export async function evaluateStepOutcome(
   options: IEvaluateStepOutcomeOptions,
 ): Promise<IScenarioStepOutcome> {
+  // Resolve file_pattern if provided by the step
+  let stepTargetFile: string | undefined = undefined;
+  if (options.step.file_pattern) {
+    stepTargetFile = await resolveStepFilePattern(
+      options.workspaceRoot,
+      options.step.file_pattern,
+    );
+  }
+
+  // Rewrite criteria if step-level target file is resolved
+  const inputCriteria = stepTargetFile
+    ? rewriteCriteriaWithTarget(options.step.input_criteria, stepTargetFile)
+    : options.step.input_criteria;
+
+  const outputCriteria = stepTargetFile
+    ? rewriteCriteriaWithTarget(options.step.output_criteria, stepTargetFile)
+    : options.step.output_criteria;
+
   const inputResults = await evaluateCriteriaBatch({
     workspaceRoot: options.workspaceRoot,
     phase: CriterionPhase.INPUT,
-    criteria: options.step.input_criteria,
+    criteria: inputCriteria,
     executionResult: options.executionResult,
     env: options.env,
     portalAliases: options.portalAliases,
+    exoctlExecutable: options.exoctlExecutable,
   });
 
   if (hasFailedCriterion(inputResults)) {
@@ -158,10 +179,11 @@ export async function evaluateStepOutcome(
   const outputResults = await evaluateCriteriaBatch({
     workspaceRoot: options.workspaceRoot,
     phase: CriterionPhase.OUTPUT,
-    criteria: options.step.output_criteria,
+    criteria: outputCriteria,
     executionResult: options.executionResult,
     env: options.env,
     portalAliases: options.portalAliases,
+    exoctlExecutable: options.exoctlExecutable,
   });
   const criterionResults = [...inputResults, ...outputResults];
 
@@ -181,6 +203,7 @@ interface IEvaluateCriteriaBatchOptions {
   executionResult?: IScenarioStepExecutionResult;
   env?: { [key: string]: string };
   portalAliases?: string[];
+  exoctlExecutable?: string;
 }
 
 async function evaluateCriteriaBatch(
@@ -197,6 +220,7 @@ async function evaluateCriteriaBatch(
         executionResult: options.executionResult,
         env: options.env,
         portalAliases: options.portalAliases,
+        exoctlExecutable: options.exoctlExecutable,
       }),
     );
   }
@@ -476,31 +500,48 @@ async function evaluateJournalEventExistsCriterion(
   options: IEvaluateCriterionOptions,
 ): Promise<ICriterionResult> {
   const criterion = options.criterion as IJournalEventExistsCriterion;
-  const journalFile = criterion.journal_file ?? DEFAULT_JOURNAL_FILE;
-  const content = await safeReadTextFile(options.workspaceRoot, journalFile);
-  if (content === null) {
+  const events = await loadJournalFromCli(options);
+
+  if (events === null) {
     return buildFailedResult(options, {
-      message: `journal file not found: ${journalFile}`,
-      evidenceRefs: buildEvidenceRefs(options.workspaceRoot, journalFile),
+      message: `Failed to query journal via CLI (exoctl not found or errored). Ensure ExoFrame daemon is accessible.`,
     });
   }
 
-  for (const line of content.split("\n")) {
-    if (line.trim().length === 0) {
-      continue;
-    }
+  // Modern ExoFrame uses 'action_type' for event identification in the SQLite journal.
+  const found = events.some((
+    e: any,
+  ) => (e.action_type === criterion.event_type || e.event_type === criterion.event_type));
 
-    const eventRecord = JSON.parse(line) as { event_type?: string };
-    if (eventRecord.event_type === criterion.event_type) {
-      return buildPassedResult(options, buildEvidenceRefs(options.workspaceRoot, journalFile));
-    }
+  if (found) {
+    return buildPassedResult(options, []);
   }
 
   return buildFailedResult(options, {
     message: `expected journal event type: ${criterion.event_type}`,
     expectedValue: criterion.event_type,
-    evidenceRefs: buildEvidenceRefs(options.workspaceRoot, journalFile),
+    observedValue: `Latest 50 events: ${events.slice(0, 50).map((e: any) => e.action_type || e.event_type).join(", ")}`,
   });
+}
+
+async function loadJournalFromCli(options: IEvaluateCriterionOptions): Promise<any[] | null> {
+  const exoctl = options.exoctlExecutable || "exoctl";
+  try {
+    const command = new Deno.Command(exoctl, {
+      args: ["journal", "--format", "json", "-n", "200"],
+      stdout: "piped",
+      stderr: "piped",
+      env: options.env,
+      cwd: options.workspaceRoot,
+    });
+    const { code, stdout } = await command.output();
+    if (code !== 0) return null;
+
+    const text = new TextDecoder().decode(stdout);
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function evaluateCommandExitCodeCriterion(
@@ -733,11 +774,13 @@ function getSimilarityScore(a: string, b: string): number {
   return 1 - (distance / Math.max(a.length, b.length));
 }
 
-async function* walkWorkspaceFiles(workspaceRoot: string): AsyncGenerator<string> {
-  for await (const entry of Deno.readDir(workspaceRoot)) {
-    const entryPath = resolve(workspaceRoot, entry.name);
+async function* walkWorkspaceFiles(dir: string): AsyncGenerator<string> {
+  for await (const entry of Deno.readDir(dir)) {
+    const entryPath = resolve(dir, entry.name);
     if (entry.isDirectory) {
-      yield* walkWorkspaceFiles(entryPath);
+      if (!entry.name.startsWith(".")) {
+        yield* walkWorkspaceFiles(entryPath);
+      }
       continue;
     }
 
@@ -745,6 +788,54 @@ async function* walkWorkspaceFiles(workspaceRoot: string): AsyncGenerator<string
       yield entryPath;
     }
   }
+}
+
+async function resolveStepFilePattern(
+  workspaceRoot: string,
+  pattern: string,
+): Promise<string | undefined> {
+  const matcher = globToRegExp(pattern);
+  for await (const filePath of walkWorkspaceFiles(workspaceRoot)) {
+    const relativePath = relative(workspaceRoot, filePath);
+    if (matcher.test(relativePath)) {
+      return relativePath;
+    }
+  }
+  return undefined;
+}
+
+function rewriteCriteriaWithTarget(
+  criteria: ICriterion[],
+  targetFile: string,
+): ICriterion[] {
+  return criteria.map((original) => {
+    const criterion = { ...original } as ICriterion & Record<string, string | number | boolean | null | undefined>;
+
+    const kindsWithTargetFile = [
+      CriterionKind.JSON_PATH_EXISTS,
+      CriterionKind.JSON_PATH_EQUALS,
+      CriterionKind.JSON_PATH_EQUALS_ANY,
+      CriterionKind.FRONTMATTER_FIELD_EXISTS,
+      CriterionKind.FRONTMATTER_FIELD_EQUALS,
+    ];
+
+    const kindsWithFilePath = [
+      CriterionKind.TEXT_CONTAINS,
+      CriterionKind.TEXT_MATCHES,
+      CriterionKind.FILE_EXISTS,
+      CriterionKind.FILE_NOT_EXISTS,
+    ];
+
+    if (kindsWithTargetFile.includes(criterion.kind) && !criterion.target_file) {
+      criterion.target_file = targetFile;
+    }
+
+    if (kindsWithFilePath.includes(criterion.kind) && !criterion.path) {
+      criterion.path = targetFile;
+    }
+
+    return criterion as ICriterion;
+  });
 }
 
 // -----------------------------------------------------------------------------

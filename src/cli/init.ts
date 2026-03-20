@@ -119,7 +119,7 @@ export async function initializeServices(
     // For provider, ensure we have a valid model name or fallback
     const model = cfg.agents?.default_model || "mock:test";
     const providerLocal = await ProviderFactory.createByName(cfg, model);
-    const displayLogger = new EventLogger({});
+    const displayLogger = new EventLogger({ db: dbLocal });
     const displayAdapter = new DisplayAdapter(displayLogger);
     const configAdapter = new ConfigAdapter(cfgService);
 
@@ -143,7 +143,7 @@ export async function initializeServices(
     const contextCards = new ContextCardGenerator(cfg);
 
     const portals = new PortalService(cfg, configAdapter, contextCards, displayAdapter);
-    const requests = new RequestService(cfg, configAdapter, displayAdapter, userIdentityGetter);
+    const requests = new RequestService(cfg, configAdapter, displayAdapter, userIdentityGetter, dbLocal);
     const plans = new PlanService(cfg, configAdapter, dbLocal, displayAdapter, userIdentityGetter);
 
     return {

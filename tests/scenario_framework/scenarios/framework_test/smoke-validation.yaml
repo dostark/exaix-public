@@ -44,7 +44,7 @@ steps:
     output_criteria:
       - id: verify-goal-extraction
         kind: json-path-equals
-        path: "$.goals[0]"
+        path: "$.goals[0].description"
         equals: "Analyze the core architecture of the ExoFrame Scenario Framework"
         similarity_threshold: 0.8
 
@@ -55,4 +55,4 @@ steps:
     output_criteria:
       - id: event-logged
         kind: journal-event-exists
-        event_type: "request.quality_assessed"
+        event_type: "request.analyzed"

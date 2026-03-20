@@ -76,8 +76,26 @@ function completeFromHeuristic(
   durationMs: number,
   mode: AnalysisMode = AnalysisMode.HEURISTIC,
 ): IRequestAnalysis {
+  let goals = partial.goals ?? [];
+
+  // Fallback: Use the first non-empty line (skipping frontmatter) as the main goal
+  if (goals.length === 0) {
+    const lines = requestText.trim().split("\n");
+    for (let line of lines) {
+      line = line.trim();
+      if (line && line !== "---" && !line.startsWith("#")) {
+        goals = [{
+          description: line,
+          explicit: true,
+          priority: 1,
+        }];
+        break;
+      }
+    }
+  }
+
   return {
-    goals: partial.goals ?? [],
+    goals: goals,
     requirements: partial.requirements ?? [],
     constraints: partial.constraints ?? [],
     acceptanceCriteria: partial.acceptanceCriteria ?? [],
