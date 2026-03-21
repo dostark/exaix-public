@@ -10,11 +10,12 @@
 import { join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { Config } from "../shared/schemas/config.ts";
-import { PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../shared/enums.ts";
+import { PortalAnalysisMode, PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../shared/enums.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../shared/types/portal.ts";
 import { ExoPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
 import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
-import { loadKnowledge } from "./portal_knowledge/knowledge_persistence.ts";
+import { loadKnowledge, saveKnowledge } from "./portal_knowledge/knowledge_persistence.ts";
+import { IPortalKnowledgeConfig, IPortalKnowledgeService } from "../shared/interfaces/i_portal_knowledge_service.ts";
 import { IContextCardGeneratorService } from "../shared/interfaces/i_context_card_generator_service.ts";
 import { IConfigService } from "../shared/interfaces/i_config_service.ts";
 import { IDisplayService } from "../shared/interfaces/i_display_service.ts";
@@ -28,6 +29,8 @@ export class PortalService {
     private configService: IConfigService,
     private contextCardGenerator: IContextCardGeneratorService,
     private display: IDisplayService,
+    private portalKnowledge?: IPortalKnowledgeService,
+    private portalKnowledgeConfig?: IPortalKnowledgeConfig,
   ) {
     this.portalsDir = join(config.system.root as string, config.paths.portals as string);
   }
@@ -85,6 +88,20 @@ export class PortalService {
         defaultBranch: options?.defaultBranch,
         executionStrategy: options?.executionStrategy,
       });
+
+      // Trigger portal knowledge analysis post-mount (fire-and-forget on failure)
+      if (this.portalKnowledge && this.portalKnowledgeConfig?.autoAnalyzeOnMount) {
+        const sysRoot = this.config.system.root as string;
+        const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+        (async () => {
+          try {
+            const knowledge = await this.portalKnowledge!.analyze(alias, absoluteTarget);
+            await saveKnowledge(alias, knowledge, null, projectsDir);
+          } catch {
+            // Analysis failure must not block mount
+          }
+        })();
+      }
 
       await this.display.info("portal.added", alias, {
         target: absoluteTarget,
@@ -360,12 +377,59 @@ export class PortalService {
    * Load persisted portal knowledge (knowledge.json) for the given alias.
    * Returns `null` when no analysis has been run yet.
    */
-  getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null> {
+  async getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null> {
+    const symlinkPath = join(this.portalsDir, portalAlias);
+    try {
+      await Deno.lstat(symlinkPath);
+    } catch {
+      throw new Error(`Portal '${portalAlias}' not found`);
+    }
+
     const projectsDir = join(
       this.config.system.root as string,
       ExoPathDefaults.memoryProjects,
     );
     return loadKnowledge(portalAlias, projectsDir);
+  }
+
+  async analyze(
+    alias: string,
+    options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string> {
+    const symlinkPath = join(this.portalsDir, alias);
+
+    try {
+      await Deno.lstat(symlinkPath);
+    } catch {
+      throw new Error(`Portal '${alias}' not found`);
+    }
+
+    const portalPath = await Deno.readLink(symlinkPath);
+
+    if (!this.portalKnowledge) {
+      throw new Error("Portal knowledge service is not available");
+    }
+
+    const mode = options?.mode;
+    const knowledge = await this.portalKnowledge.analyze(alias, portalPath, mode);
+
+    // Persist knowledge.json
+    const sysRoot = this.config.system.root as string;
+    const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+    await saveKnowledge(alias, knowledge, null, projectsDir);
+
+    await this.display.info("portal.analyzed", alias, {
+      mode: knowledge.metadata.mode,
+      filesScanned: knowledge.metadata.filesScanned,
+      durationMs: knowledge.metadata.durationMs,
+    });
+
+    return [
+      `Portal: ${alias}`,
+      `Mode:   ${knowledge.metadata.mode}`,
+      `Files scanned: ${knowledge.metadata.filesScanned}`,
+      `Duration: ${knowledge.metadata.durationMs}ms`,
+    ].join("\n");
   }
 
   private async validateBranchName(branch: string, opts?: { label?: string }): Promise<void> {

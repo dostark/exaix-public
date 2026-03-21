@@ -7,7 +7,7 @@
  * @related-files [src/shared/types/portal.ts]
  */
 
-import type { PortalExecutionStrategy } from "../enums.ts";
+import type { PortalAnalysisMode, PortalExecutionStrategy } from "../enums.ts";
 import type { IPortalDetails, IPortalInfo, IVerificationResult } from "../types/portal.ts";
 import type { IPortalKnowledge } from "../schemas/portal_knowledge.ts";
 
@@ -95,4 +95,13 @@ export interface IPortalService {
    * Load persisted portal knowledge from knowledge.json, or null when not yet analyzed.
    */
   getKnowledge(portalAlias: string): Promise<IPortalKnowledge | null>;
+
+  /**
+   * Trigger codebase knowledge analysis for a portal.
+   * Returns a human-readable summary of the analysis.
+   */
+  analyze(
+    alias: string,
+    options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string>;
 }

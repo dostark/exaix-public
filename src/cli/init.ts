@@ -145,17 +145,6 @@ export async function initializeServices(
     const contextCards = new ContextCardGenerator(cfg);
 
     const validatorLocal = new OutputValidator();
-    const portals = new PortalService(cfg, configAdapter, contextCards, displayAdapter);
-    const requests = new RequestService(
-      cfg,
-      configAdapter,
-      displayAdapter,
-      userIdentityGetter,
-      providerLocal,
-      validatorLocal,
-      dbLocal,
-    );
-    const plans = new PlanService(cfg, configAdapter, dbLocal, displayAdapter, userIdentityGetter);
     const portalKnowledgeConfig: IPortalKnowledgeConfig = {
       autoAnalyzeOnMount: cfg.portal_knowledge.auto_analyze_on_mount,
       defaultMode: cfg.portal_knowledge.default_mode,
@@ -173,6 +162,25 @@ export async function initializeServices(
       undefined,
       dbLocal,
     );
+
+    const portals = new PortalService(
+      cfg,
+      configAdapter,
+      contextCards,
+      displayAdapter,
+      portalKnowledge,
+      portalKnowledgeConfig,
+    );
+    const requests = new RequestService(
+      cfg,
+      configAdapter,
+      displayAdapter,
+      userIdentityGetter,
+      providerLocal,
+      validatorLocal,
+      dbLocal,
+    );
+    const plans = new PlanService(cfg, configAdapter, dbLocal, displayAdapter, userIdentityGetter);
 
     return {
       success: true,

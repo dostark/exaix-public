@@ -49,6 +49,7 @@ class MinimalIPortalServiceMock implements IPortalService {
   getPortalFilesystemPath = (_: string) => Promise.resolve("");
   getPortalActivityLog = (_: string) => [] as string[];
   getKnowledge = (_: string) => Promise.resolve(null);
+  analyze = (_alias: string, _options?: any): Promise<string> => Promise.resolve("Mock analysis");
 }
 
 // Additional coverage for error branches and rendering helpers
@@ -1054,6 +1055,7 @@ Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
     getPortalFilesystemPath: () => Promise.resolve(""),
     getPortalActivityLog: () => [],
     getKnowledge: () => Promise.resolve(null),
+    analyze: () => Promise.resolve("Mock analysis"),
   };
 
   const view = new PortalManagerView(service);

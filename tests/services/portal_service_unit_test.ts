@@ -4,11 +4,15 @@
  * @description Unit tests for the core PortalService (src/services/portal.ts).
  */
 
-import { assertEquals, assertRejects } from "@std/assert";
+import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
+import type {
+  IPortalKnowledgeConfig,
+  IPortalKnowledgeService,
+} from "../../src/shared/interfaces/i_portal_knowledge_service.ts";
 import { PortalService } from "../../src/services/portal.ts";
-import { PortalExecutionStrategy, PortalStatus } from "../../src/shared/enums.ts";
+import { PortalAnalysisMode, PortalExecutionStrategy, PortalStatus } from "../../src/shared/enums.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { createStubConfig, createStubDisplay } from "../test_helpers.ts";
 import type { IContextCardGeneratorService } from "../../src/shared/interfaces/i_context_card_generator_service.ts";
@@ -26,7 +30,45 @@ async function createPortalTestEnv() {
   const display = createStubDisplay();
   const contextCardGen = createMockContextCardGenerator();
 
-  const service = new PortalService(config, configService, contextCardGen, display);
+  const mockKnowledge: IPortalKnowledgeService = {
+    analyze: (alias: string) =>
+      Promise.resolve({
+        portal: alias,
+        gatheredAt: new Date().toISOString(),
+        version: 1,
+        architectureOverview: `Analysis for ${alias}`,
+        keyFiles: [],
+        conventions: [],
+        dependencies: [],
+        layers: [],
+        techStack: { primaryLanguage: "typescript" },
+        symbolMap: [],
+        stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+        metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+      }),
+    getOrAnalyze: (portalAlias: string) => mockKnowledge.analyze(portalAlias, "/tmp/dummy", PortalAnalysisMode.QUICK),
+    isStale: () => Promise.resolve(false),
+    updateKnowledge: (portalAlias: string) =>
+      mockKnowledge.analyze(portalAlias, "/tmp/dummy", PortalAnalysisMode.QUICK),
+  };
+  const mockKnowledgeConfig: IPortalKnowledgeConfig = {
+    autoAnalyzeOnMount: false,
+    defaultMode: PortalAnalysisMode.QUICK,
+    quickScanLimit: 100,
+    maxFilesToRead: 10,
+    ignorePatterns: [],
+    staleness: 168,
+    useLlmInference: false,
+  };
+
+  const service = new PortalService(
+    config,
+    configService,
+    contextCardGen,
+    display,
+    mockKnowledge,
+    mockKnowledgeConfig,
+  );
 
   // Create portals directory
   const portalsDir = join(tempDir, config.paths.portals);
@@ -576,6 +618,35 @@ Deno.test("PortalService: verify detects missing config entry", async () => {
     assertEquals(results.length, 1);
     assertEquals(results[0].status, "failed");
     assertEquals(results[0].issues!.some((i: string) => i.includes("not found in configuration")), true);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("PortalService: analyze delegates to portalKnowledge", async () => {
+  const { service, cleanup, tempDir } = await createPortalTestEnv();
+  try {
+    const targetDir = join(tempDir, "analyze-test");
+    await Deno.mkdir(targetDir, { recursive: true });
+    await service.add(targetDir, "testportal");
+
+    const result = await service.analyze("testportal");
+    assertStringIncludes(result, "Portal: testportal");
+    assertStringIncludes(result, "Mode:   heuristic");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("PortalService: getKnowledge delegates to portalKnowledge", async () => {
+  const { service, cleanup, tempDir } = await createPortalTestEnv();
+  try {
+    const targetDir = join(tempDir, "knowledge-test");
+    await Deno.mkdir(targetDir, { recursive: true });
+    await service.add(targetDir, "testportal");
+
+    const result = await service.getKnowledge("testportal");
+    assertEquals(result, null);
   } finally {
     await cleanup();
   }

@@ -401,6 +401,9 @@ export function createMockPortalService(initial: IPortalInfo[] = []) {
     getKnowledge(_alias: string) {
       return Promise.resolve(null);
     }
+    analyze(_alias: string, _options?: any): Promise<string> {
+      return Promise.resolve("Mock analysis result");
+    }
   }
 
   return new MockPortalService(initial);

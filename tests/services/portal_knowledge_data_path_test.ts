@@ -6,7 +6,7 @@
  * @related-files [src/services/portal.ts, src/shared/interfaces/i_portal_service.ts, src/services/portal_knowledge/knowledge_persistence.ts]
  */
 
-import { assertEquals, assertExists } from "@std/assert";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { PortalService } from "../../src/services/portal.ts";
@@ -31,13 +31,16 @@ async function makePortalKnowledgePathEnv() {
     createStubDisplay(),
   );
   const projectsDir = join(tempDir, ExoPathDefaults.memoryProjects);
+  const portalsDir = join(tempDir, ExoPathDefaults.portals);
   await ensureDir(projectsDir);
+  await ensureDir(portalsDir);
 
   return {
     tempDir,
     config,
     service,
     projectsDir,
+    portalsDir,
     cleanup: () => Deno.remove(tempDir, { recursive: true }).catch(() => {}),
   };
 }
@@ -74,9 +77,14 @@ function makeMinimalKnowledge(portalAlias: string): IPortalKnowledge {
 // ──────────────────────────────────────────────────────────────────────────────
 
 Deno.test("[PortalService] getKnowledge returns knowledge for analyzed portal", async () => {
-  const { projectsDir, service, cleanup } = await makePortalKnowledgePathEnv();
+  const { projectsDir, portalsDir, tempDir, service, cleanup } = await makePortalKnowledgePathEnv();
   const alias = "my-portal";
   const knowledge = makeMinimalKnowledge(alias);
+
+  // Create dummy target and symlink
+  const targetDir = join(tempDir, "target");
+  await ensureDir(targetDir);
+  await Deno.symlink(targetDir, join(portalsDir, alias));
 
   // Pre-write knowledge.json
   const portalDir = join(projectsDir, alias);
@@ -94,10 +102,30 @@ Deno.test("[PortalService] getKnowledge returns knowledge for analyzed portal", 
 });
 
 Deno.test("[PortalService] getKnowledge returns null for unanalyzed portal", async () => {
+  const { portalsDir, tempDir, service, cleanup } = await makePortalKnowledgePathEnv();
+  const alias = "unanalyzed-portal";
+
+  // Create dummy target and symlink
+  const targetDir = join(tempDir, "unanalyzed-target");
+  await ensureDir(targetDir);
+  await Deno.symlink(targetDir, join(portalsDir, alias));
+
+  try {
+    const result = await service.getKnowledge(alias);
+    assertEquals(result, null);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("[PortalService] getKnowledge throws if portal not found", async () => {
   const { service, cleanup } = await makePortalKnowledgePathEnv();
   try {
-    const result = await service.getKnowledge("nonexistent-portal");
-    assertEquals(result, null);
+    await assertRejects(
+      () => service.getKnowledge("nonexistent-portal"),
+      Error,
+      "not found",
+    );
   } finally {
     await cleanup();
   }

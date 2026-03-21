@@ -6,14 +6,16 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import type { IModelProvider } from "../../../src/ai/types.ts";
-import { createOutputValidator } from "../../../src/services/output_validator.ts";
-import { LlmAnalyzer } from "../../../src/services/request_analysis/llm_analyzer.ts";
 import { analyzeHeuristic } from "../../../src/services/request_analysis/heuristic_analyzer.ts";
-import { RequestAnalyzer } from "../../../src/services/request_analysis/request_analyzer.ts";
 import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import type { EnhancedRequest } from "../../../src/services/session_memory.ts";
+import {
+  createMockProvider,
+  makeValidAnalysisJson as makeValidJson,
+  setupTestAnalyzer,
+  setupTestLlmAnalyzer,
+} from "./test_helpers.ts";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -34,23 +36,7 @@ function makeEnhancedRequest(memoryContext = MEMORY_CONTEXT_TEXT): EnhancedReque
   };
 }
 
-const VALID_JSON = JSON.stringify({
-  goals: [{ description: "Fix bug", explicit: true, priority: 1 }],
-  requirements: [],
-  constraints: [],
-  acceptanceCriteria: [],
-  ambiguities: [],
-  actionabilityScore: 75,
-  complexity: RequestAnalysisComplexity.SIMPLE,
-  taskType: RequestTaskType.BUGFIX,
-  tags: [],
-  referencedFiles: [],
-  metadata: {
-    analyzedAt: new Date().toISOString(),
-    durationMs: 0,
-    mode: AnalysisMode.LLM,
-  },
-});
+const VALID_JSON = makeValidJson({ taskType: RequestTaskType.BUGFIX });
 
 // ---------------------------------------------------------------------------
 // LlmAnalyzer — prompt injection
@@ -58,15 +44,11 @@ const VALID_JSON = JSON.stringify({
 
 Deno.test("[LlmAnalyzer] includes memory context in LLM prompt when memories provided", async () => {
   let capturedPrompt = "";
-  const provider: IModelProvider = {
-    id: "mock",
-    generate: (prompt: string) => {
-      capturedPrompt = prompt;
-      return Promise.resolve(VALID_JSON);
-    },
-  };
-  const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(provider, validator);
+  const provider = createMockProvider((prompt: string) => {
+    capturedPrompt = prompt;
+    return VALID_JSON;
+  });
+  const { analyzer } = setupTestLlmAnalyzer(provider);
 
   await analyzer.analyze("Fix the login bug.", {
     memories: makeEnhancedRequest(),
@@ -77,15 +59,11 @@ Deno.test("[LlmAnalyzer] includes memory context in LLM prompt when memories pro
 
 Deno.test("[LlmAnalyzer] omits memory section from prompt when no memories provided", async () => {
   let capturedPrompt = "";
-  const provider: IModelProvider = {
-    id: "mock",
-    generate: (prompt: string) => {
-      capturedPrompt = prompt;
-      return Promise.resolve(VALID_JSON);
-    },
-  };
-  const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(provider, validator);
+  const provider = createMockProvider((prompt: string) => {
+    capturedPrompt = prompt;
+    return VALID_JSON;
+  });
+  const { analyzer } = setupTestLlmAnalyzer(provider);
 
   await analyzer.analyze("Fix the login bug.");
 
@@ -119,18 +97,11 @@ Deno.test("[HeuristicAnalyzer] works correctly without memory context", () => {
 
 Deno.test("[RequestAnalyzer] uses memory context in LLM analysis when provided", async () => {
   let capturedPrompt = "";
-  const provider: IModelProvider = {
-    id: "mock",
-    generate: (prompt: string) => {
-      capturedPrompt = prompt;
-      return Promise.resolve(VALID_JSON);
-    },
-  };
-  const analyzer = new RequestAnalyzer(
-    { mode: AnalysisMode.LLM },
-    provider,
-    createOutputValidator({ autoRepair: false }),
-  );
+  const provider = createMockProvider((prompt: string) => {
+    capturedPrompt = prompt;
+    return VALID_JSON;
+  });
+  const { analyzer } = setupTestAnalyzer(AnalysisMode.LLM, provider);
 
   await analyzer.analyze("Fix the login bug.", {
     memories: makeEnhancedRequest(),
@@ -140,15 +111,8 @@ Deno.test("[RequestAnalyzer] uses memory context in LLM analysis when provided",
 });
 
 Deno.test("[RequestAnalyzer] works without memory context", async () => {
-  const provider: IModelProvider = {
-    id: "mock",
-    generate: (_prompt: string) => Promise.resolve(VALID_JSON),
-  };
-  const analyzer = new RequestAnalyzer(
-    { mode: AnalysisMode.LLM },
-    provider,
-    createOutputValidator({ autoRepair: false }),
-  );
+  const provider = createMockProvider(VALID_JSON);
+  const { analyzer } = setupTestAnalyzer(AnalysisMode.LLM, provider);
 
   // Should not throw
   const result = await analyzer.analyze("Fix the login bug.");

@@ -23,7 +23,8 @@ import {
   type ITreeNode,
   type TreeRenderOptions,
 } from "./helpers/tree_view.ts";
-import { DialogStatus, PortalExecutionStrategy, PortalStatus, TuiIcon } from "../shared/enums.ts";
+import { DialogStatus, PortalAnalysisMode, PortalExecutionStrategy, PortalStatus, TuiIcon } from "../shared/enums.ts";
+import { formatKnowledge } from "../shared/formatters/portal_knowledge.ts";
 import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "./helpers/constants.ts";
 
 // ===== Portal View Extensions =====
@@ -542,54 +543,7 @@ export function renderKnowledgeSection(knowledge: IPortalKnowledge | null): stri
   if (!knowledge) {
     return ["No analysis available — run `exoctl portal analyze`"];
   }
-
-  const lines: string[] = [];
-
-  // Architecture Overview
-  if (knowledge.architectureOverview) {
-    lines.push("=== Architecture Overview ===");
-    for (const line of knowledge.architectureOverview.split("\n").slice(0, 20)) {
-      lines.push(line);
-    }
-  }
-
-  // Key Files
-  if (knowledge.keyFiles.length > 0) {
-    lines.push("", "=== Key Files ===");
-    for (const kf of knowledge.keyFiles) {
-      lines.push(`  ${kf.path} [${kf.role}]: ${kf.description}`);
-    }
-  }
-
-  // Conventions by category
-  if (knowledge.conventions.length > 0) {
-    lines.push("", "=== Conventions ===");
-    const byCategory = new Map<string, typeof knowledge.conventions>();
-    for (const conv of knowledge.conventions) {
-      const existing = byCategory.get(conv.category) ?? [];
-      existing.push(conv);
-      byCategory.set(conv.category, existing);
-    }
-    for (const [category, items] of byCategory) {
-      lines.push(`  [${category}]`);
-      for (const item of items) {
-        lines.push(`    • ${item.name}: ${item.description}`);
-      }
-    }
-  }
-
-  // Dependencies with purpose
-  if (knowledge.dependencies.length > 0) {
-    lines.push("", "=== Dependencies ===");
-    for (const dep of knowledge.dependencies) {
-      for (const kd of dep.keyDependencies) {
-        const purpose = kd.purpose ? ` — ${kd.purpose}` : "";
-        lines.push(`  ${kd.name}${purpose}`);
-      }
-    }
-  }
-
-  return lines;
+  return formatKnowledge(knowledge);
 }
 
 // ===== View Controller =====
@@ -623,6 +577,13 @@ export class PortalManagerView implements IPortalService {
 
   refresh(alias: string): Promise<void> {
     return this.service.refresh(alias);
+  }
+
+  analyze(
+    alias: string,
+    options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string> {
+    return this.service.analyze(alias, options);
   }
 
   createTuiSession(portals: IPortalInfo[], useColors = true): PortalManagerTuiSession {

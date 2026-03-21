@@ -10,6 +10,7 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../../../src/ai/providers.ts";
 import {
   createOutputValidator,
+  type IOutputSchemaName,
   type IOutputValidator,
   type IValidationResult,
 } from "../../../src/services/output_validator.ts";
@@ -152,10 +153,10 @@ Deno.test("[LlmAnalyzer] uses OutputValidator for schema validation", async () =
         raw: content,
       };
     },
-    parseAndValidateWithSchema: <K extends string>(
+    parseAndValidateWithSchema: <K extends IOutputSchemaName>(
       raw: string,
       _schemaName: K,
-    ): IValidationResult<unknown> => {
+    ): IValidationResult<any> => {
       return {
         success: false,
         repairAttempted: false,
@@ -210,23 +211,15 @@ Deno.test("[LlmAnalyzer] populates metadata.durationMs", async () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("[LlmAnalyzer] prompt template references type, interpretations, and clarificationQuestion", async () => {
-  let capturedPrompt = "";
-  const capturingProvider = {
-    id: "capturing",
-    generate: async (prompt: string) => {
-      capturedPrompt = prompt;
-      await Promise.resolve();
-      return validAnalysisJson;
-    },
-  };
+  const { provider, capturedPrompt } = createCapturingProvider(validAnalysisJson);
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(capturingProvider, validator);
+  const analyzer = new LlmAnalyzer(provider, validator);
 
   await analyzer.analyze("Implement the new module.");
 
-  assertStringIncludes(capturedPrompt, "type");
-  assertStringIncludes(capturedPrompt, "interpretations");
-  assertStringIncludes(capturedPrompt, "clarificationQuestion");
+  assertStringIncludes(capturedPrompt(), "type");
+  assertStringIncludes(capturedPrompt(), "interpretations");
+  assertStringIncludes(capturedPrompt(), "clarificationQuestion");
 });
 
 // ---------------------------------------------------------------------------
@@ -246,20 +239,12 @@ Deno.test("[LlmAnalyzer] output includes analyzerVersion in metadata", async () 
 });
 
 Deno.test("[LlmAnalyzer] includes high-impact ambiguity in prompt for ambiguous requests", async () => {
-  let capturedPrompt = "";
-  const capturingProvider = {
-    id: "capturing",
-    generate: async (prompt: string) => {
-      capturedPrompt = prompt;
-      await Promise.resolve();
-      return validAnalysisJson;
-    },
-  };
+  const { provider, capturedPrompt } = createCapturingProvider(validAnalysisJson);
   const validator = createOutputValidator({ autoRepair: false });
-  const analyzer = new LlmAnalyzer(capturingProvider, validator);
+  const analyzer = new LlmAnalyzer(provider, validator);
 
   await analyzer.analyze("Maybe fix that thing somehow? AmbiguityImpact?");
 
   // Prompt should reference the IRequestAnalysis schema fields
-  assertStringIncludes(capturedPrompt.toLowerCase(), "ambiguit");
+  assertStringIncludes(capturedPrompt().toLowerCase(), "ambiguit");
 });

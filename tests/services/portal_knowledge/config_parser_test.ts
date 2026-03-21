@@ -20,107 +20,12 @@ async function makeTempDir(): Promise<string> {
 
 async function writeFile(dir: string, relPath: string, content: string): Promise<void> {
   const full = join(dir, relPath);
-  await Deno.mkdir(full.substring(0, full.lastIndexOf("/")), { recursive: true });
+  const lastSlash = full.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    await Deno.mkdir(full.substring(0, lastSlash), { recursive: true });
+  }
   await Deno.writeTextFile(full, content);
 }
-
-// ---------------------------------------------------------------------------
-// [ConfigParser] parses package.json dependencies
-// ---------------------------------------------------------------------------
-
-Deno.test("[ConfigParser] parses package.json dependencies", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "package.json",
-      JSON.stringify({
-        name: "my-app",
-        dependencies: { "express": "^4.18.0", "zod": "^3.0.0" },
-        devDependencies: { "typescript": "^5.0.0" },
-        scripts: { "test": "jest", "build": "tsc" },
-      }),
-    );
-
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    assertExists(result.dependencies);
-    assertEquals(result.dependencies!.length, 1);
-    assertEquals(result.dependencies![0].packageManager, "npm");
-    assertEquals(result.dependencies![0].configFile, "package.json");
-    assertExists(result.dependencies![0].keyDependencies);
-    const names = result.dependencies![0].keyDependencies.map((d) => d.name);
-    assertEquals(names.includes("express"), true);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// [ConfigParser] parses deno.json imports and tasks
-// ---------------------------------------------------------------------------
-
-Deno.test("[ConfigParser] parses deno.json imports and tasks", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "deno.json",
-      JSON.stringify({
-        imports: {
-          "@std/assert": "jsr:@std/assert@^1.0.0",
-          "zod": "npm:zod@^3.0.0",
-        },
-        tasks: { "test": "deno test --allow-all", "build": "deno compile" },
-      }),
-    );
-
-    const result = await parseConfigFiles(root, ["deno.json"]);
-
-    assertExists(result.dependencies);
-    assertEquals(result.dependencies!.length, 1);
-    assertEquals(result.dependencies![0].packageManager, "deno");
-    assertEquals(result.dependencies![0].configFile, "deno.json");
-    const names = result.dependencies![0].keyDependencies.map((d) => d.name);
-    assertEquals(names.includes("zod"), true);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// [ConfigParser] parses tsconfig.json compiler options
-// ---------------------------------------------------------------------------
-
-Deno.test("[ConfigParser] parses tsconfig.json compiler options", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "tsconfig.json",
-      JSON.stringify({
-        compilerOptions: {
-          strict: true,
-          target: "ES2022",
-          paths: { "@/*": ["./src/*"] },
-        },
-      }),
-    );
-
-    const result = await parseConfigFiles(root, ["tsconfig.json"]);
-
-    // tsconfig adds a dependency entry with configFile = tsconfig.json
-    assertExists(result.dependencies);
-    const tsEntry = result.dependencies!.find((d) => d.configFile === "tsconfig.json");
-    assertExists(tsEntry);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Test Helpers
-// ---------------------------------------------------------------------------
 
 async function withConfigTest(
   files: Record<string, string>,
@@ -133,9 +38,95 @@ async function withConfigTest(
     }
     await fn(root);
   } finally {
-    await Deno.remove(root, { recursive: true });
+    try {
+      await Deno.remove(root, { recursive: true });
+    } catch {
+      // Ignore cleanup errors
+    }
   }
 }
+
+// ---------------------------------------------------------------------------
+// [ConfigParser] parses package.json dependencies
+// ---------------------------------------------------------------------------
+
+Deno.test("[ConfigParser] parses package.json dependencies", async () => {
+  await withConfigTest(
+    {
+      "package.json": JSON.stringify({
+        name: "my-app",
+        dependencies: { "express": "^4.18.0", "zod": "^3.0.0" },
+        devDependencies: { "typescript": "^5.0.0" },
+        scripts: { "test": "jest", "build": "tsc" },
+      }),
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["package.json"]);
+
+      assertExists(result.dependencies);
+      assertEquals(result.dependencies!.length, 1);
+      assertEquals(result.dependencies![0].packageManager, "npm");
+      assertEquals(result.dependencies![0].configFile, "package.json");
+      assertExists(result.dependencies![0].keyDependencies);
+      const names = result.dependencies![0].keyDependencies.map((d) => d.name);
+      assertEquals(names.includes("express"), true);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// [ConfigParser] parses deno.json imports and tasks
+// ---------------------------------------------------------------------------
+
+Deno.test("[ConfigParser] parses deno.json imports and tasks", async () => {
+  await withConfigTest(
+    {
+      "deno.json": JSON.stringify({
+        imports: {
+          "@std/assert": "jsr:@std/assert@^1.0.0",
+          "zod": "npm:zod@^3.0.0",
+        },
+        tasks: { "test": "deno test --allow-all", "build": "deno compile" },
+      }),
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["deno.json"]);
+
+      assertExists(result.dependencies);
+      assertEquals(result.dependencies!.length, 1);
+      assertEquals(result.dependencies![0].packageManager, "deno");
+      assertEquals(result.dependencies![0].configFile, "deno.json");
+      const names = result.dependencies![0].keyDependencies.map((d) => d.name);
+      assertEquals(names.includes("zod"), true);
+    },
+  );
+});
+
+// ---------------------------------------------------------------------------
+// [ConfigParser] parses tsconfig.json compiler options
+// ---------------------------------------------------------------------------
+
+Deno.test("[ConfigParser] parses tsconfig.json compiler options", async () => {
+  await withConfigTest(
+    {
+      "tsconfig.json": JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          target: "ES2022",
+          paths: { "@/*": ["./src/*"] },
+        },
+      }),
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["tsconfig.json"]);
+
+      // tsconfig adds a dependency entry with configFile = tsconfig.json
+      assertExists(result.dependencies);
+      const tsEntry = result.dependencies!.find((d) => d.configFile === "tsconfig.json");
+      assertExists(tsEntry);
+    },
+  );
+});
 
 // ---------------------------------------------------------------------------
 // [ConfigParser] detects test framework from dependencies
@@ -220,18 +211,16 @@ Deno.test("[ConfigParser] reads .gitignore and adds patterns to ignorePatterns",
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] handles malformed JSON gracefully", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(root, "package.json", "{ not valid json }}}");
+  await withConfigTest(
+    { "package.json": "{ not valid json }}}" },
+    async (root) => {
+      // Should not throw
+      const result = await parseConfigFiles(root, ["package.json"]);
 
-    // Should not throw
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    // Returns partial/empty result without crashing
-    assertExists(result);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+      // Returns partial/empty result without crashing
+      assertExists(result);
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -239,17 +228,17 @@ Deno.test("[ConfigParser] handles malformed JSON gracefully", async () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] returns empty for directory with no config files", async () => {
-  const root = await makeTempDir();
-  try {
-    const result = await parseConfigFiles(root, []);
+  await withConfigTest(
+    {},
+    async (root) => {
+      const result = await parseConfigFiles(root, []);
 
-    // dependencies may be empty array or undefined — both fine
-    assertEquals(!result.dependencies || result.dependencies.length === 0, true);
-    // techStack may be undefined or partial
-    assertExists(result);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+      // dependencies may be empty array or undefined — both fine
+      assertEquals(!result.dependencies || result.dependencies.length === 0, true);
+      // techStack may be undefined or partial
+      assertExists(result);
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -257,12 +246,9 @@ Deno.test("[ConfigParser] returns empty for directory with no config files", asy
 // ---------------------------------------------------------------------------
 
 Deno.test("[ConfigParser] extracts key dependencies with purpose heuristic", async () => {
-  const root = await makeTempDir();
-  try {
-    await writeFile(
-      root,
-      "package.json",
-      JSON.stringify({
+  await withConfigTest(
+    {
+      "package.json": JSON.stringify({
         dependencies: {
           "express": "^4.18.0",
           "zod": "^3.0.0",
@@ -271,18 +257,17 @@ Deno.test("[ConfigParser] extracts key dependencies with purpose heuristic", asy
           "jest": "^29.0.0",
         },
       }),
-    );
+    },
+    async (root) => {
+      const result = await parseConfigFiles(root, ["package.json"]);
 
-    const result = await parseConfigFiles(root, ["package.json"]);
-
-    assertExists(result.dependencies);
-    const deps = result.dependencies![0].keyDependencies;
-    const express = deps.find((d) => d.name === "express");
-    assertExists(express);
-    assertExists(express!.purpose);
-    assertEquals(typeof express!.purpose, "string");
-    assertEquals(express!.purpose!.length > 0, true);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+      assertExists(result.dependencies);
+      const deps = result.dependencies![0].keyDependencies;
+      const express = deps.find((d) => d.name === "express");
+      assertExists(express);
+      assertExists(express!.purpose);
+      assertEquals(typeof express!.purpose, "string");
+      assertEquals(express!.purpose!.length > 0, true);
+    },
+  );
 });

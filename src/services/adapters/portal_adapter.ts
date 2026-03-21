@@ -10,7 +10,7 @@
 import { PortalService } from "../portal.ts";
 import { IPortalService } from "../../shared/interfaces/i_portal_service.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../../shared/types/portal.ts";
-import { PortalExecutionStrategy } from "../../shared/enums.ts";
+import { PortalAnalysisMode, PortalExecutionStrategy } from "../../shared/enums.ts";
 import type { IPortalKnowledge } from "../../shared/schemas/portal_knowledge.ts";
 
 export class PortalAdapter implements IPortalService {
@@ -93,7 +93,14 @@ export class PortalAdapter implements IPortalService {
     return ["Portal activity log not yet implemented in adapter."];
   }
 
-  getKnowledge(_alias: string): Promise<IPortalKnowledge | null> {
-    return Promise.resolve(null);
+  getKnowledge(alias: string): Promise<IPortalKnowledge | null> {
+    return this.service.getKnowledge(alias);
+  }
+
+  async analyze(
+    alias: string,
+    options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string> {
+    return await this.service.analyze(alias, options);
   }
 }

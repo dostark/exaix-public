@@ -13,7 +13,6 @@ import { PortalCommands } from "../../../src/cli/commands/portal_commands.ts";
 import type { IPortalKnowledgeConfig } from "../../../src/shared/interfaces/i_portal_knowledge_service.ts";
 import type { IPortalKnowledgeService } from "../../../src/shared/interfaces/i_portal_knowledge_service.ts";
 import type { IPortalKnowledge } from "../../../src/shared/schemas/portal_knowledge.ts";
-import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 import { PortalAnalysisMode } from "../../../src/shared/enums.ts";
 import { initPortalTest } from "../helpers/test_setup.ts";
 import { ExoPathDefaults } from "../../../src/shared/constants.ts";
@@ -91,19 +90,18 @@ function makeKnowledgeConfig(
 Deno.test(
   "[portal add] triggers quick analysis on mount when enabled",
   async () => {
+    const knowledgeService = makeMockKnowledgeService();
+    const knowledgeConfig = makeKnowledgeConfig({ autoAnalyzeOnMount: true });
     const { targetDir, context, cleanup } = await initPortalTest({
       targetFiles: { "README.md": "# Test" },
+      portalKnowledge: knowledgeService,
+      portalKnowledgeConfig: knowledgeConfig,
     });
     try {
-      const knowledgeService = makeMockKnowledgeService();
-      const ctxWithKnowledge: ICliApplicationContext = {
-        ...context,
-        portalKnowledge: knowledgeService,
-        portalKnowledgeConfig: makeKnowledgeConfig({ autoAnalyzeOnMount: true }),
-      };
-      const commands = new PortalCommands(ctxWithKnowledge);
+      const commands = new PortalCommands(context);
 
       await commands.add(targetDir, "KnowledgePortal");
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       assertEquals(knowledgeService.analyzeCallCount, 1, "Should call analyze once");
       assertEquals(knowledgeService.lastAlias, "KnowledgePortal");
@@ -116,17 +114,15 @@ Deno.test(
 Deno.test(
   "[portal add] skips analysis when autoAnalyzeOnMount is false",
   async () => {
+    const knowledgeService = makeMockKnowledgeService();
+    const knowledgeConfig = makeKnowledgeConfig({ autoAnalyzeOnMount: false });
     const { targetDir, context, cleanup } = await initPortalTest({
       targetFiles: { "README.md": "# Test" },
+      portalKnowledge: knowledgeService,
+      portalKnowledgeConfig: knowledgeConfig,
     });
     try {
-      const knowledgeService = makeMockKnowledgeService();
-      const ctxWithKnowledge: ICliApplicationContext = {
-        ...context,
-        portalKnowledge: knowledgeService,
-        portalKnowledgeConfig: makeKnowledgeConfig({ autoAnalyzeOnMount: false }),
-      };
-      const commands = new PortalCommands(ctxWithKnowledge);
+      const commands = new PortalCommands(context);
 
       await commands.add(targetDir, "NoAnalysisPortal");
 
@@ -140,17 +136,15 @@ Deno.test(
 Deno.test(
   "[portal add] mount succeeds even if analysis fails",
   async () => {
+    const failingService = makeMockKnowledgeService({ fail: true });
+    const knowledgeConfig = makeKnowledgeConfig({ autoAnalyzeOnMount: true });
     const { tempRoot, targetDir, context, cleanup } = await initPortalTest({
       targetFiles: { "README.md": "# Test" },
+      portalKnowledge: failingService,
+      portalKnowledgeConfig: knowledgeConfig,
     });
     try {
-      const failingService = makeMockKnowledgeService({ fail: true });
-      const ctxWithKnowledge: ICliApplicationContext = {
-        ...context,
-        portalKnowledge: failingService,
-        portalKnowledgeConfig: makeKnowledgeConfig({ autoAnalyzeOnMount: true }),
-      };
-      const commands = new PortalCommands(ctxWithKnowledge);
+      const commands = new PortalCommands(context);
 
       // Should not throw — analysis failure must not block mount
       await commands.add(targetDir, "SafePortal");
@@ -168,19 +162,18 @@ Deno.test(
 Deno.test(
   "[portal add] persists knowledge.json after analysis",
   async () => {
+    const knowledgeService = makeMockKnowledgeService();
+    const knowledgeConfig = makeKnowledgeConfig({ autoAnalyzeOnMount: true });
     const { tempRoot, targetDir, context, cleanup } = await initPortalTest({
       targetFiles: { "README.md": "# Test" },
+      portalKnowledge: knowledgeService,
+      portalKnowledgeConfig: knowledgeConfig,
     });
     try {
-      const knowledgeService = makeMockKnowledgeService();
-      const ctxWithKnowledge: ICliApplicationContext = {
-        ...context,
-        portalKnowledge: knowledgeService,
-        portalKnowledgeConfig: makeKnowledgeConfig({ autoAnalyzeOnMount: true }),
-      };
-      const commands = new PortalCommands(ctxWithKnowledge);
+      const commands = new PortalCommands(context);
 
       await commands.add(targetDir, "PersistPortal");
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const knowledgePath = join(
         tempRoot,

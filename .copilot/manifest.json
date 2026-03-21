@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-20T17:56:54.490Z",
+  "generated_at": "2026-03-21T14:55:33.114Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -502,6 +502,25 @@
       ],
       "chunks": [
         ".copilot/chunks/refactor.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/duplication.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Reduce Code Duplication (#duplication)",
+      "short_summary": "Template for reducing structural code duplication below the 2% threshold.",
+      "version": "0.1",
+      "topics": [
+        "duplication",
+        "jscpd",
+        "refactoring",
+        "code-quality"
+      ],
+      "chunks": [
+        ".copilot/chunks/duplication.md.chunk0.txt",
+        ".copilot/chunks/duplication.md.chunk1.txt",
+        ".copilot/chunks/duplication.md.chunk2.txt"
       ]
     },
     {

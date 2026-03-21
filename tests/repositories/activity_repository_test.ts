@@ -56,20 +56,10 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
   });
   const waitForFlushSpy = spy(() => Promise.resolve());
 
-  const mockDb = {
+  const mockDb = createStubDb({
     logActivity: logActivitySpy,
     waitForFlush: waitForFlushSpy,
-    queryActivity: () => Promise.resolve([]),
-    preparedGet: () => Promise.resolve(null),
-    preparedAll: () => Promise.resolve([]),
-    preparedRun: () => Promise.resolve({}),
-    getActivitiesByTrace: () => [],
-    getActivitiesByTraceSafe: () => Promise.resolve([]),
-    getActivitiesByActionType: () => [],
-    getActivitiesByActionTypeSafe: () => Promise.resolve([]),
-    getRecentActivity: () => Promise.resolve([]),
-    close: () => Promise.resolve(),
-  };
+  });
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -269,29 +259,9 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
 
   const getActivitiesByTraceSpy = spy((_traceId: string) => [mockDbRecord]);
 
-  const mockDb = {
-    logActivity: () => {},
+  const mockDb = createStubDb({
     getActivitiesByTrace: getActivitiesByTraceSpy,
-    async getActivitiesByTraceSafe(traceId: string) {
-      const r = getActivitiesByTraceSpy(traceId);
-      return r instanceof Promise ? await r : r;
-    },
-    preparedGet: function (_query: string, _params: string[] = []) {
-      return Promise.resolve(null);
-    },
-    preparedAll: function (_query: string, _params: string[] = []) {
-      return Promise.resolve([]);
-    },
-    preparedRun: function (_query: string, _params: string[] = []) {
-      return Promise.resolve({});
-    },
-    queryActivity: () => Promise.resolve([]),
-    waitForFlush: () => Promise.resolve(),
-    getActivitiesByActionType: () => [],
-    getActivitiesByActionTypeSafe: () => Promise.resolve([]),
-    getRecentActivity: () => Promise.resolve([]),
-    close: () => Promise.resolve(),
-  };
+  });
 
   const repo = new DatabaseActivityRepository(mockDb);
 

@@ -12,11 +12,18 @@ import { ContextCardGenerator } from "../../../src/services/context_card_generat
 import { ContextCardAdapter } from "../../../src/services/adapters/context_card_adapter.ts";
 import { RequestService } from "../../../src/services/request.ts";
 import { RequestAdapter } from "../../../src/services/adapters/request_adapter.ts";
+import { PortalService } from "../../../src/services/portal.ts";
+import { PortalAdapter } from "../../../src/services/adapters/portal_adapter.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";
 import { GitTestHelper, setupGitRepo } from "../../helpers/git_test_helper.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../../test_helpers.ts";
+import { PortalAnalysisMode } from "../../../src/shared/enums.ts";
+import type {
+  IPortalKnowledgeConfig,
+  IPortalKnowledgeService,
+} from "../../../src/shared/interfaces/i_portal_knowledge_service.ts";
 import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 
 /**
@@ -25,6 +32,8 @@ import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 export async function initPortalTest(options?: {
   createTarget?: boolean;
   targetFiles?: Record<string, string>;
+  portalKnowledge?: IPortalKnowledgeService;
+  portalKnowledgeConfig?: IPortalKnowledgeConfig;
 }) {
   const tempRoot = await Deno.makeTempDir({ prefix: "portal-test-" });
   const targetDir = options?.createTarget !== false ? await Deno.makeTempDir({ prefix: "portal-target-" }) : "";
@@ -46,6 +55,64 @@ export async function initPortalTest(options?: {
 
   const config = createMockConfig(tempRoot);
   const contextCards = new ContextCardAdapter(new ContextCardGenerator(config));
+  const portalKnowledge: IPortalKnowledgeService = options?.portalKnowledge || {
+    analyze: (p1, _p2, p3) =>
+      Promise.resolve({
+        portal: p1,
+        gatheredAt: new Date().toISOString(),
+        version: 1,
+        architectureOverview: "",
+        layers: [],
+        keyFiles: [],
+        conventions: [],
+        dependencies: [],
+        techStack: { primaryLanguage: "typescript" },
+        symbolMap: [],
+        stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+        metadata: { mode: p3 || PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+      }),
+    getOrAnalyze: (p1, _p2) =>
+      Promise.resolve({
+        portal: p1,
+        gatheredAt: new Date().toISOString(),
+        version: 1,
+        architectureOverview: "",
+        layers: [],
+        keyFiles: [],
+        conventions: [],
+        dependencies: [],
+        techStack: { primaryLanguage: "typescript" },
+        symbolMap: [],
+        stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+        metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+      }),
+    isStale: () => Promise.resolve(false),
+    updateKnowledge: (p1, _p2) =>
+      Promise.resolve({
+        portal: p1,
+        gatheredAt: new Date().toISOString(),
+        version: 1,
+        architectureOverview: "",
+        layers: [],
+        keyFiles: [],
+        conventions: [],
+        dependencies: [],
+        techStack: { primaryLanguage: "typescript" },
+        symbolMap: [],
+        stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+        metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+      }),
+  };
+  const portalKnowledgeConfig: IPortalKnowledgeConfig = options?.portalKnowledgeConfig || {
+    autoAnalyzeOnMount: false,
+    defaultMode: PortalAnalysisMode.QUICK,
+    quickScanLimit: 100,
+    maxFilesToRead: 10,
+    ignorePatterns: [],
+    staleness: 168,
+    useLlmInference: false,
+  };
+
   const context: ICliApplicationContext = {
     config: createStubConfig(config),
     db,
@@ -53,6 +120,18 @@ export async function initPortalTest(options?: {
     provider: createStubProvider(),
     display: createStubDisplay(db),
     contextCards,
+    portalKnowledge,
+    portalKnowledgeConfig,
+    portals: new PortalAdapter(
+      new PortalService(
+        config,
+        createStubConfig(config),
+        contextCards,
+        createStubDisplay(db),
+        portalKnowledge,
+        portalKnowledgeConfig,
+      ),
+    ),
   };
   const commands = new PortalCommands(context);
 
@@ -175,6 +254,72 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
     display,
     contextCards,
     requests,
+    portals: new PortalAdapter(
+      new PortalService(
+        config,
+        configService,
+        contextCards,
+        display,
+        // Mock portal knowledge for now
+        {
+          analyze: (p1, _p2, p3) =>
+            Promise.resolve({
+              portal: p1,
+              gatheredAt: new Date().toISOString(),
+              version: 1,
+              architectureOverview: "",
+              layers: [],
+              keyFiles: [],
+              conventions: [],
+              dependencies: [],
+              techStack: { primaryLanguage: "typescript" },
+              symbolMap: [],
+              stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+              metadata: { mode: p3 || PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+            }),
+          getOrAnalyze: (p1, _p2) =>
+            Promise.resolve({
+              portal: p1,
+              gatheredAt: new Date().toISOString(),
+              version: 1,
+              architectureOverview: "",
+              layers: [],
+              keyFiles: [],
+              conventions: [],
+              dependencies: [],
+              techStack: { primaryLanguage: "typescript" },
+              symbolMap: [],
+              stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+              metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+            }),
+          isStale: () => Promise.resolve(false),
+          updateKnowledge: (p1, _p2) =>
+            Promise.resolve({
+              portal: p1,
+              gatheredAt: new Date().toISOString(),
+              version: 1,
+              architectureOverview: "",
+              layers: [],
+              keyFiles: [],
+              conventions: [],
+              dependencies: [],
+              techStack: { primaryLanguage: "typescript" },
+              symbolMap: [],
+              stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
+              metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+            }),
+        } as IPortalKnowledgeService,
+        {
+          autoAnalyzeOnMount: false,
+          defaultMode: PortalAnalysisMode.QUICK,
+          quickScanLimit: 0,
+          maxFilesToRead: 0,
+          ignorePatterns: [],
+          staleness: 0,
+          useLlmInference: false,
+        } as IPortalKnowledgeConfig,
+      ),
+    ),
   };
 
   const cleanupAll = async () => {

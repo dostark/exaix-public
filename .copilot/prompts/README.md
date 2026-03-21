@@ -37,6 +37,7 @@ Welcome to the ExoFrame prompt template library for coding agents. This collecti
 - `#security` — Security Patch
 - `#upgrade` — Dependency/Version Upgrade
 - `#explore` — Codebase Exploration
+- `#duplication` — Code Duplication Reduction
 - `#next-steps` — TDD Red-Green-Refactor Phase Steps (plan-driven, CI-gated, per-step commits)
 
 ## Usage Example
@@ -65,6 +66,11 @@ This folder contains example prompts demonstrating how to effectively utilize th
    - When to use: Adding features, fixing bugs with tests
    - Key pattern: Write failing test → implement → refactor
    - Context injection: TDD patterns, testing helpers
+
+1. **[duplication.md](duplication.md)** — Reducing code duplication below threshold
+   - When to use: Duplication threshold exceeded, refactoring clones
+   - Key pattern: Analyze report → Identify clones → Extract shared logic → Verify
+   - Context injection: Duplication report, refactoring patterns
 
 1.
    - When to use: Multi-file changes, extracting patterns, restructuring
@@ -158,6 +164,7 @@ Match your task to the appropriate prompt template:
 | Update Building with AI Agents doc | [update-building-with-ai-agents.md](update-building-with-ai-agents.md) |
 | Don't know where to start          | [cross-reference-navigation.md](cross-reference-navigation.md)         |
 | I’m missing guidance in agents/    | [self-improvement-loop.md](self-improvement-loop.md)                   |
+| Reduce code duplication            | [duplication.md](duplication.md)                                       |
 | Need docs for unfamiliar area      | [rag-context-injection.md](rag-context-injection.md)                   |
 | OpenAI quickstart (diff-first)     | [openai-quickstart.md](openai-quickstart.md)                           |
 | OpenAI context injection           | [openai-rag-context-injection.md](openai-rag-context-injection.md)     |

@@ -13,7 +13,11 @@ import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import {
   approveReviewStatus,
+  assertFileInBranch,
   assertPointerPointsTo,
+  assertPortalBranchExists,
+  assertReviewBaseBranch,
+  assertReviewStatus,
   createAndRunReviewWorkflow,
   executePlanForReview,
   gitStdout,
@@ -165,7 +169,7 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
       portals: [{ alias: portalAlias, target_path: portalTargetPath, default_branch: "main" }],
     };
 
-    const portalBranchesBefore = await listBranches(portalTargetPath);
+    const _portalBranchesBefore = await listBranches(portalTargetPath);
     const workspaceBranchesBefore = await env.getGitBranches();
 
     const { traceId, requestId, result, reviewRegistry } = await createAndRunReviewWorkflow(
@@ -183,10 +187,7 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
     assertEquals(result.traceId, traceId);
 
     // Branch should be created in portal repo (not in workspace root).
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    assert(portalBranchesAfter.length >= portalBranchesBefore.length, "Portal branches should not decrease");
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     const workspaceBranchesAfter = await env.getGitBranches();
     assertEquals(
@@ -213,20 +214,10 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
     await approveReviewStatus(reviewRegistry, reviews[0].id);
 
     // Verify status was updated
-    const updatedReviews = await reviewRegistry.list({ trace_id: traceId });
-    assertEquals(updatedReviews.length, 1);
-    assertEquals(updatedReviews[0].status, ReviewStatus.APPROVED);
+    await assertReviewStatus(env.db, traceId, ReviewStatus.APPROVED);
 
     // Verify file was created in the feature branch
-    const fileInBranch = await new Deno.Command(PortalOperation.GIT, {
-      args: ["show", `${createdPortalBranch}:src/hello.ts`],
-      cwd: portalTargetPath,
-      stdout: "piped",
-      stderr: "piped",
-    }).output();
-    assertEquals(fileInBranch.success, true);
-    const fileText = new TextDecoder().decode(fileInBranch.stdout);
-    assertStringIncludes(fileText, "Hello from portal");
+    await assertFileInBranch(portalTargetPath, createdPortalBranch, "src/hello.ts", "Hello from portal");
   } finally {
     await env.cleanup();
   }
@@ -283,9 +274,7 @@ Deno.test("[e2e] Portal target_branch review approve merges into that branch", a
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
 
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // Step 37.5 regression: feature branch should be created from targetBranch.
     const mergeBase = await gitStdout(portalTargetPath, ["merge-base", createdPortalBranch, targetBranch]);
@@ -383,9 +372,7 @@ Deno.test("[e2e][negative] Portal CLI review approve fails if not on review base
 
     assertEquals(result.success, true);
 
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // Enable CLI portal discovery.
     const portalsDir = join(env.tempDir, "Portals");
@@ -442,9 +429,7 @@ Deno.test("[e2e][negative] Portal CLI review show fails without portal symlink",
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
 
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // NOTE: no `Portals/<alias>` symlink created on purpose.
     const cliShow = await runExoctl(["review", "show", createdPortalBranch, "--diff"], env.tempDir);
@@ -513,9 +498,7 @@ Deno.test(
       // Portal checkout should remain untouched.
       assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
 
-      const portalBranchesAfter = await listBranches(portalTargetPath);
-      const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-      assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+      const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
       assertMatch(createdPortalBranch, /^feat\/request-[0-9a-f]{8}-/);
 
       // Feature branch should be based on targetBranch HEAD.
@@ -603,15 +586,10 @@ Deno.test("[e2e] Portal review stores base_branch for CLI validation", async () 
 
     assertEquals(result.success, true);
 
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // Verify review was registered with correct base_branch
-    const reviews = await reviewRegistry.list({ trace_id: traceId });
-    assertEquals(reviews.length, 1);
-    assertEquals(reviews[0].base_branch, "main", "Review should store base_branch for CLI validation");
-    assertEquals(reviews[0].branch, createdPortalBranch);
+    await assertReviewBaseBranch(env.db, traceId, "main");
 
     // Verify review can be retrieved by branch
     const reviewByBranch = await reviewRegistry.getByBranch(createdPortalBranch);
@@ -663,9 +641,7 @@ Deno.test("[e2e] Portal review detects divergent branches", async () => {
 
     assertEquals(result.success, true);
 
-    const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
-    assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+    const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // Diverge main after the feature branch was created
     await new Deno.Command(PortalOperation.GIT, {

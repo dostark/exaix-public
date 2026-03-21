@@ -133,12 +133,14 @@ async function writeKnowledge(
 // ──────────────────────────────────────────────────────────────────────────────
 
 Deno.test("[portal analyze] triggers analysis and displays summary", async () => {
-  const { tempRoot: _tr, targetDir, context, cleanup } = await initPortalTest({ createTarget: true });
+  const alias = "analyze-portal";
+  const knowledge = makeKnowledge(alias);
+  const mockService = makeMockKnowledgeService(knowledge);
+  const { tempRoot: _tr, targetDir, context, cleanup } = await initPortalTest({
+    createTarget: true,
+    portalKnowledge: mockService,
+  });
   try {
-    const alias = "analyze-portal";
-    const knowledge = makeKnowledge(alias);
-    const mockService = makeMockKnowledgeService(knowledge);
-    context.portalKnowledge = mockService;
     context.portalKnowledgeConfig = makeKnowledgeConfig();
 
     const commands = new PortalCommands(context);
@@ -155,12 +157,15 @@ Deno.test("[portal analyze] triggers analysis and displays summary", async () =>
 });
 
 Deno.test("[portal analyze] uses specified mode", async () => {
-  const { tempRoot: _r, targetDir, context, cleanup } = await initPortalTest({ createTarget: true });
+  const alias = "mode-portal";
+  const knowledge = makeKnowledge(alias);
+  const mockService = makeMockKnowledgeService(knowledge);
+  const { tempRoot: _r, targetDir, context, cleanup } = await initPortalTest({
+    createTarget: true,
+    portalKnowledge: mockService,
+  });
   try {
-    const alias = "mode-portal";
-    const knowledge = makeKnowledge(alias);
-    const mockService = makeMockKnowledgeService(knowledge);
-    context.portalKnowledge = mockService;
+    context.portalKnowledgeConfig = makeKnowledgeConfig();
     context.portalKnowledgeConfig = makeKnowledgeConfig();
 
     const commands = new PortalCommands(context);
@@ -178,12 +183,15 @@ Deno.test("[portal analyze] uses specified mode", async () => {
 });
 
 Deno.test("[portal analyze] force re-analyzes fresh knowledge", async () => {
-  const { tempRoot, targetDir, context, cleanup } = await initPortalTest({ createTarget: true });
+  const alias = "force-portal";
+  const knowledge = makeKnowledge(alias);
+  const mockService = makeMockKnowledgeService(knowledge);
+  const { tempRoot, targetDir, context, cleanup } = await initPortalTest({
+    createTarget: true,
+    portalKnowledge: mockService,
+  });
   try {
-    const alias = "force-portal";
-    const knowledge = makeKnowledge(alias);
-    const mockService = makeMockKnowledgeService(knowledge);
-    context.portalKnowledge = mockService;
+    context.portalKnowledgeConfig = makeKnowledgeConfig();
     context.portalKnowledgeConfig = makeKnowledgeConfig();
 
     const commands = new PortalCommands(context);

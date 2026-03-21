@@ -15,7 +15,7 @@ import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import type { TestEnvironment } from "../integration/helpers/test_environment.ts";
-import { ReviewStatus } from "../../src/reviews/review_status.ts";
+import { IReviewStatus, ReviewStatus } from "../../src/reviews/review_status.ts";
 import { createMockConfig } from "./config.ts";
 import { initTestDbService } from "./db.ts";
 import type { DatabaseService } from "../../src/services/db.ts";
@@ -361,4 +361,68 @@ export async function createAndRunReviewWorkflow<TConfig extends Config>(
   const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
 
   return { traceId, requestId, result, reviewRegistry };
+}
+
+/**
+ * Asserts that a specific branch exists in a portal repository.
+ */
+export async function assertPortalBranchExists(
+  portalPath: string,
+  branchPrefix: string,
+): Promise<string> {
+  const branches = await listBranches(portalPath);
+  const matched = branches.find((b) => b.startsWith(branchPrefix));
+  if (!matched) {
+    throw new Error(`Expected branch starting with '${branchPrefix}' not found in ${portalPath}`);
+  }
+  return matched;
+}
+
+/**
+ * Asserts that a file exists and has specific content in a git branch.
+ */
+export async function assertFileInBranch(
+  repoPath: string,
+  branch: string,
+  filePath: string,
+  expectedContent?: string,
+): Promise<void> {
+  const out = await gitStdout(repoPath, ["show", `${branch}:${filePath}`]);
+  if (expectedContent) {
+    if (!out.includes(expectedContent)) {
+      throw new Error(`Content mismatch in ${filePath} on branch ${branch}`);
+    }
+  }
+}
+
+/**
+ * Asserts a review status in the database.
+ */
+export async function assertReviewStatus(
+  db: DatabaseService,
+  traceId: string,
+  expectedStatus: IReviewStatus,
+): Promise<void> {
+  const row = await db.preparedGet<{ status: string }>(
+    "SELECT status FROM reviews WHERE trace_id = ?",
+    [traceId],
+  );
+  if (!row) throw new Error(`Review for trace ${traceId} not found`);
+  assertEquals(row.status, expectedStatus);
+}
+
+/**
+ * Asserts the base_branch of a review in the database.
+ */
+export async function assertReviewBaseBranch(
+  db: DatabaseService,
+  traceId: string,
+  expectedBaseBranch: string,
+): Promise<void> {
+  const row = await db.preparedGet<{ base_branch: string }>(
+    "SELECT base_branch FROM reviews WHERE trace_id = ?",
+    [traceId],
+  );
+  if (!row) throw new Error(`Review for trace ${traceId} not found`);
+  assertEquals(row.base_branch, expectedBaseBranch);
 }

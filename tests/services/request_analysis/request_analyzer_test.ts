@@ -13,32 +13,7 @@ import { RequestAnalyzer } from "../../../src/services/request_analysis/request_
 import { RequestAnalysisComplexity, RequestTaskType } from "../../../src/shared/schemas/request_analysis.ts";
 import { AnalysisMode } from "../../../src/shared/types/request.ts";
 import type { IDatabaseService } from "../../../src/shared/interfaces/i_database_service.ts";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function makeValidJson(
-  opts: { score?: number; mode?: AnalysisMode } = {},
-) {
-  return JSON.stringify({
-    goals: [{ description: "goal", explicit: true, priority: 1 }],
-    requirements: [],
-    constraints: [],
-    acceptanceCriteria: [],
-    ambiguities: [],
-    actionabilityScore: opts.score ?? 80,
-    complexity: RequestAnalysisComplexity.MEDIUM,
-    taskType: RequestTaskType.FEATURE,
-    tags: ["feature"],
-    referencedFiles: [],
-    metadata: {
-      analyzedAt: new Date().toISOString(),
-      durationMs: 0,
-      mode: opts.mode ?? AnalysisMode.LLM,
-    },
-  });
-}
+import { makeValidAnalysisJson as makeValidJson } from "./test_helpers.ts";
 
 // ---------------------------------------------------------------------------
 // Heuristic mode

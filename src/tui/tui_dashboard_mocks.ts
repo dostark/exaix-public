@@ -19,6 +19,7 @@ import {
   MemoryRecordStatus,
   MemoryScope,
   MemoryType,
+  PortalAnalysisMode,
   PortalExecutionStrategy,
   PortalStatus,
   RequestPriority,
@@ -152,6 +153,13 @@ export class MockPortalService implements IPortalService {
 
   getKnowledge(_alias: string): Promise<IPortalKnowledge | null> {
     return Promise.resolve(null);
+  }
+
+  analyze(
+    _alias: string,
+    _options?: { mode?: PortalAnalysisMode; force?: boolean },
+  ): Promise<string> {
+    return Promise.resolve("Mock analysis result");
   }
 }
 
