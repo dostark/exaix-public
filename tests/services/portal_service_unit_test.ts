@@ -31,7 +31,11 @@ async function createPortalTestEnv() {
   const contextCardGen = createMockContextCardGenerator();
 
   const mockKnowledge: IPortalKnowledgeService = {
-    analyze: (alias: string) =>
+    analyze: (
+      alias: string,
+      _path: string,
+      mode?: PortalAnalysisMode,
+    ) =>
       Promise.resolve({
         portal: alias,
         gatheredAt: new Date().toISOString(),
@@ -44,7 +48,7 @@ async function createPortalTestEnv() {
         techStack: { primaryLanguage: "typescript" },
         symbolMap: [],
         stats: { totalFiles: 0, totalDirectories: 0, extensionDistribution: {} },
-        metadata: { mode: PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
+        metadata: { mode: mode || PortalAnalysisMode.QUICK, durationMs: 0, filesScanned: 0, filesRead: 0 },
       }),
     getOrAnalyze: (portalAlias: string) => mockKnowledge.analyze(portalAlias, "/tmp/dummy", PortalAnalysisMode.QUICK),
     isStale: () => Promise.resolve(false),
@@ -632,7 +636,7 @@ Deno.test("PortalService: analyze delegates to portalKnowledge", async () => {
 
     const result = await service.analyze("testportal");
     assertStringIncludes(result, "Portal: testportal");
-    assertStringIncludes(result, "Mode:   heuristic");
+    assertStringIncludes(result, "Mode:   quick");
   } finally {
     await cleanup();
   }

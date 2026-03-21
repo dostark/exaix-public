@@ -25,6 +25,12 @@ import type { IScenarioStepExecutionResult } from "./step_executor.ts";
 const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n?/;
 const JSON_PATH_ROOT = "$";
 
+interface IJournalEvent {
+  event_type?: string;
+  action_type?: string;
+  [key: string]: unknown;
+}
+
 export enum StepFailureStage {
   INPUT = "input",
   EXECUTION = "execution",
@@ -500,17 +506,35 @@ async function evaluateJournalEventExistsCriterion(
   options: IEvaluateCriterionOptions,
 ): Promise<ICriterionResult> {
   const criterion = options.criterion as IJournalEventExistsCriterion;
-  const events = await loadJournalFromCli(options);
+  let events: IJournalEvent[] | null = null;
+
+  if (criterion.journal_file) {
+    const content = await safeReadTextFile(options.workspaceRoot, criterion.journal_file);
+    if (content !== null) {
+      try {
+        events = content.split("\n")
+          .filter((line) => line.trim().length > 0)
+          .map((line) => JSON.parse(line) as IJournalEvent);
+      } catch {
+        // Fallback or error
+      }
+    }
+  }
+
+  if (events === null) {
+    events = await loadJournalFromCli(options);
+  }
 
   if (events === null) {
     return buildFailedResult(options, {
-      message: `Failed to query journal via CLI (exoctl not found or errored). Ensure ExoFrame daemon is accessible.`,
+      message:
+        `Failed to query journal via CLI (exoctl not found or errored). ensure ExoFrame daemon is accessible and exoctl is in PATH.`,
     });
   }
 
   // Modern ExoFrame uses 'action_type' for event identification in the SQLite journal.
   const found = events.some((
-    e: any,
+    e,
   ) => (e.action_type === criterion.event_type || e.event_type === criterion.event_type));
 
   if (found) {
@@ -520,11 +544,11 @@ async function evaluateJournalEventExistsCriterion(
   return buildFailedResult(options, {
     message: `expected journal event type: ${criterion.event_type}`,
     expectedValue: criterion.event_type,
-    observedValue: `Latest 50 events: ${events.slice(0, 50).map((e: any) => e.action_type || e.event_type).join(", ")}`,
+    observedValue: `Latest 50 events: ${events.slice(0, 50).map((e) => e.action_type || e.event_type).join(", ")}`,
   });
 }
 
-async function loadJournalFromCli(options: IEvaluateCriterionOptions): Promise<any[] | null> {
+async function loadJournalFromCli(options: IEvaluateCriterionOptions): Promise<IJournalEvent[] | null> {
   const exoctl = options.exoctlExecutable || "exoctl";
   try {
     const command = new Deno.Command(exoctl, {
@@ -538,7 +562,7 @@ async function loadJournalFromCli(options: IEvaluateCriterionOptions): Promise<a
     if (code !== 0) return null;
 
     const text = new TextDecoder().decode(stdout);
-    return JSON.parse(text);
+    return JSON.parse(text) as IJournalEvent[];
   } catch {
     return null;
   }
