@@ -45,7 +45,7 @@ export interface PatternMatcher {
   /** Regex pattern to match against prompts */
   pattern: RegExp;
   /** Response string or function that generates response */
-  response: string | ((match: RegExpMatchArray) => string);
+  response: string | ((match: RegExpMatchArray, prompt: string) => string);
 }
 
 /**
@@ -275,7 +275,7 @@ export class MockLLMProvider implements IModelProvider {
       const match = prompt.match(matcher.pattern);
       if (match) {
         if (typeof matcher.response === "function") {
-          return matcher.response(match);
+          return matcher.response(match, prompt);
         }
         return matcher.response;
       }
@@ -455,12 +455,10 @@ export class MockLLMProvider implements IModelProvider {
       // Execution patterns (checked first) - these generate tool actions
       {
         pattern: /executing a plan|autonomous coding agent|Step \d+/i,
-        response: (match) => {
-          const prompt = match[0];
+        response: (_match, prompt) => {
           // Check what kind of action is being requested
           const needsFileWrite = /write|create|add|implement|modify|update/i.test(prompt);
           const needsFileRead = /read|analyze|review|check/i.test(prompt);
-
           if (needsFileWrite) {
             return `<thought>
 I will implement this step by creating or modifying the necessary files.
@@ -693,118 +691,125 @@ export function createPlanGeneratorMock(): MockLLMProvider {
     patterns: [
       {
         pattern: /implement|add|create/i,
-        response: `<content>
+        response: (_match, _prompt) => {
+          return `<content>
 ${
-          JSON.stringify({
-            subject: "Implementation Plan",
-            description: "Based on the request, I will implement the required functionality.",
-            steps: [
-              {
-                step: 1,
-                title: "Analyze Requirements",
-                description: "Review the request and identify key requirements for the implementation.",
-              },
-              {
-                step: 2,
-                title: "Design Solution",
-                description: "Create a technical design for the implementation, considering architecture and patterns.",
-              },
-              {
-                step: 3,
-                title: "Implement Code",
-                description: "Write the necessary code changes to implement the feature.",
-                tools: ["write_file"],
-              },
-              {
-                step: 4,
-                title: "Write Tests",
-                description: "Add unit tests to verify the implementation works correctly.",
-                tools: ["write_file"],
-                dependencies: [3],
-              },
-              {
-                step: 5,
-                title: "Review",
-                description: "Self-review the changes for quality and ensure all requirements are met.",
-              },
-            ],
-            estimatedDuration: "2-4 hours",
-          })
-        }
-</content>`,
+            JSON.stringify({
+              subject: "Implementation Plan",
+              description: "Based on the request, I will implement the required functionality.",
+              steps: [
+                {
+                  step: 1,
+                  title: "Analyze Requirements",
+                  description: "Review the request and identify key requirements for the implementation.",
+                },
+                {
+                  step: 2,
+                  title: "Design Solution",
+                  description:
+                    "Create a technical design for the implementation, considering architecture and patterns.",
+                },
+                {
+                  step: 3,
+                  title: "Implement Code",
+                  description: "Write the necessary code changes to implement the feature.",
+                  tools: ["write_file"],
+                },
+                {
+                  step: 4,
+                  title: "Write Tests",
+                  description: "Add unit tests to verify the implementation works correctly.",
+                  tools: ["write_file"],
+                  dependencies: [3],
+                },
+                {
+                  step: 5,
+                  title: "Review",
+                  description: "Self-review the changes for quality and ensure all requirements are met.",
+                },
+              ],
+              estimatedDuration: "2-4 hours",
+            })
+          }
+</content>`;
+        },
       },
       {
         pattern: /fix|bug|error/i,
-        response: `<content>
+        response: (_match, _prompt) => {
+          return `<content>
 ${
-          JSON.stringify({
-            subject: "Bug Fix Plan",
-            description: "I will investigate and fix the reported issue.",
-            steps: [
-              {
-                step: 1,
-                title: "Reproduce Issue",
-                description: "Verify the bug exists and understand the exact conditions that trigger it.",
-              },
-              {
-                step: 2,
-                title: "Root Cause Analysis",
-                description: "Identify why the bug occurs by analyzing the relevant code paths.",
-                tools: ["read_file"],
-              },
-              {
-                step: 3,
-                title: "Implement Fix",
-                description: "Apply the necessary correction to resolve the issue.",
-                tools: ["write_file"],
-                dependencies: [2],
-              },
-              {
-                step: 4,
-                title: "Test Fix",
-                description: "Verify the bug is resolved and the fix works as expected.",
-                dependencies: [3],
-              },
-              {
-                step: 5,
-                title: "Regression Test",
-                description: "Ensure no new issues are introduced by the fix.",
-                dependencies: [4],
-              },
-            ],
-            estimatedDuration: "1-2 hours",
-          })
-        }
-</content>`,
+            JSON.stringify({
+              subject: "Bug Fix Plan",
+              description: "I will investigate and fix the reported issue.",
+              steps: [
+                {
+                  step: 1,
+                  title: "Reproduce Issue",
+                  description: "Verify the bug exists and understand the exact conditions that trigger it.",
+                },
+                {
+                  step: 2,
+                  title: "Root Cause Analysis",
+                  description: "Identify why the bug occurs by analyzing the relevant code paths.",
+                  tools: ["read_file"],
+                },
+                {
+                  step: 3,
+                  title: "Implement Fix",
+                  description: "Apply the necessary correction to resolve the issue.",
+                  tools: ["write_file"],
+                  dependencies: [2],
+                },
+                {
+                  step: 4,
+                  title: "Test Fix",
+                  description: "Verify the bug is resolved and the fix works as expected.",
+                  dependencies: [3],
+                },
+                {
+                  step: 5,
+                  title: "Regression Test",
+                  description: "Ensure no new issues are introduced by the fix.",
+                  dependencies: [4],
+                },
+              ],
+              estimatedDuration: "1-2 hours",
+            })
+          }
+</content>`;
+        },
       },
       {
         pattern: /.*/,
-        response: `<content>
+        response: (_match, _prompt) => {
+          return `<content>
 ${
-          JSON.stringify({
-            subject: "Execution Plan",
-            description: "I will address the user's request with a structured approach.",
-            steps: [
-              {
-                step: 1,
-                title: "Analyze",
-                description: "Review the request details and understand what needs to be done.",
-              },
-              {
-                step: 2,
-                title: "Plan",
-                description: "Design the approach and identify files that need to be modified.",
-              },
-              {
-                step: 3,
-                title: "Implement",
-                description: "Execute the changes according to the plan.",
-                tools: ["write_file"],
-              },
-            ],
-          })
-        }
-</content>`,
+            JSON.stringify({
+              subject: "Execution Plan",
+              description: "I will address the user's request with a structured approach.",
+              steps: [
+                {
+                  step: 1,
+                  title: "Analyze",
+                  description: "Review the request details and understand what needs to be done.",
+                },
+                {
+                  step: 2,
+                  title: "Plan",
+                  description: "Design the approach and identify files that need to be modified.",
+                },
+                {
+                  step: 3,
+                  title: "Implement",
+                  description: "Execute the changes according to the plan.",
+                  tools: ["write_file"],
+                },
+              ],
+            })
+          }
+</content>`;
+        },
       },
     ],
   });

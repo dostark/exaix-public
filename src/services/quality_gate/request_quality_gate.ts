@@ -18,7 +18,7 @@ import type {
   IRequestQualityIssue,
 } from "../../shared/schemas/request_quality_assessment.ts";
 import { RequestQualityLevel, RequestQualityRecommendation } from "../../shared/schemas/request_quality_assessment.ts";
-import type { IClarificationSession } from "../../shared/schemas/clarification_session.ts";
+import { ClarificationSessionStatus, type IClarificationSession } from "../../shared/schemas/clarification_session.ts";
 import type {
   IRequestQualityContext,
   IRequestQualityGateConfig,
@@ -34,6 +34,7 @@ import {
 import { assessHeuristic } from "./heuristic_assessor.ts";
 import { LlmQualityAssessor } from "./llm_assessor.ts";
 import { enrichRequest } from "./request_enricher_llm.ts";
+import { ClarificationEngine } from "./clarification_engine.ts";
 
 // ---------------------------------------------------------------------------
 // Config factory
@@ -103,6 +104,7 @@ export class RequestQualityGate implements IRequestQualityGateService {
   private readonly validator?: IOutputValidator;
   private readonly eventLogger?: IEventLogger;
   private readonly config: IRequestQualityGateConfig;
+  private readonly engine?: ClarificationEngine;
 
   constructor(
     config: IRequestQualityGateConfig,
@@ -114,6 +116,12 @@ export class RequestQualityGate implements IRequestQualityGateService {
     this.provider = provider;
     this.validator = validator;
     this.eventLogger = eventLogger;
+
+    if (provider && validator) {
+      this.engine = new ClarificationEngine(provider, validator, {
+        maxRounds: this.config.maxClarificationRounds,
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -179,22 +187,39 @@ export class RequestQualityGate implements IRequestQualityGateService {
   // IRequestQualityGateService — clarification (stubbed; implemented in Step 10)
   // ---------------------------------------------------------------------------
 
-  startClarification(
-    _requestId: string,
-    _body: string,
+  async startClarification(
+    requestId: string,
+    body: string,
   ): Promise<IClarificationSession> {
-    return Promise.reject(new Error("ClarificationEngine not yet available (Step 10)"));
+    if (this.engine) {
+      return await this.engine.startSession(requestId, body);
+    }
+    // Fallback if engine cannot be initialized (no LLM)
+    const heuristic = assessHeuristic(body);
+    return {
+      requestId,
+      originalBody: body,
+      rounds: [],
+      status: ClarificationSessionStatus.ACTIVE,
+      qualityHistory: [{ round: 0, score: heuristic.score, level: heuristic.level }],
+    };
   }
 
-  submitAnswers(
-    _session: IClarificationSession,
-    _answers: Record<string, string>,
+  async submitAnswers(
+    session: IClarificationSession,
+    answers: Record<string, string>,
   ): Promise<IClarificationSession> {
-    return Promise.reject(new Error("ClarificationEngine not yet available (Step 10)"));
+    if (this.engine) {
+      return await this.engine.processAnswers(session, answers);
+    }
+    return session;
   }
 
-  isSessionComplete(_session: IClarificationSession): boolean {
-    throw new Error("ClarificationEngine not yet available (Step 10)");
+  isSessionComplete(session: IClarificationSession): boolean {
+    if (this.engine) {
+      return this.engine.isComplete(session);
+    }
+    return true;
   }
 
   // ---------------------------------------------------------------------------

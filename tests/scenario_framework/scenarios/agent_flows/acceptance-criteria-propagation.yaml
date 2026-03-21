@@ -19,6 +19,12 @@ steps:
       - id: "request-create-exit-code"
         kind: "command-exit-code"
         equals: 0
+  - id: "wait-for-analysis"
+    type: "wait-for-file"
+    args: ["**/*_analysis.json"]
+    timeout_sec: 120
+    input_criteria: []
+    output_criteria: []
   - id: "review-criteria"
     type: "json-assert"
     file_pattern: "**/*_analysis.json"

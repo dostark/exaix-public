@@ -22,6 +22,8 @@ import { AnalysisMode } from "../../shared/types/request.ts";
 import type { IRequestAnalysisContext } from "../../shared/interfaces/i_request_analyzer_service.ts";
 import { ANALYZER_VERSION } from "../../shared/constants.ts";
 
+const RequestAnalysisCoreSchema = RequestAnalysisSchema.omit({ metadata: true });
+
 // ---------------------------------------------------------------------------
 // Analysis prompt template
 // ---------------------------------------------------------------------------
@@ -45,26 +47,30 @@ Respond with ONLY a valid JSON object matching this exact structure (no markdown
   "complexity": "simple, medium, complex, or epic",
   "taskType": "feature, bugfix, refactor, test, docs, analysis, or unknown",
   "tags": ["string"],
-  "referencedFiles": ["string"],
-  "metadata": {
-    "analyzedAt": "ISO8601 timestamp",
-    "durationMs": 0,
-    "mode": "${AnalysisMode.LLM}",
-    "analyzerVersion": "${ANALYZER_VERSION}"
-  }
+  "referencedFiles": ["string"]
 }
 
 Rules:
-- goals: list all distinct objectives; mark explicit=false for inferred goals
+- goals: EVERY request has at least one goal. Be specific and distinct.
+- do NOT return "meta-goals" like "analyze this request" or "extract goals". Analyze the CONTENT of the request, not your own instructions.
 - requirements: concrete conditions the implementation must satisfy; confidence 0.0-1.0
-- constraints: limitations or restrictions imposed (e.g. "no new dependencies")
-- acceptanceCriteria: measurable conditions that define "done"
-- ambiguities: unclear or underspecified aspects; impact low/medium/high
-- actionabilityScore: 0=completely vague, 100=fully specified and ready to execute
-- complexity: simple (<200 chars, ≤2 bullets), epic (multi-phase), complex (>10 bullets or >5 files), else medium
-- taskType: primary verb signal (fix/bug→bugfix, refactor→refactor, test→test, document→docs, analyze→analysis, else feature)
-- tags: topic keywords from the request
-- referencedFiles: source file paths explicitly mentioned`;
+- constraints: limitations or restrictions (e.g. "no new dependencies", "Node 18")
+- complexity: simple (<2 bullets), epic (multi-phase), complex (>10 bullets), else medium
+- taskType: primary signal (bug→bugfix, refactor→refactor, test→test, doc→docs, analyze→analysis, else feature)
+- IF the request is actionable, you MUST provide at least one clear goal. Do not return empty lists for intent-filled requests.`;
+
+const REVIEWER_PROMPT_TEMPLATE = `You are reviewing a request analysis for accuracy and common sense.
+ORIGINAL REQUEST:
+{REQUEST_TEXT}
+
+EXTRACTED ANALYSIS:
+{EXTRACTED_JSON}
+
+Your task:
+1. Check if the "goals" accurately reflect the intent.
+2. If goals are missing or too generic (e.g. just "process request"), ADD the missing specific goals.
+3. Ensure "actionabilityScore" is realistic.
+4. Output ONLY the refined JSON matching the original structure.`;
 
 function buildPrompt(requestText: string, context?: IRequestAnalysisContext): string {
   let contextSection = "";
@@ -72,7 +78,11 @@ function buildPrompt(requestText: string, context?: IRequestAnalysisContext): st
     const parts: string[] = [];
     if (context.agentId) parts.push(`Agent: ${context.agentId}`);
     if (context.priority) parts.push(`Priority: ${context.priority}`);
-    if (context.filePaths?.length) parts.push(`Known files: ${context.filePaths.join(", ")}`);
+    if (context.filePaths?.length) {
+      const files = context.filePaths.slice(0, 25);
+      const suffix = context.filePaths.length > 25 ? `... (${context.filePaths.length - 25} more)` : "";
+      parts.push(`Known project files: ${files.join(", ")}${suffix}`);
+    }
     if (context.tags?.length) parts.push(`Existing tags: ${context.tags.join(", ")}`);
     if (context.memories?.memoryContext) {
       parts.push(`\n${context.memories.memoryContext}`);
@@ -142,19 +152,43 @@ export class LlmAnalyzer {
       return fallback;
     }
 
-    const result = this.validator.parseAndValidate<IRequestAnalysis>(raw, RequestAnalysisSchema);
+    let result = this.validator.parseAndValidate(raw, RequestAnalysisCoreSchema);
+
+    // Refine Pass (Reviewer) for better common-sense alignment
+    if (result.success && result.value) {
+      const reviewPrompt = REVIEWER_PROMPT_TEMPLATE
+        .replace("{REQUEST_TEXT}", requestText)
+        .replace("{EXTRACTED_JSON}", JSON.stringify(result.value, null, 2));
+
+      try {
+        const refinedRaw = await this.provider.generate(reviewPrompt, { temperature: 0, max_tokens: 1500 });
+        const refinedResult = this.validator.parseAndValidate(refinedRaw, RequestAnalysisCoreSchema);
+        if (refinedResult.success && refinedResult.value) {
+          result = refinedResult;
+        }
+      } catch (e) {
+        console.warn(`[LlmAnalyzer] Refine pass failed: ${e}`);
+      }
+    }
+
     const durationMs = Date.now() - startMs;
 
     if (result.success && result.value) {
       return {
         ...result.value,
         metadata: {
-          ...result.value.metadata,
-          analyzedAt: result.value.metadata.analyzedAt || new Date().toISOString(),
+          analyzedAt: new Date().toISOString(),
           durationMs,
           mode: AnalysisMode.LLM,
+          analyzerVersion: ANALYZER_VERSION,
         },
-      };
+      } as IRequestAnalysis;
+    }
+
+    if (!result.success) {
+      console.warn(`[LlmAnalyzer] Validation failed for trace: ${context?.traceId || "unknown"}`);
+      console.warn(`[LlmAnalyzer] Raw response: ${raw.substring(0, 150)}...`);
+      console.warn(`[LlmAnalyzer] Errors: ${JSON.stringify(result.errors)}`);
     }
 
     const fallback = buildFallback(requestText);

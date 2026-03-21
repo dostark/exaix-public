@@ -9,9 +9,12 @@ portals: []
 
 steps:
   - id: create-readme
-    type: exoctl
-    command: "request"
-    args: ["--file", "$REQUEST_FIXTURE"]
+    type: shell
+    command: "sh"
+    args: [
+      "-c",
+      "printf '# Exo-Test README for project features\\n\\nExo-Test README for project features.\\n\\n## Features\\n- Feature 1: This is a bullet points\\n- Feature 2: Another bullet points\\n- Feature 3: Final bullet points\\n' > README.md",
+    ]
     input_criteria: []
     output_criteria:
       - id: regex-case-insensitive

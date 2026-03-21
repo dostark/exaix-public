@@ -10,15 +10,21 @@ steps:
   - id: "create-request"
     type: "exoctl"
     command: "request"
-    args: ["--file", "fixtures/requests/agent_flows/quality_gate_clarification.md"]
+    args: ["--file", "$FRAMEWORK_HOME/fixtures/requests/agent_flows/quality_gate_clarification.md"]
     input_criteria:
       - id: "request-fixture-exists"
         kind: "file-exists"
-        path: "fixtures/requests/agent_flows/quality_gate_clarification.md"
+        path: "$FRAMEWORK_HOME/fixtures/requests/agent_flows/quality_gate_clarification.md"
     output_criteria:
       - id: "request-create-exit-code"
         kind: "command-exit-code"
         equals: 0
+  - id: "wait-for-clarification"
+    type: "wait-for-file"
+    args: ["**/*_clarification.json"]
+    timeout_sec: 120
+    input_criteria: []
+    output_criteria: []
   - id: "review-clarification"
     type: "manual-review"
     checkpoint: "clarification-needed"
@@ -30,5 +36,5 @@ steps:
     output_criteria:
       - id: "review-ready"
         kind: "text-contains"
-        path: "fixtures/requests/agent_flows/quality_gate_clarification.md"
+        path: "$FRAMEWORK_HOME/fixtures/requests/agent_flows/quality_gate_clarification.md"
         contains: "underspecified"

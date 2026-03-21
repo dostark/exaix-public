@@ -15,6 +15,7 @@
     "check-commit-msg": "deno run -A scripts/check_commit_msg.ts",
     "bump": "deno run -A scripts/check_version.ts --force-patch",
     "cli": "deno run --allow-all src/cli/exoctl.ts",
+    "sandbox": "deno run -A scripts/setup_sandbox.ts",
     "scenario:test": "deno test --allow-all tests/scenario_framework/",
     "scenario:test:unit": "deno test --allow-all tests/scenario_framework/tests/unit/",
     "test": "deno test --allow-all",

@@ -7,6 +7,13 @@ request_fixture: "fixtures/requests/agent_flows/request_analysis_smoke.md"
 mode_support: ["auto", "step"]
 portals: []
 steps:
+  - id: "cleanup-workspace"
+    type: "shell"
+    name: "Clean up existing analysis artifacts"
+    command: "sh"
+    args: ["-c", "rm -f $WORKSPACE_ROOT/Workspace/Requests/*_analysis.json"]
+    input_criteria: []
+    output_criteria: []
   - id: "create-request-analysis"
     type: "exoctl"
     command: "request"

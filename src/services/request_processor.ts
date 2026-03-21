@@ -52,6 +52,7 @@ import { LogMethod } from "./decorators/logging.ts";
 import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
 import { IRequestFrontmatter, ParsedRequestFile } from "./request_processing/types.ts";
+import { OutputValidator } from "./output_validator.ts";
 import type { LogMetadata } from "../shared/types/json.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { IServiceContext } from "./common/types.ts";
@@ -156,9 +157,19 @@ export class RequestProcessor {
       actionabilityThreshold: config.request_analysis?.actionability_threshold,
       inferAcceptanceCriteria: config.request_analysis?.infer_acceptance_criteria,
     });
-    this.qualityGate = testQualityGate ?? new RequestQualityGate(
-      buildQualityGateConfig(config.quality_gate ?? {}),
-    );
+
+    // Wire QualityGate with Provider and OutputValidator (Phase 51)
+    const qgConfig = buildQualityGateConfig(config.quality_gate ?? {});
+
+    this.qualityGate = testQualityGate;
+    if (!this.qualityGate) {
+      this.qualityGate = new RequestQualityGate(
+        qgConfig,
+        this.testProvider,
+        new OutputValidator(),
+        this.logger,
+      );
+    }
   }
 
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
