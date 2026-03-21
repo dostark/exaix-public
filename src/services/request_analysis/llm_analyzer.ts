@@ -70,9 +70,12 @@ Your task:
 1. Check if the "goals" accurately reflect the intent.
 2. If goals are missing or too generic (e.g. just "process request"), ADD the missing specific goals.
 3. Ensure "actionabilityScore" is realistic.
-4. Output ONLY the refined JSON matching the original structure.`;
+4. Ensure ambiguous components specify "interpretations" and "clarificationQuestion" properly.
+5. Output ONLY the refined JSON matching the original structure.
 
-function buildPrompt(requestText: string, context?: IRequestAnalysisContext): string {
+{CONTEXT_SECTION}`;
+
+function buildContextSection(context?: IRequestAnalysisContext): string {
   let contextSection = "";
   if (context) {
     const parts: string[] = [];
@@ -88,9 +91,15 @@ function buildPrompt(requestText: string, context?: IRequestAnalysisContext): st
       parts.push(`\n${context.memories.memoryContext}`);
     }
     if (parts.length > 0) {
-      contextSection = `CONTEXT:\n${parts.join("\n")}\n`;
+      contextSection = `\nCONTEXT/MEMORIES:\n${parts.join("\n")}\n`;
     }
   }
+  return contextSection;
+}
+
+function buildPrompt(requestText: string, context?: IRequestAnalysisContext): string {
+  const contextSection = buildContextSection(context);
+
   return ANALYSIS_PROMPT_TEMPLATE
     .replace("{REQUEST_TEXT}", requestText)
     .replace("{CONTEXT_SECTION}", contextSection);
@@ -158,7 +167,8 @@ export class LlmAnalyzer {
     if (result.success && result.value) {
       const reviewPrompt = REVIEWER_PROMPT_TEMPLATE
         .replace("{REQUEST_TEXT}", requestText)
-        .replace("{EXTRACTED_JSON}", JSON.stringify(result.value, null, 2));
+        .replace("{EXTRACTED_JSON}", JSON.stringify(result.value, null, 2))
+        .replace("{CONTEXT_SECTION}", context ? buildContextSection(context) : "");
 
       try {
         const refinedRaw = await this.provider.generate(reviewPrompt, { temperature: 0, max_tokens: 1500 });

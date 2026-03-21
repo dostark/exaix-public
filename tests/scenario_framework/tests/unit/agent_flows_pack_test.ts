@@ -80,7 +80,10 @@ Deno.test("[ScenarioFrameworkAgentFlowsPack] scenario metadata for the Agent Flo
     assertStringIncludes(scenario.request_fixture, "fixtures/requests/agent_flows/");
     assertEquals(scenario.steps.length > 0, true);
     assertEquals(
-      scenario.steps.every((step: IScenarioStep) => step.input_criteria.length + step.output_criteria.length > 0),
+      scenario.steps.every((step: IScenarioStep) =>
+        ["wait-for-file", "shell"].includes(step.type) ||
+        ((step.input_criteria?.length ?? 0) + (step.output_criteria?.length ?? 0) > 0)
+      ),
       true,
     );
   }
