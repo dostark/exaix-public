@@ -1,27 +1,42 @@
 ---
 title: "Agent Blueprint Validation Requests"
 created: "2026-01-26T00:00:00Z"
-updated: "2026-01-26T00:00:00Z"
+updated: "2026-03-22T00:00:00Z"
 author: "system"
 scope: "dev"
-version: "1.0.0"
+version: "2.0.0"
 ---
 
-This document outlines the testing strategy and contains realistic validation requests for each agent blueprint in the ExoFrame system. Each request is designed to test the core functionality of the agent and validate that its logic works correctly with real LLM interactions.
+# Agent Validation Scenario Framework
 
-> **Note:** The manual `exoctl` execution steps originally contained in this document have been migrated to the new automated **Scenario Framework**. The `provider_live` scenario pack (`tests/scenario_framework/scenarios/provider_live/`) automatically spins up workspaces, provisions the exact request prompts shown here, runs them using real LLM providers, and asserts on the JSON schema output. See the tests directly for exact schema assertion logic.
+This document provides an index of agent validation scenarios for the ExoFrame system. Each scenario tests an agent blueprint's core functionality using realistic prompts validated against real LLM providers.
 
-## Automated Validation Pipeline
+## Automated Validation
 
-These capabilities are continuously asserted by the `provider_live` scenario pack.
+All scenarios below are **automated** and continuously validated by the **Scenario Framework** in the `provider_live` scenario pack.
+
+- **Location**: `tests/scenario_framework/scenarios/provider_live/`
+- **Fixtures**: `tests/scenario_framework/fixtures/requests/provider_live/`
+- **Execution**: `deno test -A tests/scenario_framework/`
+
+Each scenario:
+
+1. Spins up an isolated workspace
+2. Provisions the request prompt fixture
+3. Executes the agent using `exoctl request`
+4. Waits for artifact generation (`*_analysis.json` or `*_plan.yaml`)
+5. Asserts structural JSON schema output
 
 ## Core Agents Index
 
 ### 1. Code Analyst Agent
 
-**Agent**: `code-analyst.md` - Codebase analysis and structure assessment
+**Blueprint**: `code-analyst.md`
+**Scenario**: `code-analyst-validation.yaml`
+**Fixture**: `code_analyst_cli_structure.md`
+**Focus**: Codebase analysis and structure assessment
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
 
 ```text
 Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand:
@@ -35,11 +50,14 @@ Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/comm
 
 ### 2. Performance Engineer Agent
 
-**Agent**: `performance-engineer.md` - Performance analysis and optimization
+**Blueprint**: `performance-engineer.md`
+**Scenario**: `performance-engineer-validation.yaml`
+**Fixture**: `performance_engineer.md`
+**Focus**: Performance analysis and optimization
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
 
-````text
+```text
 Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify:
 
 - Connection pool sizing and utilization patterns
@@ -47,12 +65,17 @@ Analyze the performance characteristics of ExoFrame's database connection poolin
 - Memory usage in database result caching
 - Scalability limitations under concurrent agent executions
 - Specific optimization recommendations for the SQLite/PostgreSQL implementations
+```
 
 ### 3. Product Manager Agent
 
-**Agent**: `product-manager.md` - Requirements analysis and user story creation
+**Blueprint**: `product-manager.md`
+**Scenario**: `product-manager-validation.yaml`
+**Fixture**: `product_manager.md`
+**Focus**: Requirements analysis and user story creation
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 We need to implement a real-time agent monitoring dashboard in the TUI. As a product manager, analyze this requirement and create:
 
@@ -64,9 +87,13 @@ We need to implement a real-time agent monitoring dashboard in the TUI. As a pro
 
 ### 4. QA Engineer Agent
 
-**Agent**: `qa-engineer.md` - Quality assurance and testing strategy
+**Blueprint**: `qa-engineer.md`
+**Scenario**: `qa-engineer-validation.yaml`
+**Fixture**: `qa_engineer.md`
+**Focus**: Quality assurance and testing strategy
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Create a comprehensive testing strategy for ExoFrame's portal permission system. Include:
 
@@ -79,9 +106,13 @@ Create a comprehensive testing strategy for ExoFrame's portal permission system.
 
 ### 5. Quality Judge Agent
 
-**Agent**: `quality-judge.md` - Code and content quality evaluation
+**Blueprint**: `quality-judge.md`
+**Scenario**: `quality-judge-validation.yaml`
+**Fixture**: `quality_judge.md`
+**Focus**: Code and content quality evaluation
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Evaluate the quality of the security implementation in ExoFrame's context loader. Assess:
 
@@ -94,9 +125,13 @@ Evaluate the quality of the security implementation in ExoFrame's context loader
 
 ### 6. Security Expert Agent
 
-**Agent**: `security-expert.md` - Security assessment and vulnerability analysis
+**Blueprint**: `security-expert.md`
+**Scenario**: `security-expert-validation.yaml`
+**Fixture**: `security_expert.md`
+**Focus**: Security assessment and vulnerability analysis
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Perform a security audit of ExoFrame's AI provider API key management system. Identify:
 
@@ -109,9 +144,13 @@ Perform a security audit of ExoFrame's AI provider API key management system. Id
 
 ### 7. Senior Coder Agent
 
-**Agent**: `senior-coder.md` - Implementation planning and coding strategy
+**Blueprint**: `senior-coder.md`
+**Scenario**: `senior-coder-validation.yaml`
+**Fixture**: `senior_coder.md`
+**Focus**: Implementation planning and coding strategy
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Implement a new CLI command for memory bank management in ExoFrame. Plan the implementation including:
 
@@ -124,9 +163,13 @@ Implement a new CLI command for memory bank management in ExoFrame. Plan the imp
 
 ### 8. Software Architect Agent
 
-**Agent**: `software-architect.md` - System architecture design and planning
+**Blueprint**: `software-architect.md`
+**Scenario**: `software-architect-validation.yaml`
+**Fixture**: `software_architect.md`
+**Focus**: System architecture design and planning
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Design the architecture for MCP (Model Context Protocol) server support in ExoFrame. Consider:
 
@@ -139,9 +182,13 @@ Design the architecture for MCP (Model Context Protocol) server support in ExoFr
 
 ### 9. Technical Writer Agent
 
-**Agent**: `technical-writer.md` - Documentation creation and maintenance
+**Blueprint**: `technical-writer.md`
+**Scenario**: `technical-writer-validation.yaml`
+**Fixture**: `technical_writer.md`
+**Focus**: Documentation creation and maintenance
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Create comprehensive API documentation for ExoFrame's flow engine. Include:
 
@@ -155,9 +202,13 @@ Create comprehensive API documentation for ExoFrame's flow engine. Include:
 
 ### 10. Test Engineer Agent
 
-**Agent**: `test-engineer.md` - Test implementation and quality assurance
+**Blueprint**: `test-engineer.md`
+**Scenario**: `test-engineer-validation.yaml`
+**Fixture**: `test_engineer.md`
+**Focus**: Test implementation and quality assurance
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Implement comprehensive tests for ExoFrame's review registry system. Create:
 
@@ -168,11 +219,15 @@ Implement comprehensive tests for ExoFrame's review registry system. Create:
 - Test automation setup for CI/CD validation of review integrity
 ```
 
-### 11. API Documenter Agent (Example)
+### 11. API Documenter Agent
 
-**Agent**: `examples/api-documenter.md` - API documentation generation
+**Blueprint**: `examples/api-documenter.md`
+**Scenario**: `api-documenter-validation.yaml`
+**Fixture**: `api_documenter.md`
+**Focus**: API documentation generation
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document:
 
@@ -184,11 +239,15 @@ Generate comprehensive documentation for the ExoFrame agent blueprint schema. Do
 - Migration guides for updating blueprints between versions
 ```
 
-### 12. Code Reviewer Agent (Example)
+### 12. Code Reviewer Agent
 
-**Agent**: `examples/code-reviewer.md` - Code review and quality assessment
+**Blueprint**: `examples/code-reviewer.md`
+**Scenario**: `code-reviewer-validation.yaml`
+**Fixture**: `code_reviewer.md`
+**Focus**: Code review and quality assessment
 
-**Scenario Blueprint Payload**:
+**Request Prompt**:
+
 ```text
 Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate:
 
@@ -199,4 +258,22 @@ Perform a comprehensive code review of ExoFrame's plan executor implementation. 
 - Maintainability concerns with the multi-step plan processing
 - Testing coverage and quality for the core execution engine
 ```
-````
+
+## Multi-Agent Flow Scenarios
+
+In addition to individual agent validation, the framework includes multi-agent flow scenarios that test handoffs and sequential agent interactions:
+
+- **multi-agent-tui-flow.yaml**: Product Manager → Software Architect workflow for TUI dashboard development
+
+## Running Validation
+
+```bash
+# Run all provider_live scenarios
+deno test -A tests/scenario_framework/
+
+# Run specific agent validation
+deno test -A tests/scenario_framework/ -- --filter code-analyst
+
+# Dry-run scenario compilation
+run-scenarios --pack provider_live --dry-run
+```

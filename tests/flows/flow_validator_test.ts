@@ -9,40 +9,52 @@ import { assertEquals } from "@std/assert";
 
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
-import { copySync, ensureDir } from "@std/fs";
 
-// Utility: create isolated temp dir for each test and helpers
+// Utility: create isolated temp dir for each test
 async function setupTestDir() {
-  const dir = await Deno.makeTempDir({ prefix: "exo-flow-" });
-  // copy shared directory into the temp dir to preserve internal structure
-  copySync("src/shared", `${dir}/shared`);
-  // copy flows/transforms.ts because it's imported by shared/schemas/flow.ts
-  await ensureDir(`${dir}/flows`);
-  await Deno.copyFile("src/flows/transforms.ts", `${dir}/flows/transforms.ts`);
-
-  // copy define_flow but patch its import paths to reference the local shared files
-  const original = await Deno.readTextFile("src/flows/define_flow.ts");
-  const patched = original
-    .replace(/\.\.\/shared\//g, "./shared/"); // simply shift from ../shared/ to ./shared/
-  await Deno.writeTextFile(`${dir}/define_flow.ts`, patched);
-  return dir;
+  return await Deno.makeTempDir({ prefix: "exo-flow-" });
 }
 
-function flowContent(importPath: string, body: string) {
-  return `import { defineFlow } from "${importPath}";\nexport default defineFlow(${body});\n`;
+/**
+ * Create a YAML flow fixture for testing.
+ * Accepts partial flow content to test various valid/invalid scenarios.
+ */
+function yamlFlowContent(overrides: {
+  id?: string;
+  name?: string;
+  description?: string;
+  steps?: string;
+  output?: string;
+} = {}): string {
+  return `id: "${overrides.id ?? "test-flow"}"
+name: "${overrides.name ?? "Test Flow"}"
+description: "${overrides.description ?? "A test flow"}"
+version: "1.0.0"
+steps: ${
+    overrides.steps ?? `
+  - id: "s1"
+    name: "Step 1"
+    agent: "agent1"
+    dependsOn: []
+    input:
+      source: "request"
+      transform: "passthrough"
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+`
+  }
+output: ${overrides.output ?? `{ from: "s1", format: "markdown" }`}
+`;
 }
 
 Deno.test("FlowValidatorImpl: validates existing flow with valid structure", async () => {
   const dir = await setupTestDir();
   try {
-    const validBody = `{
-  id: "valid-flow",
-  name: "Valid Flow",
-  description: "A valid flow",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" }
-}`;
-    await Deno.writeTextFile(`${dir}/valid-flow.flow.ts`, flowContent("./define_flow.ts", validBody));
+    await Deno.writeTextFile(
+      `${dir}/valid-flow.flow.yaml`,
+      yamlFlowContent({ id: "valid-flow", name: "Valid Flow", description: "A valid flow" }),
+    );
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
     const result = await validator.validateFlow("valid-flow");
@@ -70,9 +82,16 @@ Deno.test("FlowValidatorImpl: fails for missing flow", async () => {
 Deno.test("FlowValidatorImpl: fails for flow with no steps", async () => {
   const dir = await setupTestDir();
   try {
-    const body =
-      `{ id: "no-steps", name: "No Steps", description: "No steps flow", steps: [], output: { from: "s1", format: "markdown" } }`;
-    await Deno.writeTextFile(`${dir}/no-steps.flow.ts`, flowContent("./define_flow.ts", body));
+    await Deno.writeTextFile(
+      `${dir}/no-steps.flow.yaml`,
+      yamlFlowContent({
+        id: "no-steps",
+        name: "No Steps",
+        description: "No steps flow",
+        steps: "[]",
+        output: `{ from: "s1", format: "markdown" }`,
+      }),
+    );
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
     const result = await validator.validateFlow("no-steps");
@@ -86,17 +105,38 @@ Deno.test("FlowValidatorImpl: fails for flow with no steps", async () => {
 Deno.test("FlowValidatorImpl: fails for flow with dependency cycle", async () => {
   const dir = await setupTestDir();
   try {
-    const body = `{
-    id: "cyclic-flow",
-    name: "Cyclic Flow",
-    description: "Cyclic flow",
-    steps: [
-      { id: "a", name: "A", agent: "agentA", dependsOn: ["b"], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } },
-      { id: "b", name: "B", agent: "agentB", dependsOn: ["a"], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }
-    ],
-    output: { from: "a", format: "markdown" }
-  }`;
-    await Deno.writeTextFile(`${dir}/cyclic-flow.flow.ts`, flowContent("./define_flow.ts", body));
+    const cyclicSteps = `
+  - id: "a"
+    name: "A"
+    agent: "agentA"
+    dependsOn: ["b"]
+    input:
+      source: "request"
+      transform: "passthrough"
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: "b"
+    name: "B"
+    agent: "agentB"
+    dependsOn: ["a"]
+    input:
+      source: "request"
+      transform: "passthrough"
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+`;
+    await Deno.writeTextFile(
+      `${dir}/cyclic-flow.flow.yaml`,
+      yamlFlowContent({
+        id: "cyclic-flow",
+        name: "Cyclic Flow",
+        description: "Cyclic flow",
+        steps: cyclicSteps,
+        output: `{ from: "a", format: "markdown" }`,
+      }),
+    );
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
     const result = await validator.validateFlow("cyclic-flow");
@@ -110,9 +150,22 @@ Deno.test("FlowValidatorImpl: fails for flow with dependency cycle", async () =>
 Deno.test("FlowValidatorImpl: fails for flow with invalid agent field", async () => {
   const dir = await setupTestDir();
   try {
-    const body =
-      `{ id: "bad-agent", name: "Bad Agent", description: "Bad agent flow", steps: [{ id: "s1", name: "Step 1", agent: "", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }], output: { from: "s1", format: "markdown" } }`;
-    await Deno.writeTextFile(`${dir}/bad-agent.flow.ts`, flowContent("./define_flow.ts", body));
+    const badAgentSteps = `
+  - id: "s1"
+    name: "Step 1"
+    agent: ""
+    dependsOn: []
+    input:
+      source: "request"
+      transform: "passthrough"
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+`;
+    await Deno.writeTextFile(
+      `${dir}/bad-agent.flow.yaml`,
+      yamlFlowContent({ id: "bad-agent", name: "Bad Agent", description: "Bad agent flow", steps: badAgentSteps }),
+    );
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
     const result = await validator.validateFlow("bad-agent");
@@ -127,9 +180,15 @@ Deno.test("FlowValidatorImpl: fails for flow with invalid agent field", async ()
 Deno.test("FlowValidatorImpl: fails for flow with invalid output.from", async () => {
   const dir = await setupTestDir();
   try {
-    const body =
-      `{ id: "bad-output", name: "Bad Output", description: "Bad output flow", steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }], output: { from: "nonexistent", format: "markdown" } }`;
-    await Deno.writeTextFile(`${dir}/bad-output.flow.ts`, flowContent("./define_flow.ts", body));
+    await Deno.writeTextFile(
+      `${dir}/bad-output.flow.yaml`,
+      yamlFlowContent({
+        id: "bad-output",
+        name: "Bad Output",
+        description: "Bad output flow",
+        output: `{ from: "nonexistent", format: "markdown" }`,
+      }),
+    );
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");
     const result = await validator.validateFlow("bad-output");
