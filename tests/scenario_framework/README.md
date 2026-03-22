@@ -4,11 +4,11 @@ The Scenario Framework is a reusable tool designed to validate ExoFrame behavior
 
 ## Quick Start
 
-The easiest way to use the framework is through the scripts in the `bin/` directory.
+For a complete step-by-step tutorial on deploying a sandbox, configuring LLM providers (including real LLMs like Google Gemini), and running the framework externally, please refer to the **[`VALIDATION_GUIDE.md`](./VALIDATION_GUIDE.md)**.
 
-### 1. Run Scenarios
+### Running Scenarios (CLI Reference)
 
-To run scenarios against a deployed workspace:
+Once you have a workspace set up (or deployed the framework), you can run scenarios using the `run-scenarios` script.
 
 ```bash
 ./bin/run-scenarios --workspace /path/to/workspace --output /path/to/output
@@ -27,24 +27,22 @@ To run scenarios against a deployed workspace:
 - `-c, --config <path>`: Load configuration from a YAML/JSON file.
 - `-v, --verbose`: Show full CLI commands being executed in terminal.
 
-### 2. Deploy the Framework
+### Useful Option Values & Compatible Modes
 
-To package the framework for execution in an external environment (isolated from the repository):
+When running or filtering scenarios, it is important to match the target environment (e.g., automated vs manual) with the proper execution mode.
 
-```bash
-./bin/deploy-framework --destination /path/to/deploy --workspace /path/to/workspace --output /path/to/output
-```
-
-### 3. Running Deployed
-
-Once deployed, the framework is self-contained. You can run it from the destination directory using the same `bin/run-scenarios` script:
-
-```bash
-cd /path/to/deploy/scenario_framework
-./bin/run-scenarios
-```
-
-It will automatically use the `runtime_config.json` created during deployment.
+| Flag / Target   | Value           | Compatible Mode             | Description / Use Case                                                                                      |
+| :-------------- | :-------------- | :-------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| **`--pack`**    | `agent_flows`   | `auto`, `manual-checkpoint` | Complex multi-step behaviors testing LLM output. Contains checkpoints for human review.                     |
+| **`--pack`**    | `smoke`         | `auto`                      | Fast, lightweight validation of the framework and workspace configurations.                                 |
+| **`--pack`**    | `provider_live` | `auto`                      | Stress testing scenarios that **require** real LLM API providers instead of mock models.                    |
+| **`--tag`**     | `smoke`         | `auto`                      | Runs only basic connectivity/parsing scenarios. Best for CI pre-flight checks.                              |
+| **`--tag`**     | `manual-only`   | `manual-checkpoint`         | Scenarios intentionally built with pauses to simulate edge-case human interventions. Will be skipped in CI. |
+| **`--tag`**     | `provider-live` | `auto`                      | Scenarios restricted to non-mock providers. Will skip execution during mock CLI tests.                      |
+| **`--tag`**     | `clarification` | `manual-checkpoint`         | Agent workflows specifically interacting with the Quality Gate clarifying UX loop.                          |
+| **`--profile`** | `ci-smoke`      | `auto`                      | Subset of extremely fast regression tasks invoked natively by the CI server.                                |
+| **`--profile`** | `ci-core`       | `auto`                      | Standard automation suite running the bulk of reliable, deterministic tests.                                |
+| **`--profile`** | `ci-extended`   | `auto`                      | The most comprehensive testing layer; typically skipped on PRs to save time.                                |
 
 ---
 

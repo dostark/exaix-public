@@ -245,8 +245,8 @@ export const ScenarioStepSchema = z.object({
   continue_on_failure: z.boolean().default(false),
   artifact_refs: z.array(z.string().min(1)).optional(),
   file_pattern: z.string().min(1).optional(),
-  input_criteria: z.array(CriterionSchema),
-  output_criteria: z.array(CriterionSchema),
+  input_criteria: z.array(CriterionSchema).optional().default([]),
+  output_criteria: z.array(CriterionSchema).optional().default([]),
 }).strict().superRefine((step, ctx) => {
   if (step.type === ScenarioStepType.MANUAL_REVIEW && !step.instructions) {
     ctx.addIssue({

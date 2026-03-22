@@ -1,0 +1,40 @@
+schema_version: "1.0.0"
+id: "multi-agent-tui-flow"
+title: "Multi-Agent Workflow (Product Manager -> Software Architect)"
+pack: "provider_live"
+tags: ["provider-live", "flow", "multi-agent"]
+request_fixture: "fixtures/requests/provider_live/product_manager.md"
+mode_support: ["auto", "step"]
+portals:
+  - alias: "portal-exoframe"
+    source_path: "/home/dkasymov/git/ExoFrame"
+steps:
+  - id: "create-pm-request"
+    type: "exoctl"
+    command: "request"
+    args:
+      - "--agent"
+      - "product-manager"
+      - "--portal"
+      - "portal-exoframe"
+      - "--plan-only"
+      - "--file"
+      - "$REQUEST_FIXTURE"
+  - id: "wait-for-pm-plan"
+    type: "wait-for-file"
+    args: ["**/*_plan.yaml"]
+    timeout_sec: 180
+  - id: "create-architect-request"
+    type: "exoctl"
+    command: "request"
+    args:
+      - "--agent"
+      - "software-architect"
+      - "--portal"
+      - "portal-exoframe"
+      - "--plan-only"
+      - "Based on the recent product manager plan generated in the workspace, design the technical architecture for the TUI monitoring dashboard. Review the latest plan.yaml to understand the user stories before creating your architectural design."
+  - id: "wait-for-architect-plan"
+    type: "wait-for-file"
+    args: ["**/*_plan.yaml"]
+    timeout_sec: 180

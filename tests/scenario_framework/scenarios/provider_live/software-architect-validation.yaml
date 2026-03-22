@@ -1,0 +1,33 @@
+schema_version: "1.0.0"
+id: "software-architect-validation"
+title: "Software Architect agent validation"
+pack: "provider_live"
+tags: ["provider-live", "planning"]
+request_fixture: "fixtures/requests/provider_live/software_architect.md"
+mode_support: ["auto", "step"]
+portals:
+  - alias: "portal-exoframe"
+    source_path: "/home/dkasymov/git/ExoFrame"
+steps:
+  - id: "create-plan-request"
+    type: "exoctl"
+    command: "request"
+    args:
+      - "--agent"
+      - "software-architect"
+      - "--portal"
+      - "portal-exoframe"
+      - "--plan-only"
+      - "--file"
+      - "$REQUEST_FIXTURE"
+  - id: "wait-for-plan"
+    type: "wait-for-file"
+    args: ["**/*_plan.yaml"]
+    timeout_sec: 180
+  - id: "validate-plan-content"
+    type: "json-assert"
+    file_pattern: "**/*_plan.yaml"
+    output_criteria:
+      - id: "has-steps"
+        kind: "json-path-exists"
+        path: "$.steps[0]"

@@ -4,7 +4,50 @@ This guide provides step-by-step instructions for setting up a clean validation 
 
 ---
 
-## 1. Prepare the Sandbox Environment
+## 1. Automated Setup (Recommended)
+
+The easiest way to deploy a fully configured validation sandbox is using the automated `setup_sandbox.ts` script. This handles workspace deployment, provider configuration, database initialization, portal mounting, and framework deployment.
+
+```bash
+# Navigate to the ExoFrame repository root
+cd "$HOME/git/ExoFrame"
+
+# Define your sandbox root directory
+export EXOFFRAME_VALIDATION_ROOT="$HOME/exo-validation-sandbox"
+
+# Option A: Fast Local Testing (Mock Provider)
+# Set up a sandbox locally without making external API calls
+deno run -A scripts/setup_sandbox.ts --dir "$EXOFFRAME_VALIDATION_ROOT" --provider "mock" --model "test"
+
+# Option B: Real LLM Validation (Google Gemini Flash)
+# To test real agent behaviors, provide your API key and configure the model
+export GOOGLE_API_KEY="your-api-key-here"
+deno run -A scripts/setup_sandbox.ts --dir "$EXOFFRAME_VALIDATION_ROOT" --provider "google" --model "gemini-1.5-flash"
+```
+
+Once the script completes, it will output the necessary environment variables to export to interact with the sandbox.
+
+```bash
+# Export the binary path so the sandbox exoctl takes precedence
+export PATH="$EXOFFRAME_VALIDATION_ROOT/bin:$PATH"
+
+# Export the config path so the daemon uses the sandbox configuration
+export EXO_CONFIG_PATH="$EXOFFRAME_VALIDATION_ROOT/workspace/exo.config.toml"
+
+# Set API keys if necessary (e.g., if using a real provider)
+# export ANTHROPIC_API_KEY="your-key-here"
+
+# Start the daemon in the background
+exoctl daemon start
+```
+
+---
+
+## 2. Manual Setup (Advanced)
+
+If you need fine-grained control over the deployment process, you can perform the setup manually:
+
+### 2.1. Prepare the Sandbox Environment
 
 Create a dedicated directory for your validation work to ensure isolation from your development environment.
 
@@ -24,7 +67,7 @@ export EXO_CONFIG_PATH="$WORKSPACE_DIR/exo.config.toml"
 mkdir -p "$EXOFFRAME_VALIDATION_ROOT"
 ```
 
-## 2. Deploy a Clean ExoFrame Workspace
+### 2.2. Deploy a Clean ExoFrame Workspace
 
 Deploy a fresh ExoFrame runtime. This installs the necessary directory structure (`Memory/`, `Blueprints/`, etc.) and system files.
 
@@ -41,7 +84,7 @@ Deploy a fresh ExoFrame runtime. This installs the necessary directory structure
 export PATH="$EXO_BIN_PATH:$PATH"
 ```
 
-## 3. Configure the AI/LLM Provider
+### 2.3. Configure the AI/LLM Provider
 
 For real agent validation, you must configure a functional LLM provider.
 
@@ -53,20 +96,20 @@ cd "$WORKSPACE_DIR"
 cp exo.config.sample.toml exo.config.toml
 
 # Edit exo.config.toml to set your preferred provider and model
-# For example:
-#   [ai] provider = "anthropic"
-#   [ai] model = "claude-3-5-sonnet-20241022"
+# For example, using Google Gemini Flash:
+#   [ai] provider = "google"
+#   [ai] model = "gemini-1.5-flash"
 
 # Set your API keys (Replace with your actual keys)
-export ANTHROPIC_API_KEY="your-key-here"
-export OPENAI_API_KEY="your-key-here"
-export GOOGLE_API_KEY="your-key-here"
+export GOOGLE_API_KEY="your-google-api-key"
+# export ANTHROPIC_API_KEY="your-anthropic-api-key"
+# export OPENAI_API_KEY="your-openai-api-key"
 
 # Enable paid LLMs for validation if required
 export EXO_TEST_ENABLE_PAID_LLM=1
 ```
 
-## 4. Start the Daemon
+### 2.4. Start the Daemon
 
 Ensure the background daemon is running.
 
@@ -79,7 +122,7 @@ cd "$WORKSPACE_DIR"
 exoctl daemon start
 ```
 
-## 5. Mount Target Portals
+### 2.5. Mount Target Portals
 
 Portals are symlinked repositories that agents will analyze. You should mount the repositories required for your scenarios.
 
@@ -95,7 +138,7 @@ exoctl daemon stop
 exoctl daemon start
 ```
 
-## 6. Deploy the Scenario Framework
+### 2.6. Deploy the Scenario Framework
 
 Package the validation engine and all test assets (scenarios, fixtures) into your sandbox.
 
@@ -107,7 +150,7 @@ cd "$HOME/git/ExoFrame"
   --output "$EVIDENCE_DIR"
 ```
 
-## 7. Execute Validation Scenarios
+## 3. Execute Validation Scenarios
 
 Navigate to your deployed framework and run scenarios. The framework is self-contained and pre-configured to target your sandbox workspace.
 
@@ -124,7 +167,9 @@ cd "$FRAMEWORK_DIR/scenario_framework"
 ./bin/run-scenarios --tag smoke --verbose
 ```
 
-## 8. Analyzing Results
+For a full list of runner flags (such as filtering by `--mode` or `--profile`), refer to the [CLI Reference in `README.md`](./README.md#running-scenarios-cli-reference).
+
+## 4. Analyzing Results
 
 The framework captures full evidence for every execution.
 
