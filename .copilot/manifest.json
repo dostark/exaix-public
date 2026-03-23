@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-23T16:12:50.086Z",
+  "generated_at": "2026-03-23T16:54:36.874Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1421,6 +1421,16 @@
       ]
     },
     {
+      "path": ".copilot/issues/exa-bin-path-changes.md",
+      "title": "Support for Independent Exactl Installations via EXA_BIN_PATH",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/exa-bin-path-changes.md.chunk0.txt",
+        ".copilot/chunks/exa-bin-path-changes.md.chunk1.txt",
+        ".copilot/chunks/exa-bin-path-changes.md.chunk2.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/test-engineer-request-frontmatter-missing.md",
       "title": "Test-engineer request plan missing frontmatter",
       "short_summary": "",
@@ -1621,16 +1631,6 @@
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk5.txt",
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk6.txt",
         ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk7.txt"
-      ]
-    },
-    {
-      "path": ".copilot/issues/exo-bin-path-changes.md",
-      "title": "Support for Independent Exactl Installations via EXA_BIN_PATH",
-      "short_summary": "",
-      "chunks": [
-        ".copilot/chunks/exo-bin-path-changes.md.chunk0.txt",
-        ".copilot/chunks/exo-bin-path-changes.md.chunk1.txt",
-        ".copilot/chunks/exo-bin-path-changes.md.chunk2.txt"
       ]
     },
     {
