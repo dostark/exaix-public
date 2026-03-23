@@ -154,7 +154,7 @@ export async function prodRender(
   }
 
   // Main content (simplified multi-pane rendering)
-  // For now, ExoFrame dashboard renders the active pane or portal view
+  // For now, Exaix dashboard renders the active pane or portal view
   // To support true multi-pane rendering, we'd need a virtual grid or buffer
   // For this refactor, we maintain the "view active pane" logic but with flexible bounds
 

@@ -140,24 +140,24 @@ Deno.test("[ScenarioFrameworkExecutionCore] shell step executor captures stdout 
   assertStringIncludes(executionResult.stderr, "stderr-line");
 });
 
-Deno.test("[ScenarioFrameworkExecutionCore] exoctl steps execute and capture output through the configured executable", async () => {
+Deno.test("[ScenarioFrameworkExecutionCore] exactl steps execute and capture output through the configured executable", async () => {
   const executionResult = await executeScenarioStep({
     step: {
-      id: "exoctl-step",
-      type: ScenarioStepType.EXOCTL,
+      id: "exactl-step",
+      type: ScenarioStepType.EXACTL,
       command: "eval",
       args: [
-        'console.log("exoctl-line");',
+        'console.log("exactl-line");',
       ],
       input_criteria: [],
       output_criteria: [],
       continue_on_failure: false,
     },
-    exoctlExecutable: Deno.execPath(),
+    exactlExecutable: Deno.execPath(),
   });
 
   assertEquals(executionResult.exitCode, 0);
-  assertStringIncludes(executionResult.stdout, "exoctl-line");
+  assertStringIncludes(executionResult.stdout, "exactl-line");
 });
 
 Deno.test("[ScenarioFrameworkExecutionCore] execution core records step start time, end time, exit code, and raw output", async () => {

@@ -1,7 +1,7 @@
 /**
  * @module CheckCommitMsg
  * @path scripts/check_commit_msg.ts
- * @description Script to validate structured commit messages against ExoFrame guidelines.
+ * @description Script to validate structured commit messages against Exaix guidelines.
  * @architectural-layer Scripts
  * @dependencies []
  * @related-files [tests/scripts/check_commit_msg_test.ts]

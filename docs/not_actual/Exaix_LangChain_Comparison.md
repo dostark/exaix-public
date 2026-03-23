@@ -1,23 +1,23 @@
-# Architecture Decision Record: ExoFrame Flows vs. LangChain
+# Architecture Decision Record: Exaix Flows vs. LangChain
 
 **Status:** Decided (Keep Native Flows)
 **Date:** 2025-12-30
-**Context:** Evaluation of switching ExoFrame's native orchestration engine to LangChain / LangGraph.
+**Context:** Evaluation of switching Exaix's native orchestration engine to LangChain / LangGraph.
 
 ## 1. Executive Summary
 
-**Recommendation:** **REJECT** the switch to LangChain. Continue development of ExoFrame Native Flows.
+**Recommendation:** **REJECT** the switch to LangChain. Continue development of Exaix Native Flows.
 
 **Rationale:**
-ExoFrame's core philosophy is "Safe-by-Design," "Local-First," and "Dependencies as Liability." LangChain violates these principles by introducing a massive, rapidly shifting dependency tree, obscure abstraction layers ("Magic"), and a runtime model optimized for Python/Node.js, not Deno.
+Exaix's core philosophy is "Safe-by-Design," "Local-First," and "Dependencies as Liability." LangChain violates these principles by introducing a massive, rapidly shifting dependency tree, obscure abstraction layers ("Magic"), and a runtime model optimized for Python/Node.js, not Deno.
 
-ExoFrame's Native Flows (`src/flows/`) provide a lightweight (<700 LOC), type-safe, transparency-first DAG execution engine that fits perfectly with the "Files as API" architecture. Switching would increase complexity, reduce security auditability, and introduce "Framework lock-in" with zero gain in core capability.
+Exaix's Native Flows (`src/flows/`) provide a lightweight (<700 LOC), type-safe, transparency-first DAG execution engine that fits perfectly with the "Files as API" architecture. Switching would increase complexity, reduce security auditability, and introduce "Framework lock-in" with zero gain in core capability.
 
 ---
 
 ## 2. Architectural Comparison
 
-| Feature               | ExoFrame Native Flows                                                 | LangChain / LangGraph                                              |
+| Feature               | Exaix Native Flows                                                    | LangChain / LangGraph                                              |
 | :-------------------- | :-------------------------------------------------------------------- | :----------------------------------------------------------------- |
 | **Philosophy**        | **Explicit DAG**: Static definition, transparent execution.           | **Chain of Thought**: Dynamic, runtime graph construction.         |
 | **Dependency Weight** | **Minimal**: Pure TypeScript, Zod, zero external runtime deps.        | **Heavy**: Massive tree (Axis, Cheerio, etc.), often Node-centric. |
@@ -27,11 +27,11 @@ ExoFrame's Native Flows (`src/flows/`) provide a lightweight (<700 LOC), type-sa
 | **Security**          | **OS-Level**: Kernel primitives via Deno flags.                       | **App-Level**: Relies on library code to be secure.                |
 | **Definition**        | **Static Data**: JSON/Object structured (Zod validated).              | **Code**: Classes and method chaining.                             |
 
-## 3. Deep Dive: ExoFrame Flows
+## 3. Deep Dive: Exaix Flows
 
 ### Architecture
 
-ExoFrame Flows are implementation independent of the execution engine. They are explicitly defined data structures (Schema: `src/shared/schemas/flow.ts`).
+Exaix Flows are implementation independent of the execution engine. They are explicitly defined data structures (Schema: `src/shared/schemas/flow.ts`).
 
 - **Waves**: The runner resolves the dependency graph into "waves" of parallel tasks.
 - **Fail-Fast**: Explicit error handling strategies defined in data.
@@ -81,7 +81,7 @@ LangChain is a framework for chaining LLM components. It abstracts the "boring" 
 ### Benefit of Switching
 
 1. **Pre-made Agents**: We gain access to "out of the box" ReAct agents.
-   - _Counter-point_: ExoFrame's `AgentExecutor` (Step 6.4) already implements this more securely with native MCP support.
+   - _Counter-point_: Exaix's `AgentExecutor` (Step 6.4) already implements this more securely with native MCP support.
 1.
    - _Counter-point_: We only need strict RAG over the local codebase, which is better served by a custom `grep`/`embedding` tool optimized for the local FS (e.g. `fast-embed` or simple cosine similarity).
 
@@ -89,7 +89,7 @@ LangChain is a framework for chaining LLM components. It abstracts the "boring" 
 
 **Stay the Course.**
 
-ExoFrame is building an **Operating System for Agents**, not a **Chatbot Script**.
+Exaix is building an **Operating System for Agents**, not a **Chatbot Script**.
 
 - An OS needs a **Kernel** (The implementation specific `FlowRunner`).
 - LangChain is **Userland Drivers**.

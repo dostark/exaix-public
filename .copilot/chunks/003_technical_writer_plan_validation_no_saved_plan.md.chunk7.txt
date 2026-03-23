@@ -1,10 +1,10 @@
 # Check journal for details
-exoctl journal events --actor technical-writer --limit 10
+exactl journal events --actor technical-writer --limit 10
 # Shows: plan.validation.failed agent=agent trace=<id> target=request-<id>
 # But no details about WHAT failed or the plan content
 
 # Check for saved plans
-exoctl plan list
+exactl plan list
 # Shows no plans (0 results)
 ```
 

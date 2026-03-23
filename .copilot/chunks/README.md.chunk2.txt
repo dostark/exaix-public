@@ -1,7 +1,7 @@
-- ExoFrame Version: x.x.x
+- Exaix Version: x.x.x
 - OS: Linux/macOS/Windows
 - Deno Version: x.x.x
-- Relevant Config: exo.config.toml settings
+- Relevant Config: exa.config.toml settings
 
 ## Investigation Needed
 

@@ -7,8 +7,8 @@ request_fixture: fixtures/requests/framework_test/smoke.md
 mode_support: [auto]
 
 portals:
-  - alias: portal-exoframe
-    source_path: "/home/dkasymov/git/ExoFrame"
+  - alias: portal-exaix
+    source_path: "/home/dkasymov/git/Exaix"
 
 steps:
   - id: cleanup-workspace
@@ -20,10 +20,10 @@ steps:
     output_criteria: []
 
   - id: execute-analysis
-    type: exoctl
+    type: exactl
     name: "Run request analysis"
     command: "request"
-    args: ["--analyze", "--engine", "llm", "--file", "$REQUEST_FIXTURE", "--portal", "portal-exoframe"]
+    args: ["--analyze", "--engine", "llm", "--file", "$REQUEST_FIXTURE", "--portal", "portal-exaix"]
     input_criteria: []
     output_criteria:
       - id: request-created
@@ -53,7 +53,7 @@ steps:
       - id: verify-goal-extraction
         kind: json-path-equals
         path: "$.goals[0].description"
-        equals: "Analyze the core architecture of the ExoFrame Scenario Framework"
+        equals: "Analyze the core architecture of the Exaix Scenario Framework"
         similarity_threshold: 0.8
 
   - id: check-journal

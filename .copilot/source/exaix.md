@@ -1,8 +1,8 @@
 ---
 agent: copilot
 scope: dev
-title: ExoFrame Source Development Guidelines
-short_summary: "Guidance for developing ExoFrame source code: TDD-first, patterns, project structure, and best practices."
+title: Exaix Source Development Guidelines
+short_summary: "Guidance for developing Exaix source code: TDD-first, patterns, project structure, and best practices."
 version: "0.1"
 topics: ["source", "development", "tdd", "patterns"]
 ---
@@ -10,11 +10,11 @@ topics: ["source", "development", "tdd", "patterns"]
 Key points
 
 - Strict TDD-first approach: write failing tests before implementation
-- Follow step-specific Success Criteria in `docs/ExoFrame_Implementation_Plan.md`
+- Follow step-specific Success Criteria in `docs/Exaix_Implementation_Plan.md`
 - Keep Problems tab clean: fix TypeScript errors, linter issues, and remove `any` types before marking a step complete
 
 Canonical prompt (short):
-"You are a repository-aware coding assistant for ExoFrame. Consult `.copilot/manifest.json` and include the `short_summary` for relevant docs before replying. Follow the TDD-first workflow: suggest tests first, implement minimal code, and add verification steps."
+"You are a repository-aware coding assistant for Exaix. Consult `.copilot/manifest.json` and include the `short_summary` for relevant docs before replying. Follow the TDD-first workflow: suggest tests first, implement minimal code, and add verification steps."
 
 Examples
 
@@ -65,11 +65,11 @@ Refer to [CODE_STYLE.md](../../CODE_STYLE.md) for the full set of typing and sty
 
 ### Configuration Schema
 
-Use Zod for config validation and keep config options in `exo.config.toml` examples. Provide default values and bounds where possible.
+Use Zod for config validation and keep config options in `exa.config.toml` examples. Provide default values and bounds where possible.
 
 ### Service Pattern — Dependency Injection & Interfaces
 
-ExoFrame enforces an **Interface-first, Constructor Injection** policy for all services.
+Exaix enforces an **Interface-first, Constructor Injection** policy for all services.
 
 - **Every injectable service exposes an interface.** `class Foo` → `export interface IFoo`. Consumers depend on `IFoo`, never on `Foo`.
 - **Constructor injection only.** Pass `config`, `db`, `provider`, and peer services via constructors. Module-level singletons and static accessors are prohibited.
@@ -100,8 +100,8 @@ const git = GitService.getInstance();
   - **Note**: Always use `PathResolver` to validate paths before access.
 - **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
 - **Intent Analysis**: Requests can trigger the `RequestAnalyzer` via the `--analyze` flag. This layer extracts goals, constraints, requirements, and complexity to a `req_analysis.json` artifact. In the current pipeline, `RequestProcessor` can pass `SessionMemory` context into analysis, and structured frontmatter (`acceptance_criteria`, `expected_outcomes`, `scope`) is treated as explicit high-confidence input. Use the centralized `AnalysisMode` / `AnalyzerEngine` types from `src/types/request.ts` (Phase 45).
-- **Request Quality Gate** (Phase 47): `RequestQualityGate` (`src/services/quality_gate/`) runs on every request _before_ agent/flow routing. Assessment modes: `heuristic` (zero-cost), `llm`, `hybrid` (heuristic-first, LLM for borderline scores). Results in one of four outcomes: `proceed`, `auto-enrich`, `needs-clarification` (Q&A loop → `REFINING` status), or `reject` (`FAILED` status). Config wired via `buildQualityGateConfig(config.quality_gate ?? {})` in `RequestProcessor` constructor. CLI: `exoctl request clarify <id> [--interactive|--answer|--proceed|--cancel]`. Key interfaces/schemas: `IRequestQualityGateService`, `IRequestQualityAssessment`, `IClarificationSession`, `IRequestSpecification`. New statuses: `REFINING`, `NEEDS_CLARIFICATION`, `ENRICHING`.
-- **Portal Knowledge Gathering** (Phase 46): `PortalKnowledgeService` (`src/services/portal_knowledge/`) builds a structured analysis snapshot of every portal codebase — file census, key files, config parsing, pattern detection, architecture inference, and (deep mode) symbol extraction via `deno doc`. Results persist to `Memory/Projects/{alias}/knowledge.json` (validated by `PortalKnowledgeSchema` in `src/shared/schemas/portal_knowledge.ts`). Always use `PortalKnowledgeService.getOrAnalyze()` rather than raw file reads when agents need codebase context. Modes: `quick` (fast, no LLM), `standard` (all non-LLM strategies), `deep` (full, includes `SymbolExtractor`). Configured via `[portal_knowledge]` TOML section. CLI: `exoctl portal analyze <alias>`, `exoctl portal knowledge <alias>`.
+- **Request Quality Gate** (Phase 47): `RequestQualityGate` (`src/services/quality_gate/`) runs on every request _before_ agent/flow routing. Assessment modes: `heuristic` (zero-cost), `llm`, `hybrid` (heuristic-first, LLM for borderline scores). Results in one of four outcomes: `proceed`, `auto-enrich`, `needs-clarification` (Q&A loop → `REFINING` status), or `reject` (`FAILED` status). Config wired via `buildQualityGateConfig(config.quality_gate ?? {})` in `RequestProcessor` constructor. CLI: `exactl request clarify <id> [--interactive|--answer|--proceed|--cancel]`. Key interfaces/schemas: `IRequestQualityGateService`, `IRequestQualityAssessment`, `IClarificationSession`, `IRequestSpecification`. New statuses: `REFINING`, `NEEDS_CLARIFICATION`, `ENRICHING`.
+- **Portal Knowledge Gathering** (Phase 46): `PortalKnowledgeService` (`src/services/portal_knowledge/`) builds a structured analysis snapshot of every portal codebase — file census, key files, config parsing, pattern detection, architecture inference, and (deep mode) symbol extraction via `deno doc`. Results persist to `Memory/Projects/{alias}/knowledge.json` (validated by `PortalKnowledgeSchema` in `src/shared/schemas/portal_knowledge.ts`). Always use `PortalKnowledgeService.getOrAnalyze()` rather than raw file reads when agents need codebase context. Modes: `quick` (fast, no LLM), `standard` (all non-LLM strategies), `deep` (full, includes `SymbolExtractor`). Configured via `[portal_knowledge]` TOML section. CLI: `exactl portal analyze <alias>`, `exactl portal knowledge <alias>`.
   - Directory: `src/services/portal_knowledge/` — `directory_analyzer.ts`, `config_parser.ts`, `key_file_identifier.ts`, `pattern_detector.ts`, `architecture_inferrer.ts`, `symbol_extractor.ts`, `portal_knowledge_service.ts`, `knowledge_persistence.ts`
   - Interface: `IPortalKnowledgeService` in `src/services/portal_knowledge/interfaces.ts`
   - Config interface: `IPortalKnowledgeConfig` — fields: `defaultMode`, `quickScanLimit`, `maxFilesToRead`, `staleness` (hours), `useLlmInference`, `ignorePatterns`, `autoAnalyzeOnMount`
@@ -163,19 +163,19 @@ const apiKey = Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
 
 **Pattern:** Always validate environment variable inputs via Zod schema
 
-ExoFrame supports only 4 production environment variables for runtime overrides:
+Exaix supports only 4 production environment variables for runtime overrides:
 
-- `EXO_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
-- `EXO_LLM_MODEL` - Override model name (must be non-empty)
-- `EXO_LLM_BASE_URL` - Override API endpoint (must be valid URL)
-- `EXO_LLM_TIMEOUT_MS` - Override timeout (1000-300000ms, validated)
+- `EXA_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
+- `EXA_LLM_MODEL` - Override model name (must be non-empty)
+- `EXA_LLM_BASE_URL` - Override API endpoint (must be valid URL)
+- `EXA_LLM_TIMEOUT_MS` - Override timeout (1000-300000ms, validated)
 
 **Requirements:**
 
 - ✅ Use `getValidatedEnvOverrides()` for production env vars
 - ✅ Use `isTestMode()` and `isCIMode()` helpers for test detection
-- ✅ Use `EXO_TEST_*` prefix for all test-related environment variables
-- ✅ Never use direct `Deno.env.get()` for `EXO_LLM_*` vars without validation
+- ✅ Use `EXA_TEST_*` prefix for all test-related environment variables
+- ✅ Never use direct `Deno.env.get()` for `EXA_LLM_*` vars without validation
 - ✅ All env vars validated via Zod schema in `src/config/env_schema.ts`
 
 **Examples:**
@@ -185,8 +185,8 @@ ExoFrame supports only 4 production environment variables for runtime overrides:
 import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
 
 const envOverrides = getValidatedEnvOverrides();
-const provider = envOverrides.EXO_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULT_PROVIDER;
-const model = envOverrides.EXO_LLM_MODEL ?? config.ai?.model ?? DEFAULT_MODEL;
+const provider = envOverrides.EXA_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULT_PROVIDER;
+const model = envOverrides.EXA_LLM_MODEL ?? config.ai?.model ?? DEFAULT_MODEL;
 
 // Check test mode
 if (isTestMode()) {
@@ -194,13 +194,13 @@ if (isTestMode()) {
 }
 
 // Check CI mode
-if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+if (isCIMode() && !Deno.env.get("EXA_TEST_ENABLE_PAID_LLM")) {
   // Skip paid API tests in CI
 }
 
 // ❌ BAD: Direct env var access without validation
-const provider = Deno.env.get("EXO_LLM_PROVIDER"); // No validation!
-const timeout = Number(Deno.env.get("EXO_LLM_TIMEOUT_MS")); // Could be invalid!
+const provider = Deno.env.get("EXA_LLM_PROVIDER"); // No validation!
+const timeout = Number(Deno.env.get("EXA_LLM_TIMEOUT_MS")); // Could be invalid!
 ```
 
 **Validation Benefits:**
@@ -214,7 +214,7 @@ const timeout = Number(Deno.env.get("EXO_LLM_TIMEOUT_MS")); // Could be invalid!
 
 ## Code Patterns & Anti-Patterns
 
-Based on systematic code review and fixes implemented in Phase 22, here are the established patterns and anti-patterns for ExoFrame development.
+Based on systematic code review and fixes implemented in Phase 22, here are the established patterns and anti-patterns for Exaix development.
 
 ### ✅ REQUIRED PATTERNS
 
@@ -296,7 +296,7 @@ export class PlanExecutor {
 // ✅ GOOD: Single comprehensive JSDoc
 /**
  * Create an LLM provider based on environment and configuration.
- * @param config ExoFrame configuration object
+ * @param config Exaix configuration object
  * @returns Configured IModelProvider instance
  * @throws {ProviderFactoryError} Missing required API key
  */

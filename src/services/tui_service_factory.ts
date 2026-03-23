@@ -93,7 +93,7 @@ export function createTuiServices(
       return config;
     },
     getConfigPath(): string {
-      return "exo.config.toml";
+      return "exa.config.toml";
     }, // dummy path
     reload(): Config {
       return config;

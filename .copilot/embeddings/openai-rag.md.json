@@ -3,7 +3,7 @@
   "title": "OpenAI RAG (Retrieval-Augmented Generation) Usage Guide",
   "vecs": [
     {
-      "text": "# OpenAI RAG Usage Guide\n\nKey points\n\n- Use RAG by default: retrieve .copilot/ context before proposing code changes.\n- Prefer inspect → inject: preview matches, then inject the top chunks.\n- Start small: 2–3 chunks for simple tasks, 4–6 for standard, 8–10 only for complex work.\n- If docs changed, rebuild manifest/chunks and embeddings before trusting retrieval results.\n\n## Overview\n\nExoFrame precomputes embeddings for all documentation in `.copilot/` and splits docs into `.copilot/chunks/*.txt` for retrieval. This guide shows a predictable, tool-centric workflow to provide OpenAI models (gpt-4o family) the most relevant ExoFrame context with minimal prompt bloat.\n\n## RAG Workflow (pit of success)",
+      "text": "# OpenAI RAG Usage Guide\n\nKey points\n\n- Use RAG by default: retrieve .copilot/ context before proposing code changes.\n- Prefer inspect → inject: preview matches, then inject the top chunks.\n- Start small: 2–3 chunks for simple tasks, 4–6 for standard, 8–10 only for complex work.\n- If docs changed, rebuild manifest/chunks and embeddings before trusting retrieval results.\n\n## Overview\n\nExaix precomputes embeddings for all documentation in `.copilot/` and splits docs into `.copilot/chunks/*.txt` for retrieval. This guide shows a predictable, tool-centric workflow to provide OpenAI models (gpt-4o family) the most relevant Exaix context with minimal prompt bloat.\n\n## RAG Workflow (pit of success)",
       "vector": [
         0.1450980392156863,
         0.5098039215686274,

@@ -1,4 +1,4 @@
-Create a comprehensive testing strategy for ExoFrame's portal permission system. Include:
+Create a comprehensive testing strategy for Exaix's portal permission system. Include:
 
 - Unit test cases for portal access validation in src/services/portal_permissions.ts
 - Integration tests for cross-portal file operations and security boundaries

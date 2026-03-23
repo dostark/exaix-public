@@ -1,4 +1,4 @@
-# Phase 51: ExoFrame Versioning Mechanism
+# Phase 51: Exaix Versioning Mechanism
 
 ## Status: ✅ IMPLEMENTED
 
@@ -6,7 +6,7 @@
 
 **Phase 51 is production-ready** with all core functionality implemented and tested. The versioning system provides:
 
-1. **Binary/CLI versioning** (`BINARY_VERSION`): The `exoctl` binary and ExoFrame daemon expose a SemVer string so operators and scripts can verify compatibility.
+1. **Binary/CLI versioning** (`BINARY_VERSION`): The `exactl` binary and Exaix daemon expose a SemVer string so operators and scripts can verify compatibility.
 
 **Versioning scheme**: Standard SemVer `MAJOR.MINOR.PATCH`.
 
@@ -24,9 +24,9 @@ A `scripts/check_version.ts` gatekeeper runs in the pre-commit hook and CI pipel
 
 ## Problem Statement
 
-ExoFrame currently ships no version field in either of its two primary surfaces:
+Exaix currently ships no version field in either of its two primary surfaces:
 
-1. **Binary/CLI**: `exoctl --version` does not exist or returns a placeholder. Operators cannot tell which build they are running and cannot perform compatibility checks.
+1. **Binary/CLI**: `exactl --version` does not exist or returns a placeholder. Operators cannot tell which build they are running and cannot perform compatibility checks.
 
 1.
 
@@ -45,13 +45,13 @@ Without version signals:
 - [x] ✅ Define `src/shared/version.ts` as the single source of truth for both version constants.
 - [x] ✅ Write `scripts/check_version.ts` — the version observer and commit gatekeeper.
 - [x] ✅ Integrate the gatekeeper into the pre-commit hook and CI pipeline.
-- [x] ✅ Wire `BINARY_VERSION` into `exoctl --version` and the new `exoctl version` subcommand.
-- [x] ✅ Add `schema_version` to `exo.config.toml` and `ConfigSchema`.
+- [x] ✅ Wire `BINARY_VERSION` into `exactl --version` and the new `exactl version` subcommand.
+- [x] ✅ Add `schema_version` to `exa.config.toml` and `ConfigSchema`.
 
 ### Secondary Goals
 
-- [x] ✅ Include both version fields in `exoctl daemon status --json`.
-- [x] ✅ Add `exoctl migrate --check` for compatibility verification.
+- [x] ✅ Include both version fields in `exactl daemon status --json`.
+- [x] ✅ Add `exactl migrate --check` for compatibility verification.
 - [x] ✅ Enable scenario framework step criteria to assert minimum version range.
 
 ### Non-Goals
@@ -80,8 +80,8 @@ Without version signals:
 
 | Constant | Tracks | Migration triggered by |
 | --- | --- | --- |
-| `BINARY_VERSION` | `exoctl` CLI + daemon | `MAJOR` only |
-| `WORKSPACE_SCHEMA_VERSION` | `exo.config.toml` schema, SQLite tables, folder layout | `MINOR` or `MAJOR` |
+| `BINARY_VERSION` | `exactl` CLI + daemon | `MAJOR` only |
+| `WORKSPACE_SCHEMA_VERSION` | `exa.config.toml` schema, SQLite tables, folder layout | `MINOR` or `MAJOR` |
 
 ---
 
@@ -141,18 +141,18 @@ else:
 | `src/shared/.version_meta.json` | Tracks `last_bump_date` (committed to repo) |
 | `scripts/check_version.ts` | Version observer and gatekeeper |
 | `tests/scripts/check_version_test.ts` | Unit tests for the gatekeeper script |
-| `tests/cli/version_commands_test.ts` | CLI unit tests for `exoctl version` |
-| `tests/cli/migrate_commands_test.ts` | CLI unit tests for `exoctl migrate --check` |
+| `tests/cli/version_commands_test.ts` | CLI unit tests for `exactl version` |
+| `tests/cli/migrate_commands_test.ts` | CLI unit tests for `exactl migrate --check` |
 
 ### Modified Files
 
 | Path | Change |
 | --- | --- |
-| `src/cli/exoctl.ts` | Pass `BINARY_VERSION` to `.version()`. Add `version` subcommand. |
+| `src/cli/exactl.ts` | Pass `BINARY_VERSION` to `.version()`. Add `version` subcommand. |
 | `src/shared/schemas/config.ts` | Add optional `schema_version` field to `SystemSchema` |
 | `src/config/service.ts` | Add `getSchemaVersion()` method |
 | `src/cli/commands/daemon_commands.ts` | Include both version fields in status JSON |
-| `templates/exo.config.sample.toml` | Add `schema_version` line to `[system]` block |
+| `templates/exa.config.sample.toml` | Add `schema_version` line to `[system]` block |
 | `deno.json` | Add `check-version` and `bump` tasks |
 | `.githooks/pre-commit` | Run `deno task check-version` |
 
@@ -173,16 +173,16 @@ Create the canonical constants file:
 
 ```typescript
 /**
- * @module ExoFrameVersion
+ * @module ExaixVersion
  * @path src/shared/version.ts
- * @description Canonical SemVer constants for ExoFrame binary and workspace schema.
+ * @description Canonical SemVer constants for Exaix binary and workspace schema.
  * Any MINOR or MAJOR bump to WORKSPACE_SCHEMA_VERSION requires workspace migration.
  * @architectural-layer Shared
  * @dependencies []
  * @related-files [scripts/check_version.ts, src/shared/schemas/config.ts]
  */
 
-/** SemVer of the exoctl binary and ExoFrame daemon. */
+/** SemVer of the exactl binary and Exaix daemon. */
 export const BINARY_VERSION = "1.0.0";
 
 /**
@@ -265,26 +265,26 @@ Internal helpers:
 - `classifyChanges(["migrations/001_init.sql"])` → `{ requiresMinor: true }`.
 - `classifyChanges(["src/services/db.ts"])` → `{ requiresMinor: true }`.
 - `classifyChanges(["src/shared/schemas/config.ts"])` → `{ requiresMinor: true }`.
-- `classifyChanges(["src/cli/exoctl.ts"])` → `{ requiresMinor: false }`.
+- `classifyChanges(["src/cli/exactl.ts"])` → `{ requiresMinor: false }`.
 - `classifyChanges(["src/shared/constants.ts"])` → `{ requiresMinor: true }`.
 - Full script integration: given a fixture `version.ts` + `version_meta.json` + mocked diff, verify correct output version strings.
 
 ---
 
-### ✅ Step 3 — Wire `exoctl --version` and `exoctl version`
+### ✅ Step 3 — Wire `exactl --version` and `exactl version`
 
 **Status: COMPLETE** ✅
 
-**Files:** `src/cli/exoctl.ts`, `src/cli/commands/daemon_commands.ts` ✅
-**Tests:** `tests/cli/exoctl_all_test.ts`, `tests/cli/daemon_commands_test.ts` ✅
+**Files:** `src/cli/exactl.ts`, `src/cli/commands/daemon_commands.ts` ✅
+**Tests:** `tests/cli/exactl_all_test.ts`, `tests/cli/daemon_commands_test.ts` ✅
 
-In `src/cli/exoctl.ts`:
+In `src/cli/exactl.ts`:
 
 ```typescript
 import { BINARY_VERSION } from "../shared/version.ts";
 
 await new Command()
-  .name("exoctl")
+  .name("exactl")
   .version(BINARY_VERSION)
   ...
 ```text
@@ -292,15 +292,15 @@ await new Command()
 New `version` subcommand output (human-readable):
 
 ```text
-ExoFrame CLI
+Exaix CLI
   Binary version:             1.0.1
   Workspace schema version:   1.1.0
-  Config path:                /home/user/ExoFrame/exo.config.toml
+  Config path:                /home/user/Exaix/exa.config.toml
   On-disk schema version:     1.0.0
   Compatibility:              ⚠️  Minor migration required
 ```text
 
-`exoctl version --json` output:
+`exactl version --json` output:
 
 ```json
 {
@@ -314,17 +314,17 @@ ExoFrame CLI
 
 **Success criteria**:
 
-- `exoctl --version` exits `0` and prints exactly `BINARY_VERSION`.
-- `exoctl version` exits `0` and prints the structured table.
-- `exoctl version --json` exits `0` and returns valid JSON with all 5 fields.
+- `exactl --version` exits `0` and prints exactly `BINARY_VERSION`.
+- `exactl version` exits `0` and prints the structured table.
+- `exactl version --json` exits `0` and returns valid JSON with all 5 fields.
 - `compatible` is `true` when binary and on-disk schema versions match minor+major.
 - `migration_required` is `true` when `WORKSPACE_SCHEMA_VERSION` minor > on-disk minor.
 
 **Tests** (`tests/cli/version_commands_test.ts`):
 
-- `exoctl --version` output equals `BINARY_VERSION`.
-- `exoctl version` output contains `Binary version:`.
-- `exoctl version --json` parses as valid JSON with all required keys.
+- `exactl --version` output equals `BINARY_VERSION`.
+- `exactl version` output contains `Binary version:`.
+- `exactl version --json` parses as valid JSON with all required keys.
 - `migration_required` is `false` when schema versions match.
 - `migration_required` is `true` when schema versions differ by minor.
 
@@ -334,7 +334,7 @@ ExoFrame CLI
 
 **Status: COMPLETE** ✅
 
-**Files:** `src/shared/schemas/config.ts`, `src/config/service.ts`, `templates/exo.config.sample.toml` ✅
+**Files:** `src/shared/schemas/config.ts`, `src/config/service.ts`, `templates/exa.config.sample.toml` ✅
 
 In `src/shared/schemas/config.ts`, extend `SystemSchema`:
 
@@ -349,7 +349,7 @@ const SystemSchema = z.object({
 });
 ```text
 
-In `templates/exo.config.sample.toml`:
+In `templates/exa.config.sample.toml`:
 
 ```toml
 [system]
@@ -369,7 +369,7 @@ public getSchemaVersion(): string {
 - Existing config files without `schema_version` parse successfully (defaulted).
 - Config files with an explicit `schema_version` value retain it correctly.
 - `configService.getSchemaVersion()` returns the correct value.
-- New workspace deployments include `schema_version` in the generated `exo.config.toml`.
+- New workspace deployments include `schema_version` in the generated `exa.config.toml`.
 
 **Tests** (`tests/services/config_service_test.ts`):
 
@@ -410,8 +410,8 @@ JSON:
 
 **Success criteria**:
 
-- `exoctl daemon status` human output includes `Binary:` and `Schema:` lines.
-- `exoctl daemon status --json` includes `binary_version` and `workspace_schema_version`.
+- `exactl daemon status` human output includes `Binary:` and `Schema:` lines.
+- `exactl daemon status --json` includes `binary_version` and `workspace_schema_version`.
 - Values match `BINARY_VERSION` and `WORKSPACE_SCHEMA_VERSION` from `version.ts`.
 
 **Tests** (`tests/cli/daemon_commands_test.ts`):
@@ -421,7 +421,7 @@ JSON:
 
 ---
 
-### ✅ Step 6 — `exoctl migrate --check`
+### ✅ Step 6 — `exactl migrate --check`
 
 **Status: COMPLETE** ✅
 
@@ -438,16 +438,16 @@ Comparison table:
 | Binary schema | On-disk schema | Exit code | Message |
 | --- | --- | --- | --- |
 | Same major + minor | Same or higher patch | `0` | `✅ Workspace is up to date` |
-| Higher minor | Any | `1` | `⚠️  Workspace migration required — run 'exoctl migrate'` |
+| Higher minor | Any | `1` | `⚠️  Workspace migration required — run 'exactl migrate'` |
 | Higher major | Any | `1` | `❌ Major migration required — manual upgrade needed` |
-| Lower minor/major | Any | `2` | `❌ Binary is older than workspace — update exoctl` |
+| Lower minor/major | Any | `2` | `❌ Binary is older than workspace — update exactl` |
 
 **Success criteria**:
 
 - Matching versions → exit `0`, message `up to date`.
 - Binary minor > on-disk minor → exit `1`, message includes `migration required`.
 - Binary major > on-disk major → exit `1`, message includes `Major migration`.
-- Binary older than workspace → exit `2`, message includes `update exoctl`.
+- Binary older than workspace → exit `2`, message includes `update exactl`.
 - `--json` output is parseable with `status`, `exit_code`, and `message` keys.
 
 **Tests** (`tests/cli/migrate_commands_test.ts`):
@@ -506,7 +506,7 @@ deno task check-version --ci
 ### Version Constants (`src/shared/version.ts`)
 
 ```typescript
-/** SemVer of the exoctl binary and ExoFrame daemon. */
+/** SemVer of the exactl binary and Exaix daemon. */
 export const BINARY_VERSION = "1.0.0";
 
 /** SemVer of the deployed workspace structure. */
@@ -530,21 +530,21 @@ deno task check-version --force-patch # Always bump PATCH
 
 ### CLI Commands
 
-**`exoctl --version`**: Prints BINARY_VERSION
+**`exactl --version`**: Prints BINARY_VERSION
 
-**`exoctl version [--json]`**:
+**`exactl version [--json]`**:
 
 ```text
-ExoFrame CLI
+Exaix CLI
   Binary version:             1.0.0
   Workspace schema version:   1.0.0
   On-disk schema version:     1.0.0
   Compatibility:              ✅ Compatible
 ```text
 
-**`exoctl daemon status [--json]`**: Includes `binary_version` and `workspace_schema_version`
+**`exactl daemon status [--json]`**: Includes `binary_version` and `workspace_schema_version`
 
-**`exoctl migrate --check [--json]`**: Exit codes:
+**`exactl migrate --check [--json]`**: Exit codes:
 
 - `0` = Workspace is up to date
 - `1` = Migration required (binary newer)
@@ -575,13 +575,13 @@ ExoFrame CLI
 │  .githooks/pre-commit                                         │
 │  └─ Runs check_version.ts before every commit               │
 │                                                               │
-│  exoctl commands                                              │
-│  ├─ exoctl --version                                          │
-│  ├─ exoctl version [--json]                                   │
-│  ├─ exoctl daemon status [--json]                            │
-│  └─ exoctl migrate --check [--json]                          │
+│  exactl commands                                              │
+│  ├─ exactl --version                                          │
+│  ├─ exactl version [--json]                                   │
+│  ├─ exactl daemon status [--json]                            │
+│  └─ exactl migrate --check [--json]                          │
 │                                                               │
-│  exo.config.toml                                              │
+│  exa.config.toml                                              │
 │  └─ [system] schema_version = "1.0.0"                        │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
@@ -598,7 +598,7 @@ ExoFrame CLI
 | `tests/services/version_test.ts` | 5 | ✅ PASS |
 | `tests/scripts/check_version_test.ts` | 24 | ✅ PASS |
 | `tests/cli/daemon_commands_test.ts` (version/migrate) | 8 | ✅ PASS |
-| `tests/cli/exoctl_all_test.ts` (--version) | 1 | ✅ PASS |
+| `tests/cli/exactl_all_test.ts` (--version) | 1 | ✅ PASS |
 
 **Total: 38 tests passing** ✅
 
@@ -607,7 +607,7 @@ ExoFrame CLI
 - [x] Version constants are valid SemVer
 - [x] Gatekeeper script classifies files correctly
 - [x] Gatekeeper script bumps versions correctly
-- [x] `exoctl --version` prints BINARY_VERSION
+- [x] `exactl --version` prints BINARY_VERSION
 - [x] `daemon status` includes version fields
 - [x] `migrate --check` returns correct exit codes
 - [x] Pre-commit hook runs version check
@@ -630,7 +630,7 @@ The following file changes trigger automatic `WORKSPACE_SCHEMA_VERSION` minor bu
 
 ## Exit Code Reference
 
-### `exoctl migrate --check`
+### `exactl migrate --check`
 
 | Code | Meaning |
 | ------ | --------- |
@@ -645,14 +645,14 @@ The following file changes trigger automatic `WORKSPACE_SCHEMA_VERSION` minor bu
 **All Phase 51 goals are now complete!** ✅
 
 The optional sample config template update has been implemented:
-- `templates/exo.config.sample.toml` now includes explicit `schema_version = "1.0.0"` line with comment
+- `templates/exa.config.sample.toml` now includes explicit `schema_version = "1.0.0"` line with comment
 
 ---
 
 ## Migration Impact
 
 - **Existing configs**: No breaking change. `schema_version` is optional and defaults to `WORKSPACE_SCHEMA_VERSION`.
-- **Existing workspaces**: First `exoctl version` run treats missing `schema_version` as matching `1.0.0`. No immediate migration needed.
+- **Existing workspaces**: First `exactl version` run treats missing `schema_version` as matching `1.0.0`. No immediate migration needed.
 - **Developers**: Pre-commit hook auto-bumps patch on next commit after this change. No manual action required for routine commits.
 - **CI**: The `check-version --ci` step is additive. No existing step is removed.
 

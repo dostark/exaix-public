@@ -24,9 +24,9 @@ Example expected payload:
 
 ## Environment
 
-- ExoFrame Version: Current development version
+- Exaix Version: Current development version
 - OS: Linux
 - Deno Version: As configured in deno.json
-- Relevant Config: exo.config.toml (LLM provider settings)
+- Relevant Config: exa.config.toml (LLM provider settings)
 
 ## Investigation Needed

@@ -3,7 +3,7 @@
   "title": "Refactoring with Thinking Protocol Prompt",
   "vecs": [
     {
-      "text": "## Prompt Template\n\n```markdown\nI need to refactor [component/pattern] to [goal].\n\nUse your thinking protocol:\n\n<thinking>\n1. ANALYZE: Read relevant files, check dependencies, identify risks\n2. PLAN: List tool calls needed (parallel reads where possible)\n3. EXECUTE: Make changes incrementally\n4. SYNTHESIZE: Verify tests pass, coverage maintained\n5. VERIFY: Check Implementation Plan requirements met\n</thinking>\n\nContext injection:\ndeno run --allow-read scripts/inject_agent_context.ts claude \"refactoring [pattern] [component]\" 6\n\nRequirements from agents/:\n\n- Follow Service Pattern from agents/source/exoframe.md\n- Maintain test coverage per agents/tests/testing.md\n- Update docs per agents/docs/documentation.md\n- Use PathResolver for all file operations\n- Log changes with EventLogger",
+      "text": "## Prompt Template\n\n```markdown\nI need to refactor [component/pattern] to [goal].\n\nUse your thinking protocol:\n\n<thinking>\n1. ANALYZE: Read relevant files, check dependencies, identify risks\n2. PLAN: List tool calls needed (parallel reads where possible)\n3. EXECUTE: Make changes incrementally\n4. SYNTHESIZE: Verify tests pass, coverage maintained\n5. VERIFY: Check Implementation Plan requirements met\n</thinking>\n\nContext injection:\ndeno run --allow-read scripts/inject_agent_context.ts claude \"refactoring [pattern] [component]\" 6\n\nRequirements from agents/:\n\n- Follow Service Pattern from agents/source/exaix.md\n- Maintain test coverage per agents/tests/testing.md\n- Update docs per agents/docs/documentation.md\n- Use PathResolver for all file operations\n- Log changes with EventLogger",
       "vector": [
         0.9725490196078431,
         0.8235294117647058,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- Follow Service Pattern from agents/source/exoframe.md\n- Maintain test coverage per agents/tests/testing.md\n- Update docs per agents/docs/documentation.md\n- Use proper cleanup patterns\n- Log changes with EventLogger\n\nShow your thinking explicitly in <thinking> tags before each major step.\n```\n\n## Expected Response Pattern\n\nClaude should show thinking for each phase:\n\n```markdown\n<thinking>\nANALYZE phase:\n- Found 12 files calling initTestDbService()\n- No existing db.ts helper in tests/helpers/\n- Risk: Circular dependencies if placed in wrong location\n- Dependencies: All test files import from tests/helpers/\n\nPLAN phase:\nTool calls needed:",
+      "text": "- Follow Service Pattern from agents/source/exaix.md\n- Maintain test coverage per agents/tests/testing.md\n- Update docs per agents/docs/documentation.md\n- Use proper cleanup patterns\n- Log changes with EventLogger\n\nShow your thinking explicitly in <thinking> tags before each major step.\n```\n\n## Expected Response Pattern\n\nClaude should show thinking for each phase:\n\n```markdown\n<thinking>\nANALYZE phase:\n- Found 12 files calling initTestDbService()\n- No existing db.ts helper in tests/helpers/\n- Risk: Circular dependencies if placed in wrong location\n- Dependencies: All test files import from tests/helpers/\n\nPLAN phase:\nTool calls needed:",
       "vector": [
         0.6431372549019608,
         0.8392156862745098,

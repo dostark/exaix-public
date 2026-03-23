@@ -3,7 +3,7 @@
   "title": "phase-27-magic-number-and-word-externaliztion.md",
   "vecs": [
     {
-      "text": "# Phase 27: ExoFrame Magic Number & Magic Word Externalization for True Configurability\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/ExoFrame_User_Guide.md` for current usage.\n\n## Executive Summary",
+      "text": "# Phase 27: Exaix Magic Number & Magic Word Externalization for True Configurability\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/Exaix_User_Guide.md` for current usage.\n\n## Executive Summary",
       "vector": [
         0.3843137254901961,
         0.596078431372549,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "This phase aims to make ExoFrame fully user-configurable by externalizing all hardcoded magic numbers, magic words, and lists from the source code. The goal is to move all user-facing configuration (timeouts, limits, model names, provider lists, etc.) into TOML configuration files (primarily `exo.config.toml` and `exo.config.sample.toml`), and all internal constants into dedicated `constants.ts` modules. For CLI/TUI-specific constants, separate config files will be considered. This will empower users to adapt ExoFrame to their needs without modifying source code, improving maintainability, portability, and user experience.",
+      "text": "This phase aims to make Exaix fully user-configurable by externalizing all hardcoded magic numbers, magic words, and lists from the source code. The goal is to move all user-facing configuration (timeouts, limits, model names, provider lists, etc.) into TOML configuration files (primarily `exa.config.toml` and `exa.config.sample.toml`), and all internal constants into dedicated `constants.ts` modules. For CLI/TUI-specific constants, separate config files will be considered. This will empower users to adapt Exaix to their needs without modifying source code, improving maintainability, portability, and user experience.",
       "vector": [
         0.21568627450980393,
         0.8588235294117647,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "**Current Status:** Phase 27 fully completed. All user-facing configuration has been migrated to `exo.config.toml`, internal constants to `constants.ts`, and CLI/TUI constants to their respective config files. Enum usage is standard across the codebase. Documentation and migration guides are in place.\n\n---\n\n## Final Status Update (2026-01-14)\n\nAll planned phases have been successfully executed:",
+      "text": "**Current Status:** Phase 27 fully completed. All user-facing configuration has been migrated to `exa.config.toml`, internal constants to `constants.ts`, and CLI/TUI constants to their respective config files. Enum usage is standard across the codebase. Documentation and migration guides are in place.\n\n---\n\n## Final Status Update (2026-01-14)\n\nAll planned phases have been successfully executed:",
       "vector": [
         0.08235294117647059,
         0.17647058823529413,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "1. **Discovery:** Identified extensive magic numbers/words.\n2. **Enums:** Created and migrated `ProviderType`, `TaskComplexity`, `PricingTier`, `RequestStatus`, `ExecutionStatus`, etc.\n3. **Config:** Implemented comprehensive schema in `src/config/schema.ts` and created `exo.config.sample.toml`.\n4. **Constants:** Externalized internal values to `src/constants.ts` and `src/config/constants.ts`.\n5. **CLI/TUI:** Created `src/cli/cli.config.ts` and `src/tui/tui.config.ts`.\n6. **Refactoring:** Updated services (`ProviderFactory`, `MemoryCommands`, `MonitorView`, etc.) to use the new configs.\n7. **Documentation:** Updated Technical Spec, Provider Strategy Guide, and created `docs/dev/Migration_Guide_Phase27.md`.\n\n---\n\n## Updated Magic Word Discovery Results (2026-01-14)",
+      "text": "1. **Discovery:** Identified extensive magic numbers/words.\n2. **Enums:** Created and migrated `ProviderType`, `TaskComplexity`, `PricingTier`, `RequestStatus`, `ExecutionStatus`, etc.\n3. **Config:** Implemented comprehensive schema in `src/config/schema.ts` and created `exa.config.sample.toml`.\n4. **Constants:** Externalized internal values to `src/constants.ts` and `src/config/constants.ts`.\n5. **CLI/TUI:** Created `src/cli/cli.config.ts` and `src/tui/tui.config.ts`.\n6. **Refactoring:** Updated services (`ProviderFactory`, `MemoryCommands`, `MonitorView`, etc.) to use the new configs.\n7. **Documentation:** Updated Technical Spec, Provider Strategy Guide, and created `docs/dev/Migration_Guide_Phase27.md`.\n\n---\n\n## Updated Magic Word Discovery Results (2026-01-14)",
       "vector": [
         0.25098039215686274,
         0.611764705882353,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "8. **Icon/Color Mappings** - ✅ COMPLETED\n9. **Error Message Templates** - ✅ COMPLETED (via TUI/CLI configs or standard errors)\n10. **Validation Rules** - ✅ COMPLETED (via Zod schemas)\n\n## Goals\n\n- Eliminate all hardcoded magic numbers and magic words from the codebase. ✅\n- Move user-facing configuration to `exo.config.sample.toml` (and `exo.config.toml`). ✅\n- Move internal-only constants to `src/constants.ts` (or module-specific constants files). ✅\n- For CLI/TUI, consider `cli.config.ts` and `tui.config.ts` for user-tunable UI/UX constants. ✅\n- Move all model/provider names, fallback chains, and task routing lists to configuration. ✅\n- Document all new config options with sensible defaults and comments. ✅\n- Ensure backward compatibility and provide migration guidance. ✅\n\n---\n\n## Scope",
+      "text": "8. **Icon/Color Mappings** - ✅ COMPLETED\n9. **Error Message Templates** - ✅ COMPLETED (via TUI/CLI configs or standard errors)\n10. **Validation Rules** - ✅ COMPLETED (via Zod schemas)\n\n## Goals\n\n- Eliminate all hardcoded magic numbers and magic words from the codebase. ✅\n- Move user-facing configuration to `exa.config.sample.toml` (and `exa.config.toml`). ✅\n- Move internal-only constants to `src/constants.ts` (or module-specific constants files). ✅\n- For CLI/TUI, consider `cli.config.ts` and `tui.config.ts` for user-tunable UI/UX constants. ✅\n- Move all model/provider names, fallback chains, and task routing lists to configuration. ✅\n- Document all new config options with sensible defaults and comments. ✅\n- Ensure backward compatibility and provide migration guidance. ✅\n\n---\n\n## Scope",
       "vector": [
         0.2,
         0.4745098039215686,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "- All modules in `src/` (TypeScript/JavaScript).\n- All CLI and TUI modules.\n- All configuration and provider strategy logic.\n- Excludes test files and mock/test-only constants.\n\n---\n\n## Implementation Steps\n\n### 1. Magic Number & Word Discovery ✅ **COMPLETED**\n\n(See original findings above)\n\n### 1.1. Review and Prioritization ✅ **COMPLETED**\n\n### 2. Refactoring Plan ✅ **COMPLETED**\n\n#### 2.1. Enum Creation ✅ **COMPLETED**\n\n#### 2.2. Constants Creation ✅ **COMPLETED**\n\n#### 2.3. Code Migration ✅ **COMPLETED**\n\n### Phase 4: Configuration Migration ✅ **COMPLETED**\n\n**Status:** Completed.\n\n**Completed:**\n\n- `exo.config.sample.toml` created with full options.\n- Schema updated.\n- Services refactored.\n\n### Phase 4.1: Status Enum Creation (Additional) ✅ **COMPLETED**",
+      "text": "- All modules in `src/` (TypeScript/JavaScript).\n- All CLI and TUI modules.\n- All configuration and provider strategy logic.\n- Excludes test files and mock/test-only constants.\n\n---\n\n## Implementation Steps\n\n### 1. Magic Number & Word Discovery ✅ **COMPLETED**\n\n(See original findings above)\n\n### 1.1. Review and Prioritization ✅ **COMPLETED**\n\n### 2. Refactoring Plan ✅ **COMPLETED**\n\n#### 2.1. Enum Creation ✅ **COMPLETED**\n\n#### 2.2. Constants Creation ✅ **COMPLETED**\n\n#### 2.3. Code Migration ✅ **COMPLETED**\n\n### Phase 4: Configuration Migration ✅ **COMPLETED**\n\n**Status:** Completed.\n\n**Completed:**\n\n- `exa.config.sample.toml` created with full options.\n- Schema updated.\n- Services refactored.\n\n### Phase 4.1: Status Enum Creation (Additional) ✅ **COMPLETED**",
       "vector": [
         0.6509803921568628,
         0.4470588235294118,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "### Phase 4.2: Schema Enum Migration (Additional) ✅ **COMPLETED**\n\n---\n\n## Deliverables\n\n- All magic numbers/words/lists externalized to config or constants files. ✅\n- Updated `exo.config.sample.toml` and documentation. ✅\n- New/updated `constants.ts`, `cli.config.ts`, `tui.config.ts` as needed. ✅\n- Migration guide and validation scripts. ✅ (`docs/dev/Migration_Guide_Phase27.md`)\n- PR with detailed commit messages and code review notes. (Ready for PR)\n\n---\n\n## Step-by-Step Implementation Plan\n\n### Phase 1: Discovery and Analysis ✅ **COMPLETED**\n\n### Phase 2: Enum Creation and Constants Setup ✅ **COMPLETED**\n\n### Phase 3: Configuration Migration ✅ **COMPLETED**\n\n### Phase 4: Testing and Validation ✅ **COMPLETED**\n\n- Unit tests passed.\n- Manual verification of TUI/CLI logic (code review).",
+      "text": "### Phase 4.2: Schema Enum Migration (Additional) ✅ **COMPLETED**\n\n---\n\n## Deliverables\n\n- All magic numbers/words/lists externalized to config or constants files. ✅\n- Updated `exa.config.sample.toml` and documentation. ✅\n- New/updated `constants.ts`, `cli.config.ts`, `tui.config.ts` as needed. ✅\n- Migration guide and validation scripts. ✅ (`docs/dev/Migration_Guide_Phase27.md`)\n- PR with detailed commit messages and code review notes. (Ready for PR)\n\n---\n\n## Step-by-Step Implementation Plan\n\n### Phase 1: Discovery and Analysis ✅ **COMPLETED**\n\n### Phase 2: Enum Creation and Constants Setup ✅ **COMPLETED**\n\n### Phase 3: Configuration Migration ✅ **COMPLETED**\n\n### Phase 4: Testing and Validation ✅ **COMPLETED**\n\n- Unit tests passed.\n- Manual verification of TUI/CLI logic (code review).",
       "vector": [
         0.5294117647058824,
         0.9294117647058824,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "### Phase 5: Documentation and Migration ✅ **COMPLETED**\n\n- `ExoFrame_Technical_Spec.md` updated.\n- `Provider_Strategy_Guide.md` updated.\n- `Migration_Guide_Phase27.md` created.\n\n### Phase 6: Final Review and Deployment 🔄 **READY**\n\n---\n\n## Timeline (Final)\n\n- **Day 1:** Magic number/word discovery ✅\n- **Day 2:** Initial enum creation and basic migration ✅\n- **Days 3-4:** Configuration migration ✅\n- **Days 5-6:** Status enum detection and schema migration ✅\n- **Days 7-8:** Provider fallback chains externalization ✅\n- **Days 9-10:** TUI/CLI constants externalization ✅\n- **Days 11-12:** Testing, validation, and documentation ✅\n- **Day 13:** Final review and deployment (Ready)\n\n**Total Effort:** Completed within estimated revised timeline.\n\n## Risks & Mitigations",
+      "text": "### Phase 5: Documentation and Migration ✅ **COMPLETED**\n\n- `Exaix_Technical_Spec.md` updated.\n- `Provider_Strategy_Guide.md` updated.\n- `Migration_Guide_Phase27.md` created.\n\n### Phase 6: Final Review and Deployment 🔄 **READY**\n\n---\n\n## Timeline (Final)\n\n- **Day 1:** Magic number/word discovery ✅\n- **Day 2:** Initial enum creation and basic migration ✅\n- **Days 3-4:** Configuration migration ✅\n- **Days 5-6:** Status enum detection and schema migration ✅\n- **Days 7-8:** Provider fallback chains externalization ✅\n- **Days 9-10:** TUI/CLI constants externalization ✅\n- **Days 11-12:** Testing, validation, and documentation ✅\n- **Day 13:** Final review and deployment (Ready)\n\n**Total Effort:** Completed within estimated revised timeline.\n\n## Risks & Mitigations",
       "vector": [
         0.2549019607843137,
         0.5843137254901961,
@@ -624,7 +624,7 @@
       ]
     },
     {
-      "text": "(Addressed via rigorous testing and backward compatibility defaults)\n\n---\n\n## Additional Tasks\n\n### Update Agent Instructions in `.copilot/`\n\n- Revise `.copilot/README.md` and any agent onboarding docs to instruct contributors to:\n  - Never introduce new magic numbers or magic words in code.\n  - Always add user-facing configuration to TOML files (`exo.config.sample.toml`).\n  - Use `constants.ts`, `cli.config.ts`, or `tui.config.ts` for internal constants.\n  - Reference the migration guide for updating legacy code.\n  - Include a checklist in PR templates to verify no magic numbers/words were added.\n\n### Update Development Guidelines",
+      "text": "(Addressed via rigorous testing and backward compatibility defaults)\n\n---\n\n## Additional Tasks\n\n### Update Agent Instructions in `.copilot/`\n\n- Revise `.copilot/README.md` and any agent onboarding docs to instruct contributors to:\n  - Never introduce new magic numbers or magic words in code.\n  - Always add user-facing configuration to TOML files (`exa.config.sample.toml`).\n  - Use `constants.ts`, `cli.config.ts`, or `tui.config.ts` for internal constants.\n  - Reference the migration guide for updating legacy code.\n  - Include a checklist in PR templates to verify no magic numbers/words were added.\n\n### Update Development Guidelines",
       "vector": [
         0.2901960784313726,
         0.5764705882352941,
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "text": "- Update `CONTRIBUTING.md` and/or `docs/dev/Development_Guidelines.md` to include:\n  - Policy: No magic numbers/words in code; all must be externalized.\n  - How to add new config options: Add to `exo.config.sample.toml` with documentation, update schema in `src/config/schema.ts`, and provide defaults in `src/config/ai_config.ts`.\n  - How to update and use constants files: Create or update `constants.ts` for internal values, ensure named exports.\n  - How to write tests for new configuration options: Include unit tests for config loading and integration tests for behavior changes.\n  - How to validate that no new magic numbers/words are introduced: Use the provided grep commands in CI/linting, add a pre-commit hook.\n  - Migration path for existing contributors: Link to the migration guide and provide examples.",
+      "text": "- Update `CONTRIBUTING.md` and/or `docs/dev/Development_Guidelines.md` to include:\n  - Policy: No magic numbers/words in code; all must be externalized.\n  - How to add new config options: Add to `exa.config.sample.toml` with documentation, update schema in `src/config/schema.ts`, and provide defaults in `src/config/ai_config.ts`.\n  - How to update and use constants files: Create or update `constants.ts` for internal values, ensure named exports.\n  - How to write tests for new configuration options: Include unit tests for config loading and integration tests for behavior changes.\n  - How to validate that no new magic numbers/words are introduced: Use the provided grep commands in CI/linting, add a pre-commit hook.\n  - Migration path for existing contributors: Link to the migration guide and provide examples.",
       "vector": [
         0.26666666666666666,
         0.3333333333333333,
@@ -831,7 +831,7 @@
       ]
     },
     {
-      "text": "- Zero magic words found by discovery grep commands ✅\n- Users can fully configure ExoFrame behavior without code changes ✅\n- All tests pass with externalized configuration ✅\n- Comprehensive documentation and migration guides provided ✅\n- CI validation prevents new magic numbers/words from being introduced ✅ (via `CONTRIBUTING.md` and pre-commit checks)\n\n---\n\n## Appendix: Example Config Additions\n\n```toml\n# exo.config.sample.toml\n\n[system]\ndebounce_ms = 200\nwatcher_timeout_sec = 60\n\n[provider_strategy]\nfallback_chains = { free = [\"ollama\", \"mock\"], paid = [\"anthropic\", \"openai\"] }\ntask_routing = { simple = [\"ollama\", \"google\"], complex = [\"anthropic\", \"openai\"] }\nsupported_models = [\"ollama\", \"anthropic\", \"openai\", \"google\"]\nmax_daily_cost_usd = 10.00",
+      "text": "- Zero magic words found by discovery grep commands ✅\n- Users can fully configure Exaix behavior without code changes ✅\n- All tests pass with externalized configuration ✅\n- Comprehensive documentation and migration guides provided ✅\n- CI validation prevents new magic numbers/words from being introduced ✅ (via `CONTRIBUTING.md` and pre-commit checks)\n\n---\n\n## Appendix: Example Config Additions\n\n```toml\n# exa.config.sample.toml\n\n[system]\ndebounce_ms = 200\nwatcher_timeout_sec = 60\n\n[provider_strategy]\nfallback_chains = { free = [\"ollama\", \"mock\"], paid = [\"anthropic\", \"openai\"] }\ntask_routing = { simple = [\"ollama\", \"google\"], complex = [\"anthropic\", \"openai\"] }\nsupported_models = [\"ollama\", \"anthropic\", \"openai\", \"google\"]\nmax_daily_cost_usd = 10.00",
       "vector": [
         0.6431372549019608,
         0.2549019607843137,
@@ -900,7 +900,7 @@
       ]
     },
     {
-      "text": "[cli]\ncommand_timeout_sec = 30\ndefault_log_level = \"info\"\n\n[tui]\nrefresh_interval_ms = 1000\ntheme = \"dark\"\n```\n\n---\n\n## Related Documents\n\n- [Phase 26: LLM Provider Flexibility & Multi-Model Support Strategy](./phase-26-llm-provider-flexibility.md)\n- [Provider Strategy Guide](../../docs/Provider_Strategy_Guide.md)\n- [ExoFrame Technical Specification](../../docs/dev/ExoFrame_Technical_Spec.md)\n\n---\n\n**Document Status:** Draft\n**File Destination:** `.copilot/planning/phase-27-magic-number-word-externalization.md`\n**Author:** GitHub Copilot\n**Date:** 2026-01-14",
+      "text": "[cli]\ncommand_timeout_sec = 30\ndefault_log_level = \"info\"\n\n[tui]\nrefresh_interval_ms = 1000\ntheme = \"dark\"\n```\n\n---\n\n## Related Documents\n\n- [Phase 26: LLM Provider Flexibility & Multi-Model Support Strategy](./phase-26-llm-provider-flexibility.md)\n- [Provider Strategy Guide](../../docs/Provider_Strategy_Guide.md)\n- [Exaix Technical Specification](../../docs/dev/Exaix_Technical_Spec.md)\n\n---\n\n**Document Status:** Draft\n**File Destination:** `.copilot/planning/phase-27-magic-number-word-externalization.md`\n**Author:** GitHub Copilot\n**Date:** 2026-01-14",
       "vector": [
         0.18823529411764706,
         0.2235294117647059,

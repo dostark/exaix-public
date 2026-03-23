@@ -107,7 +107,7 @@ export class PortalService {
         target: absoluteTarget,
         symlink: `Portals/${alias}`,
         context_card: "generated",
-        hint: "Restart daemon to apply changes: exoctl daemon restart",
+        hint: "Restart daemon to apply changes: exactl daemon restart",
       });
     } catch (error) {
       try {
@@ -262,7 +262,7 @@ export class PortalService {
 
     await this.display.info("portal.removed", alias, {
       context_card: options?.keepCard ? "kept" : "archived",
-      hint: "Restart daemon to apply changes: exoctl daemon restart",
+      hint: "Restart daemon to apply changes: exactl daemon restart",
     });
   }
 

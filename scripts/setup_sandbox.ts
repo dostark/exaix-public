@@ -1,7 +1,7 @@
 /**
  * @module SetupSandbox
  * @path scripts/setup_sandbox.ts
- * @description Automates the creation of a persistent ExoFrame validation sandbox,
+ * @description Automates the creation of a persistent Exaix validation sandbox,
  * following the workflow described in VALIDATION_GUIDE.md.
  */
 
@@ -44,7 +44,7 @@ const setupCommand = new Command()
     const evidenceDir = join(sandboxRoot, "evidence");
     const binDir = join(sandboxRoot, "bin");
 
-    console.log(`🚀 Setting up ExoFrame Sandbox at: ${sandboxRoot}`);
+    console.log(`🚀 Setting up Exaix Sandbox at: ${sandboxRoot}`);
 
     // 1. Create structure
     await ensureDir(sandboxRoot);
@@ -54,8 +54,8 @@ const setupCommand = new Command()
 
     const env = {
       ...Deno.env.toObject(),
-      EXO_BIN_PATH: binDir,
-      EXO_CONFIG_PATH: join(workspaceDir, "exo.config.toml"),
+      EXA_BIN_PATH: binDir,
+      EXA_CONFIG_PATH: join(workspaceDir, "exa.config.toml"),
     };
 
     // 2. Deploy Workspace
@@ -64,11 +64,11 @@ const setupCommand = new Command()
     }
 
     // 3. Configure Provider
-    const sampleConfigPath = join(workspaceDir, "exo.config.sample.toml");
-    const configPath = join(workspaceDir, "exo.config.toml");
+    const sampleConfigPath = join(workspaceDir, "exa.config.sample.toml");
+    const configPath = join(workspaceDir, "exa.config.toml");
 
     try {
-      // Proactively create exo.config.toml from sample if needed
+      // Proactively create exa.config.toml from sample if needed
       try {
         await Deno.stat(configPath);
       } catch {
@@ -99,17 +99,17 @@ const setupCommand = new Command()
     }
 
     // 5. Mount current repo and dummy portals
-    const exoctl = join(binDir, "exoctl");
+    const exactl = join(binDir, "exactl");
     const samplePortalDir = join(sandboxRoot, "sample-app");
     await ensureDir(samplePortalDir);
     await ensureDir(join(samplePortalDir, ".git"));
 
-    if (!await run([exoctl, "portal", "add", Deno.cwd(), "portal-exoframe"], "Mounting portal-exoframe", { env })) {
-      console.warn("⚠️  Failed to mount portal-exoframe. Continuing anyway...");
+    if (!await run([exactl, "portal", "add", Deno.cwd(), "portal-exaix"], "Mounting portal-exaix", { env })) {
+      console.warn("⚠️  Failed to mount portal-exaix. Continuing anyway...");
     }
 
     if (
-      !await run([exoctl, "portal", "add", samplePortalDir, "portal-sample-app"], "Mounting portal-sample-app", { env })
+      !await run([exactl, "portal", "add", samplePortalDir, "portal-sample-app"], "Mounting portal-sample-app", { env })
     ) {
       console.warn("⚠️  Failed to mount portal-sample-app. Continuing anyway...");
     }
@@ -136,10 +136,10 @@ const setupCommand = new Command()
     console.log(`---------------------------------------------------------`);
     console.log(`To start using the sandbox, run:`);
     console.log(`  export PATH="${binDir}:$PATH"`);
-    console.log(`  export EXO_CONFIG_PATH="${configPath}"`);
+    console.log(`  export EXA_CONFIG_PATH="${configPath}"`);
     console.log(``);
     console.log(`Start the daemon with:`);
-    console.log(`  exoctl daemon start`);
+    console.log(`  exactl daemon start`);
     console.log(``);
     console.log(`Execute scenarios with:`);
     console.log(`  cd ${join(frameworkDir, "scenario_framework")}`);

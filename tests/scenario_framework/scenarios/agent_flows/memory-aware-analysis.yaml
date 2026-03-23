@@ -15,7 +15,7 @@ steps:
     input_criteria: []
     output_criteria: []
   - id: "create-memory-aware-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args: ["--analyze", "--file", "$REQUEST_FIXTURE"]
     input_criteria:

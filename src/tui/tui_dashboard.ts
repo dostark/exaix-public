@@ -1,12 +1,12 @@
 /**
  * @module TuiDashboard
  * @path src/tui/tui_dashboard.ts
- * @description Main entry point and orchestrator for the ExoFrame TUI dashboard, managing layout, view switching, and cross-view state.
+ * @description Main entry point and orchestrator for the Exaix TUI dashboard, managing layout, view switching, and cross-view state.
  * @architectural-layer TUI
  * @dependencies [TuiSessionBase, colors, spinner, help_renderer, keyboard, constants, enums]
  * @related-files [src/tui/tui_common.ts, src/tui/agent_status_view.ts, src/tui/daemon_control_view.ts]
  *
- * This is the main entry point for the ExoFrame TUI, integrating all
+ * This is the main entry point for the Exaix TUI, integrating all
  * enhanced views into a unified dashboard with:
  * - Multi-pane split view support
  * - Global help overlay
@@ -431,7 +431,7 @@ export function renderViewIndicator(panes: IPane[], activePaneId: string, theme:
 export function renderGlobalHelpOverlay(_theme: Theme): string[] {
   const sections = getDashboardHelpSections();
   return renderHelpScreen({
-    title: "ExoFrame Dashboard Help",
+    title: "Exaix Dashboard Help",
     sections,
     footer: "Press ? or Esc to close help",
     width: 70,
@@ -677,7 +677,7 @@ function createTestDashboard(options: {
       const globalWithDenoTui = globalThis as TuiGlobalWithDeno;
       if (
         typeof globalWithDenoTui.Deno !== "undefined" &&
-        globalWithDenoTui.Deno?.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
+        globalWithDenoTui.Deno?.env.get("EXA_TEST_LOG_TAB_DEBUG") === "1"
       ) {
         console.debug("[TUI][DEBUG] launch.handleKey returned active=", this.activePaneId);
       }
@@ -917,7 +917,7 @@ async function createProductionDashboard(options: {
   await restoreLayout();
 
   console.clear();
-  console.log("ExoFrame TUI Dashboard");
+  console.log("Exaix TUI Dashboard");
   console.log("======================");
 
   async function prodRenderWrapper() {

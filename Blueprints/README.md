@@ -1,6 +1,6 @@
 # Blueprints/
 
-This directory contains **blueprints** - predefined templates and configurations for ExoFrame components.
+This directory contains **blueprints** - predefined templates and configurations for Exaix components.
 
 ## Structure
 

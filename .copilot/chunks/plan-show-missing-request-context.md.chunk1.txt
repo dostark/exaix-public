@@ -8,7 +8,7 @@
 
 ## Expected Behavior
 
-**Enhanced `exoctl plan list` should show:**
+**Enhanced `exactl plan list` should show:**
 
 - Original request ID/title
 - Agent that created the plan
@@ -16,7 +16,7 @@
 - Creation timestamp
 - Request priority
 
-**Enhanced `exoctl plan show` should show:**
+**Enhanced `exactl plan show` should show:**
 
 - Link to original request (`request_id`)
 - Agent information

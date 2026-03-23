@@ -3,7 +3,7 @@
   "title": "phase-05-obsidian-setup.md",
   "vecs": [
     {
-      "text": "### Step 5: Obsidian Setup & Runtime Integration ✅ COMPLETED\n\n**Goal:** Configure Obsidian as the primary UI for ExoFrame, enabling users to view dashboards, manage tasks, and monitor agent activity without leaving their knowledge management environment.\n\n### Steps Summary",
+      "text": "### Step 5: Obsidian Setup & Runtime Integration ✅ COMPLETED\n\n**Goal:** Configure Obsidian as the primary UI for Exaix, enabling users to view dashboards, manage tasks, and monitor agent activity without leaving their knowledge management environment.\n\n### Steps Summary",
       "vector": [
         0.43529411764705883,
         0.8941176470588236,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "> **Platform note:** Maintainers must document OS-specific instructions (Windows symlink prerequisites, macOS sandbox\n> prompts, Linux desktop watchers) before marking each sub-step complete.\n\n### 5.1: Install Required Plugins ✅ COMPLETED\n\n- **Dependencies:** Obsidian installed on user system.\n- **Rollback:** Uninstall plugins via Community Plugins settings.\n\n**Action:** Install and configure required Obsidian plugins for ExoFrame integration.\n\n**Required Plugins:**\n\n1. **Dataview** (required)\n   - Enables live queries for dashboard tables\n   - Open Obsidian Settings → Community Plugins\n   - Disable Safe Mode\n   - Browse → Search \"Dataview\"\n   - Install and Enable",
+      "text": "> **Platform note:** Maintainers must document OS-specific instructions (Windows symlink prerequisites, macOS sandbox\n> prompts, Linux desktop watchers) before marking each sub-step complete.\n\n### 5.1: Install Required Plugins ✅ COMPLETED\n\n- **Dependencies:** Obsidian installed on user system.\n- **Rollback:** Uninstall plugins via Community Plugins settings.\n\n**Action:** Install and configure required Obsidian plugins for Exaix integration.\n\n**Required Plugins:**\n\n1. **Dataview** (required)\n   - Enables live queries for dashboard tables\n   - Open Obsidian Settings → Community Plugins\n   - Disable Safe Mode\n   - Browse → Search \"Dataview\"\n   - Install and Enable",
       "vector": [
         0.9294117647058824,
         0.7333333333333333,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "2. **File Tree Alternative** (optional)\n   - Enables sidebar navigation of ExoFrame folders\n   - Provides better folder structure visibility\n\n3. **Templater** (optional)\n   - Enables template-based file creation\n   - Useful for creating new requests with consistent frontmatter\n\n**TDD Approach:**\n\n````typescript\n// tests/obsidian/plugin_detection_test.ts\nDeno.test(\"Obsidian plugin requirements documented\", async () => {\n  const readme = await Deno.readTextFile(\"docs/ExoFrame_User_Guide.md\");\n\n// Verify plugin requirements are documented\n  assertStringIncludes(readme, \"Dataview\");\n  assertStringIncludes(readme, \"Community Plugins\");\n});\n\nDeno.test(\"Dashboard file uses valid Dataview syntax\", async () => {\n  const dashboard = await Deno.readTextFile(\"Knowledge/Dashboard.md\");",
+      "text": "2. **File Tree Alternative** (optional)\n   - Enables sidebar navigation of Exaix folders\n   - Provides better folder structure visibility\n\n3. **Templater** (optional)\n   - Enables template-based file creation\n   - Useful for creating new requests with consistent frontmatter\n\n**TDD Approach:**\n\n````typescript\n// tests/obsidian/plugin_detection_test.ts\nDeno.test(\"Obsidian plugin requirements documented\", async () => {\n  const readme = await Deno.readTextFile(\"docs/Exaix_User_Guide.md\");\n\n// Verify plugin requirements are documented\n  assertStringIncludes(readme, \"Dataview\");\n  assertStringIncludes(readme, \"Community Plugins\");\n});\n\nDeno.test(\"Dashboard file uses valid Dataview syntax\", async () => {\n  const dashboard = await Deno.readTextFile(\"Knowledge/Dashboard.md\");",
       "vector": [
         0.8352941176470589,
         0.4549019607843137,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- Created `Knowledge/Dashboard.md` with 4 Dataview queries (TABLE and LIST)\n- Added Section 3.2 to User Guide with plugin installation steps\n- Tests: `tests/obsidian/plugin_detection_test.ts` (10 tests)\n\n---\n\n### 5.2: Configure Obsidian Vault ✅ COMPLETED\n\n- **Dependencies:** Step 5.1 plugins installed.\n- **Rollback:** Close vault, reopen original vault.\n\n**Action:** Configure Obsidian to use ExoFrame's Knowledge directory as a vault.\n\n**Implementation Steps:**\n\n1. Open Obsidian\n2. Select \"Open folder as vault\"\n3. Navigate to `/path/to/ExoFrame/Knowledge`\n4. Confirm vault creation\n\n**Vault Structure:**",
+      "text": "- Created `Knowledge/Dashboard.md` with 4 Dataview queries (TABLE and LIST)\n- Added Section 3.2 to User Guide with plugin installation steps\n- Tests: `tests/obsidian/plugin_detection_test.ts` (10 tests)\n\n---\n\n### 5.2: Configure Obsidian Vault ✅ COMPLETED\n\n- **Dependencies:** Step 5.1 plugins installed.\n- **Rollback:** Close vault, reopen original vault.\n\n**Action:** Configure Obsidian to use Exaix's Knowledge directory as a vault.\n\n**Implementation Steps:**\n\n1. Open Obsidian\n2. Select \"Open folder as vault\"\n3. Navigate to `/path/to/Exaix/Knowledge`\n4. Confirm vault creation\n\n**Vault Structure:**",
       "vector": [
         0.3411764705882353,
         0.5647058823529412,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "Deno.test(\"Knowledge directory has Dashboard.md\", async () => {\n  const dashboardPath = \"./Knowledge/Dashboard.md\";\n  const stat = await Deno.stat(dashboardPath);\n  assert(stat.isFile, \"Dashboard.md should exist\");\n});\n\nDeno.test(\"Vault .obsidian config is gitignored\", async () => {\n  const gitignore = await Deno.readTextFile(\".gitignore\");\n  assertStringIncludes(gitignore, \".obsidian\");\n});\n```\n\n**CLI Support:**\n\n```bash\n# Scaffold Knowledge directory with required structure\nexoctl scaffold --knowledge\n\n# Verify vault structure\nexoctl verify --vault\n```\n\n**Success Criteria:**\n\n- [x] Knowledge/ directory contains required subdirectories\n- [x] Dashboard.md exists at Knowledge/Dashboard.md\n- [x] .obsidian/ directory is gitignored\n- [x] Vault opens without errors in Obsidian",
+      "text": "Deno.test(\"Knowledge directory has Dashboard.md\", async () => {\n  const dashboardPath = \"./Knowledge/Dashboard.md\";\n  const stat = await Deno.stat(dashboardPath);\n  assert(stat.isFile, \"Dashboard.md should exist\");\n});\n\nDeno.test(\"Vault .obsidian config is gitignored\", async () => {\n  const gitignore = await Deno.readTextFile(\".gitignore\");\n  assertStringIncludes(gitignore, \".obsidian\");\n});\n```\n\n**CLI Support:**\n\n```bash\n# Scaffold Knowledge directory with required structure\nexactl scaffold --knowledge\n\n# Verify vault structure\nexactl verify --vault\n```\n\n**Success Criteria:**\n\n- [x] Knowledge/ directory contains required subdirectories\n- [x] Dashboard.md exists at Knowledge/Dashboard.md\n- [x] .obsidian/ directory is gitignored\n- [x] Vault opens without errors in Obsidian",
       "vector": [
         0.5372549019607843,
         0.807843137254902,
@@ -624,7 +624,7 @@
       ]
     },
     {
-      "text": "**Alternative: Workspace Layout:**\n\n```json\n// .obsidian/workspaces.json (auto-generated by Obsidian)\n{\n  \"workspaces\": {\n    \"ExoFrame\": {\n      \"main\": {\n        \"type\": \"leaf\",\n        \"state\": {\n          \"type\": \"markdown\",\n          \"file\": \"Dashboard.md\"\n        }\n      }\n    }\n  }\n}\n```\n\n**TDD Approach:**\n\n```typescript\n// tests/obsidian/dashboard_content_test.ts\nDeno.test(\"Dashboard has required sections\", async () => {\n  const dashboard = await Deno.readTextFile(\"Knowledge/Dashboard.md\");\n\nconst requiredSections = [\n    \"Active Tasks\",\n    \"Recent Plans\",\n    \"Reports\",\n    \"Failed\",\n  ];\n\nfor (const section of requiredSections) {\n    assertStringIncludes(dashboard, section, `Dashboard should have ${section} section`);\n  }\n});",
+      "text": "**Alternative: Workspace Layout:**\n\n```json\n// .obsidian/workspaces.json (auto-generated by Obsidian)\n{\n  \"workspaces\": {\n    \"Exaix\": {\n      \"main\": {\n        \"type\": \"leaf\",\n        \"state\": {\n          \"type\": \"markdown\",\n          \"file\": \"Dashboard.md\"\n        }\n      }\n    }\n  }\n}\n```\n\n**TDD Approach:**\n\n```typescript\n// tests/obsidian/dashboard_content_test.ts\nDeno.test(\"Dashboard has required sections\", async () => {\n  const dashboard = await Deno.readTextFile(\"Knowledge/Dashboard.md\");\n\nconst requiredSections = [\n    \"Active Tasks\",\n    \"Recent Plans\",\n    \"Reports\",\n    \"Failed\",\n  ];\n\nfor (const section of requiredSections) {\n    assertStringIncludes(dashboard, section, `Dashboard should have ${section} section`);\n  }\n});",
       "vector": [
         0.27450980392156865,
         0.16862745098039217,
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "text": "- Dashboard has all required sections (Requests, Plans, Activity, Portals)\n- Dashboard has 4 Dataview queries with proper sorting\n- User Guide documents pinning and workspace layout saving\n- Tests: `tests/obsidian/dashboard_content_test.ts` (14 tests)\n\n---\n\n### 5.4: Configure File Watcher ✅ COMPLETED\n\n- **Dependencies:** Step 5.2 vault configured.\n- **Rollback:** Revert settings to defaults.\n\n**Action:** Configure Obsidian to handle external file changes from ExoFrame agents.\n\n**Note:** Obsidian will show \"Vault changed externally\" warnings when agents write files. This is expected behavior.\n\n**Settings Configuration:**\n\nSettings → Files & Links:\n\n- ☑ Automatically update internal links\n- ☑ Show all file types (to see .toml, .yaml, .json)\n- ☑ Use Wikilinks (optional, for easier linking)",
+      "text": "- Dashboard has all required sections (Requests, Plans, Activity, Portals)\n- Dashboard has 4 Dataview queries with proper sorting\n- User Guide documents pinning and workspace layout saving\n- Tests: `tests/obsidian/dashboard_content_test.ts` (14 tests)\n\n---\n\n### 5.4: Configure File Watcher ✅ COMPLETED\n\n- **Dependencies:** Step 5.2 vault configured.\n- **Rollback:** Revert settings to defaults.\n\n**Action:** Configure Obsidian to handle external file changes from Exaix agents.\n\n**Note:** Obsidian will show \"Vault changed externally\" warnings when agents write files. This is expected behavior.\n\n**Settings Configuration:**\n\nSettings → Files & Links:\n\n- ☑ Automatically update internal links\n- ☑ Show all file types (to see .toml, .yaml, .json)\n- ☑ Use Wikilinks (optional, for easier linking)",
       "vector": [
         0.4980392156862745,
         0.45098039215686275,
@@ -969,7 +969,7 @@
       ]
     },
     {
-      "text": "1. Open Obsidian Settings (gear icon)\n2. Go to **Files & Links**:\n   - Enable \"Automatically update internal links\"\n   - Enable \"Show all file types\"\n3. Changes are saved automatically\n\n---\n\n### 5.5: The Obsidian Dashboard ✅ COMPLETED\n\n- **Dependencies:** Phase 4, Steps 5.1-5.4 — **Rollback:** provide plain Markdown summary.\n- **Action:** Create `/Knowledge/Dashboard.md` with Dataview queries.\n- **Justification:** Users live in Obsidian, not the terminal.\n\n**Implementation:**\n\nCreate `Knowledge/Dashboard.md` with the following content:\n\n````markdown\n---\ntitle: ExoFrame Dashboard\naliases: [Home, Index]\ntags: [dashboard, exoframe]\n---\n\n# ExoFrame Dashboard\n\n> Last refreshed: `= date(now)`\n\n## 📊 System Status",
+      "text": "1. Open Obsidian Settings (gear icon)\n2. Go to **Files & Links**:\n   - Enable \"Automatically update internal links\"\n   - Enable \"Show all file types\"\n3. Changes are saved automatically\n\n---\n\n### 5.5: The Obsidian Dashboard ✅ COMPLETED\n\n- **Dependencies:** Phase 4, Steps 5.1-5.4 — **Rollback:** provide plain Markdown summary.\n- **Action:** Create `/Knowledge/Dashboard.md` with Dataview queries.\n- **Justification:** Users live in Obsidian, not the terminal.\n\n**Implementation:**\n\nCreate `Knowledge/Dashboard.md` with the following content:\n\n````markdown\n---\ntitle: Exaix Dashboard\naliases: [Home, Index]\ntags: [dashboard, exaix]\n---\n\n# Exaix Dashboard\n\n> Last refreshed: `= date(now)`\n\n## 📊 System Status",
       "vector": [
         0.5019607843137255,
         0.3843137254901961,

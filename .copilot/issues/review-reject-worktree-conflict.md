@@ -9,7 +9,7 @@ labels: [bug, cli, review, git]
 
 ## Problem
 
-When attempting to reject a review using `exoctl review reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
+When attempting to reject a review using `exactl review reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
 
 ```text
 Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'
@@ -21,29 +21,29 @@ This prevents users from rejecting changesets that are associated with active po
 
 ```bash
 # Create and approve a plan (creates review)
-exoctl request "Add feature" --agent senior-coder --portal TestPortal
-exoctl plan approve <plan-id>
+exactl request "Add feature" --agent senior-coder --portal TestPortal
+exactl plan approve <plan-id>
 
 # Try to reject the review
-exoctl review reject <request-id> --reason "Implementation issues"
+exactl review reject <request-id> --reason "Implementation issues"
 # Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'
 ```
 
 ## Observed Behavior
 
-- `exoctl review reject` fails when the branch is checked out in a worktree
+- `exactl review reject` fails when the branch is checked out in a worktree
 - Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`
 - No alternative way to reject the review
 
 ## Expected Behavior
 
-- `exoctl review reject` should succeed even when the branch is used by a worktree
+- `exactl review reject` should succeed even when the branch is used by a worktree
 - Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions
 - Changesets should be rejectable regardless of worktree status
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (current)
 - Git Version: (current)

@@ -39,7 +39,7 @@ Deno.test("Claude enhancements: verify all sections exist in claude.md", async (
   assert(claudeMd.includes("### Documentation"), "Should have Documentation section");
   assert(claudeMd.includes("## Thinking Protocol for Complex Tasks"), "Should have Thinking Protocol section");
   assert(claudeMd.includes("## Tool-Use Patterns for Claude"), "Should have Tool-Use Patterns section");
-  assert(claudeMd.includes("## Common Pitfalls with ExoFrame"), "Should have Common Pitfalls section");
+  assert(claudeMd.includes("## Common Pitfalls with Exaix"), "Should have Common Pitfalls section");
 
   // Verify examples
   assert(claudeMd.includes("initTestDbService"), "Should reference initTestDbService helper");
@@ -47,7 +47,7 @@ Deno.test("Claude enhancements: verify all sections exist in claude.md", async (
   assert(claudeMd.includes("<thinking>"), "Should include thinking tag example");
 
   // Verify at least 8 common pitfalls
-  const pitfallsSection = claudeMd.split("## Common Pitfalls with ExoFrame")[1];
+  const pitfallsSection = claudeMd.split("## Common Pitfalls with Exaix")[1];
   const pitfallCount = (pitfallsSection.match(/###\s+\d+\./g) || []).length;
   assert(pitfallCount >= 8, `Should have at least 8 common pitfalls, found ${pitfallCount}`);
 });
@@ -92,7 +92,7 @@ Deno.test("Claude enhancements: verify cross-reference.md structure", async () =
 
   // Verify it links to other docs
   assert(crossRefMd.includes("[tests/testing.md]"), "Should link to testing.md");
-  assert(crossRefMd.includes("[source/exoframe.md]"), "Should link to exoframe.md");
+  assert(crossRefMd.includes("[source/exaix.md]"), "Should link to exaix.md");
   assert(crossRefMd.includes("[providers/claude.md]"), "Should link to claude.md");
   assert(crossRefMd.includes("[providers/claude-rag.md]"), "Should link to claude-rag.md");
 });
@@ -255,9 +255,9 @@ Deno.test("Claude enhancements: verify context injection works", async () => {
   const tddResult = await inject("claude", "TDD test patterns", 4);
   assert(tddResult.found, "Should find TDD-related doc");
   assert(
-    tddResult.path?.includes("testing.md") || tddResult.path?.includes("exoframe.md") ||
+    tddResult.path?.includes("testing.md") || tddResult.path?.includes("exaix.md") ||
       tddResult.path?.includes("claude.md"),
-    "Should return testing/exoframe/claude doc for TDD query",
+    "Should return testing/exaix/claude doc for TDD query",
   );
 });
 

@@ -185,12 +185,12 @@ Source Evaluation:
         {
           "topic": "Authentication Flow",
           "content": "System uses JWT-based authentication with 24h token expiry",
-          "citations": ["src/services/auth.ts", "exo.config.toml"]
+          "citations": ["src/services/auth.ts", "exa.config.toml"]
         },
         {
           "topic": "Session Management",
           "content": "Sessions stored in Redis with configurable TTL",
-          "citations": ["src/services/session.ts", "exo.config.toml"]
+          "citations": ["src/services/session.ts", "exa.config.toml"]
         }
       ],
       "gaps": [
@@ -200,7 +200,7 @@ Source Evaluation:
       "references": [
         "src/services/auth.ts - AuthService class",
         "docs/Security.md - Authentication section",
-        "exo.config.toml - auth configuration"
+        "exa.config.toml - auth configuration"
       ]
 {{include:plan-schema-full}}
 
@@ -257,7 +257,7 @@ config option controls duration [3:L12].
 ## References
 [1] src/services/auth.ts - AuthService class
 [2] src/services/auth.ts:67 - credential validation
-[3] exo.config.toml - auth section
+[3] exa.config.toml - auth section
 [4] src/middleware/verify.ts - verifyToken function
 [5] src/services/session.ts:23 - Redis connection
 </research>
@@ -280,7 +280,7 @@ config option controls duration [3:L12].
 **Key Files:**
 - `src/services/auth.ts` - Core auth logic
 - `src/middleware/verify.ts` - Token verification
-- `exo.config.toml` - Auth configuration
+- `exa.config.toml` - Auth configuration
 
 **Note:** Refresh token mechanism is not currently implemented.
 Consider adding for better UX on long sessions.

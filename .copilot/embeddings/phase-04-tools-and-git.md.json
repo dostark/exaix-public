@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "**Branch Naming Convention:**\n\n```\nfeat/implement-auth-550e8400\nfeat/fix-bug-abc12345\n```\n\n**Commit Message Format:**\n\n```\nImplement authentication system\n\nCreated login handler, JWT tokens, and user session management.\n\n[ExoTrace: 550e8400-e29b-41d4-a716-446655440000]\n```\n\n**Error Handling:**\n\n- Repository not initialized → auto-run `git init` + empty commit\n- Identity not configured → use default bot identity (`bot@exoframe.local`)\n- Branch already exists → append timestamp to make unique\n- No changes to commit → throw clear error (don't create empty commit)\n- Git command failures → wrap in descriptive error with command context\n\n**Success Criteria:**",
+      "text": "**Branch Naming Convention:**\n\n```\nfeat/implement-auth-550e8400\nfeat/fix-bug-abc12345\n```\n\n**Commit Message Format:**\n\n```\nImplement authentication system\n\nCreated login handler, JWT tokens, and user session management.\n\n[ExoTrace: 550e8400-e29b-41d4-a716-446655440000]\n```\n\n**Error Handling:**\n\n- Repository not initialized → auto-run `git init` + empty commit\n- Identity not configured → use default bot identity (`bot@exaix.local`)\n- Branch already exists → append timestamp to make unique\n- No changes to commit → throw clear error (don't create empty commit)\n- Git command failures → wrap in descriptive error with command context\n\n**Success Criteria:**",
       "vector": [
         0.11372549019607843,
         0.15294117647058825,

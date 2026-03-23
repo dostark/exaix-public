@@ -4,7 +4,7 @@
  * @description Handles CLI service initialization, including configuration loading, database connection, and model provider setup, with specific handling for test modes.
  * @architectural-layer CLI
  * @dependencies [config_service, git_service, event_logger, provider_factory, constants, config_schema, db_schema, ai_types]
- * @related-files [src/cli/main.ts, src/cli/exoctl.ts]
+ * @related-files [src/cli/main.ts, src/cli/exactl.ts]
  */
 
 import { join } from "@std/path";
@@ -77,7 +77,7 @@ function createDatabaseStub(): IDatabaseService {
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
 export function isTestMode(): boolean {
-  return Deno.env.get("EXO_TEST_MODE") === "1" || Deno.args.includes("--test");
+  return Deno.env.get("EXA_TEST_MODE") === "1" || Deno.args.includes("--test");
 }
 
 // Test helper: initialize the heavy services path (same logic used in non-test runtime)
@@ -90,8 +90,8 @@ export async function initializeServices(
     let configPath = opts?.configPath;
     if (!configPath && isTestMode()) {
       // In test mode, use a temp directory to avoid polluting the root
-      const tempDir = await Deno.makeTempDir({ prefix: "exoctl-test-" });
-      configPath = `${tempDir}/exo.config.toml`;
+      const tempDir = await Deno.makeTempDir({ prefix: "exactl-test-" });
+      configPath = `${tempDir}/exa.config.toml`;
     }
     const cfgService = new ConfigService(configPath);
     const cfg = cfgService.get();
@@ -222,7 +222,7 @@ export async function initializeServices(
     const displayLocal = new EventLogger({});
     displayLocal.warn("cli.config_missing", "system", {
       message: `Configuration failed to load (${err}). Running in degraded mode (read-only/stub).`,
-      hint: "Ensure 'exo.config.toml' exists in current directory or root.",
+      hint: "Ensure 'exa.config.toml' exists in current directory or root.",
     });
 
     return {

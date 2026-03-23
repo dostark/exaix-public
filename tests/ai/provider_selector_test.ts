@@ -437,7 +437,7 @@ Deno.test("ProviderSelector: env provider selected when healthy and allowed", as
     const config = createTestConfig();
 
     const selected = await withEnv(
-      { EXO_LLM_PROVIDER: "mock", EXO_TEST_MODE: "1" },
+      { EXA_LLM_PROVIDER: "mock", EXA_TEST_MODE: "1" },
       () => selector.selectProviderForTask(config, "simple"),
     );
 
@@ -487,7 +487,7 @@ Deno.test("ProviderSelector: env provider fallback when unregistered or unhealth
     const config = createTestConfig();
 
     const selected = await withEnv(
-      { EXO_LLM_PROVIDER: "ollama", EXO_TEST_MODE: "1" },
+      { EXA_LLM_PROVIDER: "ollama", EXA_TEST_MODE: "1" },
       () => selector.selectProviderForTask(config, "simple"),
     );
 
@@ -537,7 +537,7 @@ Deno.test("ProviderSelector: blocks paid env provider in test mode", async () =>
     const config = createTestConfig();
 
     const selected = await withEnv(
-      { EXO_LLM_PROVIDER: "openai", EXO_TEST_MODE: "1", EXO_TEST_ENABLE_PAID_LLM: undefined },
+      { EXA_LLM_PROVIDER: "openai", EXA_TEST_MODE: "1", EXA_TEST_ENABLE_PAID_LLM: undefined },
       () => selector.selectProviderForTask(config, "simple"),
     );
 

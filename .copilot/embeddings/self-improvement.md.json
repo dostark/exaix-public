@@ -3,7 +3,7 @@
   "title": "Self-improvement loop for agent instructions",
   "vecs": [
     {
-      "text": "# Self-improvement loop for `.copilot/` instructions\n\nKey points\n\n- Before non-trivial work, run an **Instruction Adequacy Check**: do we have enough ExoFrame-specific guidance to act and verify?\n- If guidance is missing, do a **Doc Patch Loop**: add the smallest, task-scoped update to `.copilot/`, then rebuild/validate, then continue the primary task.\n- Keep updates grounded: add checklists, examples, and commands; avoid speculative “nice-to-have” prose.\n- Treat doc changes like code changes: minimal diff, clear success criteria, and a regression test when appropriate.\n\n## Instruction adequacy check\n\nUse this at the start of a session or before a multi-step change.\n\n1. **Classify the task**\n   - TDD / bugfix / refactor / docs / CI / security / portal permissions / RAG usage",
+      "text": "# Self-improvement loop for `.copilot/` instructions\n\nKey points\n\n- Before non-trivial work, run an **Instruction Adequacy Check**: do we have enough Exaix-specific guidance to act and verify?\n- If guidance is missing, do a **Doc Patch Loop**: add the smallest, task-scoped update to `.copilot/`, then rebuild/validate, then continue the primary task.\n- Keep updates grounded: add checklists, examples, and commands; avoid speculative “nice-to-have” prose.\n- Treat doc changes like code changes: minimal diff, clear success criteria, and a regression test when appropriate.\n\n## Instruction adequacy check\n\nUse this at the start of a session or before a multi-step change.\n\n1. **Classify the task**\n   - TDD / bugfix / refactor / docs / CI / security / portal permissions / RAG usage",
       "vector": [
         0.4666666666666667,
         0.9372549019607843,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "2. **Retrieve relevant instructions**\n   - Start with `.copilot/cross-reference.md` to find the primary docs.\n   - Read the provider guide for the active model:\n     - Claude: `.copilot/providers/claude.md`\n     - OpenAI: `.copilot/providers/openai.md`\n     - Google: `.copilot/providers/google.md`\n   - Inject additional docs via `scripts/inject_agent_context.ts` when needed.\n\n3. **Adequacy verdict**\n   - ✅ Adequate if the docs specify:\n     - what files/patterns to use (ExoFrame-specific)\n     - what invariants to preserve\n     - what verification to run (tests/lint/CI checks)\n   - ❌ Inadequate if any of these are missing or ambiguous.\n\n## Doc patch loop (when inadequate)",
+      "text": "2. **Retrieve relevant instructions**\n   - Start with `.copilot/cross-reference.md` to find the primary docs.\n   - Read the provider guide for the active model:\n     - Claude: `.copilot/providers/claude.md`\n     - OpenAI: `.copilot/providers/openai.md`\n     - Google: `.copilot/providers/google.md`\n   - Inject additional docs via `scripts/inject_agent_context.ts` when needed.\n\n3. **Adequacy verdict**\n   - ✅ Adequate if the docs specify:\n     - what files/patterns to use (Exaix-specific)\n     - what invariants to preserve\n     - what verification to run (tests/lint/CI checks)\n   - ❌ Inadequate if any of these are missing or ambiguous.\n\n## Doc patch loop (when inadequate)",
       "vector": [
         0.796078431372549,
         0.2980392156862745,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "- **Missing examples**: no concrete ExoFrame-specific snippet for the task.\n- **Missing commands**: no “what to run” for verification/build/validation.\n- **Missing invariants**: unclear what behavior must not change.\n- **Missing cross-links**: docs exist but are hard to discover.\n- **Missing provider mapping**: advice exists but doesn’t translate to Claude/OpenAI/Gemini workflow.\n- **Missing tests**: doc changes not guarded; regressions likely.\n\nDo / Don’t",
+      "text": "- **Missing examples**: no concrete Exaix-specific snippet for the task.\n- **Missing commands**: no “what to run” for verification/build/validation.\n- **Missing invariants**: unclear what behavior must not change.\n- **Missing cross-links**: docs exist but are hard to discover.\n- **Missing provider mapping**: advice exists but doesn’t translate to Claude/OpenAI/Gemini workflow.\n- **Missing tests**: doc changes not guarded; regressions likely.\n\nDo / Don’t",
       "vector": [
         0.4823529411764706,
         0.5647058823529412,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- ✅ Do keep doc updates minimal and scoped to the current task.\n- ✅ Do ask 1–3 clarifying questions if the requirement is ambiguous before changing docs.\n- ✅ Do rebuild `.copilot/manifest.json`, chunks, and embeddings after agent doc edits.\n- ✅ Do add a regression test when a missing instruction caused a real failure.\n- ❌ Don’t broaden scope into “general best practices” unrelated to ExoFrame.\n- ❌ Don’t update many docs at once without a clear gap list.\n\nCanonical prompt (short)\n\"Before implementing changes, run an Instruction Adequacy Check against .copilot/. If instructions are insufficient, patch .copilot/ with the smallest update needed (doc/template/cross-reference), rebuild/validate artifacts, then proceed with the primary task using the improved instructions.\"\n\nExamples",
+      "text": "- ✅ Do keep doc updates minimal and scoped to the current task.\n- ✅ Do ask 1–3 clarifying questions if the requirement is ambiguous before changing docs.\n- ✅ Do rebuild `.copilot/manifest.json`, chunks, and embeddings after agent doc edits.\n- ✅ Do add a regression test when a missing instruction caused a real failure.\n- ❌ Don’t broaden scope into “general best practices” unrelated to Exaix.\n- ❌ Don’t update many docs at once without a clear gap list.\n\nCanonical prompt (short)\n\"Before implementing changes, run an Instruction Adequacy Check against .copilot/. If instructions are insufficient, patch .copilot/ with the smallest update needed (doc/template/cross-reference), rebuild/validate artifacts, then proceed with the primary task using the improved instructions.\"\n\nExamples",
       "vector": [
         0.49019607843137253,
         0.6235294117647059,

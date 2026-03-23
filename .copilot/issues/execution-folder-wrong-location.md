@@ -20,17 +20,17 @@ The memory bank service is creating Execution folders in the workspace root inst
 
 ```bash
 # Create and execute a plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Test execution" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts request "Test execution" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>
 
 # Check for misplaced Execution folder
-cd ~/ExoFrame && ls -la | grep Execution
-cd ~/ExoFrame && ls -la Memory/Execution/
+cd ~/Exaix && ls -la | grep Execution
+cd ~/Exaix && ls -la Memory/Execution/
 ```
 
 ## Observed Behavior
 
-- Execution folder appears in workspace root (`/home/dkasymov/git/ExoFrame/Execution/`)
+- Execution folder appears in workspace root (`/home/dkasymov/git/Exaix/Execution/`)
 - Memory/Execution/ directory may be empty or missing expected trace folders
 - Memory bank service creates execution records but in wrong location
 
@@ -42,7 +42,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Memory Bank: Configured with paths.memoryExecution
 
@@ -60,7 +60,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/
 
 - `src/services/memory_bank.ts` - Memory bank service implementation
 - `src/config/schema.ts` - Configuration schema with memory paths
-- `exo.config.toml` - Configuration file
+- `exa.config.toml` - Configuration file
 
 ## Workaround
 
@@ -72,7 +72,7 @@ Medium priority - doesn't break functionality but violates architecture and crea
 
 ## Examples
 
-- Execution folder appears in `/home/user/ExoFrame/Execution/` instead of `Memory/Execution/`
+- Execution folder appears in `/home/user/Exaix/Execution/` instead of `Memory/Execution/`
 - Memory bank creates execution records but stores them in wrong location
 - Filesystem clutter in workspace root
 

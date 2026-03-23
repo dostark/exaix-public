@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "- Process: `.copilot/process/self-improvement.md`\n- Template: `.copilot/prompts/self-improvement-loop.md`\n- Gemini-specific tip: use long-context to include the relevant `agents/` docs + the exact gap list, then propose a small doc patch (examples/checklists) and continue.\n\n## Task-Specific Prompts\n\n### TDD Workflow (Global View)\n\n\"You are an SDET for ExoFrame. Analyze the entire `src/` and `tests/` structure to ensure new tests match existing patterns. Propose 3-5 failing tests with explicit assertions, covering happy paths and edge cases.\"\n\n### Refactoring (Systemic Impact)\n\n\"Analyze how changing [Module] affects all dependencies. Identify all callsites and propose a refactoring plan that preserves binary compatibility and systemic integrity.\"",
+      "text": "- Process: `.copilot/process/self-improvement.md`\n- Template: `.copilot/prompts/self-improvement-loop.md`\n- Gemini-specific tip: use long-context to include the relevant `agents/` docs + the exact gap list, then propose a small doc patch (examples/checklists) and continue.\n\n## Task-Specific Prompts\n\n### TDD Workflow (Global View)\n\n\"You are an SDET for Exaix. Analyze the entire `src/` and `tests/` structure to ensure new tests match existing patterns. Propose 3-5 failing tests with explicit assertions, covering happy paths and edge cases.\"\n\n### Refactoring (Systemic Impact)\n\n\"Analyze how changing [Module] affects all dependencies. Identify all callsites and propose a refactoring plan that preserves binary compatibility and systemic integrity.\"",
       "vector": [
         0.6941176470588235,
         0.47843137254901963,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "Canonical prompt (short):\n\"You are a Gemini-based assistant for ExoFrame. Leverage your 2M context window to analyze repository-wide patterns. Before acting, check `.copilot/manifest.json` and include all relevant docs.\"\n\nExamples\n\n- Example prompt: \"Using the full provided context, identify all modules that use `initTestDbService()` and refactor them to use the new `DatabaseService` singleton pattern.\"\n- Example prompt: \"Perform a security audit of the entire `src/services/` directory, looking specifically for direct file system access that bypasses `PathResolver`.\"\n\nDo / Don't",
+      "text": "Canonical prompt (short):\n\"You are a Gemini-based assistant for Exaix. Leverage your 2M context window to analyze repository-wide patterns. Before acting, check `.copilot/manifest.json` and include all relevant docs.\"\n\nExamples\n\n- Example prompt: \"Using the full provided context, identify all modules that use `initTestDbService()` and refactor them to use the new `DatabaseService` singleton pattern.\"\n- Example prompt: \"Perform a security audit of the entire `src/services/` directory, looking specifically for direct file system access that bypasses `PathResolver`.\"\n\nDo / Don't",
       "vector": [
         0.5137254901960784,
         0.8470588235294118,

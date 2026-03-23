@@ -86,7 +86,7 @@ export interface IPortalKnowledgeService {
    * Perform an incremental knowledge update.
    *
    * In Phase 46 this is a **CLI-only** operation (triggered by
-   * `exoctl portal analyze [--force]`). The `changedFiles` parameter is
+   * `exactl portal analyze [--force]`). The `changedFiles` parameter is
    * reserved for a future automatic-integration phase and may be ignored by
    * current implementations.
    *

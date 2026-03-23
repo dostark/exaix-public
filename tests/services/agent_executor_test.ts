@@ -67,7 +67,7 @@ async function setup() {
   await configGitUser.output();
 
   const configGitEmail = new Deno.Command(PortalOperation.GIT, {
-    args: ["config", "user.email", "test@exoframe.local"],
+    args: ["config", "user.email", "test@exaix.local"],
     cwd: portalDir,
   });
   await configGitEmail.output();
@@ -191,7 +191,7 @@ capabilities:
 
 # Test Agent
 
-You are a test agent for ExoFrame testing.`;
+You are a test agent for Exaix testing.`;
 
       await Deno.writeTextFile(
         join(blueprintsDir, "test-agent.md"),

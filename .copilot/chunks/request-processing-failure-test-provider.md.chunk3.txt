@@ -1,6 +1,6 @@
-- **ExoFrame Version**: Latest (deployed from scripts/deploy_workspace.sh)
+- **Exaix Version**: Latest (deployed from scripts/deploy_workspace.sh)
 - **Agent**: senior-coder (google:gemini-2.0-flash-exp)
 - **Portal**: TestApp (/tmp/test-portal)
-- **Config**: exo.config.toml with default settings + TestApp portal
+- **Config**: exa.config.toml with default settings + TestApp portal
 
 ## Resolution (resolved)

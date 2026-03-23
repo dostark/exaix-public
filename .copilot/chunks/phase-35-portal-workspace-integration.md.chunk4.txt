@@ -1,8 +1,8 @@
 - **Related Issue:** Portal workspace git operations creating branches in wrong repository
 - **Related Phase:** [Phase 04: Tools and Git](./phase-04-tools-and-git.md)
 - **Related Phase:** [Phase 19: Folder Restructuring](./phase-19-folder-restructuring.md)
-- **User Guide:** `docs/ExoFrame_User_Guide.md` - Portal configuration
-- **Technical Spec:** `docs/dev/ExoFrame_Technical_Spec.md` - Portal architecture
+- **User Guide:** `docs/Exaix_User_Guide.md` - Portal configuration
+- **Technical Spec:** `docs/dev/Exaix_Technical_Spec.md` - Portal architecture
 
 ---
 
@@ -11,6 +11,6 @@
 ### Current Behavior (Broken)
 
 **Observed Issue:**
-When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
+When agents execute requests targeting portals (e.g., `exactl request --portal portal-exaix "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/Exaix`) instead of the **portal workspace** (`~/git/Exaix`).
 
 **Example:**

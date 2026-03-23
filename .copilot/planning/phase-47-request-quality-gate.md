@@ -94,7 +94,7 @@ This catches **output** format issues but doesn't prevent wasted LLM calls on re
 - [x] Ensure original request body is always preserved; refined body stored as structured `IRequestSpecification`.
 - [x] Implement session persistence as `_clarification.json` alongside request files.
 - [x] Integrate quality gate and Q&A loop into `RequestProcessor` pipeline before agent execution.
-- [x] Add CLI support: `exoctl request clarify <id>` with `--interactive`, `--answer`, `--proceed`, `--cancel` flags.
+- [x] Add CLI support: `exactl request clarify <id>` with `--interactive`, `--answer`, `--proceed`, `--cancel` flags.
 - [ ] Add TUI integration for inline Q&A display and quality score progression.
 - [x] Write tests for quality assessment, enrichment, Q&A loop rounds, and session persistence.
 
@@ -379,19 +379,19 @@ If more clarification is needed, output { "satisfied": false, "questions": [...]
 
 ```bash
 # View pending clarification questions
-exoctl request clarify <request-id>
+exactl request clarify <request-id>
 
 # Answer questions interactively
-exoctl request clarify <request-id> --interactive
+exactl request clarify <request-id> --interactive
 
 # Answer specific questions
-exoctl request clarify <request-id> --answer q1="Use PostgreSQL" --answer q2="Yes, include tests"
+exactl request clarify <request-id> --answer q1="Use PostgreSQL" --answer q2="Yes, include tests"
 
 # Skip remaining questions and force proceed
-exoctl request clarify <request-id> --proceed
+exactl request clarify <request-id> --proceed
 
 # Cancel the refinement and go back to original
-exoctl request clarify <request-id> --cancel
+exactl request clarify <request-id> --cancel
 ```
 
 #### TUI Integration
@@ -742,7 +742,7 @@ Request File (.md)
 - ✅ `[RequestCommands] list > should filter by ENRICHING status`
 - ✅ `[RequestCommands] list > should not include REFINING requests when filtering for PENDING`
 
-**✅ IMPLEMENTED** — `src/shared/status/request_status.ts`, `src/cli/command_builders/request_actions.ts`, `src/cli/exoctl.ts`, 9+4 = 13 tests passing
+**✅ IMPLEMENTED** — `src/shared/status/request_status.ts`, `src/cli/command_builders/request_actions.ts`, `src/cli/exactl.ts`, 9+4 = 13 tests passing
 
 ---
 
@@ -922,7 +922,7 @@ Request File (.md)
 
 ---
 
-### Step 13: Add CLI: `exoctl request clarify`
+### Step 13: Add CLI: `exactl request clarify`
 
 **What:** Add CLI command for interactive clarification Q&A.
 
@@ -932,7 +932,7 @@ Request File (.md)
 
 **Architecture notes:**
 
-- `exoctl request clarify <request-id> [--interactive] [--answer q1="..." --answer q2="..."] [--proceed] [--cancel]`
+- `exactl request clarify <request-id> [--interactive] [--answer q1="..." --answer q2="..."] [--proceed] [--cancel]`
 - No flags: display current questions and status
 - `--interactive`: enter interactive Q&A mode (prompt for each question)
 - `--answer`: provide answers to specific questions by ID
@@ -944,7 +944,7 @@ Request File (.md)
 
 **Success criteria:**
 
-- [x] `exoctl request clarify <id>` displays pending questions
+- [x] `exactl request clarify <id>` displays pending questions
 - [x] `--interactive` prompts for answers sequentially
 - [x] `--answer` provides answers by question ID
 - [x] `--proceed` finalizes and re-enters pipeline
@@ -1007,12 +1007,12 @@ Request File (.md)
 
 ### Step 15: Add TOML Configuration for Quality Gate
 
-**What:** Add `[quality_gate]` section to `exo.config.toml` schema so users can configure the quality gate globally.
+**What:** Add `[quality_gate]` section to `exa.config.toml` schema so users can configure the quality gate globally.
 
 **Files to modify:**
 
 - `src/shared/schemas/config.ts` (extend `ConfigSchema`)
-- `exo.config.toml` (add default section)
+- `exa.config.toml` (add default section)
 
 **Architecture notes:**
 
@@ -1168,15 +1168,15 @@ Request File (.md)
 
 **Files to modify:**
 
-- `docs/ExoFrame_User_Guide.md`
-- `docs/dev/ExoFrame_Technical_Spec.md`
-- `docs/dev/ExoFrame_Testing_and_CI_Strategy.md`
+- `docs/Exaix_User_Guide.md`
+- `docs/dev/Exaix_Technical_Spec.md`
+- `docs/dev/Exaix_Testing_and_CI_Strategy.md`
 
 **Updates per file:**
 
-1. **`docs/ExoFrame_User_Guide.md`:**
+1. **`docs/Exaix_User_Guide.md`:**
    - Add section on request quality: what it checks, score meaning, how to improve request quality
-   - Document `exoctl request clarify` command with all flags and interactive workflow
+   - Document `exactl request clarify` command with all flags and interactive workflow
    - Explain auto-enrichment: what happens, how original is preserved
    - Explain `[quality_gate]` config section with TOML examples
    - New statuses: what REFINING, NEEDS_CLARIFICATION, ENRICHING mean in request list
@@ -1201,7 +1201,7 @@ Request File (.md)
 
 **Planned tests:** None (documentation-only).
 
-**✅ IMPLEMENTED** — `docs/ExoFrame_User_Guide.md` (Key Concepts, Request Quality Gate section, `[quality_gate]` config), `docs/dev/ExoFrame_Technical_Spec.md` (§7.4 Request Quality Gate), `docs/dev/ExoFrame_Testing_and_CI_Strategy.md` (Phase 47 test files)
+**✅ IMPLEMENTED** — `docs/Exaix_User_Guide.md` (Key Concepts, Request Quality Gate section, `[quality_gate]` config), `docs/dev/Exaix_Technical_Spec.md` (§7.4 Request Quality Gate), `docs/dev/Exaix_Testing_and_CI_Strategy.md` (Phase 47 test files)
 
 ---
 
@@ -1211,20 +1211,20 @@ Request File (.md)
 
 **Files to modify:**
 
-- `.copilot/source/exoframe.md`
+- `.copilot/source/exaix.md`
 - `.copilot/cross-reference.md`
 - `.copilot/manifest.json`
 
 **Updates:**
 
-1. **`.copilot/source/exoframe.md`:**
+1. **`.copilot/source/exaix.md`:**
    - Add `RequestQualityGate` and `ClarificationEngine` to services section
    - Add all new schemas to schemas section
    - Document `src/services/quality_gate/` directory structure
    - Update request processing pipeline to include quality gate
 
 1.
-   - Add row: `quality gate / request quality / clarification` → `source/exoframe.md` + `planning/phase-47-request-quality-gate.md`
+   - Add row: `quality gate / request quality / clarification` → `source/exaix.md` + `planning/phase-47-request-quality-gate.md`
    - Add topic index entries: `quality-gate`, `clarification`, `request-specification`
 
 1.
@@ -1232,13 +1232,13 @@ Request File (.md)
 
 **Success criteria:**
 
-- [x] `.copilot/source/exoframe.md` lists quality gate services
+- [x] `.copilot/source/exaix.md` lists quality gate services
 - [x] `.copilot/cross-reference.md` has quality gate task row
 - [x] `manifest.json` is fresh
 
 **Planned tests:** `deno task check:docs` passes.
 
-**✅ IMPLEMENTED** — `.copilot/source/exoframe.md` (Project Structure + System Constraints), `.copilot/cross-reference.md` (task row + topic entries: `quality-gate`, `clarification`, `request-specification`), `manifest.json` regenerated
+**✅ IMPLEMENTED** — `.copilot/source/exaix.md` (Project Structure + System Constraints), `.copilot/cross-reference.md` (task row + topic entries: `quality-gate`, `clarification`, `request-specification`), `manifest.json` regenerated
 
 ---
 
@@ -1302,7 +1302,7 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 - `src/services/request_processing/request_parser.ts` — Quality assessment after parsing
 - **Phase 45** (optional) — Request analysis can feed into quality assessment
 - **Phase 46** (optional) — Portal codebase knowledge can inform question generation and auto-enrichment
-- `src/cli/` — CLI commands for clarification protocol (`exoctl request clarify`)
+- `src/cli/` — CLI commands for clarification protocol (`exactl request clarify`)
 - `Blueprints/Agents/product-manager.md` — Reusable as the planning agent for the Q&A loop
 - `src/services/memory_bank.ts` — For persisting clarification sessions (via `IProjectMemory` or dedicated storage)
 
@@ -1323,7 +1323,7 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 
 ## Open Questions
 
-- Should the quality gate be configurable in `exo.config.toml` or only via service config?
+- Should the quality gate be configurable in `exa.config.toml` or only via service config?
 - Should enriched requests be saved as new files or modify the original in-place?
 - How should the TUI surface `NEEDS_CLARIFICATION` / `REFINING` status? (Notification? Inline Q&A? Dedicated panel?)
 - Should there be a "force proceed" option that bypasses the quality gate entirely?
@@ -1393,7 +1393,7 @@ return {
 
 `RequestProcessor.shouldSkipRequest()` currently skips `PLANNED`, `COMPLETED`, `FAILED`, and `CANCELLED`. The plan adds `NEEDS_CLARIFICATION`, `REFINING`, and `ENRICHING` in Step 8 without specifying their skip semantics. Three options exist for each:
 
-- **Skip (terminal):** request never re-enters the pipeline — correct for `NEEDS_CLARIFICATION` (awaiting user), but then `exoctl request clarify --proceed` must explicitly write `status: pending` back to the `.md` frontmatter to re-trigger execution
+- **Skip (terminal):** request never re-enters the pipeline — correct for `NEEDS_CLARIFICATION` (awaiting user), but then `exactl request clarify --proceed` must explicitly write `status: pending` back to the `.md` frontmatter to re-trigger execution
 - **Process (active):** request runs the quality gate again — correct for `ENRICHING` (short-lived), dangerous for `NEEDS_CLARIFICATION` (infinite re-trigger loop)
 - **Skip without forwarding to terminal checklist:** breaks the future re-entry path
 
@@ -1413,11 +1413,11 @@ Step 12 states: "Set status = REFINING, persist session, return early (request r
 - If only `_clarification.json` is updated when the user submits answers, FileWatcher never fires
 - If `status = REFINING` is written to the `.md` frontmatter, FileWatcher fires — but `shouldSkipRequest()` must then NOT skip `REFINING` for re-entry to work, directly conflicting with Gap §1 (which requires skipping it to prevent loop re-entry)
 
-The only viable re-entry path: `exoctl request clarify --proceed` (and TUI proceed action) writes `status: pending` back to the `.md` frontmatter, triggering FileWatcher. But the plan never says this write happens, which file-system operation performs it, or which module owns the write.
+The only viable re-entry path: `exactl request clarify --proceed` (and TUI proceed action) writes `status: pending` back to the `.md` frontmatter, triggering FileWatcher. But the plan never says this write happens, which file-system operation performs it, or which module owns the write.
 
 **Impact:** this is the most critical missing piece — the entire Q&A loop has no value if clarified requests never reach agent execution.
 
-> **To fix:** Specify the re-entry contract explicitly: `exoctl request clarify --proceed` (Step 13) calls `finalizeAndWritePending(requestFilePath, session, spec)`, which reads the `.md` frontmatter via `RequestParser`, replaces `status: pending`, sets `assessed_at: ISO timestamp`, and writes back atomically. FileWatcher picks up the `.md` change and re-triggers normally. Step 10 (`ClarificationEngine.finalize()`) returns `IRequestSpecification` but does **not** write to `.md` — that is the CLI/TUI's responsibility. Add a `finalizeAndWritePending()` function to the persistence module (Step 11) and make Step 20 the explicit contract for this end-to-end path.
+> **To fix:** Specify the re-entry contract explicitly: `exactl request clarify --proceed` (Step 13) calls `finalizeAndWritePending(requestFilePath, session, spec)`, which reads the `.md` frontmatter via `RequestParser`, replaces `status: pending`, sets `assessed_at: ISO timestamp`, and writes back atomically. FileWatcher picks up the `.md` change and re-triggers normally. Step 10 (`ClarificationEngine.finalize()`) returns `IRequestSpecification` but does **not** write to `.md` — that is the CLI/TUI's responsibility. Add a `finalizeAndWritePending()` function to the persistence module (Step 11) and make Step 20 the explicit contract for this end-to-end path.
 
 ---
 
@@ -1480,7 +1480,7 @@ That is two LLM calls just for quality gating, before the agent runs a single to
 
 #### Gap 7: `IClarificationQuestion.id` uniqueness is undefined — CLI `--answer` arguments become ambiguous across rounds
 
-The data model uses `id: string` on `IClarificationQuestion` and `answers: Record<string, string>` on `IClarificationRound`. Within a round, IDs are unique (e.g., `q1`, `q2`). But the CLI `--answer` syntax (`exoctl request clarify <id> --answer q1="..."`) provides no round qualifier. If Round 1 has `q1: "What is the target file?"` and Round 2 also has `q1: "Should tests be included?"`, `--answer q1="src/main.ts"` is ambiguous and will silently update the wrong round.
+The data model uses `id: string` on `IClarificationQuestion` and `answers: Record<string, string>` on `IClarificationRound`. Within a round, IDs are unique (e.g., `q1`, `q2`). But the CLI `--answer` syntax (`exactl request clarify <id> --answer q1="..."`) provides no round qualifier. If Round 1 has `q1: "What is the target file?"` and Round 2 also has `q1: "Should tests be included?"`, `--answer q1="src/main.ts"` is ambiguous and will silently update the wrong round.
 
 **Impact:** multi-round sessions with `--answer` flags may silently supply answers to a prior round's questions, producing a corrupted `IClarificationSession` that cannot synthesise a correct `IRequestSpecification`.
 

@@ -3,7 +3,7 @@
   "title": "Enhance changeset commands to show request and plan context",
   "vecs": [
     {
-      "text": "## Problem\n\nThe `exoctl changeset list` and `exoctl changeset show` commands provide minimal information about changesets, missing crucial context about the original request, plan, and flow step that created the changeset. Users cannot easily trace changesets back to their source or understand the full workflow context.\n\n## Current State\n\n**Changeset list** currently shows:\n\n- Request ID (e.g., `request-039de14f`)\n- Branch name (e.g., `feat/request-039de14f-abc123`)\n- Files changed count\n- Creation timestamp\n- Shortened trace ID\n- Agent ID (from git author)\n\n**Changeset show** currently shows:\n\n- Branch details\n- File count and commit information\n- Git diff\n- Basic metadata\n\n## Missing Information",
+      "text": "## Problem\n\nThe `exactl changeset list` and `exactl changeset show` commands provide minimal information about changesets, missing crucial context about the original request, plan, and flow step that created the changeset. Users cannot easily trace changesets back to their source or understand the full workflow context.\n\n## Current State\n\n**Changeset list** currently shows:\n\n- Request ID (e.g., `request-039de14f`)\n- Branch name (e.g., `feat/request-039de14f-abc123`)\n- Files changed count\n- Creation timestamp\n- Shortened trace ID\n- Agent ID (from git author)\n\n**Changeset show** currently shows:\n\n- Branch details\n- File count and commit information\n- Git diff\n- Basic metadata\n\n## Missing Information",
       "vector": [
         0.13333333333333333,
         0.6235294117647059,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "- `src/cli/changeset_commands.ts` - Add metadata loading methods\n- `src/cli/exoctl.ts` - Update display formatting\n- `src/schemas/changeset.ts` - Add new fields\n- `migrations/005_changeset_enhancement.sql` - Schema updates\n- `src/services/changeset_registry.ts` - Update registration logic\n\n## Testing\n\n- Add regression tests for enhanced changeset display\n- Test flow step tracking\n- Verify portal context display\n- Test status information display\n\n## Priority\n\nMedium - This is a significant UX improvement that would help users understand the complete request → plan → changeset workflow, but doesn't break existing functionality.\n\n## Acceptance Criteria",
+      "text": "- `src/cli/changeset_commands.ts` - Add metadata loading methods\n- `src/cli/exactl.ts` - Update display formatting\n- `src/schemas/changeset.ts` - Add new fields\n- `migrations/005_changeset_enhancement.sql` - Schema updates\n- `src/services/changeset_registry.ts` - Update registration logic\n\n## Testing\n\n- Add regression tests for enhanced changeset display\n- Test flow step tracking\n- Verify portal context display\n- Test status information display\n\n## Priority\n\nMedium - This is a significant UX improvement that would help users understand the complete request → plan → changeset workflow, but doesn't break existing functionality.\n\n## Acceptance Criteria",
       "vector": [
         0.5254901960784314,
         0.11372549019607843,

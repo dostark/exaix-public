@@ -4,7 +4,7 @@
  * @description Defines the default error handling strategy for CLI commands, ensuring consistent error reporting and exit codes.
  * @architectural-layer CLI
  * @dependencies [colors]
- * @related-files [src/cli/exoctl.ts]
+ * @related-files [src/cli/exactl.ts]
  */
 
 export interface IErrorContext {

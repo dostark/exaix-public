@@ -1,6 +1,6 @@
 # Skills Directory
 
-This directory contains **learned and project-specific skills** - procedural memory for ExoFrame agents.
+This directory contains **learned and project-specific skills** - procedural memory for Exaix agents.
 
 ## What are Skills?
 
@@ -74,19 +74,19 @@ Your procedural instructions go here in Markdown format.
 
 ```bash
 # List all skills
-exoctl memory skill list
+exactl memory skill list
 
 # Show skill details
-exoctl memory skill show <skill-id>
+exactl memory skill show <skill-id>
 
 # Create new skill
-exoctl memory skill create <skill-id>
+exactl memory skill create <skill-id>
 
 # Test trigger matching
-exoctl memory skill match "<request>"
+exactl memory skill match "<request>"
 
 # Derive skill from learnings
-exoctl memory skill derive <learning-ids...>
+exactl memory skill derive <learning-ids...>
 ```
 
 ## Core Skills
@@ -100,7 +100,7 @@ exoctl memory skill derive <learning-ids...>
 | `commit-message`       | Conventional commit format          |
 | `error-handling`       | Robust error handling patterns      |
 | `typescript-patterns`  | TypeScript best practices           |
-| `exoframe-conventions` | ExoFrame-specific patterns          |
+| `exaix-conventions` | Exaix-specific patterns          |
 
 ## Related Documentation
 

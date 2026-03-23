@@ -6,14 +6,14 @@ import { join } from "https://deno.land/std@0.221.0/path/mod.ts";
 
 /**
  * setup_hooks.ts
- * Automates the installation of git hooks for ExoFrame.
+ * Automates the installation of git hooks for Exaix.
  */
 
 const REPO_ROOT = Deno.cwd();
 const HOOKS_DIR = join(REPO_ROOT, ".git", "hooks");
 
 const PRE_COMMIT_CONTENT = `#!/bin/sh
-# ExoFrame Pre-commit Hook
+# Exaix Pre-commit Hook
 echo "\n🔍 Running Pre-commit Gates..."
 
 # 1. Format Check
@@ -73,7 +73,7 @@ echo "✅ Pre-commit checks passed!\n"
 `;
 
 const PRE_PUSH_CONTENT = `#!/bin/sh
-# ExoFrame Pre-push Hook
+# Exaix Pre-push Hook
 echo "\n🚀 Running Pre-push Gates..."
 
 # 1. Type Check
@@ -94,7 +94,7 @@ echo "✅ Pre-push checks passed!\n"
 `;
 
 const COMMIT_MSG_CONTENT = `#!/bin/sh
-# ExoFrame Commit-msg Hook
+# Exaix Commit-msg Hook
 echo "\n🔍 Validating Commit Message Structure..."
 
 # Run the validation script pointing to the commit message file
@@ -108,7 +108,7 @@ echo "✅ Commit message valid!\n"
 `;
 
 async function installHooks() {
-  console.log("🛠️ Installing ExoFrame Git Hooks...");
+  console.log("🛠️ Installing Exaix Git Hooks...");
 
   try {
     const stats = await Deno.stat(HOOKS_DIR);

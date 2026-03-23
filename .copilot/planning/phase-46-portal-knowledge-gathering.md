@@ -9,7 +9,7 @@ Introduce a `PortalKnowledgeService` that deeply analyzes mounted portal codebas
 ## Executive Summary
 
 **Problem:**
-When a portal is mounted, ExoFrame captures only minimal metadata: alias, path, and a shallow tech-stack guess (via `ContextCardGenerator`). The `buildPortalContextBlock()` in `prompt_context.ts` injects the alias, root path, and an optional flat file list into agent prompts. No component performs deep codebase analysis — no architecture extraction, no pattern detection, no convention mapping, no key-file identification.
+When a portal is mounted, Exaix captures only minimal metadata: alias, path, and a shallow tech-stack guess (via `ContextCardGenerator`). The `buildPortalContextBlock()` in `prompt_context.ts` injects the alias, root path, and an optional flat file list into agent prompts. No component performs deep codebase analysis — no architecture extraction, no pattern detection, no convention mapping, no key-file identification.
 
 This means:
 
@@ -84,7 +84,7 @@ This agent (or its capabilities) could be leveraged for automated codebase analy
 - [ ] Persist gathered knowledge in `Memory/Projects/{portal}/` using existing `MemoryBankService` APIs.
 - [ ] Make knowledge available to `RequestAnalyzer` (Phase 45), `RequestQualityGate` (Phase 47), and `AgentRunner`.
 - [ ] Implement incremental knowledge updates (don't re-analyze everything on each request).
-- [ ] Add CLI command: `exoctl portal analyze <alias>` for manual triggering.
+- [ ] Add CLI command: `exactl portal analyze <alias>` for manual triggering.
 - [ ] Write tests for knowledge extraction, persistence, staleness detection, and integration.
 
 ---
@@ -366,9 +366,9 @@ For **TypeScript / Deno portals**, run `deno doc --json <entrypoint>` as a subpr
 
 | Mode | LLM Calls | Files Read | Duration | Use Case |
 | ------ | ----------- | ------------ | ---------- | ---------- |
-| `quick` | 0 | 0 (structure + configs only) | <5s | Post-mount default; **basic structural orientation only** (file tree, dependency list, naming patterns — does not produce architectural understanding; run `exoctl portal analyze` before first agent use for full analysis — addresses Gap 14) |
+| `quick` | 0 | 0 (structure + configs only) | <5s | Post-mount default; **basic structural orientation only** (file tree, dependency list, naming patterns — does not produce architectural understanding; run `exactl portal analyze` before first agent use for full analysis — addresses Gap 14) |
 | `standard` | 1 | Up to 20 key files | ~15s | Pre-execution default; architecture inference + symbol extraction (TS/Deno portals get `symbolMap` via `deno doc --json`, no extra LLM call) |
-| `deep` | 2-3 | Up to 50 files | ~60s | Manual `exoctl portal analyze`; full convention mapping + complete symbol index + multi-language support |
+| `deep` | 2-3 | Up to 50 files | ~60s | Manual `exactl portal analyze`; full convention mapping + complete symbol index + multi-language support |
 
 ### 5. Persistence in Memory Bank
 
@@ -433,13 +433,13 @@ Standard mode runs here (one LLM call for architecture inference) — justified 
 
 ```bash
 # Analyze a portal (deep mode)
-exoctl portal analyze my-project --mode deep
+exactl portal analyze my-project --mode deep
 
 # View gathered knowledge
-exoctl portal knowledge my-project
+exactl portal knowledge my-project
 
 # Force re-analysis (ignore staleness)
-exoctl portal analyze my-project --force
+exactl portal analyze my-project --force
 ```
 
 ### 7. Integration with Other Phases
@@ -489,7 +489,7 @@ Portal knowledge feeds into enhanced reflexive agent critique:
 Knowledge becomes stale when:
 
 - Time exceeds `staleness` threshold (default: 1 week)
-- User force-triggers re-analysis via `exoctl portal analyze --force`
+- User force-triggers re-analysis via `exactl portal analyze --force`
 
 > **Note (Gap 6 resolution):** `MissionReporter`-triggered invalidation has no implementation path in Phase 46 and has been removed. Staleness in this phase is time-based only. `MissionReporter` integration may be added in a later phase.
 
@@ -558,7 +558,7 @@ Incremental updates:
 
 - Follow interface naming convention: `IPortalKnowledgeService` with method signatures only
 - Co-locate `IPortalKnowledgeConfig` in the same file (matches project pattern)
-- Methods: `analyze(portalAlias, portalPath, mode?) → Promise<IPortalKnowledge>`, `getOrAnalyze(portalAlias, portalPath) → Promise<IPortalKnowledge>`, `isStale(portalAlias) → Promise<boolean>`, `updateKnowledge(portalAlias, portalPath, changedFiles?) → Promise<IPortalKnowledge>` (**CLI-only** in Phase 46 — no automatic runtime trigger; serves `exoctl portal analyze [--force]`; `changedFiles` parameter reserved for a future automatic-integration phase — addresses Gap 13)
+- Methods: `analyze(portalAlias, portalPath, mode?) → Promise<IPortalKnowledge>`, `getOrAnalyze(portalAlias, portalPath) → Promise<IPortalKnowledge>`, `isStale(portalAlias) → Promise<boolean>`, `updateKnowledge(portalAlias, portalPath, changedFiles?) → Promise<IPortalKnowledge>` (**CLI-only** in Phase 46 — no automatic runtime trigger; serves `exactl portal analyze [--force]`; `changedFiles` parameter reserved for a future automatic-integration phase — addresses Gap 13)
 - Config: `autoAnalyzeOnMount`, `defaultMode`, `quickScanLimit`, `maxFilesToRead`, `ignorePatterns`, `staleness`, `useLlmInference`
 
 **Success criteria:**
@@ -891,7 +891,7 @@ Incremental updates:
 - Merges results from all strategies into a single `IPortalKnowledge` object
 - `isStale()`: compares `gatheredAt` against `staleness` threshold
 - **`getOrAnalyze()` three code paths (addresses Gap 10):** (1) fresh cache → return immediately; (2) stale cache → return stale knowledge **immediately** then fire async background re-analysis (updates cache when complete, never blocks the request); (3) no cache → analyze synchronously before returning. Prevents user-visible latency spikes after each staleness window.
-- **`updateKnowledge()` is CLI-only in Phase 46 (addresses Gap 13):** invoked by `exoctl portal analyze [--force]`; performs a full `analyze()` call with `defaultMode`; **no automatic runtime trigger** — all runtime staleness is handled by `getOrAnalyze()` async background path; `changedFiles` parameter reserved for a future automatic-integration phase
+- **`updateKnowledge()` is CLI-only in Phase 46 (addresses Gap 13):** invoked by `exactl portal analyze [--force]`; performs a full `analyze()` call with `defaultMode`; **no automatic runtime trigger** — all runtime staleness is handled by `getOrAnalyze()` async background path; `changedFiles` parameter reserved for a future automatic-integration phase
 - Logs `portal.analyzed` activity to journal via `db.logActivity()`
 - Populates `metadata.durationMs`, `metadata.filesScanned`, `metadata.filesRead`
 
@@ -1106,7 +1106,7 @@ Incremental updates:
 - Follow existing detail rendering pattern in the TUI
 - Add knowledge section with subsections: Architecture Overview (Markdown rendered), Key Files (table: path, role, description), Conventions (grouped by category), Dependencies (key deps with purpose), Stats (file count, extension distribution)
 - Lazy-load knowledge via `service.getKnowledge()` when detail view opens
-- Show "No analysis available — run `exoctl portal analyze`" when knowledge is missing
+- Show "No analysis available — run `exactl portal analyze`" when knowledge is missing
 - Add keybinding `a` to trigger re-analysis from within the TUI view
 
 **Success criteria:**
@@ -1132,22 +1132,22 @@ Incremental updates:
 
 ---
 
-### Step 15: Add CLI Commands: `exoctl portal analyze` and `exoctl portal knowledge` [COMPLETED]
+### Step 15: Add CLI Commands: `exactl portal analyze` and `exactl portal knowledge` [COMPLETED]
 
 **What:** Add two CLI subcommands for manual knowledge management: `analyze` for triggering analysis and `knowledge` for viewing results.
 
 **Files to modify:**
 
 - [x] `src/cli/commands/portal_commands.ts` (add `analyze` and `knowledge` subcommands)
-- [x] `src/cli/exoctl.ts` (wire subcommands to CLI tree)
+- [x] `src/cli/exactl.ts` (wire subcommands to CLI tree)
 
 **Architecture notes:**
 
-- `exoctl portal analyze <alias> [--mode quick|standard|deep] [--force]`
+- `exactl portal analyze <alias> [--mode quick|standard|deep] [--force]`
   - Loads portal path from database, runs `PortalKnowledgeService.analyze()`
   - `--force` re-analyzes even when fresh knowledge exists
   - Displays analysis summary on completion (duration, files scanned, mode)
-- `exoctl portal knowledge <alias> [--json]`
+- `exactl portal knowledge <alias> [--json]`
   - Loads `knowledge.json` via `loadKnowledge()`
   - Default: formatted Markdown output (overview, key files, conventions)
   - `--json`: raw JSON output for scripting
@@ -1155,10 +1155,10 @@ Incremental updates:
 
 **Success criteria:**
 
-- [x] `exoctl portal analyze` triggers analysis and displays summary
+- [x] `exactl portal analyze` triggers analysis and displays summary
 - [x] `--mode` flag controls analysis depth
 - [x] `--force` flag re-analyzes regardless of staleness
-- [x] `exoctl portal knowledge` displays formatted knowledge
+- [x] `exactl portal knowledge` displays formatted knowledge
 - [x] `--json` flag outputs raw JSON
 - [x] Both commands handle missing portal gracefully
 
@@ -1178,12 +1178,12 @@ Incremental updates:
 
 ### Step 16: Add TOML Configuration for Portal Knowledge
 
-**What:** Add `[portal_knowledge]` section to `templates/exo.config.sample.toml` schema so users can configure knowledge gathering globally.
+**What:** Add `[portal_knowledge]` section to `templates/exa.config.sample.toml` schema so users can configure knowledge gathering globally.
 
 **Files to modify:**
 
 - `src/shared/schemas/config.ts` (extend `ConfigSchema`)
-- `templates/exo.config.sample.toml` (add default section)
+- `templates/exa.config.sample.toml` (add default section)
 
 **Architecture notes:**
 
@@ -1209,7 +1209,7 @@ Incremental updates:
 - [x] All fields are optional with sensible defaults
 - [ ] `PortalKnowledgeService` uses config values when constructing analyzer *(wiring deferred to Phase 48; service already accepts `IPortalKnowledgeConfig` DI)*
 - [x] Invalid config values produce clear validation errors
-- [x] TOML file includes commented example section (`templates/exo.config.sample.toml` + `exo.config.toml`)
+- [x] TOML file includes commented example section (`templates/exa.config.sample.toml` + `exa.config.toml`)
 
 **Planned tests** (`tests/schemas/config_portal_knowledge_test.ts`):
 
@@ -1219,7 +1219,7 @@ Incremental updates:
 - ✅ `[ConfigSchema] rejects negative quick_scan_limit`
 - ✅ `[ConfigSchema] rejects non-array ignore_patterns`
 
-**✅ IMPLEMENTED** — src/shared/schemas/config.ts + exo.config.toml, 5/5 tests passing
+**✅ IMPLEMENTED** — src/shared/schemas/config.ts + exa.config.toml, 5/5 tests passing
 
 ---
 
@@ -1326,16 +1326,16 @@ Incremental updates:
 
 **Files to modify:**
 
-- `docs/ExoFrame_User_Guide.md`
-- `docs/dev/ExoFrame_Technical_Spec.md`
-- `docs/dev/ExoFrame_Testing_and_CI_Strategy.md`
+- `docs/Exaix_User_Guide.md`
+- `docs/dev/Exaix_Technical_Spec.md`
+- `docs/dev/Exaix_Testing_and_CI_Strategy.md`
 
 **Updates per file:**
 
-1. **`docs/ExoFrame_User_Guide.md`:**
+1. **`docs/Exaix_User_Guide.md`:**
    - Add section explaining portal knowledge: what it does, when it runs, modes
-   - Document `exoctl portal analyze <alias>` command with flags
-   - Document `exoctl portal knowledge <alias>` command
+   - Document `exactl portal analyze <alias>` command with flags
+   - Document `exactl portal knowledge <alias>` command
    - Explain `[portal_knowledge]` config section with TOML examples
    - Describe `knowledge.json` in `Memory/Projects/`
 
@@ -1368,20 +1368,20 @@ Incremental updates:
 
 **Files to modify:**
 
-- `.copilot/source/exoframe.md` (add PortalKnowledgeService to service catalog)
+- `.copilot/source/exaix.md` (add PortalKnowledgeService to service catalog)
 - `.copilot/cross-reference.md` (add portal-knowledge task mapping)
 - `.copilot/manifest.json` (regenerate via build script)
 
 **Updates:**
 
-1. **`.copilot/source/exoframe.md`:**
+1. **`.copilot/source/exaix.md`:**
    - Add `PortalKnowledgeService` to services section: purpose, location (`src/services/portal_knowledge/`), config interface, strategy list, modes
    - Add `PortalKnowledgeSchema` to schemas section
    - Document the `src/services/portal_knowledge/` directory structure (mod.ts, directory_analyzer.ts, config_parser.ts, key_file_identifier.ts, pattern_detector.ts, architecture_inferrer.ts, portal_knowledge_service.ts, knowledge_persistence.ts)
    - Update portal management section to include knowledge gathering
 
 1.
-   - Add row: `portal knowledge / codebase analysis` → `source/exoframe.md` + `planning/phase-46-portal-knowledge-gathering.md`
+   - Add row: `portal knowledge / codebase analysis` → `source/exaix.md` + `planning/phase-46-portal-knowledge-gathering.md`
    - Add topic index entries: `portal-knowledge`, `codebase-analysis`, `architecture-inference`
 
 1.
@@ -1389,7 +1389,7 @@ Incremental updates:
 
 **Success criteria:**
 
-- [x] `.copilot/source/exoframe.md` lists `PortalKnowledgeService` in service catalog
+- [x] `.copilot/source/exaix.md` lists `PortalKnowledgeService` in service catalog
 - [x] `.copilot/cross-reference.md` has `portal knowledge` task row
 - [x] `manifest.json` is fresh (passes `deno task check:docs`)
 - [x] Future agents can find portal knowledge guidance via cross-reference
@@ -1467,10 +1467,10 @@ See `.copilot/process/specification-driven-development.md` for the full SDD anal
 | ------ | ----------- |
 | Analysis is slow for large codebases | `quick` mode (no LLM, structure-only) is default post-mount; `ignorePatterns` exclude heavy directories; file caps per mode |
 | LLM-based architecture inference is inaccurate | Heuristic strategies provide a factual baseline; LLM only augments, doesn't replace; patterns flagged with confidence |
-| Knowledge goes stale after codebase changes | Time-based staleness detection (`staleness` threshold, default 1 week); manual re-analysis via `exoctl portal analyze --force`; `MissionReporter` integration deferred to a later phase (see Gap 6) |
+| Knowledge goes stale after codebase changes | Time-based staleness detection (`staleness` threshold, default 1 week); manual re-analysis via `exactl portal analyze --force`; `MissionReporter` integration deferred to a later phase (see Gap 6) |
 | Storage overhead for large portals | `knowledge.json` is a single file; `IProjectMemory` files are Markdown; total overhead is negligible |
 | Over-analysis of trivial portals | Configurable mode; `quick` is lightweight; `autoAnalyzeOnMount` can be disabled |
-| Privacy: reading portal source code | Already within ExoFrame's security model — portals are explicitly mounted by the user; analysis respects `PathResolver` and sandbox modes |
+| Privacy: reading portal source code | Already within Exaix's security model — portals are explicitly mounted by the user; analysis respects `PathResolver` and sandbox modes |
 
 ## Resolved Design Decisions
 
@@ -1618,7 +1618,7 @@ The `updateKnowledge()` method "compares directory tree with previous stats — 
 
 The plan claims to solve "first execution is knowledge-free." But `quick` mode (no LLM, structure + configs only) gives agents a file tree, dependency list, and naming pattern hints — marginally better than the current empty state, but not architectural understanding. An agent asked to "add a new API endpoint" still does not know the routing convention, middleware stack, response format, or where controllers live. The real bootstrapping value comes from `standard` mode LLM inference, which only runs pre-execution (not at mount time). **Recommendation:** scope the Executive Summary's claim to "basic structural orientation" for `quick` mode, and call out that `standard` mode pre-execution analysis provides the architectural understanding needed before the first agent run.
 
-> **✅ Addressed in [Analysis Mode Comparison](#4-analysis-mode-comparison):** `quick` mode description updated to "basic structural orientation only — does not produce architectural understanding"; explicit note to run `exoctl portal analyze` (standard mode) before first agent use added to the mode table.
+> **✅ Addressed in [Analysis Mode Comparison](#4-analysis-mode-comparison):** `quick` mode description updated to "basic structural orientation only — does not produce architectural understanding"; explicit note to run `exactl portal analyze` (standard mode) before first agent use added to the mode table.
 
 ---
 

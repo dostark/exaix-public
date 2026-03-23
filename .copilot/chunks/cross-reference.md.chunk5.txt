@@ -5,7 +5,7 @@
 
 ### VS Code Copilot
 
-- **Main guide**: [copilot/exoframe.md](copilot/exoframe.md)
+- **Main guide**: [copilot/exaix.md](copilot/exaix.md)
 - **Quick summary**: [copilot/summary.md](copilot/summary.md)
 - **Pattern**: Consult `.copilot/manifest.json` first
 

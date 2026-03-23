@@ -15,7 +15,7 @@ const REPO_ROOT = join(__dirname, "..");
 const _paths = getDefaultPaths(REPO_ROOT);
 
 Deno.test("deploy_workspace.sh --no-run creates deploy files", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-deploy-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-deploy-test-" });
   try {
     const deployScript = join(REPO_ROOT, "scripts", "deploy_workspace.sh");
 
@@ -70,20 +70,20 @@ Deno.test("deploy_workspace.sh --no-run creates deploy files", async () => {
   }
 });
 
-// Helper to run exoctl command in a workspace
-async function runExoctl(
+// Helper to run exactl command in a workspace
+async function runExactl(
   workspacePath: string,
   args: string[],
   env?: Record<string, string>,
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..");
-  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
+  const exactlPath = join(repoRoot, "src", "cli", "exactl.ts");
   const fullEnv = { ...Deno.env.toObject(), ...env };
-  delete fullEnv.EXO_TEST_MODE;
-  delete fullEnv.EXO_TEST_CLI_MODE;
+  delete fullEnv.EXA_TEST_MODE;
+  delete fullEnv.EXA_TEST_CLI_MODE;
 
   const cmd = new Deno.Command("deno", {
-    args: ["run", "--allow-all", exoctlPath, ...args],
+    args: ["run", "--allow-all", exactlPath, ...args],
     cwd: workspacePath,
     stdout: "piped",
     stderr: "piped",
@@ -100,7 +100,7 @@ async function runExoctl(
 
 // Helper to deploy and setup a test workspace
 async function deployTestWorkspace(): Promise<string> {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-daemon-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-daemon-test-" });
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..");
   const deployScript = join(repoRoot, "scripts", "deploy_workspace.sh");
 
@@ -136,14 +136,14 @@ async function deployTestWorkspace(): Promise<string> {
 }
 
 Deno.test({
-  name: "exoctl daemon status reports not running for fresh workspace",
+  name: "exactl daemon status reports not running for fresh workspace",
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
-      const result = await runExoctl(workspace, ["daemon", "status"]);
+      const result = await runExactl(workspace, ["daemon", "status"]);
 
       // Should succeed
-      assert(result.code === 0, `exoctl daemon status failed: ${result.stderr}`);
+      assert(result.code === 0, `exactl daemon status failed: ${result.stderr}`);
     } finally {
       await Deno.remove(workspace, { recursive: true }).catch(() => {});
     }
@@ -153,27 +153,27 @@ Deno.test({
 });
 
 Deno.test({
-  name: "exoctl daemon start/stop lifecycle",
+  name: "exactl daemon start/stop lifecycle",
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
       // Start the daemon with mock provider to avoid CI issues
-      const startResult = await runExoctl(workspace, ["daemon", "start"], {
-        EXO_LLM_PROVIDER: "mock",
+      const startResult = await runExactl(workspace, ["daemon", "start"], {
+        EXA_LLM_PROVIDER: "mock",
       });
       assert(
         startResult.code === 0,
-        `exoctl daemon start failed: ${startResult.stderr}`,
+        `exactl daemon start failed: ${startResult.stderr}`,
       );
 
       // Give daemon time to initialize
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Check status shows running
-      const statusResult = await runExoctl(workspace, ["daemon", "status"]);
+      const statusResult = await runExactl(workspace, ["daemon", "status"]);
       assert(
         statusResult.code === 0,
-        `exoctl daemon status failed: ${statusResult.stderr}`,
+        `exactl daemon status failed: ${statusResult.stderr}`,
       );
 
       // If daemon is not running, check the log file for errors
@@ -188,24 +188,24 @@ Deno.test({
       }
 
       // Stop the daemon
-      const stopResult = await runExoctl(workspace, ["daemon", "stop"]);
+      const stopResult = await runExactl(workspace, ["daemon", "stop"]);
       assert(
         stopResult.code === 0,
-        `exoctl daemon stop failed: ${stopResult.stderr}`,
+        `exactl daemon stop failed: ${stopResult.stderr}`,
       );
 
       // Give daemon time to shut down
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Verify daemon is stopped
-      const finalStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const finalStatus = await runExactl(workspace, ["daemon", "status"]);
       assert(
         finalStatus.code === 0,
         `Final status check failed: ${finalStatus.stderr}`,
       );
     } finally {
       // Ensure daemon is stopped before cleanup
-      await runExoctl(workspace, ["daemon", "stop"]).catch(() => {});
+      await runExactl(workspace, ["daemon", "stop"]).catch(() => {});
       await new Promise((resolve) => setTimeout(resolve, 500));
       await Deno.remove(workspace, { recursive: true }).catch(() => {});
     }
@@ -215,13 +215,13 @@ Deno.test({
 });
 
 Deno.test({
-  name: "exoctl daemon restart works correctly",
+  name: "exactl daemon restart works correctly",
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
       // Start the daemon first with mock provider
-      const startResult = await runExoctl(workspace, ["daemon", "start"], {
-        EXO_LLM_PROVIDER: "mock",
+      const startResult = await runExactl(workspace, ["daemon", "start"], {
+        EXA_LLM_PROVIDER: "mock",
       });
       assert(
         startResult.code === 0,
@@ -232,24 +232,24 @@ Deno.test({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Get initial PID from status
-      const initialStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const initialStatus = await runExactl(workspace, ["daemon", "status"]);
       const initialPidMatch = initialStatus.stdout.match(/PID:\s*(\d+)/);
       const initialPid = initialPidMatch ? initialPidMatch[1] : null;
 
       // Restart the daemon
-      const restartResult = await runExoctl(workspace, ["daemon", "restart"], {
-        EXO_LLM_PROVIDER: "mock",
+      const restartResult = await runExactl(workspace, ["daemon", "restart"], {
+        EXA_LLM_PROVIDER: "mock",
       });
       assert(
         restartResult.code === 0,
-        `exoctl daemon restart failed: ${restartResult.stderr}`,
+        `exactl daemon restart failed: ${restartResult.stderr}`,
       );
 
       // Give daemon more time to restart (CI can be slow)
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Check status after restart
-      const finalStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const finalStatus = await runExactl(workspace, ["daemon", "status"]);
       assert(
         finalStatus.code === 0,
         `Status after restart failed: ${finalStatus.stderr}`,
@@ -267,7 +267,7 @@ Deno.test({
       }
     } finally {
       // Ensure daemon is stopped before cleanup
-      await runExoctl(workspace, ["daemon", "stop"]).catch(() => {});
+      await runExactl(workspace, ["daemon", "stop"]).catch(() => {});
       await new Promise((resolve) => setTimeout(resolve, 500));
       await Deno.remove(workspace, { recursive: true }).catch(() => {});
     }
@@ -277,13 +277,13 @@ Deno.test({
 });
 
 Deno.test({
-  name: "exoctl daemon start is idempotent (already running)",
+  name: "exactl daemon start is idempotent (already running)",
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
       // Start the daemon with mock provider
-      const startResult = await runExoctl(workspace, ["daemon", "start"], {
-        EXO_LLM_PROVIDER: "mock",
+      const startResult = await runExactl(workspace, ["daemon", "start"], {
+        EXA_LLM_PROVIDER: "mock",
       });
       assert(
         startResult.code === 0,
@@ -294,23 +294,23 @@ Deno.test({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Check that daemon is running
-      const statusResult = await runExoctl(workspace, ["daemon", "status"]);
+      const statusResult = await runExactl(workspace, ["daemon", "status"]);
       assert(statusResult.code === 0);
       assertStringIncludes(statusResult.stdout, "Running");
 
       // Try to start again - should succeed without error
-      const secondStart = await runExoctl(workspace, ["daemon", "start"]);
+      const secondStart = await runExactl(workspace, ["daemon", "start"]);
       assert(
         secondStart.code === 0,
         `Second start should succeed: ${secondStart.stderr}`,
       );
 
       // Check that daemon is still running
-      const finalStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const finalStatus = await runExactl(workspace, ["daemon", "status"]);
       assert(finalStatus.code === 0);
     } finally {
       // Ensure daemon is stopped before cleanup
-      await runExoctl(workspace, ["daemon", "stop"]).catch(() => {});
+      await runExactl(workspace, ["daemon", "stop"]).catch(() => {});
       await new Promise((resolve) => setTimeout(resolve, 500));
       await Deno.remove(workspace, { recursive: true }).catch(() => {});
     }
@@ -320,23 +320,23 @@ Deno.test({
 });
 
 Deno.test({
-  name: "exoctl daemon stop is idempotent (not running)",
+  name: "exactl daemon stop is idempotent (not running)",
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
       // Check that daemon is not running initially
-      const initialStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const initialStatus = await runExactl(workspace, ["daemon", "status"]);
       assert(initialStatus.code === 0);
 
       // Stop without starting - should succeed
-      const stopResult = await runExoctl(workspace, ["daemon", "stop"]);
+      const stopResult = await runExactl(workspace, ["daemon", "stop"]);
       assert(
         stopResult.code === 0,
         `Stop on non-running daemon should succeed: ${stopResult.stderr}`,
       );
 
       // Check that daemon is still stopped
-      const finalStatus = await runExoctl(workspace, ["daemon", "status"]);
+      const finalStatus = await runExactl(workspace, ["daemon", "status"]);
       assert(finalStatus.code === 0);
     } finally {
       await Deno.remove(workspace, { recursive: true }).catch(() => {});

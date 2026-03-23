@@ -34,7 +34,7 @@ async function runScaffold(
 }
 
 Deno.test("scaffold.sh creates required directory structure", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
 
@@ -72,7 +72,7 @@ Deno.test("scaffold.sh creates required directory structure", async () => {
 });
 
 Deno.test("scaffold.sh creates .gitkeep files", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
@@ -101,17 +101,17 @@ Deno.test("scaffold.sh creates .gitkeep files", async () => {
   }
 });
 
-Deno.test("scaffold.sh copies exo.config.sample.toml template", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+Deno.test("scaffold.sh copies exa.config.sample.toml template", async () => {
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
-    assertStringIncludes(result.stdout, "Copied exo.config.sample.toml");
+    assertStringIncludes(result.stdout, "Copied exa.config.sample.toml");
 
-    const configPath = join(tmp, "exo.config.sample.toml");
+    const configPath = join(tmp, "exa.config.sample.toml");
     assert(
       await exists(configPath),
-      "exo.config.sample.toml should be copied",
+      "exa.config.sample.toml should be copied",
     );
 
     // Verify it has expected content
@@ -123,7 +123,7 @@ Deno.test("scaffold.sh copies exo.config.sample.toml template", async () => {
 });
 
 Deno.test("scaffold.sh does not create src directory", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
@@ -139,7 +139,7 @@ Deno.test("scaffold.sh does not create src directory", async () => {
 });
 
 Deno.test("scaffold.sh creates Memory/Projects directory and README placeholder", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
@@ -165,17 +165,17 @@ Deno.test("scaffold.sh creates Memory/Projects directory and README placeholder"
 });
 
 Deno.test("scaffold.sh does not overwrite existing config file", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     // Create an existing config file
     const existingContent = "# My existing config\n[custom]\nvalue = 123\n";
-    await Deno.writeTextFile(join(tmp, "exo.config.sample.toml"), existingContent);
+    await Deno.writeTextFile(join(tmp, "exa.config.sample.toml"), existingContent);
 
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
 
     // Verify the existing file was not overwritten
-    const content = await Deno.readTextFile(join(tmp, "exo.config.sample.toml"));
+    const content = await Deno.readTextFile(join(tmp, "exa.config.sample.toml"));
     assertStringIncludes(content, "# My existing config");
     assertStringIncludes(content, "[custom]");
   } finally {
@@ -186,7 +186,7 @@ Deno.test("scaffold.sh does not overwrite existing config file", async () => {
 // Test removed: src/main.ts template no longer exists
 
 Deno.test("scaffold.sh is idempotent", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     // Run scaffold twice
     const result1 = await runScaffold(tmp);
@@ -216,7 +216,7 @@ Deno.test("scaffold.sh is idempotent", async () => {
 });
 
 Deno.test("scaffold.sh outputs completion message", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
@@ -230,7 +230,7 @@ Deno.test("scaffold.sh outputs completion message", async () => {
 });
 
 Deno.test("scaffold.sh uses current directory if no target provided", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-scaffold-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-scaffold-test-" });
   try {
     // Run scaffold without target argument (from tmp directory)
     const scriptPath = join(REPO_ROOT, "scripts", "scaffold.sh");

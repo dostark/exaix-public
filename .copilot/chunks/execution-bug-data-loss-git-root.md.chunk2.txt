@@ -2,7 +2,7 @@
 
 **Technical Details:**
 
-1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/ExoFrame`.
+1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/Exaix`.
 
 1.
 

@@ -1,8 +1,8 @@
 ```bash
-exoctl changeset list              # List pending changesets/artifacts
-exoctl changeset show <id>         # Show details with diff/content
-exoctl changeset approve <id>      # Approve for merge/acceptance
-exoctl changeset reject <id>       # Reject with reason
+exactl changeset list              # List pending changesets/artifacts
+exactl changeset show <id>         # Show details with diff/content
+exactl changeset approve <id>      # Approve for merge/acceptance
+exactl changeset reject <id>       # Reject with reason
 ```
 
 **Implementation Locations:**

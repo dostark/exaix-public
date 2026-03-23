@@ -1,15 +1,15 @@
 /**
- * @module ExoCtlFallbackTest
- * @path tests/cli/exoctl_fallback_test.ts
+ * @module ExaCtlFallbackTest
+ * @path tests/cli/exactl_fallback_test.ts
  * @description Verifies the CLI's resilience during initialization failures, ensuring safe
  * fallbacks for database and configuration modules to prevent terminal crashes.
  */
 
 import { assert, assertEquals } from "@std/assert";
-import { __test_initializeServices } from "../../src/cli/exoctl.ts";
+import { __test_initializeServices } from "../../src/cli/exactl.ts";
 
 /**
- * Regression test for "exoctl journal crash when config missing"
+ * Regression test for "exactl journal crash when config missing"
  * Verifies that the fallback DB stub includes queryActivity method.
  */
 Deno.test("CLI: should provide safe fallback DB when initialization fails", async () => {

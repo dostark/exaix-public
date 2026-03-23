@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-03-22T17:52:14.643Z",
+  "generated_at": "2026-03-23T14:45:24.754Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
       "agent": "copilot",
       "scope": "dev",
-      "title": "ExoFrame Documentation Development Guidelines",
+      "title": "Exaix Documentation Development Guidelines",
       "short_summary": "Guidance for producing and maintaining docs in the docs/ directory and cross-referencing the Implementation Plan.",
       "version": "0.1",
       "topics": [
@@ -71,7 +71,7 @@
       "agent": "general",
       "scope": "dev",
       "title": "Linting/Formatting Template (#lint)",
-      "short_summary": "Template for ensuring code cleanliness and adherence to ExoFrame style guidelines.",
+      "short_summary": "Template for ensuring code cleanliness and adherence to Exaix style guidelines.",
       "version": "0.1",
       "topics": [
         "linting",
@@ -204,8 +204,8 @@
       "path": ".copilot/prompts/README.md",
       "agent": "general",
       "scope": "dev",
-      "title": "ExoFrame Agent Prompt Templates Library",
-      "short_summary": "Comprehensive library of prompt templates for systematic coding agent workflows in ExoFrame.",
+      "title": "Exaix Agent Prompt Templates Library",
+      "short_summary": "Comprehensive library of prompt templates for systematic coding agent workflows in Exaix.",
       "version": "0.1",
       "topics": [
         "prompts",
@@ -269,7 +269,7 @@
       "agent": "general",
       "scope": "dev",
       "title": "TDD Workflow Prompt Example (#tdd)",
-      "short_summary": "Example prompt for test-driven development following ExoFrame patterns.",
+      "short_summary": "Example prompt for test-driven development following Exaix patterns.",
       "version": "0.1",
       "topics": [
         "tdd",
@@ -476,7 +476,7 @@
       "agent": "general",
       "scope": "dev",
       "title": "Codebase Exploration Template (#explore)",
-      "short_summary": "Template for systematic exploration of the ExoFrame codebase to answer questions or map architecture.",
+      "short_summary": "Template for systematic exploration of the Exaix codebase to answer questions or map architecture.",
       "version": "0.1",
       "topics": [
         "exploration",
@@ -665,11 +665,11 @@
       ]
     },
     {
-      "path": ".copilot/source/exoframe.md",
+      "path": ".copilot/source/exaix.md",
       "agent": "copilot",
       "scope": "dev",
-      "title": "ExoFrame Source Development Guidelines",
-      "short_summary": "Guidance for developing ExoFrame source code: TDD-first, patterns, project structure, and best practices.",
+      "title": "Exaix Source Development Guidelines",
+      "short_summary": "Guidance for developing Exaix source code: TDD-first, patterns, project structure, and best practices.",
       "version": "0.1",
       "topics": [
         "source",
@@ -678,14 +678,14 @@
         "patterns"
       ],
       "chunks": [
-        ".copilot/chunks/exoframe.md.chunk0.txt",
-        ".copilot/chunks/exoframe.md.chunk1.txt",
-        ".copilot/chunks/exoframe.md.chunk2.txt",
-        ".copilot/chunks/exoframe.md.chunk3.txt",
-        ".copilot/chunks/exoframe.md.chunk4.txt",
-        ".copilot/chunks/exoframe.md.chunk5.txt",
-        ".copilot/chunks/exoframe.md.chunk6.txt",
-        ".copilot/chunks/exoframe.md.chunk7.txt"
+        ".copilot/chunks/exaix.md.chunk0.txt",
+        ".copilot/chunks/exaix.md.chunk1.txt",
+        ".copilot/chunks/exaix.md.chunk2.txt",
+        ".copilot/chunks/exaix.md.chunk3.txt",
+        ".copilot/chunks/exaix.md.chunk4.txt",
+        ".copilot/chunks/exaix.md.chunk5.txt",
+        ".copilot/chunks/exaix.md.chunk6.txt",
+        ".copilot/chunks/exaix.md.chunk7.txt"
       ]
     },
     {
@@ -770,11 +770,11 @@
       "path": ".copilot/planning/phase-30-cli-flow-request.md",
       "agent": "claude",
       "scope": "dev",
-      "title": "Phase 30: Add Flow Support to `exoctl request` Command",
-      "short_summary": "Implement `--flow` option for `exoctl request` command to enable creating requests with defined multi-agent flows.",
+      "title": "Phase 30: Add Flow Support to `exactl request` Command",
+      "short_summary": "Implement `--flow` option for `exactl request` command to enable creating requests with defined multi-agent flows.",
       "version": "0.1",
       "topics": [
-        "exoctl",
+        "exactl",
         "request",
         "flow",
         "cli",
@@ -796,7 +796,7 @@
       "agent": "antigravity",
       "scope": "dev",
       "title": "Phase 38: Core Tool Expansion & Grounding",
-      "short_summary": "Technical specification for adding research, discovery, and refactoring tools to the ExoFrame ToolRegistry.",
+      "short_summary": "Technical specification for adding research, discovery, and refactoring tools to the Exaix ToolRegistry.",
       "version": "1.0",
       "topics": [
         "tools",
@@ -873,11 +873,11 @@
       "path": ".copilot/planning/phase-29-journal-command.md",
       "agent": "claude",
       "scope": "dev",
-      "title": "Phase 29: Implementation of `exoctl journal` Command",
-      "short_summary": "Comprehensive plan for implementing the `exoctl journal` command to query, filter, and inspect the activity journal.",
+      "title": "Phase 29: Implementation of `exactl journal` Command",
+      "short_summary": "Comprehensive plan for implementing the `exactl journal` command to query, filter, and inspect the activity journal.",
       "version": "0.2",
       "topics": [
-        "exoctl",
+        "exactl",
         "journal",
         "cli",
         "audit",
@@ -927,7 +927,7 @@
       "agent": "claude",
       "scope": "dev",
       "title": "Phase 32: Dynamic Skills Injection for Requests and Plans",
-      "short_summary": "Implement `--skills` option for `exoctl request` and `exoctl plan approve` commands to enable runtime skill injection, overriding agent limitations on a per-task basis.",
+      "short_summary": "Implement `--skills` option for `exactl request` and `exactl plan approve` commands to enable runtime skill injection, overriding agent limitations on a per-task basis.",
       "version": "1.0",
       "topics": [
         "skills",
@@ -1066,10 +1066,10 @@
       ]
     },
     {
-      "path": ".copilot/copilot/exoframe.md",
+      "path": ".copilot/copilot/exaix.md",
       "agent": "copilot",
       "scope": "dev",
-      "title": "ExoFrame quick reference for Copilot",
+      "title": "Exaix quick reference for Copilot",
       "short_summary": "Deno + TypeScript Flow-driven AI automation. Key dirs: src/, tests/, Blueprints/, docs/. Consult .copilot/manifest.json before edits.",
       "version": "0.1",
       "topics": [
@@ -1079,17 +1079,17 @@
         "obsidian"
       ],
       "chunks": [
-        ".copilot/chunks/exoframe.md.chunk0.txt",
-        ".copilot/chunks/exoframe.md.chunk1.txt",
-        ".copilot/chunks/exoframe.md.chunk2.txt"
+        ".copilot/chunks/exaix.md.chunk0.txt",
+        ".copilot/chunks/exaix.md.chunk1.txt",
+        ".copilot/chunks/exaix.md.chunk2.txt"
       ]
     },
     {
       "path": ".copilot/copilot/summary.md",
       "agent": "copilot",
       "scope": "dev",
-      "title": "ExoFrame Quick Summary",
-      "short_summary": "One-line overview of ExoFrame for quick Copilot context injection.",
+      "title": "Exaix Quick Summary",
+      "short_summary": "One-line overview of Exaix for quick Copilot context injection.",
       "version": "0.1",
       "topics": [
         "quickstart",
@@ -1103,8 +1103,8 @@
       "path": ".copilot/process/specification-driven-development.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Specification-Driven Development in ExoFrame",
-      "short_summary": "Analysis of how ExoFrame's request-clarification-planning-execution pipeline implements Specification-Driven Development (SDD) principles for AI agent orchestration.",
+      "title": "Specification-Driven Development in Exaix",
+      "short_summary": "Analysis of how Exaix's request-clarification-planning-execution pipeline implements Specification-Driven Development (SDD) principles for AI agent orchestration.",
       "version": "1.0",
       "topics": [
         "methodology",
@@ -1154,7 +1154,7 @@
       "agent": "general",
       "scope": "dev",
       "title": "Review-Research-Improvement Pattern",
-      "short_summary": "Systematic approach to evaluate ExoFrame subsystems, identify weaknesses, and create actionable improvement plans.",
+      "short_summary": "Systematic approach to evaluate Exaix subsystems, identify weaknesses, and create actionable improvement plans.",
       "version": "1.0",
       "topics": [
         "architecture-review",
@@ -1225,7 +1225,7 @@
       "agent": "openai",
       "scope": "dev",
       "title": "OpenAI RAG (Retrieval-Augmented Generation) Usage Guide",
-      "short_summary": "How to retrieve and inject .copilot/ context for OpenAI models using ExoFrame embeddings and chunk tooling.",
+      "short_summary": "How to retrieve and inject .copilot/ context for OpenAI models using Exaix embeddings and chunk tooling.",
       "version": "0.1",
       "topics": [
         "rag",
@@ -1314,8 +1314,8 @@
       "path": ".copilot/tests/testing.md",
       "agent": "copilot",
       "scope": "dev",
-      "title": "ExoFrame Test Development Guidelines",
-      "short_summary": "Testing patterns and unified test context for ExoFrame (initTestDbService, createCliTestContext, withEnv, etc.).",
+      "title": "Exaix Test Development Guidelines",
+      "short_summary": "Testing patterns and unified test context for Exaix (initTestDbService, createCliTestContext, withEnv, etc.).",
       "version": "0.1",
       "topics": [
         "tests",
@@ -1338,7 +1338,7 @@
       "agent": "copilot",
       "scope": "dev",
       "title": "jscpd Code Duplication Detection Guide",
-      "short_summary": "Using jscpd to detect and track code duplication in ExoFrame codebase",
+      "short_summary": "Using jscpd to detect and track code duplication in Exaix codebase",
       "version": "0.1",
       "topics": [
         "refactoring",
@@ -1396,7 +1396,7 @@
     },
     {
       "path": ".copilot/issues/plan-show-missing-request-context.md",
-      "title": "exoctl plan show/list Missing Request and Agent Context",
+      "title": "exactl plan show/list Missing Request and Agent Context",
       "short_summary": "",
       "chunks": [
         ".copilot/chunks/plan-show-missing-request-context.md.chunk0.txt",
@@ -1625,7 +1625,7 @@
     },
     {
       "path": ".copilot/issues/exo-bin-path-changes.md",
-      "title": "Support for Independent Exoctl Installations via EXO_BIN_PATH",
+      "title": "Support for Independent Exactl Installations via EXA_BIN_PATH",
       "short_summary": "",
       "chunks": [
         ".copilot/chunks/exo-bin-path-changes.md.chunk0.txt",

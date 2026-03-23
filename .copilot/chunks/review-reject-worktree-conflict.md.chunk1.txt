@@ -1,17 +1,17 @@
 # Try to reject the review
-exoctl review reject <request-id> --reason "Implementation issues"
+exactl review reject <request-id> --reason "Implementation issues"
 # Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'
 ```
 
 ## Observed Behavior
 
-- `exoctl review reject` fails when the branch is checked out in a worktree
+- `exactl review reject` fails when the branch is checked out in a worktree
 - Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`
 - No alternative way to reject the review
 
 ## Expected Behavior
 
-- `exoctl review reject` should succeed even when the branch is used by a worktree
+- `exactl review reject` should succeed even when the branch is used by a worktree
 - Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions
 - Changesets should be rejectable regardless of worktree status
 

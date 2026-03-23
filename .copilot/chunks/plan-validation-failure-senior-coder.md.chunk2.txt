@@ -1,4 +1,4 @@
-The plan should be validated successfully and appear in `exoctl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).
+The plan should be validated successfully and appear in `exactl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).
 
 ## Investigation Needed
 

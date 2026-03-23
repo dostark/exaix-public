@@ -76,7 +76,7 @@ Created login handler, JWT tokens, and user session management.
 **Error Handling:**
 
 - Repository not initialized → auto-run `git init` + empty commit
-- Identity not configured → use default bot identity (`bot@exoframe.local`)
+- Identity not configured → use default bot identity (`bot@exaix.local`)
 - Branch already exists → append timestamp to make unique
 - No changes to commit → throw clear error (don't create empty commit)
 - Git command failures → wrap in descriptive error with command context

@@ -7,7 +7,7 @@
 ❌ `todo.md`
 
 ### Good Description
-✅ "When submitting a request via `exoctl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail."
+✅ "When submitting a request via `exactl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail."
 
 ### Bad Description
 ❌ "Requests don't work"

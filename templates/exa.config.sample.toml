@@ -1,8 +1,8 @@
 # ===========================================================================
-# ExoFrame Configuration File
+# Exaix Configuration File
 # ===========================================================================
 #
-# IMPORTANT: This is the ONLY file users should edit to customize ExoFrame behavior.
+# IMPORTANT: This is the ONLY file users should edit to customize Exaix behavior.
 # NEVER modify src/config/constants.ts directly - those are internal defaults.
 #
 # All timing values (timeouts, delays, intervals) are in milliseconds (ms)
@@ -23,26 +23,26 @@
 # Environment Variable Reference
 # ===========================================================================
 #
-# ExoFrame supports the following environment variables for runtime flexibility.
+# Exaix supports the following environment variables for runtime flexibility.
 # Environment variables take precedence over config file values where applicable.
 #
 # Production Variables (Runtime):
 # ---------------------------------------------------------------------------
-# EXO_LLM_PROVIDER    : Override AI provider (e.g. "ollama", "openai", "mock")
-# EXO_LLM_MODEL       : Override AI model name (e.g. "llama3.2", "gpt-4")
-# EXO_LLM_BASE_URL    : Override provider base URL (e.g. "http://localhost:11434")
-# EXO_LLM_TIMEOUT_MS  : Override AI request timeout (1000 - 300000 ms)
+# EXA_LLM_PROVIDER    : Override AI provider (e.g. "ollama", "openai", "mock")
+# EXA_LLM_MODEL       : Override AI model name (e.g. "llama3.2", "gpt-4")
+# EXA_LLM_BASE_URL    : Override provider base URL (e.g. "http://localhost:11434")
+# EXA_LLM_TIMEOUT_MS  : Override AI request timeout (1000 - 300000 ms)
 #
 # Testing Variables (Development/CI):
 # ---------------------------------------------------------------------------
-# EXO_TEST_MODE              : Set to "1" or "true" to enable test mode
-# EXO_TEST_CLI_MODE          : Set to "1" to enable CLI test mode (stubs services)
-# EXO_TEST_ENABLE_PAID_LLM   : Set to "1" to enable paid LLM tests (requires API keys)
-# EXO_TEST_ENABLE_OLLAMA     : Set to "1" to run Ollama integration tests
-# EXO_TEST_ENABLE_LLAMA      : Set to "1" to run Llama provider specific tests
-# EXO_TEST_OPENAI_API_KEY    : API key for OpenAI integration tests
-# EXO_CI_MODE                : Set to "1" to enforce CI behaviors (mock providers, etc.)
-# CI                         : Standard CI flag (fallback if EXO_CI_MODE not set)
+# EXA_TEST_MODE              : Set to "1" or "true" to enable test mode
+# EXA_TEST_CLI_MODE          : Set to "1" to enable CLI test mode (stubs services)
+# EXA_TEST_ENABLE_PAID_LLM   : Set to "1" to enable paid LLM tests (requires API keys)
+# EXA_TEST_ENABLE_OLLAMA     : Set to "1" to run Ollama integration tests
+# EXA_TEST_ENABLE_LLAMA      : Set to "1" to run Llama provider specific tests
+# EXA_TEST_OPENAI_API_KEY    : API key for OpenAI integration tests
+# EXA_CI_MODE                : Set to "1" to enforce CI behaviors (mock providers, etc.)
+# CI                         : Standard CI flag (fallback if EXA_CI_MODE not set)
 #
 # ===========================================================================
 
@@ -109,7 +109,7 @@ target_path = "/home/me/projects/my-repo"
 # Optional: execution strategy for write-capable changes
 # - "branch"   : create feature branches in the portal checkout (default)
 # - "worktree" : create per-request worktrees under .exo/worktrees (opt-in)
-#               : ExoFrame also creates a discoverability pointer under Memory/Execution/<traceId>/worktree/
+#               : Exaix also creates a discoverability pointer under Memory/Execution/<traceId>/worktree/
 # execution_strategy = "branch"
 
 # ---------------------------------------------------------------------------
@@ -130,13 +130,13 @@ target_path = "/home/me/projects/my-repo"
 #   - gemini-2.5-flash (Stable 2025 release)
 # ---------------------------------------------------------------------------
 [ai]
-provider = "google"     # Overridden by EXO_LLM_PROVIDER
+provider = "google"     # Overridden by EXA_LLM_PROVIDER
 # Provider-specific model name (optional)
-model = "gemini-flash-latest"    # Overridden by EXO_LLM_MODEL
+model = "gemini-flash-latest"    # Overridden by EXA_LLM_MODEL
 # Base URL for custom provider endpoints (optional)
-base_url = ""           # Overridden by EXO_LLM_BASE_URL
+base_url = ""           # Overridden by EXA_LLM_BASE_URL
 # Request timeout (ms)
-timeout_ms = 30000      # Overridden by EXO_LLM_TIMEOUT_MS
+timeout_ms = 30000      # Overridden by EXA_LLM_TIMEOUT_MS
 # Max output tokens (provider-specific)
 max_tokens = 2048
 # Sampling temperature (0.0 - 2.0)
@@ -224,7 +224,7 @@ base_url = "http://localhost:11434/api/generate"
 [mcp]
 enabled = true
 transport = "stdio" # allowed: stdio, sse
-server_name = "exoframe"
+server_name = "exaix"
 version = "1.0.0"
 
 [mcp_defaults]
@@ -403,7 +403,7 @@ persist_analysis = true          # write _analysis.json alongside each request f
 # for injection into agent prompts.
 # ---------------------------------------------------------------------------
 [portal_knowledge]
-# Automatically trigger quick analysis after `exoctl portal add`
+# Automatically trigger quick analysis after `exactl portal add`
 auto_analyze_on_mount = true
 # Default analysis depth: quick | standard | deep
 # quick   — directory + config + key files only, no LLM (< 5 s)
@@ -427,12 +427,12 @@ ignore_patterns = [
 
 # ---------------------------------------------------------------------------
 # Notes
-# - Copy this file to the repository root as `exo.config.toml` or pass a path
+# - Copy this file to the repository root as `exa.config.toml` or pass a path
 #   to the CLI with `--config` when starting the daemon.
 # - The `paths.runtime` directory is where runtime artifacts live (DB, logs).
 # - Portals should point at real git repositories to enable blueprint/changeset
 #   operations across projects.
 # - DO NOT edit src/config/constants.ts directly - all user configuration
-#   should be done through this exo.config.toml file.
+#   should be done through this exa.config.toml file.
 # ---------------------------------------------------------------------------
 

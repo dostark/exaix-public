@@ -1,9 +1,9 @@
-Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
+Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exactl changeset list` still returns empty.
 
 ### Reproduction from Latest Test
 
 ```bash
-exoctl changeset list
+exactl changeset list
 ✅ changeset.list: changesets
    count: 0
    message: No changesets found

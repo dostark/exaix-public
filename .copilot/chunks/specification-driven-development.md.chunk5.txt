@@ -1,10 +1,10 @@
 ---
 
-## Where ExoFrame Goes Beyond Vanilla SDD
+## Where Exaix Goes Beyond Vanilla SDD
 
 ### 1. Assisted Specification Writing
 
-In pure SDD, the human writes the full specification manually. This requires skill — knowing what to specify, how to structure it, and what level of detail agents need. ExoFrame lowers this barrier through **collaborative specification**:
+In pure SDD, the human writes the full specification manually. This requires skill — knowing what to specify, how to structure it, and what level of detail agents need. Exaix lowers this barrier through **collaborative specification**:
 
 - A planning agent identifies what's missing, vague, or ambiguous
 - It generates categorized questions (goal, scope, constraint, acceptance, context)

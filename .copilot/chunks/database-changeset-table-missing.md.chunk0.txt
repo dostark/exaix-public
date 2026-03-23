@@ -9,11 +9,11 @@ The `changesets` table is not being created during database migration, causing e
 deno run --allow-all scripts/migrate_db.ts up
 
 # Create a request and approve plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>
 
 # Check execution - fails with database error
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts daemon logs --lines 20
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts daemon logs --lines 20
 ```
 
 ## Observed Behavior

@@ -35,7 +35,7 @@ async function setupTestPortalsWithGit(): Promise<{
   portals: IPortalPermissions[];
   cleanup: () => Promise<void>;
 }> {
-  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_portal_multi_test_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exaix_portal_multi_test_" });
 
   // Create portal with git repo
   const portalWithGit = join(tempDir, "portal-with-git");
@@ -151,7 +151,7 @@ Deno.test("[portal-multi] listGitEnabledPortals() returns only portals with git 
 });
 
 Deno.test("[portal-multi] listGitEnabledPortals() returns empty array when no git portals exist", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_portal_multi_no_git_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exaix_portal_multi_no_git_" });
 
   try {
     // Create only portals without git
@@ -176,7 +176,7 @@ Deno.test("[portal-multi] listGitEnabledPortals() returns empty array when no gi
 });
 
 Deno.test("[portal-multi] listGitEnabledPortals() returns all portals when all have git", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_portal_multi_all_git_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exaix_portal_multi_all_git_" });
 
   try {
     // Create portals all with git

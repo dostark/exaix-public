@@ -1,4 +1,4 @@
-**Purpose:** Plan and implement infrastructure or configuration changes for ExoFrame.
+**Purpose:** Plan and implement infrastructure or configuration changes for Exaix.
 
 ---
 

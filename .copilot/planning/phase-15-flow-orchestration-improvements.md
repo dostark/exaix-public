@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-This document proposes enhancements to ExoFrame's Flow orchestration system based on analysis of current implementation and state-of-the-art agent orchestration patterns. The focus is on adding **quality gates**, **feedback loops**, **LLM-as-a-Judge evaluation**, and **conditional branching** while preserving ExoFrame's core principles of file-based workflows and traceable execution.
+This document proposes enhancements to Exaix's Flow orchestration system based on analysis of current implementation and state-of-the-art agent orchestration patterns. The focus is on adding **quality gates**, **feedback loops**, **LLM-as-a-Judge evaluation**, and **conditional branching** while preserving Exaix's core principles of file-based workflows and traceable execution.
 
 ---
 
@@ -194,7 +194,7 @@ Deno.test("FlowRunner: consensus step aggregates results");
 
 ---
 
-## State-of-the-Art Patterns (Not Yet in ExoFrame)
+## State-of-the-Art Patterns (Not Yet in Exaix)
 
 ### 1. LLM-as-a-Judge Pattern
 
@@ -805,9 +805,9 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 | File                                   | Updates Required                                       |
 | -------------------------------------- | ------------------------------------------------------ |
-| `docs/ExoFrame*User*Guide.md`          | Flow section: conditions, gates, loops, judge patterns |
+| `docs/Exaix*User*Guide.md`          | Flow section: conditions, gates, loops, judge patterns |
 | `docs/Building*with*AI_Agents.md`      | New orchestration patterns, examples                   |
-| `docs/ExoFrame*Implementation*Plan.md` | Phase 15 completion status                             |
+| `docs/Exaix*Implementation*Plan.md` | Phase 15 completion status                             |
 | `Blueprints/Flows/README.md`           | New templates, step types                              |
 
 **Tasks:**
@@ -847,9 +847,9 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 | Document                                      | Updates Made                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------- |
-| `ExoFrame_Architecture.md`                    | Added Flow Orchestration Architecture section, Mermaid diagram, Component table |
-| `ExoFrame*Technical*Spec.md`                  | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
-| `ExoFrame*User*Guide.md`                      | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops     |
+| `Exaix_Architecture.md`                    | Added Flow Orchestration Architecture section, Mermaid diagram, Component table |
+| `Exaix*Technical*Spec.md`                  | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
+| `Exaix*User*Guide.md`                      | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops     |
 | `phase-15-flow-orchestration-improvements.md` | Updated success metrics, file status, completion status                         |
 | `Blueprints/Flows/templates/README.md`        | Added Self-Correcting template documentation                                    |
 

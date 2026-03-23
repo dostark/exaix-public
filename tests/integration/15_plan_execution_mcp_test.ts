@@ -85,7 +85,7 @@ async function createTestPortal(basePath: string) {
 
 Deno.test("Integration Test 15.1: Happy Path - Sandboxed Mode", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "exoframe_test_" });
+  const testDir = await Deno.makeTempDir({ prefix: "exaix_test_" });
   const _portalPath = await createTestPortal(testDir);
 
   try {
@@ -190,7 +190,7 @@ Create a simple hello world function in src/utils.ts
 
 Deno.test("Integration Test 15.2: Happy Path - Hybrid Mode", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "exoframe_test_" });
+  const testDir = await Deno.makeTempDir({ prefix: "exaix_test_" });
   const portalPath = await createTestPortal(testDir);
 
   try {

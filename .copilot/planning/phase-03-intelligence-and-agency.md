@@ -2,7 +2,7 @@
 
 **Goal:** Connect LLMs, inject memory, and generate plans.
 
-> **Agent Types:** ExoFrame must drive both fully local agents (Ollama, offline evaluators, scripted coders),
+> **Agent Types:** Exaix must drive both fully local agents (Ollama, offline evaluators, scripted coders),
 > third-party API agents (Claude, GPT), **and hybrid workflows** where a request spans both types. Token limits and
 > privacy guarantees differ per type; design every step in this phase to detect the agent class (local, federated,
 > hybrid) and apply the correct constraints automatically. Hybrid mode requires explicit data-sharing policies logged
@@ -473,8 +473,8 @@ Deno.test("MissionReporter: formats report with valid TOML frontmatter", async (
 
 ```bash
 # 1. Create request and approve
-$ exoctl request "Implement user registration" --portal=MyProject
-$ exoctl plan approve <plan-id>
+$ exactl request "Implement user registration" --portal=MyProject
+$ exactl plan approve <plan-id>
 
 # 2. Wait for execution
 $ sleep 10
@@ -488,7 +488,7 @@ $ cat Knowledge/Reports/2025-01-26_550e8400_implement-user-registration.md
 # Expected: Valid TOML frontmatter, Summary, Changes Made, Git Summary, Context Used, Reasoning sections
 
 # 5. Check Activity Journal
-$ exoctl journal --filter trace_id=<trace_id>
+$ exactl journal --filter trace_id=<trace_id>
 plan.detected
 plan.parsed
 plan.executing

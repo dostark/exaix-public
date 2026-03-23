@@ -1,4 +1,4 @@
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (current)
 - Git Version: (current)

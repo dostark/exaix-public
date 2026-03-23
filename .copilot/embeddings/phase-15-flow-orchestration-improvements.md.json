@@ -3,7 +3,7 @@
   "title": "phase-15-flow-orchestration-improvements.md",
   "vecs": [
     {
-      "text": "# Phase 15: Flow Orchestration Improvements\n\n**Created:** January 4, 2026\n**Status:** Implemented ✅\n**Priority:** High\n**Completed:** January 8, 2026\n\n## Executive Summary\n\nThis document proposes enhancements to ExoFrame's Flow orchestration system based on analysis of current implementation and state-of-the-art agent orchestration patterns. The focus is on adding **quality gates**, **feedback loops**, **LLM-as-a-Judge evaluation**, and **conditional branching** while preserving ExoFrame's core principles of file-based workflows and traceable execution.\n\n---\n\n## Implementation Status",
+      "text": "# Phase 15: Flow Orchestration Improvements\n\n**Created:** January 4, 2026\n**Status:** Implemented ✅\n**Priority:** High\n**Completed:** January 8, 2026\n\n## Executive Summary\n\nThis document proposes enhancements to Exaix's Flow orchestration system based on analysis of current implementation and state-of-the-art agent orchestration patterns. The focus is on adding **quality gates**, **feedback loops**, **LLM-as-a-Judge evaluation**, and **conditional branching** while preserving Exaix's core principles of file-based workflows and traceable execution.\n\n---\n\n## Implementation Status",
       "vector": [
         0.03137254901960784,
         0.8,
@@ -1038,7 +1038,7 @@
       ]
     },
     {
-      "text": "---\n\n## State-of-the-Art Patterns (Not Yet in ExoFrame)\n\n### 1. LLM-as-a-Judge Pattern\n\nUse a specialized LLM to evaluate outputs from other agents, providing:\n\n- Quality scores (0-1 scale)\n- Structured feedback for improvement\n- Pass/fail decisions for gates\n\n### 2. Reflexion Pattern\n\nAgent reflects on its own output, identifies issues, and iteratively improves:\n\n- Self-critique step after each major output\n- Improvement loop until quality threshold met\n- Maximum iteration limit to prevent infinite loops\n\n### 3. Constitutional AI Pattern\n\nOutputs checked against defined principles/constraints:\n\n- Define rules (e.g., \"code must have tests\", \"no TODO comments\")\n- Evaluate compliance\n- Iterate until compliant or max attempts\n\n### 4. Multi-Agent Debate Pattern",
+      "text": "---\n\n## State-of-the-Art Patterns (Not Yet in Exaix)\n\n### 1. LLM-as-a-Judge Pattern\n\nUse a specialized LLM to evaluate outputs from other agents, providing:\n\n- Quality scores (0-1 scale)\n- Structured feedback for improvement\n- Pass/fail decisions for gates\n\n### 2. Reflexion Pattern\n\nAgent reflects on its own output, identifies issues, and iteratively improves:\n\n- Self-critique step after each major output\n- Improvement loop until quality threshold met\n- Maximum iteration limit to prevent infinite loops\n\n### 3. Constitutional AI Pattern\n\nOutputs checked against defined principles/constraints:\n\n- Define rules (e.g., \"code must have tests\", \"no TODO comments\")\n- Evaluate compliance\n- Iterate until compliant or max attempts\n\n### 4. Multi-Agent Debate Pattern",
       "vector": [
         0.25098039215686274,
         0.5333333333333333,

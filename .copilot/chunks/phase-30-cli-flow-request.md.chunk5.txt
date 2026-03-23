@@ -14,8 +14,8 @@
 
 **Files Modified:**
 
-- `tests/cli/exoctl_coverage_test.ts`: Added comprehensive end-to-end test for flow request workflow
-- `src/cli/exoctl.ts`: Updated printRequestResult, list display, and show display to properly show flow information
+- `tests/cli/exactl_coverage_test.ts`: Added comprehensive end-to-end test for flow request workflow
+- `src/cli/exactl.ts`: Updated printRequestResult, list display, and show display to properly show flow information
 - `src/cli/request_commands.ts`: Updated list() and show() methods to include flow field in returned data
 
 ---

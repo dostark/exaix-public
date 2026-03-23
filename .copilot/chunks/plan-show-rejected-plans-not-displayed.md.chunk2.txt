@@ -9,7 +9,7 @@
 
 ## Related Files
 
-- `src/cli/exoctl.ts` - CLI command definitions
+- `src/cli/exactl.ts` - CLI command definitions
 - `src/cli/plan_commands.ts` - Plan command implementation (FIXED: updated show method)
 - Plan storage/retrieval logic
 

@@ -3,7 +3,7 @@
   "title": "phase-26-llm-provider-flexibility.md",
   "vecs": [
     {
-      "text": "# Phase 26: LLM Provider Flexibility & Multi-Model Support\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/ExoFrame_User_Guide.md` for current usage.\n> Strategy\n\n## Executive Summary\n\nThis phase evaluates ExoFrame's current architecture for AI provider\nmanagement and multi-model orchestration to determine ease of switching\nbetween free and paid LLM providers. The analysis builds upon Phase 24's\nsecurity improvements and examines the provider abstraction layer,\nconfiguration system, and runtime provider selection mechanisms.\n\n### **Key Findings:**",
+      "text": "# Phase 26: LLM Provider Flexibility & Multi-Model Support\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/Exaix_User_Guide.md` for current usage.\n> Strategy\n\n## Executive Summary\n\nThis phase evaluates Exaix's current architecture for AI provider\nmanagement and multi-model orchestration to determine ease of switching\nbetween free and paid LLM providers. The analysis builds upon Phase 24's\nsecurity improvements and examines the provider abstraction layer,\nconfiguration system, and runtime provider selection mechanisms.\n\n### **Key Findings:**",
       "vector": [
         0.28627450980392155,
         0.592156862745098,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "### **Implementation Quality (Post-Phase 24):**\n\n- ✅ Secure credential handling via `SecureCredentialStore`\n- ✅ Rate limiting integrated (`RateLimitedProvider` wrapper)\n- ✅ Circuit breaker pattern (`CircuitBreakerProvider`)\n- ✅ Configurable timeouts per provider\n- ✅ Input validation (`InputValidator` schemas)\n- ✅ Structured logging and observability\n\n### 2. Configuration System\n\n### **Current Capabilities:**\n\n```toml\n# exo.config.toml\n[system]\nversion = \"1.0.0\"\nlog_level = \"info\"\n\n[agents]\ndefault_model = \"default\"  # References [models.default]\ntimeout_sec = 60\n\n[models.default]\nprovider = \"mock\"\nmodel = \"mock-model\"\n\n[models.fast]\nprovider = \"mock\"\nmodel = \"mock-fast\"\n\n[models.local]\nprovider = \"ollama\"\nmodel = \"llama2\"\n\n[database]\nbatch_flush_ms = 100\nbatch_max_size = 100",
+      "text": "### **Implementation Quality (Post-Phase 24):**\n\n- ✅ Secure credential handling via `SecureCredentialStore`\n- ✅ Rate limiting integrated (`RateLimitedProvider` wrapper)\n- ✅ Circuit breaker pattern (`CircuitBreakerProvider`)\n- ✅ Configurable timeouts per provider\n- ✅ Input validation (`InputValidator` schemas)\n- ✅ Structured logging and observability\n\n### 2. Configuration System\n\n### **Current Capabilities:**\n\n```toml\n# exa.config.toml\n[system]\nversion = \"1.0.0\"\nlog_level = \"info\"\n\n[agents]\ndefault_model = \"default\"  # References [models.default]\ntimeout_sec = 60\n\n[models.default]\nprovider = \"mock\"\nmodel = \"mock-model\"\n\n[models.fast]\nprovider = \"mock\"\nmodel = \"mock-fast\"\n\n[models.local]\nprovider = \"ollama\"\nmodel = \"llama2\"\n\n[database]\nbatch_flush_ms = 100\nbatch_max_size = 100",
       "vector": [
         0.19215686274509805,
         0.8196078431372549,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "[watcher]\ndebounce_ms = 200\nstability_check = true\n```\n\n### **Priority Order:**\n\n1. Environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`)\n2. `exo.config.toml` configuration\n3. Code defaults in `src/config/ai_config.ts`\n\n### **Named Model Profiles:**\n\n- Allows semantic model selection (`default`, `fast`, `local`)\n- Agent can reference logical names instead of hard-coded providers\n- Good for environment-specific overrides (dev uses `ollama`, prod uses `anthropic`)\n\n### 3. Runtime Provider Selection\n\n### **Current Mechanism:**\n\n```typescript\n// In AgentExecutor\nconst provider = await ProviderFactory.create(config);\n```\n\n### **Limitations:**",
+      "text": "[watcher]\ndebounce_ms = 200\nstability_check = true\n```\n\n### **Priority Order:**\n\n1. Environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`)\n2. `exa.config.toml` configuration\n3. Code defaults in `src/config/ai_config.ts`\n\n### **Named Model Profiles:**\n\n- Allows semantic model selection (`default`, `fast`, `local`)\n- Agent can reference logical names instead of hard-coded providers\n- Good for environment-specific overrides (dev uses `ollama`, prod uses `anthropic`)\n\n### 3. Runtime Provider Selection\n\n### **Current Mechanism:**\n\n```typescript\n// In AgentExecutor\nconst provider = await ProviderFactory.create(config);\n```\n\n### **Limitations:**",
       "vector": [
         0.20392156862745098,
         0.6078431372549019,
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "text": "- [x] `ProviderFactory.createWithFallback()` method successfully creates providers with automatic fallback\n- [x] System automatically switches to secondary providers when primary fails (API outage, quota exceeded, rate limit)\n- [x] Fallback chains configurable via `exo.config.toml` without code changes\n- [x] Health checks prevent returning unhealthy providers from fallback chain\n- [x] Fallback events logged with clear indication of which provider failed and which succeeded\n- [x] No interruption to agent execution during provider failures (seamless failover)\n- [x] Performance impact of fallback logic <100ms additional latency per request\n\n### Improvement 2: Cost Tracking Service\n\n**Proposal:**",
+      "text": "- [x] `ProviderFactory.createWithFallback()` method successfully creates providers with automatic fallback\n- [x] System automatically switches to secondary providers when primary fails (API outage, quota exceeded, rate limit)\n- [x] Fallback chains configurable via `exa.config.toml` without code changes\n- [x] Health checks prevent returning unhealthy providers from fallback chain\n- [x] Fallback events logged with clear indication of which provider failed and which succeeded\n- [x] No interruption to agent execution during provider failures (seamless failover)\n- [x] Performance impact of fallback logic <100ms additional latency per request\n\n### Improvement 2: Cost Tracking Service\n\n**Proposal:**",
       "vector": [
         0.8,
         0.9725490196078431,

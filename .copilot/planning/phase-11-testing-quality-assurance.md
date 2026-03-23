@@ -4,11 +4,11 @@
 > **Prerequisites:** Phases 1–10 (Runtime, Events, Intelligence, Tools, Obsidian, Portal, Flows, LLM Providers, UX, Polishing)\
 > **Goal:** Validate single-agent and multi-agent workflows end-to-end with both local and cloud providers.
 
-📄 **Full Documentation:** [`ExoFrame_Testing_and_CI_Strategy.md`](./ExoFrame_Testing_and_CI_Strategy.md)
+📄 **Full Documentation:** [`Exaix_Testing_and_CI_Strategy.md`](./Exaix_Testing_and_CI_Strategy.md)
 
 ### Overview
 
-Phase 10 establishes the testing infrastructure needed to confidently ship ExoFrame with Flow orchestration and multi-provider support. The comprehensive testing strategy is documented in a dedicated document that covers:
+Phase 10 establishes the testing infrastructure needed to confidently ship Exaix with Flow orchestration and multi-provider support. The comprehensive testing strategy is documented in a dedicated document that covers:
 
 - **Testing Pyramid** — Unit, Integration, Security, Performance, Manual QA
 - **Mock LLM Infrastructure** — Deterministic testing without API costs

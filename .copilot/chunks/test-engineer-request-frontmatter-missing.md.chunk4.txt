@@ -5,7 +5,7 @@
 
 ## Workaround
 
-None currently known. The failed plan file must be manually removed or repaired to allow `exoctl plan list` to run without warnings.
+None currently known. The failed plan file must be manually removed or repaired to allow `exactl plan list` to run without warnings.
 
 ## Priority Justification
 

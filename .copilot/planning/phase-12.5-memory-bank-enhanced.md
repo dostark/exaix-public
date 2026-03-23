@@ -31,7 +31,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 - **Global Memory Scope** - Cross-project learnings in `Memory/Global/`
 - **Agent-Driven Memory Updates** - Automated memory extraction with user notification
 - **Simple RAG Implementation** - Keyword/tag-based search without external dependencies
-- **Comprehensive CLI Surface** - Unified `exoctl memory` command tree
+- **Comprehensive CLI Surface** - Unified `exactl memory` command tree
 - **Integration Points** - Seamless integration with `agents/manifest` and Activity Journal
 
 ### Key Design Decisions
@@ -41,7 +41,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 | **Markdown for human-readable content** | Patterns, decisions, learnings stored as `.md` for developer review |
 | **JSON for structured indices**         | Fast programmatic access for search and filtering                   |
 | **No external vector DB**               | Reuse `agents/embeddings/` pattern with mock vectors                |
-| **CLI-first interface**                 | Both users and agents interact via `exoctl memory`                  |
+| **CLI-first interface**                 | Both users and agents interact via `exactl memory`                  |
 | **Pending → Approved workflow**         | User notification before memory updates are finalized               |
 
 ### Dependencies
@@ -91,7 +91,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 ├─────────────────────────────────────────────────────────────────┤
 │  Project-scoped only   │  → Global scope   │  Global + Project  │
 │  Manual updates        │  → Automation     │  Agent-driven      │
-│  No CLI                │  → Full CLI       │  exoctl memory     │
+│  No CLI                │  → Full CLI       │  exactl memory     │
 │  Basic text search     │  → Tag + keyword  │  Simple RAG        │
 │  Silent operations     │  → Notification   │  User approval     │
 │  JSON-heavy            │  → Markdown-first │  Human-readable    │
@@ -104,7 +104,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 3.1 Industry Memory Systems
 
-| System      | Key Innovation                              | Relevance to ExoFrame              |
+| System      | Key Innovation                              | Relevance to Exaix              |
 | ----------- | ------------------------------------------- | ---------------------------------- |
 | **mem0**    | Adaptive memory layers (user/agent/session) | Multi-scope memory hierarchy       |
 | **MemGPT**  | Self-editing memory with archival system    | Agent-managed memory updates       |
@@ -135,7 +135,7 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 | Anti-Pattern                 | Reason                                      | Alternative                             |
 | ---------------------------- | ------------------------------------------- | --------------------------------------- |
-| External vector database     | Adds complexity, ExoFrame is self-contained | Reuse `agents/embeddings/` mock vectors |
+| External vector database     | Adds complexity, Exaix is self-contained | Reuse `agents/embeddings/` mock vectors |
 | Graph database for relations | Over-engineering for current scope          | JSON indices with tag cross-references  |
 | Real-time memory sync        | Performance overhead                        | Batch updates on execution complete     |
 | Auto-approve all memory      | Quality control issues                      | User notification + approval workflow   |
@@ -295,7 +295,7 @@ export type GlobalMemory = z.infer<typeof GlobalMemorySchema>;
 ### 4.3 CLI Command Tree
 
 ```text
-exoctl memory
+exactl memory
 ├── list                       # List all memory banks
 │   └── --format json|table|md
 │
@@ -647,26 +647,26 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Tasks:**
 
 - [x] Create `src/cli/memory_commands.ts`
-- [x] Implement `exoctl memory list`
-- [x] Implement `exoctl memory search <query>`
-- [x] Implement `exoctl memory project list|show`
-- [x] Implement `exoctl memory execution list|show`
+- [x] Implement `exactl memory list`
+- [x] Implement `exactl memory search <query>`
+- [x] Implement `exactl memory project list|show`
+- [x] Implement `exactl memory execution list|show`
 - [x] Add `--format json|table|md` option
 - [x] Write CLI command tests
-- [x] Integrate into `src/cli/exoctl.ts`
+- [x] Integrate into `src/cli/exactl.ts`
 
 **Deliverables:**
 
 - [x] `src/cli/memory_commands.ts` (~600 LOC)
 - [x] `tests/cli/memory_commands_test.ts` (~350 LOC)
-- [x] Updated `src/cli/exoctl.ts` with memory command tree
+- [x] Updated `src/cli/exactl.ts` with memory command tree
 
 **Success Criteria:**
 
-- [x] `exoctl memory list` returns list of all memory banks
-- [x] `exoctl memory search "pattern"` returns matching entries
-- [x] `exoctl memory project show my-app` displays project memory
-- [x] `exoctl memory execution list --limit 10` shows recent executions
+- [x] `exactl memory list` returns list of all memory banks
+- [x] `exactl memory search "pattern"` returns matching entries
+- [x] `exactl memory project show my-app` displays project memory
+- [x] `exactl memory execution list --limit 10` shows recent executions
 - [x] All commands support `--format json` for scripting
 - [x] 100% of new CLI commands have unit tests
 
@@ -711,8 +711,8 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Implement `addGlobalLearning()` in MemoryBankService
 - [x] Implement `promoteLearning()` (project → global)
 - [x] Implement `demoteLearning()` (global → project)
-- [x] Implement CLI commands: `exoctl memory global show|list-learnings|stats`
-- [x] Implement CLI commands: `exoctl memory promote|demote`
+- [x] Implement CLI commands: `exactl memory global show|list-learnings|stats`
+- [x] Implement CLI commands: `exactl memory promote|demote`
 - [x] Write unit tests for all new functionality
 
 **Deliverables:**
@@ -724,9 +724,9 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Success Criteria:**
 
 - [x] `Memory/Global/learnings.md` contains promoted learnings
-- [x] `exoctl memory global show` displays global memory
-- [x] `exoctl memory promote <id> --from my-app` moves learning to global
-- [x] `exoctl memory demote <id> --to my-app` moves learning to project
+- [x] `exactl memory global show` displays global memory
+- [x] `exactl memory promote <id> --from my-app` moves learning to global
+- [x] `exactl memory demote <id> --to my-app` moves learning to project
 - [x] All promote/demote operations logged to Activity Journal
 - [x] 100% of new methods have unit tests
 
@@ -783,7 +783,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Implement `analyzeExecution()` for learning extraction
 - [x] Implement `createProposal()` to write to `Memory/Pending/`
 - [x] Implement `NotificationService` for user alerts
-- [x] Implement CLI: `exoctl memory pending list|show|approve|reject`
+- [x] Implement CLI: `exactl memory pending list|show|approve|reject`
 - [ ] Integrate memory extraction into `AgentRunner` post-execution (deferred to Phase 12.10)
 - [ ] Add configuration option for auto-approve (deferred to Phase 12.10)
 - [x] Write unit and integration tests
@@ -793,16 +793,16 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - `src/services/memory_extractor.ts` (~360 LOC) ✅
 - `src/services/notification.ts` (~195 LOC) ✅
 - Updated `src/cli/memory_commands.ts` (+260 LOC) ✅
-- Updated `src/cli/exoctl.ts` (+55 LOC) ✅
+- Updated `src/cli/exactl.ts` (+55 LOC) ✅
 - `src/schemas/memory_bank.ts` (+35 LOC for ProposalLearningSchema, MemoryUpdateProposalSchema) ✅
 
 **Success Criteria:**
 
 - [x] After execution, learnings extracted and written to `Memory/Pending/`
 - [x] User notified via CLI output: "1 memory update pending approval"
-- [x] `exoctl memory pending list` shows pending proposals
-- [x] `exoctl memory pending approve <id>` merges learning to target scope
-- [x] `exoctl memory pending reject <id>` archives proposal
+- [x] `exactl memory pending list` shows pending proposals
+- [x] `exactl memory pending approve <id>` merges learning to target scope
+- [x] `exactl memory pending reject <id>` archives proposal
 - [ ] Configuration `memory.auto_approve: true` skips pending workflow (deferred)
 - [x] All operations logged to Activity Journal
 - [x] 100% of new services have unit tests
@@ -845,7 +845,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Implement `cosineSimilarity()` for ranking
 - [x] Implement `searchByEmbedding()` for fuzzy match
 - [x] Add `--use-embeddings` flag to search command
-- [x] Implement `exoctl memory rebuild-index` including embeddings
+- [x] Implement `exactl memory rebuild-index` including embeddings
 - [x] Write unit tests
 
 **Deliverables:**
@@ -853,15 +853,15 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - `src/services/memory_embedding.ts` (~320 LOC) ✅
 - Updated `src/services/memory_bank.ts` (+270 LOC) ✅
 - Updated `src/cli/memory_commands.ts` (~30 LOC) ✅
-- Updated `src/cli/exoctl.ts` (~10 LOC) ✅
+- Updated `src/cli/exactl.ts` (~10 LOC) ✅
 - Updated `src/schemas/memory_bank.ts` (+15 LOC) ✅
 - `Memory/Index/embeddings/` directory structure ✅
 
 **Success Criteria:**
 
-- [x] `exoctl memory search "error handling" --tags typescript` returns tagged results
-- [x] `exoctl memory search "error handling" --use-embeddings` uses fuzzy match
-- [x] `exoctl memory rebuild-index --include-embeddings` regenerates all indices including embeddings
+- [x] `exactl memory search "error handling" --tags typescript` returns tagged results
+- [x] `exactl memory search "error handling" --use-embeddings` uses fuzzy match
+- [x] `exactl memory rebuild-index --include-embeddings` regenerates all indices including embeddings
 - [x] Search results ranked by relevance (tag match > keyword > embedding)
 - [x] Embedding generation uses deterministic mock vectors (no API calls)
 - [x] 100% of search methods have unit tests
@@ -899,8 +899,8 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Tasks:**
 
 - [x] Update `docs/Memory_Banks.md` with v2 features
-- [x] Update `docs/ExoFrame_Architecture.md` with new diagrams
-- [x] Update `docs/ExoFrame_User_Guide.md` with CLI reference
+- [x] Update `docs/Exaix_Architecture.md` with new diagrams
+- [x] Update `docs/Exaix_User_Guide.md` with CLI reference
 - [x] Add Memory Banks section to `README.md`
 - [x] Integration tests for full workflow
 - [x] Performance validation (search < 100ms, embed < 500ms)
@@ -917,7 +917,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] All documentation reflects v2 architecture
 - [x] Integration tests pass end-to-end workflow (8 tests)
 - [x] Performance benchmarks meet targets
-- [x] `exoctl memory --help` shows complete command tree
+- [x] `exactl memory --help` shows complete command tree
 - [x] No grep matches for outdated Memory Banks references
 
 **Tests (8 tests):**
@@ -968,7 +968,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│  ExoFrame Dashboard                          [Memory] [1 Pending]   │
+│  Exaix Dashboard                          [Memory] [1 Pending]   │
 ├─────────────────────────────────────────────────────────────────────┤
 │ ┌─ Memory Banks ─────────────────┐ ┌─ Details ────────────────────┐ │
 │ │ ▸ Global Memory (12 learnings) │ │ # Project: my-app            │ │
@@ -1357,7 +1357,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 - [Phase 12: Obsidian Retirement](phase-12-obsidian-retirement.md) - Parent phase
 - [docs/Memory_Banks.md](../../docs/Memory_Banks.md) - Current architecture
-- [docs/ExoFrame_Architecture.md](../../docs/ExoFrame_Architecture.md) - System diagrams
+- [docs/Exaix_Architecture.md](../../docs/Exaix_Architecture.md) - System diagrams
 - [agents/embeddings/](../embeddings/) - Existing embedding infrastructure
 
 ### 10.2 External References
@@ -1406,45 +1406,45 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 ```bash
 # List all memory banks
-exoctl memory list
-exoctl memory list --format json
+exactl memory list
+exactl memory list --format json
 
 # Search memory
-exoctl memory search "authentication"
-exoctl memory search "error" --tags typescript --scope project
-exoctl memory search "pattern" --use-embeddings
+exactl memory search "authentication"
+exactl memory search "error" --tags typescript --scope project
+exactl memory search "pattern" --use-embeddings
 
 # Project memory
-exoctl memory project list
-exoctl memory project show my-app
-exoctl memory project add-pattern my-app
-exoctl memory project add-decision my-app
+exactl memory project list
+exactl memory project show my-app
+exactl memory project add-pattern my-app
+exactl memory project add-decision my-app
 
 # Execution history
-exoctl memory execution list
-exoctl memory execution list --portal my-app --limit 10
-exoctl memory execution show 550e8400-e29b-41d4-a716-446655440000
-exoctl memory execution extract-learnings 550e8400-e29b-41d4-a716-446655440000
+exactl memory execution list
+exactl memory execution list --portal my-app --limit 10
+exactl memory execution show 550e8400-e29b-41d4-a716-446655440000
+exactl memory execution extract-learnings 550e8400-e29b-41d4-a716-446655440000
 
 # Global memory
-exoctl memory global show
-exoctl memory global add-learning
-exoctl memory global list-learnings
-exoctl memory global stats
+exactl memory global show
+exactl memory global add-learning
+exactl memory global list-learnings
+exactl memory global stats
 
 # Pending updates
-exoctl memory pending list
-exoctl memory pending show pending-001
-exoctl memory pending approve pending-001
-exoctl memory pending reject pending-001
-exoctl memory pending approve-all
+exactl memory pending list
+exactl memory pending show pending-001
+exactl memory pending approve pending-001
+exactl memory pending reject pending-001
+exactl memory pending approve-all
 
 # Promote/demote
-exoctl memory promote learning-001 --from my-app
-exoctl memory demote learning-002 --to my-app
+exactl memory promote learning-001 --from my-app
+exactl memory demote learning-002 --to my-app
 
 # Maintenance
-exoctl memory rebuild-index
+exactl memory rebuild-index
 ```text
 
 ```

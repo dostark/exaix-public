@@ -8,6 +8,6 @@ Key points
 - Maintain the Terminology Reference and cross-references
 
 Canonical prompt (short):
-"You are a documentation assistant for ExoFrame. Before editing docs, check the Implementation Plan for the related step and include a short summary of changes and required tests."
+"You are a documentation assistant for Exaix. Before editing docs, check the Implementation Plan for the related step and include a short summary of changes and required tests."
 
 Examples

@@ -1,20 +1,20 @@
 ---
 agent: claude
 scope: dev
-title: "Phase 29: Implementation of `exoctl journal` Command"
-short_summary: "Comprehensive plan for implementing the `exoctl journal` command to query, filter, and inspect the activity journal."
+title: "Phase 29: Implementation of `exactl journal` Command"
+short_summary: "Comprehensive plan for implementing the `exactl journal` command to query, filter, and inspect the activity journal."
 version: "0.2"
-topics: ["exoctl", "journal", "cli", "audit", "database"]
+topics: ["exactl", "journal", "cli", "audit", "database"]
 ---
 
-## Phase 29: `exoctl journal` Command
+## Phase 29: `exactl journal` Command
 
-**Goal:** Implement the `exoctl journal` command to allow users to query, filter, and inspect the `journal.db` (Activity Journal) directly from the CLI. This is a critical observability feature for the "Governance-First" promise of ExoFrame.
+**Goal:** Implement the `exactl journal` command to allow users to query, filter, and inspect the `journal.db` (Activity Journal) directly from the CLI. This is a critical observability feature for the "Governance-First" promise of Exaix.
 
 **Status:** ✅ COMPLETE
 **Timebox:** 1-2 days
 **Entry Criteria:** Phase 28 complete (Config reloading working)
-**Exit Criteria:** `exoctl journal` command working with all filters defined in MT-26. (✅ Complete)
+**Exit Criteria:** `exactl journal` command working with all filters defined in MT-26. (✅ Complete)
 
 ## References
 
@@ -40,15 +40,15 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 ## Step 29.2: CLI Command Structure
 
-- **Goal:** Implement the `exoctl journal` command handler using Cliffy.
-- **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
+- **Goal:** Implement the `exactl journal` command handler using Cliffy.
+- **Location:** `src/cli/commands/journal.ts`, `src/cli/exactl.ts`
 - **Actions:**
   1. Create `JournalCommands` class following the pattern of `PlanCommands`.
   1. Define command options: `--filter <string[]>` (allow multiple, e.g. `-f trace_id=... -f action_type=...`), `--tail <number>` (alias `-n`, default 50), `--format <json|table>` (default table), and `--follow, -f` (future: streaming support; decision for this step is static query first).
 
 **Success Criteria:**
 
-- [x] `exoctl journal --help` shows usage.
+- [x] `exactl journal --help` shows usage.
 - [x] Arguments parsed correctly (key-value pairs for filters).
 - [x] Command calls `DatabaseService.queryActivity`.
 
@@ -84,7 +84,7 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 **Verification Plan (MT-26 Mapping):**
 
-1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
+1. **Basic Queries:** `exactl journal` (default tail), `exactl journal --filter trace_id=...`
 
 1.
 
@@ -118,7 +118,7 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 ## Step 29.5: TUI Upgrade (Monitor View)
 
-**Goal:** Enable the TUI "Monitor" view to function as a full UI for `exoctl journal`.
+**Goal:** Enable the TUI "Monitor" view to function as a full UI for `exactl journal`.
 
 **Action:** Refactor `src/tui/monitor_view.ts` to support database-level filtering.
 
@@ -138,5 +138,5 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 ## Step 29.7: TUI Verification
 
-- [x] Manual verification via `exoctl dashboard`.
+- [x] Manual verification via `exactl dashboard`.
 - [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.

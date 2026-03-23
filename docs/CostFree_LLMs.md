@@ -1,6 +1,6 @@
 # Cost-free / Low-cost LLM Providers (Step 10.1)
 
-This document explains how ExoFrame supports low-cost or cost-friendly LLM options (e.g. `gpt-4.1`, `gpt-4o`, `gpt-5-mini`) and how to safely run manual integration tests.
+This document explains how Exaix supports low-cost or cost-friendly LLM options (e.g. `gpt-4.1`, `gpt-4o`, `gpt-5-mini`) and how to safely run manual integration tests.
 
 ## Overview
 
@@ -8,7 +8,7 @@ This document explains how ExoFrame supports low-cost or cost-friendly LLM optio
 - In CI (when `CI` environment variable is present), the factory returns `MockProvider` for these aliases unless you explicitly opt-in.
 - To avoid accidental paid calls, the integration test is manual and opt-in.
 
-## Configuration Example (exo.config)
+## Configuration Example (exa.config)
 
 ```toml
 [models.ci_safe]
@@ -24,30 +24,30 @@ You can override selection with environment variables or by passing options dire
 
 ## Environment Variables
 
-- `EXO_TEST_ENABLE_PAID_LLM=1` — **explicit opt-in** to allow contacting real, potentially paid LLM endpoints. Only set this when you intentionally want to run live calls (e.g., local manual test).
-- `EXO_TEST_OPENAI_API_KEY` — API key used by the `OpenAIShim` when contacting OpenAI-compatible endpoints.
+- `EXA_TEST_ENABLE_PAID_LLM=1` — **explicit opt-in** to allow contacting real, potentially paid LLM endpoints. Only set this when you intentionally want to run live calls (e.g., local manual test).
+- `EXA_TEST_OPENAI_API_KEY` — API key used by the `OpenAIShim` when contacting OpenAI-compatible endpoints.
 
 # Retry & Test-model configuration
 
-- **Retry Settings**: Retry settings are now configured via `exo.config.toml` (see `[ai.retry.openai]`), not environment variables.
-- `EXO_TEST_LLM_MODEL` — _(optional)_ Default model used when running live LLM tests. **Default:** `gpt-5-mini`. You can also set this to any OpenAI-style model id that your key can access (e.g., `gpt-3.5-turbo`, `gpt-4o`, or `gpt-4.1`).
+- **Retry Settings**: Retry settings are now configured via `exa.config.toml` (see `[ai.retry.openai]`), not environment variables.
+- `EXA_TEST_LLM_MODEL` — _(optional)_ Default model used when running live LLM tests. **Default:** `gpt-5-mini`. You can also set this to any OpenAI-style model id that your key can access (e.g., `gpt-3.5-turbo`, `gpt-4o`, or `gpt-4.1`).
 
 Notes:
 
-- CI systems should _not_ set `EXO_TEST_ENABLE_PAID_LLM`. When `CI` is set and `EXO_TEST_ENABLE_PAID_LLM !== '1'`, the `ModelFactory` will return a `MockProvider` for cost-friendly aliases.
-- The retry settings in `exo.config.toml` are respected by all providers.
+- CI systems should _not_ set `EXA_TEST_ENABLE_PAID_LLM`. When `CI` is set and `EXA_TEST_ENABLE_PAID_LLM !== '1'`, the `ModelFactory` will return a `MockProvider` for cost-friendly aliases.
+- The retry settings in `exa.config.toml` are respected by all providers.
 
 # Example: run manual tests with overrides
 
 ```bash
-export EXO_TEST_ENABLE_PAID_LLM=1
-export EXO_TEST_OPENAI_API_KEY="sk-..."
-export EXO_TEST_LLM_MODEL="gpt-5-mini"
+export EXA_TEST_ENABLE_PAID_LLM=1
+export EXA_TEST_OPENAI_API_KEY="sk-..."
+export EXA_TEST_LLM_MODEL="gpt-5-mini"
 
 den o test tests/integration/19_llm_free_provider_test.ts --allow-env --allow-net --allow-read
 ```
 
-Be cautious when setting `EXO_TEST_ENABLE_PAID_LLM` in CI: only enable it for trusted, protected runs and ensure secrets are stored safely.
+Be cautious when setting `EXA_TEST_ENABLE_PAID_LLM` in CI: only enable it for trusted, protected runs and ensure secrets are stored safely.
 
 ## Running the Manual Integration Test
 
@@ -56,8 +56,8 @@ The integration test is intentionally ignored by default and performs safety che
 1. Export the env vars locally (only when you intend to run live):
 
 ```bash
-export EXO_TEST_ENABLE_PAID_LLM=1
-export EXO_TEST_OPENAI_API_KEY="sk-..."
+export EXA_TEST_ENABLE_PAID_LLM=1
+export EXA_TEST_OPENAI_API_KEY="sk-..."
 ```
 
 1.
@@ -75,8 +75,8 @@ deno test tests/integration/llm_free_provider_test.ts --allow-env --allow-net --
 
 ## Safety & CI
 
-- CI systems should not set `EXO_TEST_ENABLE_PAID_LLM` (default behavior keeps tests mock-based and cost-free).
-- If you need to run paid-model tests in CI intentionally, ensure you store encryption secrets and set `EXO_TEST_ENABLE_PAID_LLM=1` and the appropriate keys **only on a trusted branch or protected job**.
+- CI systems should not set `EXA_TEST_ENABLE_PAID_LLM` (default behavior keeps tests mock-based and cost-free).
+- If you need to run paid-model tests in CI intentionally, ensure you store encryption secrets and set `EXA_TEST_ENABLE_PAID_LLM=1` and the appropriate keys **only on a trusted branch or protected job**.
 
 ## Contact
 

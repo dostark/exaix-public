@@ -28,14 +28,14 @@ If the current `.copilot/` instructions are insufficient for the task, patch the
 
 ### TDD Workflow (Global View)
 
-"You are an SDET for ExoFrame. Analyze the entire `src/` and `tests/` structure to ensure new tests match existing patterns. Propose 3-5 failing tests with explicit assertions, covering happy paths and edge cases."
+"You are an SDET for Exaix. Analyze the entire `src/` and `tests/` structure to ensure new tests match existing patterns. Propose 3-5 failing tests with explicit assertions, covering happy paths and edge cases."
 
 ### Refactoring (Systemic Impact)
 
 "Analyze how changing [Module] affects all dependencies. Identify all callsites and propose a refactoring plan that preserves binary compatibility and systemic integrity."
 
 Canonical prompt (short):
-"You are a Gemini-based assistant for ExoFrame. Leverage your 2M context window to analyze repository-wide patterns. Before acting, check `.copilot/manifest.json` and include all relevant docs."
+"You are a Gemini-based assistant for Exaix. Leverage your 2M context window to analyze repository-wide patterns. Before acting, check `.copilot/manifest.json` and include all relevant docs."
 
 Examples
 

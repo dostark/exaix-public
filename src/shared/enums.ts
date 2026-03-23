@@ -125,7 +125,7 @@ export enum MockStrategy {
 }
 
 /**
- * Status for the ExoFrame daemon.
+ * Status for the Exaix daemon.
  */
 export enum DaemonStatus {
   RUNNING = GeneralStatus.RUNNING,
@@ -468,7 +468,7 @@ export enum PortalOperation {
 }
 
 /**
- * Strategy for how ExoFrame executes plans within a portal repository.
+ * Strategy for how Exaix executes plans within a portal repository.
  * - BRANCH: execute directly in the repository checkout using feature branches
  * - WORKTREE: execute in a git worktree (feature branch still used for review)
  */
@@ -1210,7 +1210,7 @@ export enum QualityGateMode {
 }
 
 /**
- * Outcome status returned by the `exoctl request clarify` command.
+ * Outcome status returned by the `exactl request clarify` command.
  */
 export enum ClarifyResultStatus {
   /** Session has pending questions awaiting user answers. */

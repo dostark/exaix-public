@@ -1,4 +1,4 @@
-Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate:
+Perform a comprehensive code review of Exaix's plan executor implementation. Evaluate:
 
 - Code quality and correctness in src/services/plan_executor.ts and related execution logic
 - Security validation of plan execution and tool invocation

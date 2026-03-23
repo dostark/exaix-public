@@ -1,7 +1,7 @@
 /**
  * @module MCPServerTest
  * @path tests/mcp/server_test.ts
- * @description Suite for the ExoFrame Model Context Protocol (MCP) server, verifying
+ * @description Suite for the Exaix Model Context Protocol (MCP) server, verifying
  * initialization routines, transport layer integrity (Stdio/SSE), and core session management.
  */
 
@@ -24,7 +24,7 @@ Deno.test("MCP Server: initializes with stdio transport", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
     assertEquals(ctx.server.getTransport(), McpTransportType.STDIO);
-    assertEquals(ctx.server.getServerName(), "exoframe");
+    assertEquals(ctx.server.getServerName(), "exaix");
     assertExists(ctx.server.getVersion());
   } finally {
     await ctx.cleanup();
@@ -58,7 +58,7 @@ Deno.test("MCP Server: handles initialize request", async () => {
     const result = response.result as { protocolVersion: string; serverInfo: { name: string; version: string } };
     assertEquals(result.protocolVersion, "2024-11-05");
     assertExists(result.serverInfo);
-    assertEquals(result.serverInfo.name, "exoframe");
+    assertEquals(result.serverInfo.name, "exaix");
   } finally {
     await ctx.cleanup();
   }
@@ -84,10 +84,10 @@ Deno.test("MCP Server: handles tools/list request", async () => {
     assert(toolNames.includes("git_create_branch"));
     assert(toolNames.includes("git_commit"));
     assert(toolNames.includes("git_status"));
-    assert(toolNames.includes("exoframe_create_request"));
-    assert(toolNames.includes("exoframe_list_plans"));
-    assert(toolNames.includes("exoframe_approve_plan"));
-    assert(toolNames.includes("exoframe_query_journal"));
+    assert(toolNames.includes("exaix_create_request"));
+    assert(toolNames.includes("exaix_list_plans"));
+    assert(toolNames.includes("exaix_approve_plan"));
+    assert(toolNames.includes("exaix_query_journal"));
   } finally {
     await ctx.cleanup();
   }
@@ -108,7 +108,7 @@ Deno.test("MCP Server: logs startup to IActivity Journal", async () => {
     const log = logs[0] as { payload: string };
     const payload = JSON.parse(log.payload);
     assertEquals(payload.transport, McpTransportType.STDIO);
-    assertEquals(payload.server_name, "exoframe");
+    assertEquals(payload.server_name, "exaix");
   } finally {
     await ctx.cleanup();
   }

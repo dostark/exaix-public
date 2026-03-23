@@ -1,8 +1,8 @@
-# ExoFrame TUI Redesign Concept
+# Exaix TUI Redesign Concept
 
 ## Overview
 
-The new ExoFrame TUI provides a high-efficiency transition from a simple CLI to a powerful command center. Inspired by classic file managers (**Midnight Commander**, **FAR Manager**), it features a **tab-based** interface where each view occupies the full main area, with optional **split-view** for master-detail exploration of entities.
+The new Exaix TUI provides a high-efficiency transition from a simple CLI to a powerful command center. Inspired by classic file managers (**Midnight Commander**, **FAR Manager**), it features a **tab-based** interface where each view occupies the full main area, with optional **split-view** for master-detail exploration of entities.
 
 ## Core Design Principles
 
@@ -909,7 +909,7 @@ A quick-access, fuzzy-search overlay for navigating across all entities:
 
 ## Settings View
 
-A dedicated, full TUI view for browsing and editing the `exo.config.toml` configuration. Accessible via `[Settings] > Open Settings View` from the top menu.
+A dedicated, full TUI view for browsing and editing the `exa.config.toml` configuration. Accessible via `[Settings] > Open Settings View` from the top menu.
 
 ### Layout
 
@@ -919,7 +919,7 @@ The Settings View uses the **Master-Detail** layout:
 
 ▼ system
 log_level: INFO
-root: /home/user/ExoFrame
+root: /home/user/Exaix
 ▼ ai
 provider: google
 model: gemini-2.5-pro
@@ -1071,7 +1071,7 @@ The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each sub
 
 ## Feature Integration
 
-The new TUI modernizes all capabilities detailed in the [ExoFrame User Guide](../ExoFrame_User_Guide.md):
+The new TUI modernizes all capabilities detailed in the [Exaix User Guide](../Exaix_User_Guide.md):
 
 1. **Global View Management**: Replaces the old View Picker (`p`) with a structured `[Views]` top menu and Tab Switch Bar.
 
@@ -1190,7 +1190,7 @@ The **CostTracker** service provides per-request and per-agent token usage and c
 
 ### 1. View Persistence (v2 Schema)
 
-The TUI persists configuration to `~/.exoframe/tui_layout.json`:
+The TUI persists configuration to `~/.exaix/tui_layout.json`:
 
 ```json
 {
@@ -1251,5 +1251,5 @@ The TUI listens for terminal resize events and adapts **immediately**:
 The **`F1`** help overlay provides a context-aware, categorized shortcut reference:
 
 - **Sections**: Global, Navigation, Current View, Alt-Key Shortcuts.
-- **Export**: Within the `F1` overlay, pressing **`E`** exports the full keyboard reference to `~/.exoframe/keyboard_reference.md` for offline access or printing.
+- **Export**: Within the `F1` overlay, pressing **`E`** exports the full keyboard reference to `~/.exaix/keyboard_reference.md` for offline access or printing.
 `````

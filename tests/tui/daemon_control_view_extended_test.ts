@@ -361,7 +361,7 @@ Deno.test("DaemonControlTuiSession: renderConfig shows configuration info", asyn
   session.showConfig();
   const lines = session.renderConfig();
   assertEquals(lines.some((l) => l.includes("DAEMON CONFIGURATION")), true);
-  assertEquals(lines.some((l) => l.includes("exo.config.toml")), true);
+  assertEquals(lines.some((l) => l.includes("exa.config.toml")), true);
 });
 
 // ===== LegacyDaemonControlTuiSession Tests =====

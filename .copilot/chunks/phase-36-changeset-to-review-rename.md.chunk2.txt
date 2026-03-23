@@ -1,6 +1,6 @@
 ```bash
 # Confusing: Why is an analysis artifact called a "changeset"?
-$ exoctl changeset list
+$ exactl changeset list
 🔀 Changesets (2):
 
 📌 implement-auth (feat/implement-auth-550e8400)  # Git changeset ✅ Makes sense
@@ -16,7 +16,7 @@ $ exoctl changeset list
 
 Rename commands and terminology from "changeset" to "review":
 
-- **CLI Commands:** `exoctl changeset` → `exoctl review`
+- **CLI Commands:** `exactl changeset` → `exactl review`
 - **Database Tables:** `changesets` → `reviews` (with migration)
 - **Code Modules:** `ChangesetService` → `ReviewService`
 - **User-Facing Text:** "changeset" → "review" in messages and docs

@@ -1,4 +1,4 @@
-Medium priority - this is a UX improvement that would significantly help users navigate and understand the ExoFrame workflow, but doesn't break existing functionality.
+Medium priority - this is a UX improvement that would significantly help users navigate and understand the Exaix workflow, but doesn't break existing functionality.
 
 ## Resolution
 

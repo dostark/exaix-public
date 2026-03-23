@@ -80,7 +80,7 @@ Memory/Skills/core/
 ├── commit-message.skill.md       # Commit message best practices
 ├── documentation-driven.skill.md # Documentation-first approach
 ├── error-handling.skill.md       # Error handling patterns
-├── exoframe-conventions.skill.md # ExoFrame-specific conventions
+├── exaix-conventions.skill.md # Exaix-specific conventions
 ├── security-first.skill.md       # Security-first development
 ├── tdd-methodology.skill.md      # Test-driven development approach
 └── typescript-patterns.skill.md  # TypeScript best practices
@@ -142,7 +142,7 @@ Blueprints/
 │   ├── security-first.skill.md
 │   ├── commit-message.skill.md
 │   ├── documentation-driven.skill.md
-│   └── exoframe-conventions.skill.md
+│   └── exaix-conventions.skill.md
 └── src/
     └── flows/
 ```text

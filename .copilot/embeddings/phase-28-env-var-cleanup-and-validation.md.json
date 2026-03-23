@@ -3,7 +3,7 @@
   "title": "phase-28-env-var-cleanup-and-validation.md",
   "vecs": [
     {
-      "text": "# Phase 28: Environment Variable Cleanup and Validation\n\n> [!NOTE]\n> **Status: Complete ✅**\n> This phase standardized ExoFrame's environment variable usage, retired redundant production env vars, and implemented Zod validation for runtime overrides.\n>\n> **Completed:** All phases (1-8)\n>\n> - Phase 1: Env validation schema (`src/config/env_schema.ts`)\n> - Phase 2: Deprecated var removal from `src/`\n> - Phase 3: Test var standardization (`EXO_TEST_*`)\n> - Phase 4: Config documentation (`exo.config.sample.toml`)\n> - Phase 5: Migration guide (N/A - no production deployment)\n> - Phase 6-7: Comprehensive testing\n> - Phase 8: Complete documentation updates (`.copilot/`, `docs/`, cross-references)\n\n## Executive Summary",
+      "text": "# Phase 28: Environment Variable Cleanup and Validation\n\n> [!NOTE]\n> **Status: Complete ✅**\n> This phase standardized Exaix's environment variable usage, retired redundant production env vars, and implemented Zod validation for runtime overrides.\n>\n> **Completed:** All phases (1-8)\n>\n> - Phase 1: Env validation schema (`src/config/env_schema.ts`)\n> - Phase 2: Deprecated var removal from `src/`\n> - Phase 3: Test var standardization (`EXA_TEST_*`)\n> - Phase 4: Config documentation (`exa.config.sample.toml`)\n> - Phase 5: Migration guide (N/A - no production deployment)\n> - Phase 6-7: Comprehensive testing\n> - Phase 8: Complete documentation updates (`.copilot/`, `docs/`, cross-references)\n\n## Executive Summary",
       "vector": [
         0.5411764705882353,
         0.8274509803921568,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "Following Phase 27's configuration consolidation, ExoFrame still has scattered environment variable usage across production and testing contexts. This phase aims to:\n\n1. **Retain essential runtime overrides** (`EXO_LLM_*`) for CLI/TUI flexibility\n2. **Retire redundant production env vars** that duplicate `exo.config.toml` functionality\n3. **Standardize testing env vars** to use `EXO_TEST_*` prefix for clarity\n4. **Implement Zod validation** for all environment variable inputs\n5. **Document all supported env vars** in `exo.config.sample.toml`\n\n**Scope:** No deprecation period. This is a breaking change for Phase 28.\n\n---\n\n## Goals",
+      "text": "Following Phase 27's configuration consolidation, Exaix still has scattered environment variable usage across production and testing contexts. This phase aims to:\n\n1. **Retain essential runtime overrides** (`EXA_LLM_*`) for CLI/TUI flexibility\n2. **Retire redundant production env vars** that duplicate `exa.config.toml` functionality\n3. **Standardize testing env vars** to use `EXA_TEST_*` prefix for clarity\n4. **Implement Zod validation** for all environment variable inputs\n5. **Document all supported env vars** in `exa.config.sample.toml`\n\n**Scope:** No deprecation period. This is a breaking change for Phase 28.\n\n---\n\n## Goals",
       "vector": [
         0.4666666666666667,
         0.11764705882352941,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- [x] Reduce environment variable surface area to essential overrides only\n- [x] Implement schema validation for all env var inputs\n- [x] Clearly separate production vs. testing environment variables\n- [x] All deprecated env vars removed from src/\n- [x] `exo.config.sample.toml` documents all env vars\n- [x] Migration guide (N/A - no production deployment)\n- [x] All tests pass\n- [ ] Documentation updated (Phase 8 - comprehensive docs/ and .copilot/ updates)\n\n---\n\n## Current State Analysis\n\n### Production Environment Variables (To Review)",
+      "text": "- [x] Reduce environment variable surface area to essential overrides only\n- [x] Implement schema validation for all env var inputs\n- [x] Clearly separate production vs. testing environment variables\n- [x] All deprecated env vars removed from src/\n- [x] `exa.config.sample.toml` documents all env vars\n- [x] Migration guide (N/A - no production deployment)\n- [x] All tests pass\n- [ ] Documentation updated (Phase 8 - comprehensive docs/ and .copilot/ updates)\n\n---\n\n## Current State Analysis\n\n### Production Environment Variables (To Review)",
       "vector": [
         0.2784313725490196,
         0.13725490196078433,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "| Variable                      | Purpose                  | Action     | Rationale                                        |\n| ----------------------------- | ------------------------ | ---------- | ------------------------------------------------ |\n| `EXO_LLM_PROVIDER`            | Override AI provider     | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXO_LLM_MODEL`               | Override AI model        | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXO_LLM_BASE_URL`            | Override API endpoint    | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXO_LLM_TIMEOUT_MS`          | Override request timeout | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXO_OLLAMA_RETRY_MAX`        | Ollama retry attempts    | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama]          |\n| `EXO_OLLAMA_RETRY_BACKOFF_MS` | Ollama retry backoff     | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama]          |\n| `EXO_OPENAI_RETRY_MAX`        | OpenAI retry attempts    | **RETIRE** | Use `exo.config.toml` [ai.retry.openai]          |\n| `EXO_OPENAI_RETRY_BACKOFF_MS` | OpenAI retry backoff     | **RETIRE** | Use `exo.config.toml` [ai.retry.openai]          |\n| `EXO_OPENAI_TIMEOUT_MS`       | OpenAI timeout           | **RETIRE** | Use `exo.config.toml` [models.<name>.timeout_ms] |",
+      "text": "| Variable                      | Purpose                  | Action     | Rationale                                        |\n| ----------------------------- | ------------------------ | ---------- | ------------------------------------------------ |\n| `EXA_LLM_PROVIDER`            | Override AI provider     | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXA_LLM_MODEL`               | Override AI model        | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXA_LLM_BASE_URL`            | Override API endpoint    | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXA_LLM_TIMEOUT_MS`          | Override request timeout | **KEEP**   | Essential for CLI/TUI runtime override           |\n| `EXA_OLLAMA_RETRY_MAX`        | Ollama retry attempts    | **RETIRE** | Use `exa.config.toml` [ai.retry.ollama]          |\n| `EXA_OLLAMA_RETRY_BACKOFF_MS` | Ollama retry backoff     | **RETIRE** | Use `exa.config.toml` [ai.retry.ollama]          |\n| `EXA_OPENAI_RETRY_MAX`        | OpenAI retry attempts    | **RETIRE** | Use `exa.config.toml` [ai.retry.openai]          |\n| `EXA_OPENAI_RETRY_BACKOFF_MS` | OpenAI retry backoff     | **RETIRE** | Use `exa.config.toml` [ai.retry.openai]          |\n| `EXA_OPENAI_TIMEOUT_MS`       | OpenAI timeout           | **RETIRE** | Use `exa.config.toml` [models.<name>.timeout_ms] |",
       "vector": [
         0.9372549019607843,
         0.6980392156862745,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "| Current Name          | Purpose                         | New Name                   | Action                |\n| --------------------- | ------------------------------- | -------------------------- | --------------------- |\n| `EXO_ENABLE_PAID_LLM` | CI opt-in for paid API tests    | `EXO_TEST_ENABLE_PAID_LLM` | **RENAME**            |\n| `EXO_OPENAI_API_KEY`  | OpenAI API key for tests        | `EXO_TEST_OPENAI_API_KEY`  | **RENAME**            |\n| `EXO_TEST_LLM_MODEL`  | Override model for tests        | (keep as-is)               | **KEEP**              |\n| `EXO_ENABLE_OLLAMA`   | Enable Ollama integration tests | `EXO_TEST_ENABLE_OLLAMA`   | **RENAME**            |\n| `EXO_RUN_LLAMA_TESTS` | Enable Llama tests              | `EXO_TEST_ENABLE_LLAMA`    | **RENAME**            |\n| `DENO_TEST`           | Detect test environment         | `EXO_TEST_MODE`            | **RENAME**            |\n| `CI`                  | Detect CI environment           | `EXO_CI_MODE`              | **RENAME** (optional) |\n| `EXOCTL_TEST_MODE`    | CLI test mode                   | `EXO_TEST_CLI_MODE`        | **RENAME**            |",
+      "text": "| Current Name          | Purpose                         | New Name                   | Action                |\n| --------------------- | ------------------------------- | -------------------------- | --------------------- |\n| `EXA_ENABLE_PAID_LLM` | CI opt-in for paid API tests    | `EXA_TEST_ENABLE_PAID_LLM` | **RENAME**            |\n| `EXA_OPENAI_API_KEY`  | OpenAI API key for tests        | `EXA_TEST_OPENAI_API_KEY`  | **RENAME**            |\n| `EXA_TEST_LLM_MODEL`  | Override model for tests        | (keep as-is)               | **KEEP**              |\n| `EXA_ENABLE_OLLAMA`   | Enable Ollama integration tests | `EXA_TEST_ENABLE_OLLAMA`   | **RENAME**            |\n| `EXA_RUN_LLAMA_TESTS` | Enable Llama tests              | `EXA_TEST_ENABLE_LLAMA`    | **RENAME**            |\n| `DENO_TEST`           | Detect test environment         | `EXA_TEST_MODE`            | **RENAME**            |\n| `CI`                  | Detect CI environment           | `EXA_CI_MODE`              | **RENAME** (optional) |\n| `EXACTL_TEST_MODE`    | CLI test mode                   | `EXA_TEST_CLI_MODE`        | **RENAME**            |",
       "vector": [
         0.40784313725490196,
         0.5764705882352941,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "/**\n    * Schema for EXO_LLM_* environment variable overrides\n    * These allow runtime override of AI provider configuration\n    */\n   export const EnvLLMOverrideSchema = z.object({\n     EXO_LLM_PROVIDER: ProviderTypeSchema.optional(),\n     EXO_LLM_MODEL: z.string().min(1).optional(),\n     EXO_LLM_BASE_URL: z.string().url().optional(),\n     EXO_LLM_TIMEOUT_MS: z.string()\n       .regex(/^\\d+$/)\n       .transform(Number)\n       .pipe(\n         z.number()\n           .min(DEFAULTS.AI_TIMEOUT_MS_MIN)\n           .max(DEFAULTS.AI_TIMEOUT_MS_MAX),\n       )\n       .optional(),\n   });\n\nexport type EnvLLMOverride = z.infer<typeof EnvLLMOverrideSchema>;",
+      "text": "/**\n    * Schema for EXA_LLM_* environment variable overrides\n    * These allow runtime override of AI provider configuration\n    */\n   export const EnvLLMOverrideSchema = z.object({\n     EXA_LLM_PROVIDER: ProviderTypeSchema.optional(),\n     EXA_LLM_MODEL: z.string().min(1).optional(),\n     EXA_LLM_BASE_URL: z.string().url().optional(),\n     EXA_LLM_TIMEOUT_MS: z.string()\n       .regex(/^\\d+$/)\n       .transform(Number)\n       .pipe(\n         z.number()\n           .min(DEFAULTS.AI_TIMEOUT_MS_MIN)\n           .max(DEFAULTS.AI_TIMEOUT_MS_MAX),\n       )\n       .optional(),\n   });\n\nexport type EnvLLMOverride = z.infer<typeof EnvLLMOverrideSchema>;",
       "vector": [
         0.8627450980392157,
         0.29411764705882354,
@@ -624,7 +624,7 @@
       ]
     },
     {
-      "text": "/**\n    * Schema for EXO_TEST_* environment variables\n    * These control test execution behavior\n    */\n   export const EnvTestConfigSchema = z.object({\n     EXO_TEST_MODE: z.enum([\"0\", \"1\"]).optional(),\n     EXO_TEST_CLI_MODE: z.enum([\"0\", \"1\"]).optional(),\n     EXO_TEST_ENABLE_PAID_LLM: z.enum([\"0\", \"1\"]).optional(),\n     EXO_TEST_ENABLE_OLLAMA: z.enum([\"0\", \"1\"]).optional(),\n     EXO_TEST_ENABLE_LLAMA: z.enum([\"true\", \"false\"]).optional(),\n     EXO_TEST_LLM_MODEL: z.string().optional(),\n     EXO_TEST_OPENAI_API_KEY: z.string().optional(),\n   });\n\nexport type EnvTestConfig = z.infer<typeof EnvTestConfigSchema>;\n\n/**\n    * Optional: Standardized CI detection\n    */\n   export const EnvCIConfigSchema = z.object({\n     EXO_CI_MODE: z.enum([\"0\", \"1\"]).optional(),\n   });",
+      "text": "/**\n    * Schema for EXA_TEST_* environment variables\n    * These control test execution behavior\n    */\n   export const EnvTestConfigSchema = z.object({\n     EXA_TEST_MODE: z.enum([\"0\", \"1\"]).optional(),\n     EXA_TEST_CLI_MODE: z.enum([\"0\", \"1\"]).optional(),\n     EXA_TEST_ENABLE_PAID_LLM: z.enum([\"0\", \"1\"]).optional(),\n     EXA_TEST_ENABLE_OLLAMA: z.enum([\"0\", \"1\"]).optional(),\n     EXA_TEST_ENABLE_LLAMA: z.enum([\"true\", \"false\"]).optional(),\n     EXA_TEST_LLM_MODEL: z.string().optional(),\n     EXA_TEST_OPENAI_API_KEY: z.string().optional(),\n   });\n\nexport type EnvTestConfig = z.infer<typeof EnvTestConfigSchema>;\n\n/**\n    * Optional: Standardized CI detection\n    */\n   export const EnvCIConfigSchema = z.object({\n     EXA_CI_MODE: z.enum([\"0\", \"1\"]).optional(),\n   });",
       "vector": [
         0.9490196078431372,
         0.20392156862745098,
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "text": "export type EnvCIConfig = z.infer<typeof EnvCIConfigSchema>;\n\n/**\n    * Helper to safely get and validate environment variables\n    */\n   export function getValidatedEnvOverrides(): EnvLLMOverride {\n     const raw = {\n       EXO_LLM_PROVIDER: safeEnvGet(\"EXO_LLM_PROVIDER\"),\n       EXO_LLM_MODEL: safeEnvGet(\"EXO_LLM_MODEL\"),\n       EXO_LLM_BASE_URL: safeEnvGet(\"EXO_LLM_BASE_URL\"),\n       EXO_LLM_TIMEOUT_MS: safeEnvGet(\"EXO_LLM_TIMEOUT_MS\"),\n     };\n\nconst result = EnvLLMOverrideSchema.safeParse(raw);\n     if (!result.success) {\n       console.warn(\"Invalid EXO_LLM_* environment variables:\", result.error.format());\n       return {};\n     }\n\nreturn result.data;\n   }",
+      "text": "export type EnvCIConfig = z.infer<typeof EnvCIConfigSchema>;\n\n/**\n    * Helper to safely get and validate environment variables\n    */\n   export function getValidatedEnvOverrides(): EnvLLMOverride {\n     const raw = {\n       EXA_LLM_PROVIDER: safeEnvGet(\"EXA_LLM_PROVIDER\"),\n       EXA_LLM_MODEL: safeEnvGet(\"EXA_LLM_MODEL\"),\n       EXA_LLM_BASE_URL: safeEnvGet(\"EXA_LLM_BASE_URL\"),\n       EXA_LLM_TIMEOUT_MS: safeEnvGet(\"EXA_LLM_TIMEOUT_MS\"),\n     };\n\nconst result = EnvLLMOverrideSchema.safeParse(raw);\n     if (!result.success) {\n       console.warn(\"Invalid EXA_LLM_* environment variables:\", result.error.format());\n       return {};\n     }\n\nreturn result.data;\n   }",
       "vector": [
         0.5764705882352941,
         0.13725490196078433,
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "text": "function safeEnvGet(key: string): string | undefined {\n     try {\n       return Deno.env.get(key);\n     } catch {\n       return undefined;\n     }\n   }\n   ```\n\n2. **Update `src/ai/provider_factory.ts`:**\n   - Import `getValidatedEnvOverrides()`\n   - Replace raw `safeEnvGet()` calls with validated schema\n   - Remove deprecated env var checks (`EXO_OLLAMA_*`, `EXO_OPENAI_*`)\n\n3. **Create validation helper:**\n   ```typescript\n   // In provider_factory.ts\n   private static resolveOptions(config: Config): ProviderOptions {\n     const envOverrides = getValidatedEnvOverrides();",
+      "text": "function safeEnvGet(key: string): string | undefined {\n     try {\n       return Deno.env.get(key);\n     } catch {\n       return undefined;\n     }\n   }\n   ```\n\n2. **Update `src/ai/provider_factory.ts`:**\n   - Import `getValidatedEnvOverrides()`\n   - Replace raw `safeEnvGet()` calls with validated schema\n   - Remove deprecated env var checks (`EXA_OLLAMA_*`, `EXA_OPENAI_*`)\n\n3. **Create validation helper:**\n   ```typescript\n   // In provider_factory.ts\n   private static resolveOptions(config: Config): ProviderOptions {\n     const envOverrides = getValidatedEnvOverrides();",
       "vector": [
         0.19607843137254902,
         0.792156862745098,
@@ -831,7 +831,7 @@
       ]
     },
     {
-      "text": "return {\n       provider: envOverrides.EXO_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULTS.PROVIDER_MOCK,\n       model: envOverrides.EXO_LLM_MODEL ?? config.ai?.model ?? DEFAULTS.DEFAULT_MOCK_MODEL,\n       baseUrl: envOverrides.EXO_LLM_BASE_URL ?? config.ai?.base_url,\n       timeout: envOverrides.EXO_LLM_TIMEOUT_MS ?? config.ai?.timeout_ms ?? DEFAULTS.DEFAULT_AI_TIMEOUT_MS,\n     };\n   }\n   ```\n\n**Success Criteria:**\n\n- [x] `EnvLLMOverrideSchema` validates all four supported env vars\n- [x] Invalid values (e.g., non-numeric timeout) are rejected with warnings\n- [x] `ProviderFactory` uses validated env overrides\n- [x] Tests pass with valid and invalid env var values\n\n---\n\n### Phase 2: Retire Deprecated Production Environment Variables",
+      "text": "return {\n       provider: envOverrides.EXA_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULTS.PROVIDER_MOCK,\n       model: envOverrides.EXA_LLM_MODEL ?? config.ai?.model ?? DEFAULTS.DEFAULT_MOCK_MODEL,\n       baseUrl: envOverrides.EXA_LLM_BASE_URL ?? config.ai?.base_url,\n       timeout: envOverrides.EXA_LLM_TIMEOUT_MS ?? config.ai?.timeout_ms ?? DEFAULTS.DEFAULT_AI_TIMEOUT_MS,\n     };\n   }\n   ```\n\n**Success Criteria:**\n\n- [x] `EnvLLMOverrideSchema` validates all four supported env vars\n- [x] Invalid values (e.g., non-numeric timeout) are rejected with warnings\n- [x] `ProviderFactory` uses validated env overrides\n- [x] Tests pass with valid and invalid env var values\n\n---\n\n### Phase 2: Retire Deprecated Production Environment Variables",
       "vector": [
         0,
         0.8431372549019608,
@@ -900,7 +900,7 @@
       ]
     },
     {
-      "text": "**Goal:** Remove all production env vars that duplicate TOML config\n\n**Files to Modify:**\n\n- `src/ai/providers.ts`\n- `src/ai/providers/llama_provider.ts`\n\n**Steps:**\n\n1. **Remove from `src/ai/providers.ts`:**\n   ```typescript\n   // DELETE these lines:\n   maxAttempts: Number(safeGetEnv(\"EXO_OLLAMA_RETRY_MAX\") ?? ...),\n   backoffMs: Number(safeGetEnv(\"EXO_OLLAMA_RETRY_BACKOFF_MS\") ?? ...),\n   const maxAttempts = Number(safeGetEnv(\"EXO_OPENAI_RETRY_MAX\") ?? ...);\n   const backoffMs = Number(safeGetEnv(\"EXO_OPENAI_RETRY_BACKOFF_MS\") ?? ...);\n   const timeoutMs = Number(safeGetEnv(\"EXO_OPENAI_TIMEOUT_MS\") ?? ...);\n   ```",
+      "text": "**Goal:** Remove all production env vars that duplicate TOML config\n\n**Files to Modify:**\n\n- `src/ai/providers.ts`\n- `src/ai/providers/llama_provider.ts`\n\n**Steps:**\n\n1. **Remove from `src/ai/providers.ts`:**\n   ```typescript\n   // DELETE these lines:\n   maxAttempts: Number(safeGetEnv(\"EXA_OLLAMA_RETRY_MAX\") ?? ...),\n   backoffMs: Number(safeGetEnv(\"EXA_OLLAMA_RETRY_BACKOFF_MS\") ?? ...),\n   const maxAttempts = Number(safeGetEnv(\"EXA_OPENAI_RETRY_MAX\") ?? ...);\n   const backoffMs = Number(safeGetEnv(\"EXA_OPENAI_RETRY_BACKOFF_MS\") ?? ...);\n   const timeoutMs = Number(safeGetEnv(\"EXA_OPENAI_TIMEOUT_MS\") ?? ...);\n   ```",
       "vector": [
         0.396078431372549,
         0.07058823529411765,
@@ -969,7 +969,7 @@
       ]
     },
     {
-      "text": "2. **Remove from `src/ai/providers/llama_provider.ts`:**\n   ```typescript\n   // DELETE these lines (lines 51, 56):\n   Number(Deno.env.get(\"EXO_OLLAMA_RETRY_MAX\")) || ...\n   Number(Deno.env.get(\"EXO_OLLAMA_RETRY_BACKOFF_MS\")) || ...\n   ```\n\n3. **Update all providers to use config only:**\n   - Ollama: Use `config.ai_retry.providers?.ollama` or defaults\n   - OpenAI: Use `config.ai_retry.providers?.openai` or defaults\n   - Anthropic: Use `config.ai_retry.providers?.anthropic` or defaults\n\n**Success Criteria:**\n\n- [x] No references to `EXO_OLLAMA_RETRY_*` in src/\n- [x] No references to `EXO_OPENAI_RETRY_*` in src/\n- [x] No references to `EXO_OPENAI_TIMEOUT_MS` in src/\n- [x] All retry/timeout config comes from `exo.config.toml`\n- [x] Tests pass without deprecated env vars\n\n---",
+      "text": "2. **Remove from `src/ai/providers/llama_provider.ts`:**\n   ```typescript\n   // DELETE these lines (lines 51, 56):\n   Number(Deno.env.get(\"EXA_OLLAMA_RETRY_MAX\")) || ...\n   Number(Deno.env.get(\"EXA_OLLAMA_RETRY_BACKOFF_MS\")) || ...\n   ```\n\n3. **Update all providers to use config only:**\n   - Ollama: Use `config.ai_retry.providers?.ollama` or defaults\n   - OpenAI: Use `config.ai_retry.providers?.openai` or defaults\n   - Anthropic: Use `config.ai_retry.providers?.anthropic` or defaults\n\n**Success Criteria:**\n\n- [x] No references to `EXA_OLLAMA_RETRY_*` in src/\n- [x] No references to `EXA_OPENAI_RETRY_*` in src/\n- [x] No references to `EXA_OPENAI_TIMEOUT_MS` in src/\n- [x] All retry/timeout config comes from `exa.config.toml`\n- [x] Tests pass without deprecated env vars\n\n---",
       "vector": [
         0.9921568627450981,
         0.8235294117647058,
@@ -1038,7 +1038,7 @@
       ]
     },
     {
-      "text": "### Phase 3: Standardize Testing Environment Variables\n\n**Goal:** Rename testing env vars to use `EXO_TEST_*` prefix for clarity\n\n**Files to Modify:**\n\n- `src/ai/providers.ts`\n- `tests/ai/*.ts` (multiple files)\n- `tests/integration/*.ts` (multiple files)\n- `tests/helpers/env.ts`\n- `src/cli/exoctl.ts`\n- `src/tui/*.ts` (files using `DENO_TEST`)\n\n**Steps:**\n\n1. **Create migration constants in `src/config/env_schema.ts`:**\n   ```typescript\n   /**\n    * Check if running in test mode\n    * Supports both old (DENO_TEST) and new (EXO_TEST_MODE) env vars\n    */\n   export function isTestMode(): boolean {\n     const newVar = safeEnvGet(\"EXO_TEST_MODE\") === \"1\";\n     const legacyVar = safeEnvGet(\"DENO_TEST\") === \"1\";\n     return newVar || legacyVar;\n   }",
+      "text": "### Phase 3: Standardize Testing Environment Variables\n\n**Goal:** Rename testing env vars to use `EXA_TEST_*` prefix for clarity\n\n**Files to Modify:**\n\n- `src/ai/providers.ts`\n- `tests/ai/*.ts` (multiple files)\n- `tests/integration/*.ts` (multiple files)\n- `tests/helpers/env.ts`\n- `src/cli/exactl.ts`\n- `src/tui/*.ts` (files using `DENO_TEST`)\n\n**Steps:**\n\n1. **Create migration constants in `src/config/env_schema.ts`:**\n   ```typescript\n   /**\n    * Check if running in test mode\n    * Supports both old (DENO_TEST) and new (EXA_TEST_MODE) env vars\n    */\n   export function isTestMode(): boolean {\n     const newVar = safeEnvGet(\"EXA_TEST_MODE\") === \"1\";\n     const legacyVar = safeEnvGet(\"DENO_TEST\") === \"1\";\n     return newVar || legacyVar;\n   }",
       "vector": [
         0.4549019607843137,
         0.792156862745098,

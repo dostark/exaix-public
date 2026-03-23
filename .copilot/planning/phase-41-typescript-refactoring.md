@@ -2,12 +2,12 @@
 
 ## Status: DRAFT
 
-Refactor the ExoFrame codebase to enforce strict TypeScript typing, improving maintainability and developer experience by eliminating `any` types and ensuring safe data flow.
+Refactor the Exaix codebase to enforce strict TypeScript typing, improving maintainability and developer experience by eliminating `any` types and ensuring safe data flow.
 
 ## Executive Summary
 
 **Problem:**
-ExoFrame's codebase currently utilizes loose typing (`any`) in critical areas such as database interactions, external service responses, and configuration parsing. This leads to runtime errors that could be caught at compile time and reduces the effectiveness of IDE tooling.
+Exaix's codebase currently utilizes loose typing (`any`) in critical areas such as database interactions, external service responses, and configuration parsing. This leads to runtime errors that could be caught at compile time and reduces the effectiveness of IDE tooling.
 
 **Solution:**
 Implement a comprehensive refactoring strategy based on an "Onion Architecture" approach:

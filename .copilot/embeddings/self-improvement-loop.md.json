@@ -3,7 +3,7 @@
   "title": "Self-improvement loop prompt template",
   "vecs": [
     {
-      "text": "## Key points\n\n- Use this when you suspect the current `agents/` instructions are insufficient for the active task.\n- It forces: adequacy verdict → gaps list → minimal doc patch → rebuild/validate → resume.\n- Keep the doc patch tightly scoped to the user’s request.\n\nCanonical prompt (short)\n\"Run an Instruction Adequacy Check against agents/ for this task. If guidance is missing, propose and apply the smallest update to agents/ docs/templates/cross-reference to close the gap, then rebuild manifest/chunks/embeddings and validate agent docs before continuing the primary task.\"\n\n## Template\n\nYou are working on ExoFrame.\n\n### Instruction Adequacy Check",
+      "text": "## Key points\n\n- Use this when you suspect the current `agents/` instructions are insufficient for the active task.\n- It forces: adequacy verdict → gaps list → minimal doc patch → rebuild/validate → resume.\n- Keep the doc patch tightly scoped to the user’s request.\n\nCanonical prompt (short)\n\"Run an Instruction Adequacy Check against agents/ for this task. If guidance is missing, propose and apply the smallest update to agents/ docs/templates/cross-reference to close the gap, then rebuild manifest/chunks/embeddings and validate agent docs before continuing the primary task.\"\n\n## Template\n\nYou are working on Exaix.\n\n### Instruction Adequacy Check",
       "vector": [
         0.9411764705882353,
         0.5725490196078431,

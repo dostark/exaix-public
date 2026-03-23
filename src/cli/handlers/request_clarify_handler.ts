@@ -1,7 +1,7 @@
 /**
  * @module RequestClarifyHandler
  * @path src/cli/handlers/request_clarify_handler.ts
- * @description Handles the `exoctl request clarify` command: displays pending
+ * @description Handles the `exactl request clarify` command: displays pending
  * clarification questions, submits answers through the ClarificationEngine,
  * and manages proceed/cancel lifecycle transitions for REFINING requests.
  * @architectural-layer CLI

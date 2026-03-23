@@ -19,7 +19,7 @@ import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../src/tui/
 import { makePane } from "./layout_test_utils.ts";
 async function withTempHome(fn: (home: string) => Promise<void> | void): Promise<void> {
   const originalHome = Deno.env.get("HOME");
-  const tempHome = await Deno.makeTempDir({ prefix: "exoframe-home-" });
+  const tempHome = await Deno.makeTempDir({ prefix: "exaix-home-" });
   Deno.env.set("HOME", tempHome);
   try {
     await fn(tempHome);
@@ -56,10 +56,10 @@ Deno.test("saveLayout: writes layout JSON and notifies success", async () => {
   });
 });
 
-Deno.test("saveLayout: notifies error when ~/.exoframe is a file", async () => {
+Deno.test("saveLayout: notifies error when ~/.exaix is a file", async () => {
   await withTempHome(async (home) => {
-    // Create a file at ~/.exoframe so mkdir fails
-    await Deno.writeTextFile(`${home}/.exoframe`, "not a dir");
+    // Create a file at ~/.exaix so mkdir fails
+    await Deno.writeTextFile(`${home}/.exaix`, "not a dir");
 
     const panes: IPane[] = [makePane("main", "MainView")];
     const notifications: Array<{ m: string; t?: string }> = [];
@@ -111,7 +111,7 @@ Deno.test("restoreLayout: restores v1.2 flex layout and notifies", async () => {
       ],
     };
 
-    await Deno.mkdir(`${Deno.env.get("HOME")}/.exoframe`, { recursive: true });
+    await Deno.mkdir(`${Deno.env.get("HOME")}/.exaix`, { recursive: true });
     await Deno.writeTextFile(getLayoutFile(), JSON.stringify(layout));
 
     const notifications: Array<{ m: string; t?: string }> = [];
@@ -153,7 +153,7 @@ Deno.test("restoreLayout: upgrades v1.0 absolute coords to flex", async () => {
       ],
     };
 
-    await Deno.mkdir(`${Deno.env.get("HOME")}/.exoframe`, { recursive: true });
+    await Deno.mkdir(`${Deno.env.get("HOME")}/.exaix`, { recursive: true });
     await Deno.writeTextFile(getLayoutFile(), JSON.stringify(layout));
 
     const result = await restoreLayout(panes, views, () => {});

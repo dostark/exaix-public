@@ -1,4 +1,4 @@
-| # | SDD Principle | ExoFrame Implementation | Phase |
+| # | SDD Principle | Exaix Implementation | Phase |
 | --- | --- | --- | --- |
 | 1 | **Write a spec before code** | The Q&A loop produces an `IRequestSpecification` (goals, success criteria, scope, constraints) *before* the agent executes | Phase 47 |
 | 2 | **Spec defines acceptance criteria** | `IRequestAnalysis` extracts acceptance criteria; `CriteriaGenerator` converts them into evaluation rubric items (`GOAL_ALIGNMENT`, `TASK_FULFILLMENT`) | Phase 45 + 48 |

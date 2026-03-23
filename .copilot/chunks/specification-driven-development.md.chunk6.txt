@@ -1,6 +1,6 @@
-SDD typically applies the same rigor uniformly — every task gets a full spec. ExoFrame adapts the specification effort to the request:
+SDD typically applies the same rigor uniformly — every task gets a full spec. Exaix adapts the specification effort to the request:
 
-- **Clear, well-bounded requests** (e.g., "add a `--verbose` flag to `exoctl portal list`") skip the Q&A loop entirely — the `RequestQualityGate` scores them above threshold and they proceed directly
+- **Clear, well-bounded requests** (e.g., "add a `--verbose` flag to `exactl portal list`") skip the Q&A loop entirely — the `RequestQualityGate` scores them above threshold and they proceed directly
 - **Ambiguous requests** (e.g., "make the TUI better") trigger the full refinement loop
 - **Moderate requests** get auto-enriched via LLM without user interaction
 

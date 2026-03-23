@@ -1,6 +1,6 @@
 {
   "cline.mcpServers": {
-    "exoframe": {
+    "exaix": {
       "command": "deno",
       "args": [
         "run",
@@ -9,12 +9,12 @@
         "--allow-run",
         "--allow-env",
         "--allow-net",
-        "/absolute/path/to/ExoFrame/src/main.ts",
+        "/absolute/path/to/Exaix/src/main.ts",
         "mcp",
         "start"
       ],
       "env": {
-        "EXOFRAME_ROOT": "/absolute/path/to/ExoFrame"
+        "EXAIX_ROOT": "/absolute/path/to/Exaix"
       }
     }
   }

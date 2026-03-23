@@ -132,13 +132,13 @@ await new Promise(() => {});
     );
 
     // Ensure DaemonCommands uses our mock script
-    Deno.env.set("EXO_DAEMON_SCRIPT", mainScript);
+    Deno.env.set("EXA_DAEMON_SCRIPT", mainScript);
 
     daemonCommands = new TestDaemonCommands(createStubContext({ config: configService, db }));
   });
 
   afterEach(async () => {
-    Deno.env.delete("EXO_DAEMON_SCRIPT");
+    Deno.env.delete("EXA_DAEMON_SCRIPT");
     // Clean up any running test daemons
     if (await exists(pidFile)) {
       try {
@@ -239,7 +239,7 @@ await new Promise(() => {});
       assertExists(payload.log_file);
       assertEquals(payload.via, RequestSource.CLI);
       assertExists(payload.command);
-      assertEquals(payload.command.startsWith("exoctl "), true);
+      assertEquals(payload.command.startsWith("exactl "), true);
       assertExists(payload.timestamp);
     });
   });
@@ -636,7 +636,7 @@ describe("DaemonCommands - Edge Cases", () => {
 
   it("start() should throw error when main script not found", async () => {
     // Set environment variable to point to non-existent script to trigger error
-    Deno.env.set("EXO_DAEMON_SCRIPT", "/non-existent/main.ts");
+    Deno.env.set("EXA_DAEMON_SCRIPT", "/non-existent/main.ts");
     try {
       await assertRejects(
         async () => await daemonCommands.start(),
@@ -644,7 +644,7 @@ describe("DaemonCommands - Edge Cases", () => {
         "Daemon script not found",
       );
     } finally {
-      Deno.env.delete("EXO_DAEMON_SCRIPT");
+      Deno.env.delete("EXA_DAEMON_SCRIPT");
     }
   });
 
@@ -688,7 +688,7 @@ describe("DaemonCommands - Edge Cases", () => {
         "Failed to start daemon",
       );
     } finally {
-      Deno.env.delete("EXO_DAEMON_SCRIPT");
+      Deno.env.delete("EXA_DAEMON_SCRIPT");
     }
   });
 
@@ -713,7 +713,7 @@ describe("DaemonCommands - Edge Cases", () => {
         "Failed to start daemon",
       );
     } finally {
-      Deno.env.delete("EXO_DAEMON_SCRIPT");
+      Deno.env.delete("EXA_DAEMON_SCRIPT");
     }
   });
 

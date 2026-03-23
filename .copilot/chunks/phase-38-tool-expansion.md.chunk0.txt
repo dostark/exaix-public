@@ -1,4 +1,4 @@
-**Goal:** Equip ExoFrame agents with a comprehensive, industry-standard toolset for autonomous software engineering.
+**Goal:** Equip Exaix agents with a comprehensive, industry-standard toolset for autonomous software engineering.
 
 **Status:** 🏗️ Implementation Ready
 **Timebox:** 1–2 weeks

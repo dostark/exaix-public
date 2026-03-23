@@ -1,7 +1,7 @@
 /**
- * @module ExoCtlCoverageTest
- * @path tests/cli/exoctl_coverage_test.ts
- * @description Negative testing and coverage verification for the exoctl CLI, ensuring
+ * @module ExaCtlCoverageTest
+ * @path tests/cli/exactl_coverage_test.ts
+ * @description Negative testing and coverage verification for the exactl CLI, ensuring
  * graceful failure messages for invalid inputs across all primary subcommands.
  */
 

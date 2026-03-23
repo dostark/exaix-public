@@ -154,7 +154,7 @@ Deno.test("[PortalKnowledgeView] shows no-analysis message when missing", () => 
   const lines = renderKnowledgeSection(null);
   const text = lines.join("\n");
   assertStringIncludes(text, "No analysis available");
-  assertStringIncludes(text, "exoctl portal analyze");
+  assertStringIncludes(text, "exactl portal analyze");
 });
 
 // ──────────────────────────────────────────────────────────────────────────────

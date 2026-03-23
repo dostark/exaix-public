@@ -1,7 +1,7 @@
 /**
  * @module DomainTools
  * @path src/mcp/domain_tools.ts
- * @description Exposes domain-specific ExoFrame operations (requests, plans, journal) as strictly typed MCP tools.
+ * @description Exposes domain-specific Exaix operations (requests, plans, journal) as strictly typed MCP tools.
  * @architectural-layer MCP
  * @dependencies [mcp, tools, request_commands, plan_commands, plan_status]
  * @related-files [src/mcp/server.ts, src/cli/request_commands.ts, src/cli/plan_commands.ts]
@@ -21,7 +21,7 @@ import { PlanStatus, type PlanStatusType } from "../shared/status/plan_status.ts
 import { RequestSource } from "../shared/enums.ts";
 
 /**
- * Tool for creating new ExoFrame requests
+ * Tool for creating new Exaix requests
  */
 export class CreateRequestTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
@@ -66,8 +66,8 @@ export class CreateRequestTool extends ToolHandler {
 
   getToolDefinition() {
     return {
-      name: "exoframe_create_request",
-      description: "Create a new generic request for ExoFrame",
+      name: "exaix_create_request",
+      description: "Create a new generic request for Exaix",
       inputSchema: {
         type: "object",
         properties: {
@@ -127,7 +127,7 @@ export class ListPlansTool extends ToolHandler {
 
   getToolDefinition() {
     return {
-      name: "exoframe_list_plans",
+      name: "exaix_list_plans",
       description: "List plans matching a status (default: pending)",
       inputSchema: {
         type: "object",
@@ -183,7 +183,7 @@ export class ApprovePlanTool extends ToolHandler {
 
   getToolDefinition() {
     return {
-      name: "exoframe_approve_plan",
+      name: "exaix_approve_plan",
       description: "Approve a pending plan for execution",
       inputSchema: {
         type: "object",
@@ -246,7 +246,7 @@ export class QueryJournalTool extends ToolHandler {
 
   getToolDefinition() {
     return {
-      name: "exoframe_query_journal",
+      name: "exaix_query_journal",
       description: "Query the IActivity Journal for events",
       inputSchema: {
         type: "object",

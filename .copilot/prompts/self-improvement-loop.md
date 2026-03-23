@@ -18,7 +18,7 @@ Canonical prompt (short)
 
 ## Template
 
-You are working on ExoFrame.
+You are working on Exaix.
 
 ### Instruction Adequacy Check
 

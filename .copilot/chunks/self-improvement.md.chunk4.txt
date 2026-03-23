@@ -1,4 +1,4 @@
-- **Missing examples**: no concrete ExoFrame-specific snippet for the task.
+- **Missing examples**: no concrete Exaix-specific snippet for the task.
 - **Missing commands**: no “what to run” for verification/build/validation.
 - **Missing invariants**: unclear what behavior must not change.
 - **Missing cross-links**: docs exist but are hard to discover.

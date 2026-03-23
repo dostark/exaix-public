@@ -2,12 +2,12 @@
 
 When following the manual test scenario for plan approval and changeset approval, the following issues were observed:
 
-- After approving a plan, `exoctl plan list` does not show the approved plan (even with `--status=approved`).
-- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exoctl changeset list` returns an empty list.
+- After approving a plan, `exactl plan list` does not show the approved plan (even with `--status=approved`).
+- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exactl changeset list` returns an empty list.
 
 ## Reproduction Steps
 
-1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.
+1. Deploy a fresh Exaix workspace and configure a test portal as described in the manual scenario.
 
 1.
 1.
@@ -19,7 +19,7 @@ When following the manual test scenario for plan approval and changeset approval
 
 **Expected:**
 
-- Approved plans should be visible in `exoctl plan list` (with or without status filter).
-- Created changesets should be listed by `exoctl changeset list` after plan approval and execution.
+- Approved plans should be visible in `exactl plan list` (with or without status filter).
+- Created changesets should be listed by `exactl changeset list` after plan approval and execution.
 
 **Observed:**

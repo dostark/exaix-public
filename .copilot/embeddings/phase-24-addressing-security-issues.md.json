@@ -3,7 +3,7 @@
   "title": "phase-24-addressing-security-issues.md",
   "vecs": [
     {
-      "text": "# Phase 24: Security & Architecture Audit Report\n\n## Document Information\n\n- **Date**: January 9, 2026\n- **Status**: ✅ Completed - All Issues Resolved\n- **Priority**: P0 - Security\n- **Auditor**: Senior Security Architect\n- **Scope**: Full codebase review (`src/` modules)\n- **Files Reviewed**: 40+ critical files across all modules\n\n---\n\n## Executive Summary\n\nThis comprehensive security audit identified **28 critical findings** across the ExoFrame codebase, including command injection vulnerabilities, unsafe deserialization, API key exposure, race conditions, and architectural weaknesses. The codebase shows signs of rapid development with insufficient security review.\n\n### Risk Profile",
+      "text": "# Phase 24: Security & Architecture Audit Report\n\n## Document Information\n\n- **Date**: January 9, 2026\n- **Status**: ✅ Completed - All Issues Resolved\n- **Priority**: P0 - Security\n- **Auditor**: Senior Security Architect\n- **Scope**: Full codebase review (`src/` modules)\n- **Files Reviewed**: 40+ critical files across all modules\n\n---\n\n## Executive Summary\n\nThis comprehensive security audit identified **28 critical findings** across the Exaix codebase, including command injection vulnerabilities, unsafe deserialization, API key exposure, race conditions, and architectural weaknesses. The codebase shows signs of rapid development with insufficient security review.\n\n### Risk Profile",
       "vector": [
         0.21568627450980393,
         0.35294117647058826,

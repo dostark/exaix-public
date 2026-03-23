@@ -2,6 +2,6 @@ This issue did not cover the read-only execution artifact gap. After structured 
 
 - Executing read-only structured plans while disabling git mutations.
 - Generating an analysis report from tool outputs and writing it to `Memory/Execution/<trace>/analysis.md`.
-- Embedding the analysis report into the review artifact for `exoctl review show`.
+- Embedding the analysis report into the review artifact for `exactl review show`.
 
 ## Examples

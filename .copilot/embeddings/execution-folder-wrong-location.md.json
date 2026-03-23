@@ -3,7 +3,7 @@
   "title": "Execution folder placed in workspace root instead of Memory/",
   "vecs": [
     {
-      "text": "## Problem\n\nThe memory bank service is creating Execution folders in the workspace root instead of the designated Memory/Execution/ directory. This violates the memory bank architecture and scatters execution data across the filesystem.\n\n## Reproduction Steps\n\n```bash\n# Create and execute a plan\ncd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request \"Test execution\" --agent default --model google:gemini-2.0-flash-exp --priority normal\ncd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>\n\n# Check for misplaced Execution folder\ncd ~/ExoFrame && ls -la | grep Execution\ncd ~/ExoFrame && ls -la Memory/Execution/\n```\n\n## Observed Behavior",
+      "text": "## Problem\n\nThe memory bank service is creating Execution folders in the workspace root instead of the designated Memory/Execution/ directory. This violates the memory bank architecture and scatters execution data across the filesystem.\n\n## Reproduction Steps\n\n```bash\n# Create and execute a plan\ncd ~/Exaix && deno run --allow-all src/cli/exactl.ts request \"Test execution\" --agent default --model google:gemini-2.0-flash-exp --priority normal\ncd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>\n\n# Check for misplaced Execution folder\ncd ~/Exaix && ls -la | grep Execution\ncd ~/Exaix && ls -la Memory/Execution/\n```\n\n## Observed Behavior",
       "vector": [
         0.8392156862745098,
         0.03137254901960784,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "- Execution folder appears in workspace root (`/home/dkasymov/git/ExoFrame/Execution/`)\n- Memory/Execution/ directory may be empty or missing expected trace folders\n- Memory bank service creates execution records but in wrong location\n\n## Expected Behavior\n\n- All execution memory should be in `Memory/Execution/<trace-id>/`\n- Workspace root should remain clean\n- Memory bank service should use configured memory paths\n\n## Environment\n\n- ExoFrame Version: Current development\n- OS: Linux\n- Memory Bank: Configured with paths.memoryExecution\n\n## Investigation Needed\n\n1. **Memory Bank Paths**: Check path configuration\n   - Verify `config.paths.memoryExecution` is set correctly\n   - Check if memory bank service uses these paths",
+      "text": "- Execution folder appears in workspace root (`/home/dkasymov/git/Exaix/Execution/`)\n- Memory/Execution/ directory may be empty or missing expected trace folders\n- Memory bank service creates execution records but in wrong location\n\n## Expected Behavior\n\n- All execution memory should be in `Memory/Execution/<trace-id>/`\n- Workspace root should remain clean\n- Memory bank service should use configured memory paths\n\n## Environment\n\n- Exaix Version: Current development\n- OS: Linux\n- Memory Bank: Configured with paths.memoryExecution\n\n## Investigation Needed\n\n1. **Memory Bank Paths**: Check path configuration\n   - Verify `config.paths.memoryExecution` is set correctly\n   - Check if memory bank service uses these paths",
       "vector": [
         0.8313725490196079,
         0.023529411764705882,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "2. **Execution Creation**: Find where Execution folder is created\n   - Check `MemoryBankService.createExecutionRecord()`\n   - Verify path construction logic\n\n## Related Files\n\n- `src/services/memory_bank.ts` - Memory bank service implementation\n- `src/config/schema.ts` - Configuration schema with memory paths\n- `exo.config.toml` - Configuration file\n\n## Workaround\n\nManual cleanup: Move Execution folders from workspace root to Memory/Execution/\n\n## Priority Justification\n\nMedium priority - doesn't break functionality but violates architecture and creates filesystem clutter. Affects organization and maintenance of execution data.\n\n## Examples",
+      "text": "2. **Execution Creation**: Find where Execution folder is created\n   - Check `MemoryBankService.createExecutionRecord()`\n   - Verify path construction logic\n\n## Related Files\n\n- `src/services/memory_bank.ts` - Memory bank service implementation\n- `src/config/schema.ts` - Configuration schema with memory paths\n- `exa.config.toml` - Configuration file\n\n## Workaround\n\nManual cleanup: Move Execution folders from workspace root to Memory/Execution/\n\n## Priority Justification\n\nMedium priority - doesn't break functionality but violates architecture and creates filesystem clutter. Affects organization and maintenance of execution data.\n\n## Examples",
       "vector": [
         0.6980392156862745,
         0.4,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "- Execution folder appears in `/home/user/ExoFrame/Execution/` instead of `Memory/Execution/`\n- Memory bank creates execution records but stores them in wrong location\n- Filesystem clutter in workspace root\n\n## Resolution\n\n**Root Cause**: Hardcoded path construction in `src/services/execution_loop.ts` using `join(\"Execution\")` instead of `config.paths.memoryExecution`.\n\n**Fix Applied**:",
+      "text": "- Execution folder appears in `/home/user/Exaix/Execution/` instead of `Memory/Execution/`\n- Memory bank creates execution records but stores them in wrong location\n- Filesystem clutter in workspace root\n\n## Resolution\n\n**Root Cause**: Hardcoded path construction in `src/services/execution_loop.ts` using `join(\"Execution\")` instead of `config.paths.memoryExecution`.\n\n**Fix Applied**:",
       "vector": [
         0.43137254901960786,
         0.9686274509803922,

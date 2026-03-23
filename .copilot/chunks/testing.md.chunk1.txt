@@ -1,5 +1,5 @@
 Canonical prompt (short):
-"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
+"You are a test-writing assistant for Exaix. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
 
 Examples
 

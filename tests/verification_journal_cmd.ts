@@ -18,7 +18,7 @@ console.log = (...args: string[]) => {
 };
 
 // Skip test - JournalCommands module not found
-Deno.test.ignore("Verification: exoctl journal command", async (t) => {
+Deno.test.ignore("Verification: exactl journal command", async (t) => {
   const { db, cleanup } = await initTestDbService();
 
   // Seed data

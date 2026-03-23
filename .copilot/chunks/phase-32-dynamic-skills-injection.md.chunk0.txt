@@ -3,6 +3,6 @@
 **Status:** ✅ COMPLETED - All steps implemented and tested
 **Timebox:** 2-3 days
 **Entry Criteria:** Phase 17 (Skills Architecture) complete, request and plan commands working
-**Exit Criteria:** `exoctl request --skills <skills>` and `exoctl plan approve <id> --skills <skills>` inject skills into execution context
+**Exit Criteria:** `exactl request --skills <skills>` and `exactl plan approve <id> --skills <skills>` inject skills into execution context
 
 ## References

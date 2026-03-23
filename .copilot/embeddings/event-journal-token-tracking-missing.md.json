@@ -3,7 +3,7 @@
   "title": "Event Journal Missing Token Usage Tracking in Payload",
   "vecs": [
     {
-      "text": "## Problem\n\nThe event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates ExoFrame's declared functionality for cost tracking and monitoring.\n\n## Reproduction Steps\n\n```bash\nsqlite3 .exo/journal.db \"SELECT payload FROM activity WHERE payload LIKE '%google%' ORDER BY timestamp DESC;\"\n```\n\n## Observed Behavior\n\nThe query returns payloads like:\n\n```json\n{\"provider\":\"google-gemini-2.0-flash-exp\",\"model\":\"gemini-2.0-flash-exp\",\"watching_requests\":\"Workspace/Requests\",\"watching_plans\":\"Workspace/Active\",\"status\":\"active\"}\n{\"type\":\"google\",\"model\":\"gemini-2.0-flash-exp\",\"source\":\"config\",\"named_model\":\"default\"}\n```",
+      "text": "## Problem\n\nThe event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates Exaix's declared functionality for cost tracking and monitoring.\n\n## Reproduction Steps\n\n```bash\nsqlite3 .exo/journal.db \"SELECT payload FROM activity WHERE payload LIKE '%google%' ORDER BY timestamp DESC;\"\n```\n\n## Observed Behavior\n\nThe query returns payloads like:\n\n```json\n{\"provider\":\"google-gemini-2.0-flash-exp\",\"model\":\"gemini-2.0-flash-exp\",\"watching_requests\":\"Workspace/Requests\",\"watching_plans\":\"Workspace/Active\",\"status\":\"active\"}\n{\"type\":\"google\",\"model\":\"gemini-2.0-flash-exp\",\"source\":\"config\",\"named_model\":\"default\"}\n```",
       "vector": [
         0.7058823529411765,
         0.8156862745098039,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "No token usage counts or cost information is present in any payloads.\n\n## Expected Behavior\n\nPayloads should include:\n\n- Input token count\n- Output token count\n- Total cost calculation based on provider pricing\n- Timestamp of usage\n\nExample expected payload:\n\n```json\n{\n  \"provider\": \"google-gemini-2.0-flash-exp\",\n  \"model\": \"gemini-2.0-flash-exp\",\n  \"input_tokens\": 150,\n  \"output_tokens\": 75,\n  \"cost_usd\": 0.0012,\n  \"timestamp\": \"2026-01-23T10:30:00Z\"\n}\n```\n\n## Environment\n\n- ExoFrame Version: Current development version\n- OS: Linux\n- Deno Version: As configured in deno.json\n- Relevant Config: exo.config.toml (LLM provider settings)\n\n## Investigation Needed",
+      "text": "No token usage counts or cost information is present in any payloads.\n\n## Expected Behavior\n\nPayloads should include:\n\n- Input token count\n- Output token count\n- Total cost calculation based on provider pricing\n- Timestamp of usage\n\nExample expected payload:\n\n```json\n{\n  \"provider\": \"google-gemini-2.0-flash-exp\",\n  \"model\": \"gemini-2.0-flash-exp\",\n  \"input_tokens\": 150,\n  \"output_tokens\": 75,\n  \"cost_usd\": 0.0012,\n  \"timestamp\": \"2026-01-23T10:30:00Z\"\n}\n```\n\n## Environment\n\n- Exaix Version: Current development version\n- OS: Linux\n- Deno Version: As configured in deno.json\n- Relevant Config: exa.config.toml (LLM provider settings)\n\n## Investigation Needed",
       "vector": [
         0.3803921568627451,
         0.27058823529411763,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "None currently known. Manual cost tracking required via external monitoring.\n\n## Priority Justification\n\nHigh priority because token usage and cost tracking is a core declared feature of ExoFrame for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.\n\n## Resolution\n\n**Root Cause**: Token usage was being extracted from LLM provider responses but logged at `debug` level, which is below the default `info` logging threshold for the activity journal. Additionally, the logged token data did not include cost calculations.\n\n**Fix**:",
+      "text": "None currently known. Manual cost tracking required via external monitoring.\n\n## Priority Justification\n\nHigh priority because token usage and cost tracking is a core declared feature of Exaix for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.\n\n## Resolution\n\n**Root Cause**: Token usage was being extracted from LLM provider responses but logged at `debug` level, which is below the default `info` logging threshold for the activity journal. Additionally, the logged token data did not include cost calculations.\n\n**Fix**:",
       "vector": [
         0.5372549019607843,
         0.9725490196078431,

@@ -1,6 +1,6 @@
-# Contributing to ExoFrame
+# Contributing to Exaix
 
-Thank you for your interest in contributing to ExoFrame! This guide details the development standards, patterns, and workflows to ensure a high-quality, maintainable codebase.
+Thank you for your interest in contributing to Exaix! This guide details the development standards, patterns, and workflows to ensure a high-quality, maintainable codebase.
 
 ## 1. Coding Standards
 
@@ -46,7 +46,7 @@ If you are updating legacy code, refer to `docs/dev/Migration_Guide_Phase27.md` 
 1. **Read [`CLAUDE.md`](CLAUDE.md)** for project orientation and quick reference
 
 1.
-   - `.copilot/source/exoframe.md` — Source code patterns
+   - `.copilot/source/exaix.md` — Source code patterns
    - `.copilot/tests/testing.md` — Test patterns and helpers
    - `.copilot/docs/documentation.md` — Documentation guidelines
    - `.copilot/planning/*.md` — Phase planning documents
@@ -54,7 +54,7 @@ If you are updating legacy code, refer to `docs/dev/Migration_Guide_Phase27.md` 
 
 **Example citation:**
 
-> "I consulted `.copilot/tests/testing.md` for test helpers and `.copilot/source/exoframe.md` for service architecture patterns."
+> "I consulted `.copilot/tests/testing.md` for test helpers and `.copilot/source/exaix.md` for service architecture patterns."
 
 ### 4.2 Agent Documentation Index
 
@@ -123,12 +123,12 @@ Authoritative guidance:
 
 - [ ] **(AI Agents)** Consulted relevant `.copilot/` documentation and cited in implementation plan.
 - [ ] No new magic numbers or strings introduced.
-- [ ] New configuration options added to `exo.config.sample.toml`.
+- [ ] New configuration options added to `exa.config.sample.toml`.
 - [ ] Zod schema updated in `src/config/schema.ts`.
 - [ ] **Type Safety:** No `any`, no `unknown` as stored type, no `as any` casting (per §1.5).
 - [ ] **Dependency Injection:** Injectable services expose an `IFoo` interface; constructors accept `IFoo`, not `Foo`; test mocks implement the full interface (per §1.6).
-- [ ] **Environment Variables:** If using `EXO_LLM_*` vars, validated via `getValidatedEnvOverrides()` (no direct `Deno.env.get()`).
-- [ ] **Test Variables:** Test-related env vars use `EXO_TEST_*` prefix and helper functions (`isTestMode()`, `isCIMode()`).
+- [ ] **Environment Variables:** If using `EXA_LLM_*` vars, validated via `getValidatedEnvOverrides()` (no direct `Deno.env.get()`).
+- [ ] **Test Variables:** Test-related env vars use `EXA_TEST_*` prefix and helper functions (`isTestMode()`, `isCIMode()`).
 - [ ] Tests added for new configuration options.
 - [ ] Documentation updated if behavior changes.
 - [ ] All tests pass (`deno task test`).
@@ -136,4 +136,4 @@ Authoritative guidance:
 
 ## 6. Architecture
 
-For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how ExoFrame works.
+For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how Exaix works.

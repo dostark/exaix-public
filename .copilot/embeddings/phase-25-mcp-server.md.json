@@ -3,7 +3,7 @@
   "title": "phase-25-mcp-server.md",
   "vecs": [
     {
-      "text": "# Phase 25: MCP Server Implementation Plan Review\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/ExoFrame_User_Guide.md` for current usage.\n\n**Goal:** Implement high-level ExoFrame domain tools (Create Request, List Plans, Approve, Query Journal) for the MCP server.\n\n## Overview\n\nWe have implemented the MCP Foundation (Server, Transport) and FileSystem/Git tools (Phase 13/Foundation). This phase focuses on exposing the core ExoFrame logic to AI agents.\n\n### Step 25.1: Domain Tools Implementation\n\n**Goal:** Allow agents to perform ExoFrame actions.\n\n**New Tools:**",
+      "text": "# Phase 25: MCP Server Implementation Plan Review\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/Exaix_User_Guide.md` for current usage.\n\n**Goal:** Implement high-level Exaix domain tools (Create Request, List Plans, Approve, Query Journal) for the MCP server.\n\n## Overview\n\nWe have implemented the MCP Foundation (Server, Transport) and FileSystem/Git tools (Phase 13/Foundation). This phase focuses on exposing the core Exaix logic to AI agents.\n\n### Step 25.1: Domain Tools Implementation\n\n**Goal:** Allow agents to perform Exaix actions.\n\n**New Tools:**",
       "vector": [
         0.10588235294117647,
         0.49019607843137253,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "1. `exoframe_create_request`: Create a new request file.\n2. `exoframe_list_plans`: List pending plans.\n3. `exoframe_approve_plan`: Approve a plan by ID.\n4. `exoframe_query_journal`: Query the Activity Journal.\n\n**Implementation Plan:**\n\n- [x] Create `src/mcp/domain_tools.ts`\n- [x] Implement `ToolHandler` for each domain tool.\n- [x] Register tools in `src/mcp/server.ts`.\n\n### Step 25.2: Configuration & Security\n\n**Goal:** Ensure generic configuration and permission handling.\n\n**Updates:**\n\n- [x] Use `exo.config.toml` for enabling/disabling tools (refer to [src/config/schema.ts](file:///home/dkasymov/git/ExoFrame/src/config/schema.ts)).\n- [x] Enforce `agent_id` tracking for all tool calls.\n\n### Step 25.3: Verification\n\n**Tests:**",
+      "text": "1. `exaix_create_request`: Create a new request file.\n2. `exaix_list_plans`: List pending plans.\n3. `exaix_approve_plan`: Approve a plan by ID.\n4. `exaix_query_journal`: Query the Activity Journal.\n\n**Implementation Plan:**\n\n- [x] Create `src/mcp/domain_tools.ts`\n- [x] Implement `ToolHandler` for each domain tool.\n- [x] Register tools in `src/mcp/server.ts`.\n\n### Step 25.2: Configuration & Security\n\n**Goal:** Ensure generic configuration and permission handling.\n\n**Updates:**\n\n- [x] Use `exa.config.toml` for enabling/disabling tools (refer to [src/config/schema.ts](file:///home/dkasymov/git/Exaix/src/config/schema.ts)).\n- [x] Enforce `agent_id` tracking for all tool calls.\n\n### Step 25.3: Verification\n\n**Tests:**",
       "vector": [
         0.8509803921568627,
         0.5137254901960784,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- [x] Unit tests for domain tools (mocking `RequestCommands` and `PlanCommands`).\n- [x] Integration tests via `exoctl mcp start`.\n\n**Documentation:**\n\n- [x] Provide `claude_desktop_config.json` example (moved to `templates/mcp/`).\n- [x] Provide `cline_settings.json` example (moved to `templates/mcp/`).\n\n### Exit Criteria\n\n- [x] All high-level tools implemented and registered.\n- [x] Users can drive ExoFrame via Claude Desktop / Cline.\n- [x] Activity Journal logs all high-level actions.\n\n---\n\n## Original Phase 13 Plan (Reference)\n\n**Duration:** 1-2 weeks\\\n**Prerequisites:** Phases 1–12 (All core features complete, Obsidian retired)\\\n**Goal:** Add Model Context Protocol (MCP) server interface for programmatic ExoFrame interaction\n\n### Step 13.1: MCP Server Foundation ✅ COMPLETED",
+      "text": "- [x] Unit tests for domain tools (mocking `RequestCommands` and `PlanCommands`).\n- [x] Integration tests via `exactl mcp start`.\n\n**Documentation:**\n\n- [x] Provide `claude_desktop_config.json` example (moved to `templates/mcp/`).\n- [x] Provide `cline_settings.json` example (moved to `templates/mcp/`).\n\n### Exit Criteria\n\n- [x] All high-level tools implemented and registered.\n- [x] Users can drive Exaix via Claude Desktop / Cline.\n- [x] Activity Journal logs all high-level actions.\n\n---\n\n## Original Phase 13 Plan (Reference)\n\n**Duration:** 1-2 weeks\\\n**Prerequisites:** Phases 1–12 (All core features complete, Obsidian retired)\\\n**Goal:** Add Model Context Protocol (MCP) server interface for programmatic Exaix interaction\n\n### Step 13.1: MCP Server Foundation ✅ COMPLETED",
       "vector": [
         0.20784313725490197,
         0.11372549019607843,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "**Implementation:**\n\n```typescript\n// src/mcp/server.ts\nimport { Server } from \"@modelcontextprotocol/sdk/server/index.js\";\nimport { StdioServerTransport } from \"@modelcontextprotocol/sdk/server/stdio.js\";\nimport { CallToolRequestSchema, ListToolsRequestSchema } from \"@modelcontextprotocol/sdk/types.js\";\n\n// ... (Implementation details omitted for brevity, see src/mcp/server.ts)\n```\n\n**Success Criteria:**\n\n1. [x] MCP server starts via `exoctl mcp start`\n2. [x] Server exposes standard MCP capabilities\n3. [x] Stdio transport for local connections\n4. [x] Server metadata includes name and version\n5. [x] Graceful shutdown on SIGTERM\n\n### Step 13.2: Tool Implementations\n\n**Success Criteria:**",
+      "text": "**Implementation:**\n\n```typescript\n// src/mcp/server.ts\nimport { Server } from \"@modelcontextprotocol/sdk/server/index.js\";\nimport { StdioServerTransport } from \"@modelcontextprotocol/sdk/server/stdio.js\";\nimport { CallToolRequestSchema, ListToolsRequestSchema } from \"@modelcontextprotocol/sdk/types.js\";\n\n// ... (Implementation details omitted for brevity, see src/mcp/server.ts)\n```\n\n**Success Criteria:**\n\n1. [x] MCP server starts via `exactl mcp start`\n2. [x] Server exposes standard MCP capabilities\n3. [x] Stdio transport for local connections\n4. [x] Server metadata includes name and version\n5. [x] Graceful shutdown on SIGTERM\n\n### Step 13.2: Tool Implementations\n\n**Success Criteria:**",
       "vector": [
         0.6588235294117647,
         0.3058823529411765,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "1. [x] `exoframe_create_request` creates request files\n2. [x] `exoframe_list_plans` returns pending plans\n3. [x] `exoframe_approve_plan` approves plans\n4. [x] `exoframe_query_journal` queries Activity Journal\n5. [x] All operations logged to Activity Journal\n6. [x] Error responses follow MCP error schema\n\n### Step 13.3: Client Integration Examples\n\n**Success Criteria:**\n\n1. [x] Documentation for Claude Desktop setup (see `templates/mcp/claude_desktop_config.json`)\n2. [x] Documentation for Cline/IDE integration (see `templates/mcp/cline_settings.json`)\n3. [x] Example prompts for using MCP tools\n4. [x] Troubleshooting guide for MCP connections\n\n### Step 13.4: Testing & Documentation\n\n**Test Coverage:**",
+      "text": "1. [x] `exaix_create_request` creates request files\n2. [x] `exaix_list_plans` returns pending plans\n3. [x] `exaix_approve_plan` approves plans\n4. [x] `exaix_query_journal` queries Activity Journal\n5. [x] All operations logged to Activity Journal\n6. [x] Error responses follow MCP error schema\n\n### Step 13.3: Client Integration Examples\n\n**Success Criteria:**\n\n1. [x] Documentation for Claude Desktop setup (see `templates/mcp/claude_desktop_config.json`)\n2. [x] Documentation for Cline/IDE integration (see `templates/mcp/cline_settings.json`)\n3. [x] Example prompts for using MCP tools\n4. [x] Troubleshooting guide for MCP connections\n\n### Step 13.4: Testing & Documentation\n\n**Test Coverage:**",
       "vector": [
         0.6745098039215687,
         0.9294117647058824,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "```typescript\n// tests/mcp/server_test.ts\n// ... (See tests/mcp/domain_tools_test.ts for actual implementation)\n```\n\n**Success Criteria:**\n\n1. [x] Unit tests for all MCP tools\n2. [x] Integration test with MCP client\n3. [x] Documentation in User Guide\n4. [x] Architecture diagram updated\n5. [x] Example repository with MCP configurations\n\n### Phase 13 Benefits\n\n**For Users:**\n\n- Automate ExoFrame workflows from AI assistants\n- Integrate with existing IDE agents\n- Programmatic access without learning CLI\n\n**For Developers:**\n\n- Standard MCP protocol (no custom API)\n- Local-first (no cloud dependencies)\n- Full audit trail in Activity Journal\n- Complements file-based architecture\n\n### Phase 13 Exit Criteria",
+      "text": "```typescript\n// tests/mcp/server_test.ts\n// ... (See tests/mcp/domain_tools_test.ts for actual implementation)\n```\n\n**Success Criteria:**\n\n1. [x] Unit tests for all MCP tools\n2. [x] Integration test with MCP client\n3. [x] Documentation in User Guide\n4. [x] Architecture diagram updated\n5. [x] Example repository with MCP configurations\n\n### Phase 13 Benefits\n\n**For Users:**\n\n- Automate Exaix workflows from AI assistants\n- Integrate with existing IDE agents\n- Programmatic access without learning CLI\n\n**For Developers:**\n\n- Standard MCP protocol (no custom API)\n- Local-first (no cloud dependencies)\n- Full audit trail in Activity Journal\n- Complements file-based architecture\n\n### Phase 13 Exit Criteria",
       "vector": [
         0.8901960784313725,
         0.9490196078431372,

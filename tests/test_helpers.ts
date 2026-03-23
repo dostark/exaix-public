@@ -95,7 +95,7 @@ export function createStubConfig(config: Config): IConfigService {
   return {
     get: () => getConfig(),
     getAll: () => getConfig(),
-    getConfigPath: () => "/mock/exo.config.toml",
+    getConfigPath: () => "/mock/exa.config.toml",
     reload: () => getConfig(),
     addPortal: (alias: string, targetPath: string, options?: {
       defaultBranch?: string;

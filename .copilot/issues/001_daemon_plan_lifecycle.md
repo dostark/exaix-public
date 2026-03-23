@@ -8,7 +8,7 @@
 
 ## Description
 
-The ExoFrame Daemon (`src/main.ts`) uses a generic `FileWatcher` to detect new plans in `Workspace/Active`. When a plan is detected, it acts as a "poor man's orchestrator":
+The Exaix Daemon (`src/main.ts`) uses a generic `FileWatcher` to detect new plans in `Workspace/Active`. When a plan is detected, it acts as a "poor man's orchestrator":
 
 1. Parses the plan locally.
 

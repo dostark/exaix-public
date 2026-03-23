@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "With the completion of **Phase 9 (TUI Dashboard)**, ExoFrame now has a native, terminal-based interface that provides:\n\n**Functional Overlap:**\n\n- ✅ Real-time monitoring (better than static Obsidian vault)\n- ✅ Plan review and execution control\n- ✅ Activity log browsing\n- ✅ System status and metrics\n\n**Maintenance Burden:**\n\n- 5 dedicated test files in `tests/obsidian/` (~500 LOC)\n- Dataview query compatibility testing\n- Wikilink format validation\n- Vault structure verification\n- Frontmatter schema for Obsidian compatibility\n\n**Conceptual Complexity:**",
+      "text": "With the completion of **Phase 9 (TUI Dashboard)**, Exaix now has a native, terminal-based interface that provides:\n\n**Functional Overlap:**\n\n- ✅ Real-time monitoring (better than static Obsidian vault)\n- ✅ Plan review and execution control\n- ✅ Activity log browsing\n- ✅ System status and metrics\n\n**Maintenance Burden:**\n\n- 5 dedicated test files in `tests/obsidian/` (~500 LOC)\n- Dataview query compatibility testing\n- Wikilink format validation\n- Vault structure verification\n- Frontmatter schema for Obsidian compatibility\n\n**Conceptual Complexity:**",
       "vector": [
         0.0784313725490196,
         0.5490196078431373,

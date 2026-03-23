@@ -13,7 +13,7 @@
 
 ## Executive Summary
 
-This comprehensive security audit identified **28 critical findings** across the ExoFrame codebase, including command injection vulnerabilities, unsafe deserialization, API key exposure, race conditions, and architectural weaknesses. The codebase shows signs of rapid development with insufficient security review.
+This comprehensive security audit identified **28 critical findings** across the Exaix codebase, including command injection vulnerabilities, unsafe deserialization, API key exposure, race conditions, and architectural weaknesses. The codebase shows signs of rapid development with insufficient security review.
 
 ### Risk Profile
 
@@ -561,7 +561,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 > [!NOTE]
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
-> See `docs/ExoFrame_User_Guide.md` and `docs/dev/Security_Policy.md` for current usage.
+> See `docs/Exaix_User_Guide.md` and `docs/dev/Security_Policy.md` for current usage.
 
 ## Part 2: High Severity Issues (P1)
 
@@ -1375,7 +1375,7 @@ readinessProbe:
     "disk_space": {
       "status": "pass",
       "metadata": {
-        "path": "/home/dkasymov/git/ExoFrame",
+        "path": "/home/dkasymov/git/Exaix",
         "used_percent": 4,
         "warn_threshold": 80,
         "critical_threshold": 95
@@ -1782,7 +1782,7 @@ Deno.test("ContextError: integrates with standard Error handling");
 
 ## Security Posture**: � **SECURE - PRODUCTION READY
 
-All **28 critical security findings** have been successfully remediated. The ExoFrame codebase now demonstrates robust security controls including:
+All **28 critical security findings** have been successfully remediated. The Exaix codebase now demonstrates robust security controls including:
 
 1. ✅ **Command Injection Protection** - Path validation and sanitization implemented
 

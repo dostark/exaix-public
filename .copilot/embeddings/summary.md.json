@@ -1,9 +1,9 @@
 {
   "path": ".copilot/copilot/summary.md",
-  "title": "ExoFrame Quick Summary",
+  "title": "Exaix Quick Summary",
   "vecs": [
     {
-      "text": "# ExoFrame Quick Summary\n\nExoFrame is a Deno + TypeScript framework for flow orchestration and LLM-integrated automation. Use this doc for quick Copilot context: key directories, testing conventions (use `initTestDbService()`), and canonical prompts for suggested tests and refactors.",
+      "text": "# Exaix Quick Summary\n\nExaix is a Deno + TypeScript framework for flow orchestration and LLM-integrated automation. Use this doc for quick Copilot context: key directories, testing conventions (use `initTestDbService()`), and canonical prompts for suggested tests and refactors.",
       "vector": [
         0.9764705882352941,
         0.09803921568627451,

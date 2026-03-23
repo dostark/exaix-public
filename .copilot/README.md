@@ -201,7 +201,7 @@ Example system prompt showing ideal usage:
 
 ```markdown
 Canonical prompt (short):
-"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
+"You are a test-writing assistant for Exaix. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
 ```
 
 #### Examples (Required)
@@ -283,7 +283,7 @@ Copy an existing doc as a starting point:
 
 - For provider-specific: `.copilot/providers/claude.md`
 - For testing guidance: `.copilot/tests/testing.md`
-- For source patterns: `.copilot/source/exoframe.md`
+- For source patterns: `.copilot/source/exaix.md`
 
 ### Common Mistakes to Avoid
 
@@ -314,7 +314,7 @@ cat > .copilot/tests/security-patterns.md << 'EOF'
 agent: claude
 scope: test
 title: Security Testing Patterns
-short_summary: "Common security testing patterns for ExoFrame: path traversal, injection, leakage."
+short_summary: "Common security testing patterns for Exaix: path traversal, injection, leakage."
 version: "0.1"
 topics: ["security", "testing", "paranoid-tests", "path-traversal"]
 ---

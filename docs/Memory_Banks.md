@@ -9,7 +9,7 @@
 
 ## Overview
 
-Memory Banks is ExoFrame's structured storage system for long-term project knowledge, execution history, and lessons learned. It replaces the Obsidian-centric Knowledge/ directory with a programmatic, CLI-accessible architecture optimized for agent and developer use.
+Memory Banks is Exaix's structured storage system for long-term project knowledge, execution history, and lessons learned. It replaces the Obsidian-centric Knowledge/ directory with a programmatic, CLI-accessible architecture optimized for agent and developer use.
 
 **Key Principles:**
 
@@ -168,13 +168,13 @@ interface ExecutionMemory {
 
 #### Portal worktree pointer (optional)
 
-Some portal executions use an isolated Git worktree checkout. In those cases, ExoFrame may record a discoverability pointer at:
+Some portal executions use an isolated Git worktree checkout. In those cases, Exaix may record a discoverability pointer at:
 
 - `Memory/Execution/{trace-id}/worktree`
 
 This is typically a symlink (preferred) or a small directory containing `PATH.txt`, and it points to the actual worktree directory (commonly under `.exo/worktrees/...`).
 
-You can also inspect worktrees directly with `exoctl git worktrees list --portal <alias>` (or `--repo <path>`).
+You can also inspect worktrees directly with `exactl git worktrees list --portal <alias>` (or `--repo <path>`).
 
 **Cleanup:** After the corresponding review is resolved (approved/rejected) the worktree checkout and this pointer are removed to avoid accumulating stale worktrees.
 
@@ -298,19 +298,19 @@ interface MemoryUpdateProposal {
 
 ```bash
 # List all project memory banks
-exoctl memory projects
+exactl memory projects
 
 # View project memory for a specific portal
-exoctl memory project <portal>
+exactl memory project <portal>
 
 # Add a pattern to project memory
-exoctl memory add-pattern <portal> \
+exactl memory add-pattern <portal> \
   --name "Repository Pattern" \
   --description "All database access goes through repository classes" \
   --examples "src/repositories/task_repository.ts,src/repositories/user_repository.ts"
 
 # Add an architectural decision
-exoctl memory add-decision <portal> \
+exactl memory add-decision <portal> \
   --date "2026-01-03" \
   --decision "Use PostgreSQL instead of SQLite" \
   --rationale "Need better concurrency support" \
@@ -321,20 +321,20 @@ exoctl memory add-decision <portal> \
 
 ```bash
 # View execution history (most recent first)
-exoctl memory executions [--portal <portal>] [--limit 10]
+exactl memory executions [--portal <portal>] [--limit 10]
 
 # View specific execution details
-exoctl memory execution <trace-id>
+exactl memory execution <trace-id>
 ```
 
 ### Global Memory
 
 ```bash
 # List all global learnings
-exoctl memory list [--format table|json]
+exactl memory list [--format table|json]
 
 # Add a global learning manually
-exoctl memory add-learning \
+exactl memory add-learning \
   --title "Always handle async errors" \
   --description "Use try-catch blocks around all async operations" \
   --category "pattern" \
@@ -342,65 +342,65 @@ exoctl memory add-learning \
   --confidence "high"
 
 # Promote a project learning to global
-exoctl memory promote <learning-id>
+exactl memory promote <learning-id>
 ```
 
 ### Pending Proposals
 
 ```bash
 # List all pending proposals
-exoctl memory pending [--format table|json]
+exactl memory pending [--format table|json]
 
 # Show details of a specific proposal
-exoctl memory pending <proposal-id>
+exactl memory pending <proposal-id>
 
 # Approve a pending proposal
-exoctl memory approve <proposal-id>
+exactl memory approve <proposal-id>
 
 # Reject a pending proposal with reason
-exoctl memory reject <proposal-id> --reason "Duplicate of existing pattern"
+exactl memory reject <proposal-id> --reason "Duplicate of existing pattern"
 
 # Approve all pending proposals
-exoctl memory approve-all
+exactl memory approve-all
 ```
 
 ### Search
 
 ```bash
 # Keyword search across all memory
-exoctl memory search <query> [--format table|json]
+exactl memory search <query> [--format table|json]
 
 # Search by tags
-exoctl memory search --tags "database,performance"
+exactl memory search --tags "database,performance"
 
 # Advanced search with filters
-exoctl memory search "error handling" \
+exactl memory search "error handling" \
   --tags "async" \
   --portal "my-app" \
   --category "troubleshooting"
 
 # Semantic search (embedding-based)
-exoctl memory search "how to handle authentication" --semantic
+exactl memory search "how to handle authentication" --semantic
 ```
 
 ### Index Management
 
 ```bash
 # Rebuild search indices
-exoctl memory rebuild-index
+exactl memory rebuild-index
 
 # Regenerate embeddings for all learnings
-exoctl memory regenerate-embeddings
+exactl memory regenerate-embeddings
 ```
 
 ### Migration
 
 ```bash
 # Migrate Knowledge/ to Memory/ (dry-run)
-exoctl migrate-memory --dry-run
+exactl migrate-memory --dry-run
 
 # Perform actual migration
-exoctl migrate-memory
+exactl migrate-memory
 
 # Output:
 # ✓ Migrated 42 mission reports → Memory/Execution/
@@ -418,10 +418,10 @@ exoctl migrate-memory
 
 ```bash
 # What did the agent do in the last 10 executions?
-exoctl memory executions --limit 10
+exactl memory executions --limit 10
 
 # What changed in a specific execution?
-exoctl memory execution 550e8400-e29b-41d4-a716-446655440000
+exactl memory execution 550e8400-e29b-41d4-a716-446655440000
 ```
 
 **Understanding Project Patterns:**
@@ -436,10 +436,10 @@ Memory Banks act as the "Long-Term Memory" for the project.
 
 ```bash
 # What patterns has the agent learned for this project?
-exoctl memory project my-app
+exactl memory project my-app
 
 # Search for authentication-related knowledge
-exoctl memory search "authentication"
+exactl memory search "authentication"
 ```
 
 ### For Agents
@@ -550,7 +550,7 @@ Validated performance (Phase 12.11):
 Indices are regenerated:
 
 - After migration
-- On-demand: `exoctl memory rebuild-index`
+- On-demand: `exactl memory rebuild-index`
 - After learning approval/rejection
 - When embedding manifest is missing
 
@@ -582,7 +582,7 @@ Memory Banks will be integrated into the TUI dashboard in a future phase:
 - **Real Embeddings:** Integration with OpenAI/local embedding models
 - **Pattern Detection:** Auto-detect patterns from code changes
 - **Decision Tracking:** Link decisions to execution history
-- **Export/Import:** Share memory banks between ExoFrame instances
+- **Export/Import:** Share memory banks between Exaix instances
 - **Auto-Approve Config:** `memory.auto_approve: true` to skip pending workflow
 - **Retention Policies:** Automatic archival of old learnings
 

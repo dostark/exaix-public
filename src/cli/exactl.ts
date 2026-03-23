@@ -1,8 +1,8 @@
 #!/usr/bin/env -S deno run --allow-all --no-check
 /**
- * @module ExoCtl
- * @path src/cli/exoctl.ts
- * @description Main entry point for the ExoFrame CLI (exoctl). Orchestrates all commands, subcommands, and service initializations.
+ * @module ExaCtl
+ * @path src/cli/exactl.ts
+ * @description Main entry point for the Exaix CLI (exactl). Orchestrates all commands, subcommands, and service initializations.
  * @architectural-layer CLI
  * @dependencies [Command, PlanCommands, RequestCommands, ReviewCommands, GitCommands, DaemonCommands, PortalCommands, BlueprintCommands, FlowCommands, DashboardCommands, MemoryCommands, JournalCommands, McpCommands]
  * @related-files [src/cli/init.ts, src/cli/cli.config.ts]
@@ -103,7 +103,7 @@ export function __test_getContext() {
   };
 }
 
-export type ExoCtlTestContext = ReturnType<typeof __test_getContext>;
+export type ExaCtlTestContext = ReturnType<typeof __test_getContext>;
 
 // Test helper: initialize the heavy services path (same logic used in non-test runtime)
 // Returns an object describing whether initialization succeeded and the constructed services.
@@ -243,14 +243,14 @@ function renderReviewShowCommits(cs: ReviewDetails) {
 }
 
 export const __test_command = new Command()
-  .name("exoctl")
+  .name("exactl")
   .version(BINARY_VERSION)
-  .description("ExoFrame CLI - Human interface for agent orchestration")
+  .description("Exaix CLI - Human interface for agent orchestration")
   // Request commands (PRIMARY INTERFACE)
   .command(
     "request",
     new Command()
-      .description("Create requests for ExoFrame agents or multi-agent flows (PRIMARY INTERFACE)")
+      .description("Create requests for Exaix agents or multi-agent flows (PRIMARY INTERFACE)")
       .arguments("[description:string]")
       .option("-a, --agent <agent:string>", "Target agent blueprint", { default: CLI_DEFAULTS.AGENT })
       .option("-p, --priority <priority:string>", "Priority: low, normal, high, critical", {
@@ -282,11 +282,11 @@ export const __test_command = new Command()
       .action(async (options, description?: string) => {
         await handleRequestCreate({ requestCommands, display }, options as RequestCreateOptions, description);
       })
-      .example("Create a request for a specific agent", 'exoctl request "Analyze this code" --agent code-reviewer')
-      .example("Create a request for a multi-agent flow", 'exoctl request "Build a web app" --flow web-development')
+      .example("Create a request for a specific agent", 'exactl request "Analyze this code" --agent code-reviewer')
+      .example("Create a request for a multi-agent flow", 'exactl request "Build a web app" --flow web-development')
       .example(
         "Create a high-priority request",
-        'exoctl request "Fix critical bug" --priority critical --agent debugger',
+        'exactl request "Fix critical bug" --priority critical --agent debugger',
       )
       .command(
         "list",
@@ -629,11 +629,11 @@ export const __test_command = new Command()
   .command(
     "daemon",
     new Command()
-      .description("Control the ExoFrame daemon")
+      .description("Control the Exaix daemon")
       .command(
         "start",
         new Command()
-          .description("Start the ExoFrame daemon")
+          .description("Start the Exaix daemon")
           .action(async () => {
             try {
               await daemonCommands.start();
@@ -648,7 +648,7 @@ export const __test_command = new Command()
       .command(
         "stop",
         new Command()
-          .description("Stop the ExoFrame daemon")
+          .description("Stop the Exaix daemon")
           .action(async () => {
             try {
               await daemonCommands.stop();
@@ -663,7 +663,7 @@ export const __test_command = new Command()
       .command(
         "restart",
         new Command()
-          .description("Restart the ExoFrame daemon")
+          .description("Restart the Exaix daemon")
           .action(async () => {
             try {
               await daemonCommands.restart();
@@ -780,7 +780,7 @@ export const __test_command = new Command()
               if (portals.length === 0) {
                 display.info("portal.list", "portals", {
                   count: 0,
-                  hint: "Add a portal with: exoctl portal add <path> <alias>",
+                  hint: "Add a portal with: exactl portal add <path> <alias>",
                 });
                 return;
               }
@@ -986,7 +986,7 @@ export const __test_command = new Command()
                 display.info("blueprint.list", "blueprints", {
                   count: 0,
                   hint:
-                    'Create a blueprint with: exoctl blueprint create <agent-id> --name "Name" --model "provider:model"',
+                    'Create a blueprint with: exactl blueprint create <agent-id> --name "Name" --model "provider:model"',
                 });
                 return;
               }
@@ -1125,7 +1125,7 @@ export const __test_command = new Command()
   .command(
     "flow",
     new Command()
-      .description("Manage and execute ExoFrame flows")
+      .description("Manage and execute Exaix flows")
       .command(
         "list",
         new Command()
@@ -1510,7 +1510,7 @@ __test_command.command("journal", journalCommand);
 // ---------------------------------------------------------------------------
 
 const versionCommand = new Command()
-  .description("Show ExoFrame binary and workspace schema version information")
+  .description("Show Exaix binary and workspace schema version information")
   .option("--json", "Output as JSON")
   .action((options) => {
     const onDiskSchemaVersion = (() => {
@@ -1533,7 +1533,7 @@ const versionCommand = new Command()
     const compatibilityLabel = migrationRequired
       ? "⚠️  Minor migration required"
       : binaryTooOld
-      ? "❌ Binary older than workspace — update exoctl"
+      ? "❌ Binary older than workspace — update exactl"
       : "✅ OK";
 
     if (options.json) {
@@ -1565,7 +1565,7 @@ const versionCommand = new Command()
       }
     })();
 
-    console.log("ExoFrame CLI");
+    console.log("Exaix CLI");
     console.log(`  Binary version:             ${BINARY_VERSION}`);
     console.log(`  Workspace schema version:   ${WORKSPACE_SCHEMA_VERSION}`);
     console.log(`  Config path:                ${configPath}`);

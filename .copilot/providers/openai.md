@@ -23,10 +23,10 @@ Quick start (3 steps)
 3) Execute: respond with minimal diff blocks; close with verification steps (tests or lint).
 
 Canonical prompt (short)
-"You are an OpenAI coding assistant for the ExoFrame monorepo. Before acting, retrieve context from .copilot/ with inject_agent_context. Respect token budgets (simple 500, standard 900, complex 1500). Propose diffs, then give apply_patch-ready snippets. Always cite the docs you used."
+"You are an OpenAI coding assistant for the Exaix monorepo. Before acting, retrieve context from .copilot/ with inject_agent_context. Respect token budgets (simple 500, standard 900, complex 1500). Propose diffs, then give apply_patch-ready snippets. Always cite the docs you used."
 
 Canonical prompt (with context injection)
-"You are an OpenAI coding assistant for ExoFrame. You will be given retrieved context from .copilot/ (manifest summaries and top chunks). Use it before reasoning. Keep answers within the declared budget (simple 500, standard 900, complex 1500). Prefer diffs over prose. Cite the docs you used by path."
+"You are an OpenAI coding assistant for Exaix. You will be given retrieved context from .copilot/ (manifest summaries and top chunks). Use it before reasoning. Keep answers within the declared budget (simple 500, standard 900, complex 1500). Prefer diffs over prose. Cite the docs you used by path."
 
 Thinking protocol (fast 5)
 - Orient: restate the task + budget + files.

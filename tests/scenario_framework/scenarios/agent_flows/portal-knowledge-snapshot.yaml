@@ -10,7 +10,7 @@ portals:
     source_path: "/tmp/portal-sample-app"
 steps:
   - id: "portal-mounted"
-    type: "exoctl"
+    type: "exactl"
     command: "portal analyze portal-sample-app"
     input_criteria:
       - id: "portal-available"

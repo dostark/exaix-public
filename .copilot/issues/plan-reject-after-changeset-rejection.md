@@ -8,31 +8,31 @@ labels: [bug, plan, changeset, rejection]
 
 ## Problem
 
-After rejecting a changeset, the associated plan remains in the plan list but cannot be rejected. Attempting to reject the plan results in "Plan not found" error, even though the plan is still visible in `exoctl plan list`.
+After rejecting a changeset, the associated plan remains in the plan list but cannot be rejected. Attempting to reject the plan results in "Plan not found" error, even though the plan is still visible in `exactl plan list`.
 
 ## Reproduction Steps
 
 ```bash
 # List changesets - shows one changeset
-exoctl changeset list
+exactl changeset list
 
 # Reject the changeset successfully
-exoctl changeset reject feat/request-08a998d4-08a998d4 --reason 'Wrong change'
+exactl changeset reject feat/request-08a998d4-08a998d4 --reason 'Wrong change'
 
 # Verify changeset is gone
-exoctl changeset list  # Shows no changesets
+exactl changeset list  # Shows no changesets
 
 # List plans - still shows the plan
-exoctl plan list
+exactl plan list
 
 # Attempt to reject the plan - fails with "Plan not found"
-exoctl plan reject request-08a998d4_plan --reason 'bad plan'
+exactl plan reject request-08a998d4_plan --reason 'bad plan'
 ```
 
 ## Observed Behavior
 
 - Changeset rejection succeeds and changeset disappears from list
-- Plan remains in `exoctl plan list` with status: completed
+- Plan remains in `exactl plan list` with status: completed
 - Plan rejection command fails with "Plan not found: request-08a998d4_plan"
 - Error persists even after multiple attempts
 
@@ -44,10 +44,10 @@ exoctl plan reject request-08a998d4_plan --reason 'bad plan'
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (unknown)
-- Relevant Config: Default exo.config.toml
+- Relevant Config: Default exa.config.toml
 
 ## Investigation Needed
 

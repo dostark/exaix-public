@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run
-// Copyright 2026 ExoFrame authors. All rights reserved.
+// Copyright 2026 Exaix authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -21,7 +21,7 @@ const strictImports = args.has("--strict-imports");
 const convertWarnings = args.has("--convert-warnings-to-errors");
 
 if (args.has("--help") || args.has("-h")) {
-  console.log(`ExoFrame Code Style Checker
+  console.log(`Exaix Code Style Checker
 
 Usage:
   deno run scripts/check_code_style.ts [options] [paths...]
@@ -32,7 +32,7 @@ Options:
   --convert-warnings-to-errors  Convert all warnings to errors
 
 Description:
-  Scans all .ts and .tsx files in the ExoFrame repository for code style violations
+  Scans all .ts and .tsx files in the Exaix repository for code style violations
   defined in CODE_STYLE.md. Exits with code 1 if any errors are found.
   `);
   Deno.exit(0);

@@ -24,7 +24,10 @@ const context = await inject("claude", query, 6);
 
 ```typescript
 const systemPrompt = `
-You are a security-focused test developer for ExoFrame.
+You are a security-focused test developer for Exaix.
 
 Relevant context from documentation:
 ${context.short_summary}
+
+Key patterns:
+${context.snippet}

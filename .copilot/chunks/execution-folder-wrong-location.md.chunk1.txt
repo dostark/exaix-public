@@ -1,4 +1,4 @@
-- Execution folder appears in workspace root (`/home/dkasymov/git/ExoFrame/Execution/`)
+- Execution folder appears in workspace root (`/home/dkasymov/git/Exaix/Execution/`)
 - Memory/Execution/ directory may be empty or missing expected trace folders
 - Memory bank service creates execution records but in wrong location
 
@@ -10,7 +10,7 @@
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Memory Bank: Configured with paths.memoryExecution
 

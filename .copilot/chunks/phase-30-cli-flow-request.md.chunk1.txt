@@ -1,6 +1,6 @@
 - **Technical Spec:** Section 5.8.2.1 "Flow-Aware Request Processing"
 - **Test Scenarios:** MT-26 "Request Routing Validation"
-- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exoctl.ts`
+- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exactl.ts`
 
 ---
 

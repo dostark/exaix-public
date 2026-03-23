@@ -136,8 +136,8 @@ describe("classifyChanges", () => {
     assert(requiresMinor);
   });
 
-  it("does NOT trigger minor on src/cli/exoctl.ts", () => {
-    const { requiresMinor } = classifyChanges(["src/cli/exoctl.ts"]);
+  it("does NOT trigger minor on src/cli/exactl.ts", () => {
+    const { requiresMinor } = classifyChanges(["src/cli/exactl.ts"]);
     assertEquals(requiresMinor, false);
   });
 
@@ -147,7 +147,7 @@ describe("classifyChanges", () => {
 
   it("triggers minor if at least one file matches the trigger list", () => {
     const { requiresMinor } = classifyChanges([
-      "src/cli/exoctl.ts",
+      "src/cli/exactl.ts",
       "migrations/002_add_table.sql",
     ]);
     assert(requiresMinor);
@@ -168,7 +168,7 @@ describe("readVersionFile and writeVersionFile", () => {
   let tmpFile: string;
 
   const FIXTURE = `/**
- * @module ExoFrameVersion
+ * @module ExaixVersion
  */
 export const BINARY_VERSION = "1.0.0";
 export const WORKSPACE_SCHEMA_VERSION = "1.0.0";
@@ -212,6 +212,6 @@ export const WORKSPACE_SCHEMA_VERSION = "1.0.0";
   it("preserves surrounding file content after write", () => {
     writeVersionFile("1.0.1", "1.1.0", tmpFile);
     const text = Deno.readTextFileSync(tmpFile);
-    assert(text.includes("@module ExoFrameVersion"), "Module comment should be preserved");
+    assert(text.includes("@module ExaixVersion"), "Module comment should be preserved");
   });
 });

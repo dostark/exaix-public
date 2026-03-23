@@ -1,11 +1,11 @@
-# ExoFrame Market Positioning Analysis & Document Review
+# Exaix Market Positioning Analysis & Document Review
 
 - **Version:** 2.0.0
 - **Date:** January 16, 2026
-- **Status:** Updated for ExoFrame 2.0
-- **Reference:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+- **Status:** Updated for Exaix 2.0
+- **Reference:** [Exaix 2.0 Roadmap](./Exaix_2.0_Roadmap.md)
 
-> **Note:** This analysis has been updated to reflect the ExoFrame 2.0 three-tier edition model (Solo/Team/Enterprise) and multi-repository architecture.
+> **Note:** This analysis has been updated to reflect the Exaix 2.0 three-tier edition model (Solo/Team/Enterprise) and multi-repository architecture.
 
 ---
 
@@ -18,7 +18,7 @@
 other effectively—the White Paper provides strategic positioning while the
 Architecture document provides technical implementation details.
 
-**Market Position:** ExoFrame occupies a **unique niche** in the AI agent
+**Market Position:** Exaix occupies a **unique niche** in the AI agent
 orchestration space focusing on audit trail, compliance, and asynchronous
 workflows—areas largely underserved by current IDE-integrated coding agents.
 
@@ -155,7 +155,7 @@ FluxForce
 - **Target:** Large enterprises, complex workflows
 - **Gap:** Most lack comprehensive audit trails and compliance features
 
-# ExoFrame's Positioning:
+# Exaix's Positioning:
 
 - Sits between IDE agents and full enterprise platforms
 - Targets solo developers, technical power users, system architects
@@ -163,7 +163,7 @@ FluxForce
 
 ---
 
-## Part 3: ExoFrame Value Proposition Analysis
+## Part 3: Exaix Value Proposition Analysis
 
 ### Current Value Proposition (from White Paper)
 
@@ -184,7 +184,7 @@ FluxForce
 
 ### Value Proposition Strength Assessment
 
-| Differentiator                | Market Demand 2026                           | ExoFrame Delivery                   | Strength        |
+| Differentiator                | Market Demand 2026                           | Exaix Delivery                      | Strength        |
 | ----------------------------- | -------------------------------------------- | ----------------------------------- | --------------- |
 | **Audit Trail**               | 🔥 **Very High** (compliance explosion)      | ✅ **Excellent** (Activity Journal) | 💪 **Strong**   |
 | **Governance/Approval Gates** | 🔥 **Very High** (40% projects fail without) | ✅ **Good** (plan approval)         | 💪 **Strong**   |
@@ -194,7 +194,7 @@ FluxForce
 | **Security Boundaries**       | 🟢 **High** (security breaches rising)       | ✅ **Excellent** (Deno permissions) | 💪 **Strong**   |
 | **MCP Integration**           | 🔥 **Very High** (2026 adoption surge)       | ✅ **Good** (implemented)           | 💪 **Strong**   |
 
-**Overall Assessment:** ExoFrame has a **strong value proposition** aligned with
+**Overall Assessment:** Exaix has a **strong value proposition** aligned with
 2026 market trends, especially for **compliance-conscious** and
 **security-focused** organizations.
 
@@ -237,7 +237,7 @@ orchestration platforms**
 
 # Recommendation:
 
-- Add competitive matrix showing ExoFrame vs. 3 categories:
+- Add competitive matrix showing Exaix vs. 3 categories:
   1. IDE Agents (Cursor, Copilot) - "not a replacement"
   1. compliance-focused"
   1.
@@ -257,7 +257,7 @@ orchestration platforms**
 - **Elevate MCP** to tier-1 differentiator
 - Highlight: "MCP-native from day one - connect to any MCP-compatible tool"
 - Position as "enterprise-ready through standard protocols"
-- Add diagram showing ExoFrame MCP server enabling Claude Desktop, Cline, etc.
+- Add diagram showing Exaix MCP server enabling Claude Desktop, Cline, etc.
   integration
 
 #### 4. **"Governance-First" Narrative Missing**
@@ -327,7 +327,7 @@ etc.)
 - Cursor/Windsurf: "Chat with your IDE" - zero learning curve
 - LangChain: Extensive documentation, tutorials, community
 
-# ExoFrame Reality:
+# Exaix Reality:
 
 - File-based API is unfamiliar
 - TOML blueprints require learning
@@ -372,7 +372,7 @@ positioning
 - ✅ Add three-tier edition model (Solo/Team/Enterprise)
 - ✅ Add OpenRouter as Team+ provider
 
-**2. Create ExoFrame 2.0 Roadmap (Priority: HIGH)** ✅ COMPLETED
+**2. Create Exaix 2.0 Roadmap (Priority: HIGH)** ✅ COMPLETED
 
 - ✅ Phased implementation plan (Q1-Q4 2026)
 - ✅ Git submodules strategy for open-core architecture
@@ -389,7 +389,7 @@ positioning
 # 4. Build Competitive Positioning Matrix (Priority: MEDIUM)
 
 - Create 3-axis comparison:
-  1. ExoFrame vs. IDE Agents
+  1. Exaix vs. IDE Agents
   1.
   1.
 - Publish as website comparison page
@@ -447,9 +447,9 @@ positioning
 
 # Revised Elevator Pitch:
 
-> ExoFrame is the governance-first AI agent platform for teams that need audit
+> Exaix is the governance-first AI agent platform for teams that need audit
 > trails, compliance, and control. Unlike IDE coding assistants that provide
-> real-time help, ExoFrame orchestrates complex, multi-agent workflows
+> real-time help, Exaix orchestrates complex, multi-agent workflows
 > asynchronously with explicit human approval gates and comprehensive audit
 > logging. Built on Deno for security, MCP-native for interoperability, and
 > local-first for data sovereignty.
@@ -482,7 +482,7 @@ positioning
 
 ## Part 6: Competitive Positioning Matrix
 
-### ExoFrame vs. Market Segments
+### Exaix vs. Market Segments
 
 ````text
 ┌─────────────────────────────────────────────────────────────────┐
@@ -497,7 +497,7 @@ positioning
 │         │                      │                                 │
 │         │                      │                                 │
 │         │            ┌─────────────────────┐                    │
-│         │            │   ExoFrame          │←─ OPPORTUNITY      │
+│         │            │   Exaix          │←─ OPPORTUNITY      │
 │         │            │  (Governance +      │    SPACE           │
 │         │            │   Compliance)       │                    │
 │         │            └─────────────────────┘                    │
@@ -519,7 +519,7 @@ positioning
 └─────────────────────────────────────────────────────────────────┘
 ```text
 
-# Key Insight:** ExoFrame occupies the **"Governance + Compliance" quadrant
+# Key Insight:** Exaix occupies the **"Governance + Compliance" quadrant
 
 ---
 
@@ -533,21 +533,21 @@ positioning
 - **Likelihood:** Medium (2-3 years)
 - **Mitigation:** Build deeper governance features (compliance frameworks,
   automated reporting)
-- **ExoFrame Advantage:** Purpose-built for governance vs. bolted-on features
+- **Exaix Advantage:** Purpose-built for governance vs. bolted-on features
 
 # 2. Enterprise Platforms Going Downmarket
 
 - **Risk:** SuperAGI or FluxForce target SMBs
 - **Likelihood:** Low (1-2 years)
 - **Mitigation:** Stay simpler, developer-friendly, lower price point
-- **ExoFrame Advantage:** Faster to deploy, less complexity
+- **Exaix Advantage:** Faster to deploy, less complexity
 
 # 3. MCP Adoption Slower Than Expected
 
 - **Risk:** MCP doesn't become standard
 - **Likelihood:** Low (major backing from Anthropic, OpenAI, Microsoft)
 - **Mitigation:** MCP is additive, not core dependency
-- **ExoFrame Advantage:** Already file-based, MCP is enhancement
+- **Exaix Advantage:** Already file-based, MCP is enhancement
 
 # 4. Compliance Requirements Don't Materialize
 
@@ -555,7 +555,7 @@ positioning
 - **Likelihood:** Very Low (EU AI Act already active)
 - **Mitigation:** Audit trails useful beyond compliance (debugging,
   understanding)
-- **ExoFrame Advantage:** Value prop extends beyond just compliance
+- **Exaix Advantage:** Value prop extends beyond just compliance
 
 ### Technical Risks
 
@@ -591,7 +591,7 @@ fundamental contradictions found.
 
 ### Market Positioning Verdict
 
-🟡 **NEEDS REFINEMENT:** ExoFrame has a strong technical foundation and unique
+🟡 **NEEDS REFINEMENT:** Exaix has a strong technical foundation and unique
 value proposition but is **underselling its enterprise compliance value** and
 missing key positioning opportunities.
 
@@ -636,7 +636,7 @@ missing key positioning opportunities.
 
 ### The Bottom Line
 
-**ExoFrame is well-positioned to capture the emerging "governance-first agent
+**Exaix is well-positioned to capture the emerging "governance-first agent
 orchestration" niche in 2026**, but needs:
 
 - **Stronger enterprise messaging** (less "solo developer," more
@@ -646,15 +646,15 @@ orchestration" niche in 2026**, but needs:
 - **Governance features** (dashboards, reports, analytics)
 
 **Market Opportunity:** The gap between "helpful coding assistants" and "heavy
-enterprise platforms" is **ExoFrame's sweet spot**—governance-conscious teams
+enterprise platforms" is **Exaix's sweet spot**—governance-conscious teams
 that need more than IDE agents but less than full enterprise orchestration.
 
 **Competitive Moat:** Purpose-built audit trail and compliance features are
-**hard to bolt on** to existing IDE agents, giving ExoFrame sustainable
+**hard to bolt on** to existing IDE agents, giving Exaix sustainable
 differentiation.
 
 **Risk Level:** LOW - Market trends (compliance explosion, MCP adoption,
-multi-agent coordination) strongly favor ExoFrame's positioning.
+multi-agent coordination) strongly favor Exaix's positioning.
 
 ---
 

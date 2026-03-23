@@ -3,7 +3,7 @@
   "title": "Claude RAG (Retrieval-Augmented Generation) Usage Guide",
   "vecs": [
     {
-      "text": "# Claude RAG Usage Guide\n\n## Overview\n\nExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.\n\n## RAG Workflow\n\n1. **Generate query embedding** for user's task (or use mock vector based on query text)\n2. **Rank chunks** by cosine similarity against pre-computed embeddings\n3. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)\n4. **Execute task** with enriched context\n\n## Tools\n\n### Inspect Embeddings\n\nFind best matching chunks for a query using cosine similarity:",
+      "text": "# Claude RAG Usage Guide\n\n## Overview\n\nExaix pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.\n\n## RAG Workflow\n\n1. **Generate query embedding** for user's task (or use mock vector based on query text)\n2. **Rank chunks** by cosine similarity against pre-computed embeddings\n3. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)\n4. **Execute task** with enriched context\n\n## Tools\n\n### Inspect Embeddings\n\nFind best matching chunks for a query using cosine similarity:",
       "vector": [
         0.5568627450980392,
         0.9568627450980393,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "```bash\n# Find top 5 most relevant chunks for a query\ndeno run --allow-read scripts/inspect_embeddings.ts --query \"test database setup\" --top 5\n```\n\n**Output:** Ranked list of `.copilot/chunks/*.txt` files with cosine similarity scores.\n\n**Example output:**\n\n```\nTop 5 matches for \"test database setup\":\n1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)\n2. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)\n3. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)\n4. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)\n5. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)\n```\n\n### Automatic Context Injection\n\nUse the `inject_agent_context.ts` script to retrieve relevant context:\n\n```typescript\nimport { inject } from \"./scripts/inject_agent_context.ts\";",
+      "text": "```bash\n# Find top 5 most relevant chunks for a query\ndeno run --allow-read scripts/inspect_embeddings.ts --query \"test database setup\" --top 5\n```\n\n**Output:** Ranked list of `.copilot/chunks/*.txt` files with cosine similarity scores.\n\n**Example output:**\n\n```\nTop 5 matches for \"test database setup\":\n1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)\n2. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)\n3. .copilot/chunks/exaix.md.chunk3.txt (similarity: 0.76)\n4. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)\n5. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)\n```\n\n### Automatic Context Injection\n\nUse the `inject_agent_context.ts` script to retrieve relevant context:\n\n```typescript\nimport { inject } from \"./scripts/inject_agent_context.ts\";",
       "vector": [
         0.43137254901960786,
         0.788235294117647,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "# Output: JSON with path, title, short_summary, and snippet\n{\n  \"found\": true,\n  \"path\": \".copilot/tests/testing.md\",\n  \"title\": \"ExoFrame Test Development Guidelines\",\n  \"short_summary\": \"Testing patterns and unified test context...\",\n  \"snippet\": \"# ExoFrame Test Development Guidelines\\n\\nKey points\\n- Use `initTestDbService()`...\"\n}\n```\n\n## Token Budget Strategies\n\n### Context Window\n\n- **Claude 3.5 Sonnet**: 200k tokens (~600k characters)\n- **Claude 3 Opus**: 200k tokens\n- **Claude 3 Haiku**: 200k tokens\n\n### Recommended Chunk Allocation",
+      "text": "# Output: JSON with path, title, short_summary, and snippet\n{\n  \"found\": true,\n  \"path\": \".copilot/tests/testing.md\",\n  \"title\": \"Exaix Test Development Guidelines\",\n  \"short_summary\": \"Testing patterns and unified test context...\",\n  \"snippet\": \"# Exaix Test Development Guidelines\\n\\nKey points\\n- Use `initTestDbService()`...\"\n}\n```\n\n## Token Budget Strategies\n\n### Context Window\n\n- **Claude 3.5 Sonnet**: 200k tokens (~600k characters)\n- **Claude 3 Opus**: 200k tokens\n- **Claude 3 Haiku**: 200k tokens\n\n### Recommended Chunk Allocation",
       "vector": [
         0.2196078431372549,
         0.803921568627451,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "✅ **Good:** Include chunk summaries in system prompt, full chunks in user message\n\n```\nSystem: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]\nUser: [Full chunk text]\\n\\nTask: Implement ConfigLoader error handling\n```\n\n❌ **Avoid:** Repeating full chunks in both system and user prompts\n\n## Semantic Search Quality\n\n### Mock Embeddings (Default)\n\nThe default embeddings use **SHA-256-based deterministic vectors** (64-dimensional):\n\n- **Pros**: No API calls, reproducible, fast generation\n- **Cons**: Lower semantic accuracy than learned embeddings\n- **Quality**: Good for keyword matching, moderate for semantic similarity\n\n### OpenAI Embeddings (Production)\n\nFor higher quality semantic search:",
+      "text": "✅ **Good:** Include chunk summaries in system prompt, full chunks in user message\n\n```\nSystem: You are working on Exaix. Relevant docs: [testing.md: TDD patterns, exaix.md: service patterns]\nUser: [Full chunk text]\\n\\nTask: Implement ConfigLoader error handling\n```\n\n❌ **Avoid:** Repeating full chunks in both system and user prompts\n\n## Semantic Search Quality\n\n### Mock Embeddings (Default)\n\nThe default embeddings use **SHA-256-based deterministic vectors** (64-dimensional):\n\n- **Pros**: No API calls, reproducible, fast generation\n- **Cons**: Lower semantic accuracy than learned embeddings\n- **Quality**: Good for keyword matching, moderate for semantic similarity\n\n### OpenAI Embeddings (Production)\n\nFor higher quality semantic search:",
       "vector": [
         0.22745098039215686,
         0.8941176470588236,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "```bash\n# Generate OpenAI embeddings (requires API key in environment)\ndeno run --allow-read --allow-write --allow-net --allow-env \\\n  scripts/build_agents_embeddings.ts --mode openai\n```\n\n**Configuration:**\n\n- Model: `text-embedding-3-small` (1536 dimensions, reduced to 64 via PCA)\n- Cost: ~$0.002 per agent doc (one-time)\n- Quality: High semantic accuracy\n\n### Precomputed Embeddings\n\nUse pre-generated embeddings from external sources:\n\n1. **Prepare embedding files** following the template:\n\n```json\n{\n  \"path\": \".copilot/tests/testing.md\",\n  \"title\": \"ExoFrame Test Development Guidelines\",\n  \"vecs\": [\n    {\n      \"text\": \"# ExoFrame Test Development Guidelines\\n\\nKey points...\",\n      \"vector\": [0.123, -0.456, 0.789, ...]\n    }\n  ]\n}\n```",
+      "text": "```bash\n# Generate OpenAI embeddings (requires API key in environment)\ndeno run --allow-read --allow-write --allow-net --allow-env \\\n  scripts/build_agents_embeddings.ts --mode openai\n```\n\n**Configuration:**\n\n- Model: `text-embedding-3-small` (1536 dimensions, reduced to 64 via PCA)\n- Cost: ~$0.002 per agent doc (one-time)\n- Quality: High semantic accuracy\n\n### Precomputed Embeddings\n\nUse pre-generated embeddings from external sources:\n\n1. **Prepare embedding files** following the template:\n\n```json\n{\n  \"path\": \".copilot/tests/testing.md\",\n  \"title\": \"Exaix Test Development Guidelines\",\n  \"vecs\": [\n    {\n      \"text\": \"# Exaix Test Development Guidelines\\n\\nKey points...\",\n      \"vector\": [0.123, -0.456, 0.789, ...]\n    }\n  ]\n}\n```",
       "vector": [
         0.20784313725490197,
         0.6274509803921569,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "2. **Place files** in `.copilot/embeddings/` (format: `<doc-name>.json`)\n\n3. **Validate and import**:\n\n```bash\ndeno run --allow-read --allow-write scripts/build_agents_embeddings.ts \\\n  --mode precomputed --dir .copilot/embeddings\n```\n\n**Template:** See `.copilot/embeddings/example_precomputed_template.json`\n\n## Example: Multi-Step Task with RAG\n\n### Scenario: Add Security Tests for PathResolver\n\n**Step 1: Retrieve relevant context**\n\n```typescript\nconst query = \"security tests PathResolver path traversal\";\nconst context = await inject(\"claude\", query, 6);\n```\n\n**Step 2: Build enriched system prompt**\n\n```typescript\nconst systemPrompt = `\nYou are a security-focused test developer for ExoFrame.\n\nRelevant context from documentation:\n${context.short_summary}\n\nKey patterns:\n${context.snippet}",
+      "text": "2. **Place files** in `.copilot/embeddings/` (format: `<doc-name>.json`)\n\n3. **Validate and import**:\n\n```bash\ndeno run --allow-read --allow-write scripts/build_agents_embeddings.ts \\\n  --mode precomputed --dir .copilot/embeddings\n```\n\n**Template:** See `.copilot/embeddings/example_precomputed_template.json`\n\n## Example: Multi-Step Task with RAG\n\n### Scenario: Add Security Tests for PathResolver\n\n**Step 1: Retrieve relevant context**\n\n```typescript\nconst query = \"security tests PathResolver path traversal\";\nconst context = await inject(\"claude\", query, 6);\n```\n\n**Step 2: Build enriched system prompt**\n\n```typescript\nconst systemPrompt = `\nYou are a security-focused test developer for Exaix.\n\nRelevant context from documentation:\n${context.short_summary}\n\nKey patterns:\n${context.snippet}",
       "vector": [
         0.611764705882353,
         0.9058823529411765,
@@ -624,7 +624,7 @@
       ]
     },
     {
-      "text": "- `initTestDbService()` or `createCliTestContext()` usage\n- Explicit assertions for attack vectors\n- Try/finally cleanup blocks\n- References to ExoFrame security patterns (Portal permissions, PathResolver validation)\n\n## Best Practices\n\n### Pre-filter by Agent and Scope\n\nWhen retrieving chunks, filter by relevant metadata:\n\n```typescript\n// Filter for Claude + dev scope\nconst manifest = JSON.parse(await Deno.readTextFile(\".copilot/manifest.json\"));\nconst relevantDocs = manifest.docs.filter((doc) => doc.agent === \"claude\" && doc.scope === \"dev\");\n```\n\n### Combine Chunks Intelligently\n\nGroup related chunks together:",
+      "text": "- `initTestDbService()` or `createCliTestContext()` usage\n- Explicit assertions for attack vectors\n- Try/finally cleanup blocks\n- References to Exaix security patterns (Portal permissions, PathResolver validation)\n\n## Best Practices\n\n### Pre-filter by Agent and Scope\n\nWhen retrieving chunks, filter by relevant metadata:\n\n```typescript\n// Filter for Claude + dev scope\nconst manifest = JSON.parse(await Deno.readTextFile(\".copilot/manifest.json\"));\nconst relevantDocs = manifest.docs.filter((doc) => doc.agent === \"claude\" && doc.scope === \"dev\");\n```\n\n### Combine Chunks Intelligently\n\nGroup related chunks together:",
       "vector": [
         0.4196078431372549,
         0.7019607843137254,
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "text": "```typescript\n// Good: All testing.md chunks together\nconst testingChunks = [\n  \".copilot/chunks/testing.md.chunk0.txt\",\n  \".copilot/chunks/testing.md.chunk1.txt\",\n  \".copilot/chunks/testing.md.chunk2.txt\",\n];\n\n// Better: Mix relevant chunks from different docs\nconst mixedChunks = [\n  \".copilot/chunks/testing.md.chunk1.txt\", // initTestDbService pattern\n  \".copilot/chunks/exoframe.md.chunk2.txt\", // Service patterns\n  \".copilot/chunks/testing.md.chunk3.txt\", // Security tests\n];\n```\n\n### Validate Freshness\n\nEnsure embeddings match current documentation:\n\n```bash\n# Verify manifest is up-to-date\ndeno run --allow-read scripts/verify_manifest_fresh.ts",
+      "text": "```typescript\n// Good: All testing.md chunks together\nconst testingChunks = [\n  \".copilot/chunks/testing.md.chunk0.txt\",\n  \".copilot/chunks/testing.md.chunk1.txt\",\n  \".copilot/chunks/testing.md.chunk2.txt\",\n];\n\n// Better: Mix relevant chunks from different docs\nconst mixedChunks = [\n  \".copilot/chunks/testing.md.chunk1.txt\", // initTestDbService pattern\n  \".copilot/chunks/exaix.md.chunk2.txt\", // Service patterns\n  \".copilot/chunks/testing.md.chunk3.txt\", // Security tests\n];\n```\n\n### Validate Freshness\n\nEnsure embeddings match current documentation:\n\n```bash\n# Verify manifest is up-to-date\ndeno run --allow-read scripts/verify_manifest_fresh.ts",
       "vector": [
         0.6549019607843137,
         0.8745098039215686,
@@ -969,7 +969,7 @@
       ]
     },
     {
-      "text": "1. Reduce chunk count (4-6 is recommended)\n2. Use `short_summary` only for simple tasks\n3. Filter chunks by relevance threshold (cosine similarity > 0.6)\n4. Summarize chunks before injection (trade quality for tokens)\n\n## Canonical Prompt (Short)\n\n\"You are a Claude-based assistant working on ExoFrame with RAG-enhanced context. Before responding, semantic search will inject the 4-6 most relevant documentation chunks. Use this context to provide accurate, project-specific guidance following ExoFrame patterns.\"\n\n## Examples",
+      "text": "1. Reduce chunk count (4-6 is recommended)\n2. Use `short_summary` only for simple tasks\n3. Filter chunks by relevance threshold (cosine similarity > 0.6)\n4. Summarize chunks before injection (trade quality for tokens)\n\n## Canonical Prompt (Short)\n\n\"You are a Claude-based assistant working on Exaix with RAG-enhanced context. Before responding, semantic search will inject the 4-6 most relevant documentation chunks. Use this context to provide accurate, project-specific guidance following Exaix patterns.\"\n\n## Examples",
       "vector": [
         0.5019607843137255,
         0.7647058823529411,

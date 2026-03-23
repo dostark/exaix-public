@@ -2,13 +2,13 @@
 
 > [!NOTE]
 > **Status: Planning**
-> This phase extends ExoFrame's LLM provider ecosystem with enterprise-grade authentication and aggregation services, prioritizing Google Vertex AI for quota/billing management and OpenRouter for multi-model access.
+> This phase extends Exaix's LLM provider ecosystem with enterprise-grade authentication and aggregation services, prioritizing Google Vertex AI for quota/billing management and OpenRouter for multi-model access.
 >
 > **Business Context:** Free-tier Google AI API hits rate limits despite user having Google AI Pro subscription. Root cause: Simple API key auth doesn't access enterprise quotas.
 
 ## Executive Summary
 
-Following Phase 26's provider flexibility improvements and Phase 28's environment variable validation, ExoFrame needs enterprise authentication mechanisms to unlock premium tier quotas and leverage LLM aggregation platforms.
+Following Phase 26's provider flexibility improvements and Phase 28's environment variable validation, Exaix needs enterprise authentication mechanisms to unlock premium tier quotas and leverage LLM aggregation platforms.
 
 ### **Problem Statement**
 
@@ -159,8 +159,8 @@ export const VERTEX_AI_RATE_LIMIT_RPM = 60; // 60 requests per minute
 export const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 export const OPENROUTER_TIMEOUT_MS = 60000; // 60 seconds for OpenRouter
 export const OPENROUTER_RATE_LIMIT_RPM = 200; // 200 requests per minute
-export const OPENROUTER_DEFAULT_SITE_NAME = "ExoFrame";
-export const OPENROUTER_DEFAULT_SITE_URL = "https://exoframe.dev";
+export const OPENROUTER_DEFAULT_SITE_NAME = "Exaix";
+export const OPENROUTER_DEFAULT_SITE_URL = "https://exaix.dev";
 
 // HTTP Status Codes (if not already defined)
 export const HTTP_STATUS = {
@@ -233,7 +233,7 @@ grep -rEn --include='*.ts' 'throw new Error\("' src/ai/
 - `src/ai/provider_registry.ts` (register Vertex AI)
 - `src/ai/provider_factory.ts` (add Vertex AI creation logic)
 - `src/config/schema.ts` (add Vertex AI config schema)
-- `templates/exo.config.sample.toml` (add Vertex AI examples)
+- `templates/exa.config.sample.toml` (add Vertex AI examples)
 
 #### Step 1.1: Google Auth Helper
 
@@ -610,7 +610,7 @@ const ModelConfigSchema = z.object({
 export VERTEX_AI_SERVICE_ACCOUNT='{"type":"service_account","project_id":"my-project",...}'
 ```
 
-**exo.config.toml:**
+**exa.config.toml:**
 
 ```toml
 [models.vertex]
@@ -790,8 +790,8 @@ export class OpenRouterProvider implements IModelProvider {
       headers: {
         "Authorization": `Bearer ${this.options.apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": this.options.siteUrl || "https://exoframe.dev",
-        "X-Title": this.options.siteName || "ExoFrame",
+        "HTTP-Referer": this.options.siteUrl || "https://exaix.dev",
+        "X-Title": this.options.siteName || "Exaix",
       },
       body: JSON.stringify({
         model: this.options.model,
@@ -826,8 +826,8 @@ export class OpenRouterProvider implements IModelProvider {
       headers: {
         "Authorization": `Bearer ${this.options.apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": this.options.siteUrl || "https://exoframe.dev",
-        "X-Title": this.options.siteName || "ExoFrame",
+        "HTTP-Referer": this.options.siteUrl || "https://exaix.dev",
+        "X-Title": this.options.siteName || "Exaix",
       },
       body: JSON.stringify({
         model: this.options.model,
@@ -879,8 +879,8 @@ export class OpenRouterProvider implements IModelProvider {
 provider = "openrouter"
 model = "anthropic/claude-3-opus"  # or "openai/gpt-4", "google/gemini-pro"
 api_key_env = "OPENROUTER_API_KEY"
-site_name = "ExoFrame"
-site_url = "https://exoframe.dev"
+site_name = "Exaix"
+site_url = "https://exaix.dev"
 ```
 
 **Success Criteria:**
@@ -929,7 +929,7 @@ class ProviderFactory {
     if (!serviceAccount) {
       throw new Error(
         `Vertex AI requires service account JSON in ${envVar} environment variable.\\n` +
-          `See docs/ExoFrame_User_Guide.md#vertex-ai-setup for instructions.`,
+          `See docs/Exaix_User_Guide.md#vertex-ai-setup for instructions.`,
       );
     }
 
@@ -1060,8 +1060,8 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    # 3. Download service account JSON
    export VERTEX_AI_SERVICE_ACCOUNT='...json...'
 
-   # 4. Test with exoctl
-   exoctl request "Hello, Vertex AI!" --model vertex
+   # 4. Test with exactl
+   exactl request "Hello, Vertex AI!" --model vertex
    ```
 
 1. **OpenRouter Setup:**
@@ -1069,7 +1069,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    ```bash
    export OPENROUTER_API_KEY="sk-or-..."
 
-   exoctl request "Test OpenRouter" --model openrouter
+   exactl request "Test OpenRouter" --model openrouter
    ```
 
 **Success Criteria:**
@@ -1086,7 +1086,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
 
 #### Step 6.1: Technical Specification
 
-**Update `docs/dev/ExoFrame_Technical_Spec.md`:**
+**Update `docs/dev/Exaix_Technical_Spec.md`:**
 
 Add section 2.0.1.5: **Enterprise Providers**
 
@@ -1110,27 +1110,27 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
 
 2. **Create Service Account:**
    ```bash
-   gcloud iam service-accounts create exoframe-vertex \\
-     --description="ExoFrame Vertex AI access" \\
-     --display-name="ExoFrame Vertex AI"
+   gcloud iam service-accounts create exaix-vertex \\
+     --description="Exaix Vertex AI access" \\
+     --display-name="Exaix Vertex AI"
 
    gcloud projects add-iam-policy-binding PROJECT_ID \\
-     --member="serviceAccount:exoframe-vertex@PROJECT_ID.iam.gserviceaccount.com" \\
+     --member="serviceAccount:exaix-vertex@PROJECT_ID.iam.gserviceaccount.com" \\
      --role="roles/aiplatform.user"
 
-   gcloud iam service-accounts keys create ~/exoframe-vertex-key.json \\
-     --iam-account=exoframe-vertex@PROJECT_ID.iam.gserviceaccount.com
+   gcloud iam service-accounts keys create ~/exaix-vertex-key.json \\
+     --iam-account=exaix-vertex@PROJECT_ID.iam.gserviceaccount.com
    ```
 ````
 
-1. **Configure ExoFrame:**
+1. **Configure Exaix:**
 
    ```bash
-   export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/exoframe-vertex-key.json)
+   export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/exaix-vertex-key.json)
    ```
 
    ```toml
-   # exo.config.toml
+   # exa.config.toml
    [models.vertex]
    provider = "vertex-ai"
    region = "us-central1"
@@ -1164,14 +1164,14 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
 
 #### Step 6.2: User Guide
 
-**Update `docs/ExoFrame_User_Guide.md`:**
+**Update `docs/Exaix_User_Guide.md`:**
 
 Add section 2.4.4: **Enterprise Provider Setup**
 
 ````markdown
 ### 2.4.4 Enterprise Providers (Vertex AI, OpenRouter)
 
-ExoFrame supports enterprise LLM providers for users with paid subscriptions who need:
+Exaix supports enterprise LLM providers for users with paid subscriptions who need:
 
 - Higher rate limits and quotas
 - Access to premium models
@@ -1194,9 +1194,9 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
    - Service account with "Vertex AI User" role
 
 2. **Create service account:**
-   Follow the [Technical Spec](/docs/dev/ExoFrame_Technical_Spec.md#vertex-ai-setup) for detailed `gcloud` commands.
+   Follow the [Technical Spec](/docs/dev/Exaix_Technical_Spec.md#vertex-ai-setup) for detailed `gcloud` commands.
 
-3. **Configure ExoFrame:**
+3. **Configure Exaix:**
    ```bash
    export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/path/to/service-account-key.json)
    ```
@@ -1214,7 +1214,7 @@ max_tokens = 2048
 1. **Test:**
 
    ```bash
-   exoctl request "Test Vertex AI" --model vertex
+   exactl request "Test Vertex AI" --model vertex
    ```
 
 **Troubleshooting:**
@@ -1234,7 +1234,7 @@ max_tokens = 2048
 **Setup steps:**
 
 1. Get API key from [openrouter.ai/keys](https://openrouter.ai/keys)
-1. Configure ExoFrame:
+1. Configure Exaix:
 
    ```bash
    export OPENROUTER_API_KEY="sk-or-v1-..."
@@ -1249,7 +1249,7 @@ max_tokens = 2048
 1. Test:
 
    ```bash
-   exoctl request "Test OpenRouter" --model openrouter
+   exactl request "Test OpenRouter" --model openrouter
    ```
 
 **Supported models:** See [openrouter.ai/models](https://openrouter.ai/models) for full list.
@@ -1263,7 +1263,7 @@ max_tokens = 2048
 
 #### Step 6.3: Agent Documentation
 
-**Update `.copilot/source/exoframe.md`:**
+**Update `.copilot/source/exaix.md`:**
 
 Add section on enterprise provider usage patterns.
 
@@ -1353,7 +1353,7 @@ export class DockerDriver implements SandboxDriver {
 - Extracts: function/method definitions, class declarations, public interfaces — no bodies
 - PageRank scoring via cross-file symbol reference graph (same algorithm as Phase 46 Strategy 6)
 - Grammar WASM files sourced from tree-sitter NPM packages; bundled at build time; checked in under `src/services/portal_knowledge/wasm/`
-- Edition gate: reads `[portal_knowledge] tree_sitter_extraction` from `exo.config.toml`; no-op on Solo edition
+- Edition gate: reads `[portal_knowledge] tree_sitter_extraction` from `exa.config.toml`; no-op on Solo edition
 
 **Success Criteria:**
 
@@ -1475,8 +1475,8 @@ export class DockerDriver implements SandboxDriver {
 
 - [Phase 26: LLM Provider Flexibility](./phase-26-llm-provider-flexibility.md) - Provider architecture foundation
 - [Phase 28: Environment Variable Cleanup](./phase-28-env-var-cleanup-and-validation.md) - Zod validation patterns
-- [Technical Specification](../../docs/dev/ExoFrame_Technical_Spec.md) - Provider ecosystem overview
-- [User Guide](../../docs/ExoFrame_User_Guide.md) - End-user setup instructions
+- [Technical Specification](../../docs/dev/Exaix_Technical_Spec.md) - Provider ecosystem overview
+- [User Guide](../../docs/Exaix_User_Guide.md) - End-user setup instructions
 
 ---
 
@@ -1510,4 +1510,4 @@ export class DockerDriver implements SandboxDriver {
 
 - **Security First:** Sandbox execution is critical for multi-tenant and production environments.
 - **Deno Stack:** Deno Sandbox offers the best performance profile for AI agent workflows.
-- **Enterprise Ready:** This integrated plan positions ExoFrame as a secure, enterprise-grade agentic framework.
+- **Enterprise Ready:** This integrated plan positions Exaix as a secure, enterprise-grade agentic framework.

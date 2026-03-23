@@ -197,7 +197,7 @@ export class MCPServer {
   }
 
   /**
-   * Returns the server name (exoframe)
+   * Returns the server name (exaix)
    */
   getServerName(): string {
     return this.serverName;

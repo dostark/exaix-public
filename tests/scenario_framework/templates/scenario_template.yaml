@@ -10,7 +10,7 @@ mode_support: ["auto"]
 portals: []
 steps:
   - id: "create-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request create"
     args: ["--from-file", "__REQUEST_FIXTURE__"]
     input_criteria:

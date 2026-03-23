@@ -6,17 +6,17 @@ tags: ["provider-live", "flow", "multi-agent"]
 request_fixture: "fixtures/requests/provider_live/product_manager.md"
 mode_support: ["auto", "step"]
 portals:
-  - alias: "portal-exoframe"
-    source_path: "/home/dkasymov/git/ExoFrame"
+  - alias: "portal-exaix"
+    source_path: "/home/dkasymov/git/Exaix"
 steps:
   - id: "create-pm-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args:
       - "--agent"
       - "product-manager"
       - "--portal"
-      - "portal-exoframe"
+      - "portal-exaix"
       - "--plan-only"
       - "--file"
       - "$REQUEST_FIXTURE"
@@ -25,13 +25,13 @@ steps:
     args: ["**/*_plan.yaml"]
     timeout_sec: 180
   - id: "create-architect-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args:
       - "--agent"
       - "software-architect"
       - "--portal"
-      - "portal-exoframe"
+      - "portal-exaix"
       - "--plan-only"
       - "Based on the recent product manager plan generated in the workspace, design the technical architecture for the TUI monitoring dashboard. Review the latest plan.yaml to understand the user stories before creating your architectural design."
   - id: "wait-for-architect-plan"

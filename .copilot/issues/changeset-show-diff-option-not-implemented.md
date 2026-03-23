@@ -6,11 +6,11 @@ created: 2026-01-23
 labels: [bug, cli, changeset, ux]
 ---
 
-## Issue: `--diff` option is not implemented for `exoctl changeset show`
+## Issue: `--diff` option is not implemented for `exactl changeset show`
 
 ## Problem
 
-The CLI command `exoctl changeset show <id> --diff` (and variants like `-d`) is not recognized. The help output does not list `--diff` as a valid option, and passing it results in an error:
+The CLI command `exactl changeset show <id> --diff` (and variants like `-d`) is not recognized. The help output does not list `--diff` as a valid option, and passing it results in an error:
 
 ```text
 error: Unknown option "--diff". Did you mean option "--help"?
@@ -18,20 +18,20 @@ error: Unknown option "--diff". Did you mean option "--help"?
 
 ## Reproduction Steps
 
-1. Run `exoctl changeset list` to get a changeset ID or branch.
+1. Run `exactl changeset list` to get a changeset ID or branch.
 
 1.
 
 ## Expected Behavior
 
-- `--diff` (and `-d`) should be a valid option for `exoctl changeset show`.
+- `--diff` (and `-d`) should be a valid option for `exactl changeset show`.
 - When provided, the command should print only the unified diff for the changeset, not the full details.
 - The help output should document the `--diff` option.
 
 ## Observed Behavior
 
 - The CLI rejects `--diff` and `-d` as unknown options.
-- The only way to see the diff is to run `exoctl changeset show <id>` and manually extract the diff from the output.
+- The only way to see the diff is to run `exactl changeset show <id>` and manually extract the diff from the output.
 
 ## Impact
 
@@ -40,11 +40,11 @@ error: Unknown option "--diff". Did you mean option "--help"?
 
 ## Resolution
 
-✅ **FIXED**: Added `--diff`/`-d` option to `exoctl changeset show` command.
+✅ **FIXED**: Added `--diff`/`-d` option to `exactl changeset show` command.
 
 **Changes Made:**
 
-- Modified `src/cli/exoctl.ts` to add the `--diff` option to the changeset show command
+- Modified `src/cli/exactl.ts` to add the `--diff` option to the changeset show command
 - When `--diff` is provided, outputs only the unified diff (raw git diff format)
 - When `--diff` is not provided, shows the full changeset details as before
 - Both `--diff` and `-d` (short form) are supported

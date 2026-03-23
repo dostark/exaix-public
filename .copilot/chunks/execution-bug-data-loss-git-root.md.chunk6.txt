@@ -9,7 +9,7 @@
 
 **Manual Recovery:**
 
-1. Check current branch: `git branch` in `~/ExoFrame`.
+1. Check current branch: `git branch` in `~/Exaix`.
 
 1.
 1.

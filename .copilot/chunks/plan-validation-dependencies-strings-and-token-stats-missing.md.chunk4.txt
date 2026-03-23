@@ -11,7 +11,7 @@
 - `Blueprints/Agents/default.md` - Agent JSON schema example
 - `src/cli/command_builders/plan_actions.ts` - Plan show output formatting
 - `src/cli/plan_commands.ts` - Plan metadata and content loading
-- `src/cli/exoctl.ts` - Request show output formatting
+- `src/cli/exactl.ts` - Request show output formatting
 - `src/ai/provider_common_utils.ts` - Token usage event mapping
 
 ## Root Cause Analysis

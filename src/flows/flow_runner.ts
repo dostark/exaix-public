@@ -219,7 +219,7 @@ export function toGateConfig(evaluate: IGateEvaluate): GateConfig {
 
 /**
  * FlowRunner - Orchestrates multi-agent flow execution
- * Implements Step 7.4 of the ExoFrame Implementation Plan
+ * Implements Step 7.4 of the Exaix Implementation Plan
  */
 export class FlowRunner implements IFlowRunner {
   private conditionEvaluator: ConditionEvaluator;

@@ -10,4 +10,4 @@ Refer to [CODE_STYLE.md](../../CODE_STYLE.md) for the full set of typing and sty
 
 ### Configuration Schema
 
-Use Zod for config validation and keep config options in `exo.config.toml` examples. Provide default values and bounds where possible.
+Use Zod for config validation and keep config options in `exa.config.toml` examples. Provide default values and bounds where possible.

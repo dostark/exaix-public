@@ -3,7 +3,7 @@
   "title": "Linting/Formatting Template (#lint)",
   "vecs": [
     {
-      "text": "**Purpose:** Ensure code is clean, consistent, and follows ExoFrame style guidelines.\n\n---\n\n## Instructions for Agent\n\n- Restate linting/formatting goal and affected files.\n- Run linting and formatting tools.\n- Fix all issues and document changes.\n- Validate that code is clean and tests pass.\n\n---\n\n## Template\n\n**Linting Goal:**\n{RAW_PROMPT}\n\n**Affected Files:**\n\n- ...\n\n**Actions:**\n\n- Run lint/format tools\n- Fix issues\n- Document changes\n\n**Validation:**\n\n- Linting clean\n- All tests pass",
+      "text": "**Purpose:** Ensure code is clean, consistent, and follows Exaix style guidelines.\n\n---\n\n## Instructions for Agent\n\n- Restate linting/formatting goal and affected files.\n- Run linting and formatting tools.\n- Fix all issues and document changes.\n- Validate that code is clean and tests pass.\n\n---\n\n## Template\n\n**Linting Goal:**\n{RAW_PROMPT}\n\n**Affected Files:**\n\n- ...\n\n**Actions:**\n\n- Run lint/format tools\n- Fix issues\n- Document changes\n\n**Validation:**\n\n- Linting clean\n- All tests pass",
       "vector": [
         0,
         0.9686274509803922,

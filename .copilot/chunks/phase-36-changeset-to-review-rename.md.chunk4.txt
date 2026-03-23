@@ -1,4 +1,4 @@
-- [x] Rename CLI command group: `exoctl changeset` → `exoctl review`
+- [x] Rename CLI command group: `exactl changeset` → `exactl review`
 - [x] Delete old changeset command files completely
 - [x] Rename database table: `changesets` → `reviews` (with migration script)
 - [x] Rename service classes: `ChangesetService` → `ReviewService`

@@ -1,4 +1,4 @@
-# ExoFrame 2.0 Implementation Roadmap
+# Exaix 2.0 Implementation Roadmap
 
 **Version:** 1.0.0
 **Date:** January 16, 2026
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This roadmap outlines the phased implementation of ExoFrame 2.0, transitioning from the current single-edition codebase to a **three-tier open-core architecture** (Solo/Team/Enterprise) as specified in the White Paper v2.0.0.
+This roadmap outlines the phased implementation of Exaix 2.0, transitioning from the current single-edition codebase to a **three-tier open-core architecture** (Solo/Team/Enterprise) as specified in the White Paper v2.0.0.
 
 ---
 
@@ -17,20 +17,20 @@ This roadmap outlines the phased implementation of ExoFrame 2.0, transitioning f
 
 ### Selected Approach: Git Submodules (Option B)
 
-ExoFrame 2.0 uses a **multi-repository submodule architecture** to enforce true source code separation between open-source and proprietary components.
+Exaix 2.0 uses a **multi-repository submodule architecture** to enforce true source code separation between open-source and proprietary components.
 
 ````text
-exoframe/                          (composition repo - private)
-  ├── core/                        (submodule → github.com/exoframe/exoframe-core, public, MIT)
-  ├── team/                        (submodule → github.com/exoframe/exoframe-team, private)
-  └── enterprise/                  (submodule → github.com/exoframe/exoframe-enterprise, private)
+exaix/                          (composition repo - private)
+  ├── core/                        (submodule → github.com/exaix/exaix-core, public, MIT)
+  ├── team/                        (submodule → github.com/exaix/exaix-team, private)
+  └── enterprise/                  (submodule → github.com/exaix/exaix-enterprise, private)
 ```text
 
 | Repository            | Visibility  | License                | Contents                                            |
 | --------------------- | ----------- | ---------------------- | --------------------------------------------------- |
-| `exoframe-core`       | **Public**  | MIT/Apache 2.0         | CLI, TUI, Daemon, SQLite, MCP Client, Solo features |
-| `exoframe-team`       | **Private** | Source-Available (BSL) | Web UI, PostgreSQL, MCP Server, multi-user          |
-| `exoframe-enterprise` | **Private** | Proprietary            | Governance Dashboard, Compliance, immudb, SSO       |
+| `exaix-core`       | **Public**  | MIT/Apache 2.0         | CLI, TUI, Daemon, SQLite, MCP Client, Solo features |
+| `exaix-team`       | **Private** | Source-Available (BSL) | Web UI, PostgreSQL, MCP Server, multi-user          |
+| `exaix-enterprise` | **Private** | Proprietary            | Governance Dashboard, Compliance, immudb, SSO       |
 
 ### Why Not Git Branches?
 
@@ -40,7 +40,7 @@ exoframe/                          (composition repo - private)
 | Problem                               | Explanation                                                                                               |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | **No per-branch access control**      | All branches in a repository share the same visibility (public or private)                                |
-| **Public repo = all branches public** | If `exoframe` repo is public for Solo edition, `team` and `enterprise` branches are also publicly visible |
+| **Public repo = all branches public** | If `exaix` repo is public for Solo edition, `team` and `enterprise` branches are also publicly visible |
 | **Private repo = no open source**     | If repo is private to hide Team/Enterprise, Solo cannot be truly open-source                              |
 | **Git history exposure**              | Even deleted branches leave commits in history accessible via SHA                                         |
 | **Fork vulnerability**                | Anyone who forks a public repo gets all branches, including proprietary code                              |
@@ -51,7 +51,7 @@ exoframe/                          (composition repo - private)
 
 | Aspect         | Assessment                                                                                    |
 | -------------- | --------------------------------------------------------------------------------------------- |
-| **Approach**   | Publish `@exoframe/core`, `@exoframe/team`, `@exoframe/enterprise` as packages                |
+| **Approach**   | Publish `@exaix/core`, `@exaix/team`, `@exaix/enterprise` as packages                |
 | **Verdict**    | Deferred to post-1.0; adds registry complexity without significant benefit during development |
 | **Future Use** | May adopt for external distribution once editions are stable                                  |
 
@@ -66,7 +66,7 @@ exoframe/                          (composition repo - private)
 
 **Objectives:**
 
-- Create `exoframe-core` (public), `exoframe-team` (private), `exoframe-enterprise` (private) repositories
+- Create `exaix-core` (public), `exaix-team` (private), `exaix-enterprise` (private) repositories
 - Set up composition repository with git submodules
 - Implement feature flags for edition-gated functionality
 - Create build system supporting edition-specific outputs
@@ -77,7 +77,7 @@ exoframe/                          (composition repo - private)
 - [ ] Three GitHub repositories created with correct visibility settings
 - [ ] Submodule structure operational (`git submodule update --init`)
 - [ ] `deno task build:solo`, `build:team`, `build:enterprise` produce distinct artifacts
-- [ ] Feature flag system operational with `EXOFRAME_EDITION` environment variable
+- [ ] Feature flag system operational with `EXAIX_EDITION` environment variable
 - [ ] CI pipeline builds all three editions with proper access tokens
 - [ ] Developer onboarding docs for submodule workflow
 
@@ -121,7 +121,7 @@ exoframe/                          (composition repo - private)
 
 - [ ] immudb integration passes tamper-detection validation
 - [ ] Governance Dashboard displays agent actions with risk scores
-- [ ] `exoctl compliance export --framework hipaa` generates valid PDF
+- [ ] `exactl compliance export --framework hipaa` generates valid PDF
 - [ ] SSO login functional with Okta/Azure AD test tenant
 - [ ] At least 1 pilot customer validates compliance workflow
 
@@ -135,7 +135,7 @@ exoframe/                          (composition repo - private)
 **Objectives:**
 
 - Implement license key verification for Team/Enterprise features
-- Prepare `exoframe-core` for public open-source release
+- Prepare `exaix-core` for public open-source release
 - Finalize licensing headers and NOTICE files
 - Set up public issue tracker and contribution guidelines
 - Security audit and penetration testing
@@ -143,7 +143,7 @@ exoframe/                          (composition repo - private)
 **Success Criteria:**
 
 - [ ] License key validation blocks unauthorized feature access at runtime
-- [ ] `exoframe-core` passes security audit (no proprietary code leakage)
+- [ ] `exaix-core` passes security audit (no proprietary code leakage)
 - [ ] All files have correct license headers (MIT for core, proprietary for Team/Enterprise)
 - [ ] CONTRIBUTING.md and CLA process documented
 - [ ] Penetration test report with no critical findings
@@ -165,7 +165,7 @@ exoframe/                          (composition repo - private)
 
 **Success Criteria:**
 
-- [ ] Solo edition available via `curl -fsSL https://exoframe.io/install.sh | sh`
+- [ ] Solo edition available via `curl -fsSL https://exaix.io/install.sh | sh`
 - [ ] Team edition sign-up → running in < 15 minutes
 - [ ] 3+ Enterprise pilot customers converted to paid
 - [ ] 10+ community-contributed blueprints in marketplace
@@ -183,26 +183,26 @@ jobs:
   build-solo:
     # Builds from main branch / core submodule only
     steps:
-      - checkout: exoframe-core
+      - checkout: exaix-core
       - run: deno task build --edition=solo
-      - artifact: exoframe-solo-$VERSION
+      - artifact: exaix-solo-$VERSION
 
   build-team:
     # Composes core + team components
     steps:
-      - checkout: exoframe-core
-      - checkout: exoframe-team (private, requires token)
+      - checkout: exaix-core
+      - checkout: exaix-team (private, requires token)
       - run: deno task build --edition=team
-      - artifact: exoframe-team-$VERSION
+      - artifact: exaix-team-$VERSION
 
   build-enterprise:
     # Composes core + team + enterprise components
     steps:
-      - checkout: exoframe-core
-      - checkout: exoframe-team
-      - checkout: exoframe-enterprise (private, requires token)
+      - checkout: exaix-core
+      - checkout: exaix-team
+      - checkout: exaix-enterprise (private, requires token)
       - run: deno task build --edition=enterprise
-      - artifact: exoframe-enterprise-$VERSION
+      - artifact: exaix-enterprise-$VERSION
 ```text
 
 ---

@@ -2,12 +2,12 @@
 agent: antigravity
 scope: dev
 title: "Phase 38: Core Tool Expansion & Grounding"
-short_summary: "Technical specification for adding research, discovery, and refactoring tools to the ExoFrame ToolRegistry."
+short_summary: "Technical specification for adding research, discovery, and refactoring tools to the Exaix ToolRegistry."
 version: "1.0"
 topics: ["tools", "tool-registry", "research", "refactoring", "git", "deno"]
 ---
 
-**Goal:** Equip ExoFrame agents with a comprehensive, industry-standard toolset for autonomous software engineering.
+**Goal:** Equip Exaix agents with a comprehensive, industry-standard toolset for autonomous software engineering.
 
 **Status:** 🏗️ Implementation Ready
 **Timebox:** 1–2 weeks

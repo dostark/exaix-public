@@ -15,7 +15,7 @@ structure.
 
 **Core Functionality:**
 
-1. [x] `deno task start` runs `main.ts` and prints "ExoFrame Daemon Active"
+1. [x] `deno task start` runs `main.ts` and prints "Exaix Daemon Active"
 
 1.
 
@@ -132,7 +132,7 @@ INSERT INTO schema_version (version) VALUES (1);
 ### Step 1.3: Configuration Loader (TOML + Zod) ✅ COMPLETED
 
 - **Dependencies:** Step 1.2 — **Rollback:** revert config schema, restore previous TOML.
-- **Action:** Create `ConfigService`. Define Zod schemas for `exo.config.toml`. Include config checksum in Activity
+- **Action:** Create `ConfigService`. Define Zod schemas for `exa.config.toml`. Include config checksum in Activity
   Journal for auditability.
 - **Justification:** Hardcoding paths is technical debt. We need a single source of truth for system physics.
 
@@ -140,7 +140,7 @@ INSERT INTO schema_version (version) VALUES (1);
 
 **Core Functionality:**
 
-1. [x] ConfigService loads `exo.config.toml` on system startup
+1. [x] ConfigService loads `exa.config.toml` on system startup
 
 1.
 1.

@@ -1,7 +1,7 @@
 /**
  * @module EnvSchema
  * @path src/config/env_schema.ts
- * @description Provides Zod validation for environment variable overrides (EXO_LLM_*), allowing runtime configuration of AI providers and test modes.
+ * @description Provides Zod validation for environment variable overrides (EXA_LLM_*), allowing runtime configuration of AI providers and test modes.
  * @architectural-layer Config
  * @dependencies [zod, enums, ai_config, constants]
  * @related-files [src/config/service.ts]
@@ -13,14 +13,14 @@ import { ProviderTypeSchema } from "../shared/schemas/ai_config.ts";
 import { AI_TIMEOUT_MS_MAX, AI_TIMEOUT_MS_MIN, KNOWN_PROVIDERS } from "../shared/constants.ts";
 
 /**
- * Schema for EXO_LLM_* environment variable overrides
+ * Schema for EXA_LLM_* environment variable overrides
  * These allow runtime override of AI provider configuration
  */
 export const EnvLLMOverrideSchema = z.object({
-  EXO_LLM_PROVIDER: ProviderTypeSchema.optional(),
-  EXO_LLM_MODEL: z.string().min(1).optional(),
-  EXO_LLM_BASE_URL: z.string().url().optional(),
-  EXO_LLM_TIMEOUT_MS: z.string()
+  EXA_LLM_PROVIDER: ProviderTypeSchema.optional(),
+  EXA_LLM_MODEL: z.string().min(1).optional(),
+  EXA_LLM_BASE_URL: z.string().url().optional(),
+  EXA_LLM_TIMEOUT_MS: z.string()
     .regex(/^\d+$/)
     .transform(Number)
     .pipe(
@@ -40,51 +40,51 @@ export type EnvLLMOverride = z.infer<typeof EnvLLMOverrideSchema>;
  */
 export function getValidatedEnvOverrides(): EnvLLMOverride {
   const raw = {
-    EXO_LLM_PROVIDER: safeEnvGet("EXO_LLM_PROVIDER"),
-    EXO_LLM_MODEL: safeEnvGet("EXO_LLM_MODEL"),
-    EXO_LLM_BASE_URL: safeEnvGet("EXO_LLM_BASE_URL"),
-    EXO_LLM_TIMEOUT_MS: safeEnvGet("EXO_LLM_TIMEOUT_MS"),
+    EXA_LLM_PROVIDER: safeEnvGet("EXA_LLM_PROVIDER"),
+    EXA_LLM_MODEL: safeEnvGet("EXA_LLM_MODEL"),
+    EXA_LLM_BASE_URL: safeEnvGet("EXA_LLM_BASE_URL"),
+    EXA_LLM_TIMEOUT_MS: safeEnvGet("EXA_LLM_TIMEOUT_MS"),
   };
 
   // Validate each field individually to handle partial failures
   const result: Partial<EnvLLMOverride> = {};
 
   // Validate provider
-  if (raw.EXO_LLM_PROVIDER) {
-    const providerResult = ProviderTypeSchema.safeParse(raw.EXO_LLM_PROVIDER);
+  if (raw.EXA_LLM_PROVIDER) {
+    const providerResult = ProviderTypeSchema.safeParse(raw.EXA_LLM_PROVIDER);
     if (providerResult.success) {
       // Additional validation: check against known providers
-      const _normalized = raw.EXO_LLM_PROVIDER.toLowerCase().trim();
+      const _normalized = raw.EXA_LLM_PROVIDER.toLowerCase().trim();
       if (KNOWN_PROVIDERS.includes(providerResult.data as ProviderType)) {
-        result.EXO_LLM_PROVIDER = providerResult.data as ProviderType;
+        result.EXA_LLM_PROVIDER = providerResult.data as ProviderType;
       } else {
-        console.warn(`Invalid EXO_LLM_PROVIDER: "${raw.EXO_LLM_PROVIDER}" is not a known provider`);
+        console.warn(`Invalid EXA_LLM_PROVIDER: "${raw.EXA_LLM_PROVIDER}" is not a known provider`);
       }
     }
   }
 
   // Validate model
-  if (raw.EXO_LLM_MODEL) {
-    const modelResult = z.string().min(1).safeParse(raw.EXO_LLM_MODEL);
+  if (raw.EXA_LLM_MODEL) {
+    const modelResult = z.string().min(1).safeParse(raw.EXA_LLM_MODEL);
     if (modelResult.success) {
-      result.EXO_LLM_MODEL = modelResult.data;
+      result.EXA_LLM_MODEL = modelResult.data;
     } else {
-      console.warn(`Invalid EXO_LLM_MODEL: ${modelResult.error.message}`);
+      console.warn(`Invalid EXA_LLM_MODEL: ${modelResult.error.message}`);
     }
   }
 
   // Validate base URL
-  if (raw.EXO_LLM_BASE_URL) {
-    const urlResult = z.string().url().safeParse(raw.EXO_LLM_BASE_URL);
+  if (raw.EXA_LLM_BASE_URL) {
+    const urlResult = z.string().url().safeParse(raw.EXA_LLM_BASE_URL);
     if (urlResult.success) {
-      result.EXO_LLM_BASE_URL = urlResult.data;
+      result.EXA_LLM_BASE_URL = urlResult.data;
     } else {
-      console.warn(`Invalid EXO_LLM_BASE_URL: ${urlResult.error.message}`);
+      console.warn(`Invalid EXA_LLM_BASE_URL: ${urlResult.error.message}`);
     }
   }
 
   // Validate timeout
-  if (raw.EXO_LLM_TIMEOUT_MS) {
+  if (raw.EXA_LLM_TIMEOUT_MS) {
     const timeoutSchema = z.string()
       .regex(/^\d+$/)
       .transform(Number)
@@ -93,11 +93,11 @@ export function getValidatedEnvOverrides(): EnvLLMOverride {
           .min(AI_TIMEOUT_MS_MIN)
           .max(AI_TIMEOUT_MS_MAX),
       );
-    const timeoutResult = timeoutSchema.safeParse(raw.EXO_LLM_TIMEOUT_MS);
+    const timeoutResult = timeoutSchema.safeParse(raw.EXA_LLM_TIMEOUT_MS);
     if (timeoutResult.success) {
-      result.EXO_LLM_TIMEOUT_MS = timeoutResult.data;
+      result.EXA_LLM_TIMEOUT_MS = timeoutResult.data;
     } else {
-      console.warn(`Invalid EXO_LLM_TIMEOUT_MS: ${timeoutResult.error.message}`);
+      console.warn(`Invalid EXA_LLM_TIMEOUT_MS: ${timeoutResult.error.message}`);
     }
   }
 
@@ -135,27 +135,27 @@ function isTruthyValue(value: string | undefined): boolean {
 /**
  * Check if code is running in test mode
  *
- * @returns True if EXO_TEST_MODE or EXO_TEST_CLI_MODE is set to a truthy value
+ * @returns True if EXA_TEST_MODE or EXA_TEST_CLI_MODE is set to a truthy value
  */
 export function isTestMode(): boolean {
-  // Check EXO_TEST_MODE first (general test mode)
-  if (isTruthyValue(safeEnvGet("EXO_TEST_MODE"))) {
+  // Check EXA_TEST_MODE first (general test mode)
+  if (isTruthyValue(safeEnvGet("EXA_TEST_MODE"))) {
     return true;
   }
 
-  // Also check EXO_TEST_CLI_MODE (CLI-specific test mode)
-  return safeEnvGet("EXO_TEST_CLI_MODE") === "1";
+  // Also check EXA_TEST_CLI_MODE (CLI-specific test mode)
+  return safeEnvGet("EXA_TEST_CLI_MODE") === "1";
 }
 
 /**
  * Check if code is running in CI mode
- * Checks both EXO_CI_MODE (preferred) and CI (standard) environment variables
+ * Checks both EXA_CI_MODE (preferred) and CI (standard) environment variables
  *
- * @returns True if EXO_CI_MODE or CI is set to a truthy value
+ * @returns True if EXA_CI_MODE or CI is set to a truthy value
  */
 export function isCIMode(): boolean {
-  // Prefer EXO_CI_MODE if set (more explicit)
-  const exoCiMode = safeEnvGet("EXO_CI_MODE");
+  // Prefer EXA_CI_MODE if set (more explicit)
+  const exoCiMode = safeEnvGet("EXA_CI_MODE");
   if (exoCiMode !== undefined) {
     return isTruthyValue(exoCiMode);
   }

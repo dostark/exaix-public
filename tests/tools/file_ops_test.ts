@@ -14,7 +14,7 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
 
   await t.step("write_file and read_file", async () => {
     const filePath = "test.txt";
-    const content = "Hello ExoFrame!";
+    const content = "Hello Exaix!";
 
     // Write
     const writeResult = await registry.execute("write_file", { path: filePath, content });

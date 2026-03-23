@@ -1,9 +1,9 @@
 {
-  "path": ".copilot/copilot/exoframe.md",
-  "title": "ExoFrame quick reference for Copilot",
+  "path": ".copilot/copilot/exaix.md",
+  "title": "Exaix quick reference for Copilot",
   "vecs": [
     {
-      "text": "# ExoFrame — Copilot quick reference\n\nPurpose\n\n- Provide concise, high-value context for Copilot or Copilot Labs when working on development tasks.\n\nQuick notes\n\n- Runtime: Deno, TypeScript\n- Key code paths: `src/ai/`, `src/services/`, `Flows/`, `Blueprints/Agents/`\n- Tests: `tests/` (use `initTestDbService()` and `createCliTestContext()` helpers)\n\nCanonical prompt (short):\n\"You are a repository-aware coding assistant for ExoFrame. Read the `.copilot/manifest.json` and include any `short_summary` matches before replying. When proposing code, prefer existing helpers and tests, and add unit tests for behavior changes.\"\n\nExamples\n\n- \"Add a test that verifies PlanWriter handles empty JSON files\"\n- \"Migrate test X to use initTestDbService()\"\n\nPhilosophy & Workflow",
+      "text": "# Exaix — Copilot quick reference\n\nPurpose\n\n- Provide concise, high-value context for Copilot or Copilot Labs when working on development tasks.\n\nQuick notes\n\n- Runtime: Deno, TypeScript\n- Key code paths: `src/ai/`, `src/services/`, `Flows/`, `Blueprints/Agents/`\n- Tests: `tests/` (use `initTestDbService()` and `createCliTestContext()` helpers)\n\nCanonical prompt (short):\n\"You are a repository-aware coding assistant for Exaix. Read the `.copilot/manifest.json` and include any `short_summary` matches before replying. When proposing code, prefer existing helpers and tests, and add unit tests for behavior changes.\"\n\nExamples\n\n- \"Add a test that verifies PlanWriter handles empty JSON files\"\n- \"Migrate test X to use initTestDbService()\"\n\nPhilosophy & Workflow",
       "vector": [
         0.23529411764705882,
         0,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- ✅ Do consult `.copilot/manifest.json` and `agents/copilot/exoframe.md` before applying repo-specific assumptions.\n- ❌ Don't assume production agent blueprint semantics when modifying these docs — runtime agents live in `Blueprints/Agents/`.\n- ❌ Don't suggest Web UI/React for core features. ExoFrame is TUI-first (Terminal User Interface).\n- ✅ Do distinguish between `Flows/examples/` (runnable) and `Flows/templates/` (scaffolding).\n\nQuick verification\n\n- Provide a 1–2 line `short_summary` to insert into small prompts.",
+      "text": "- ✅ Do consult `.copilot/manifest.json` and `agents/copilot/exaix.md` before applying repo-specific assumptions.\n- ❌ Don't assume production agent blueprint semantics when modifying these docs — runtime agents live in `Blueprints/Agents/`.\n- ❌ Don't suggest Web UI/React for core features. Exaix is TUI-first (Terminal User Interface).\n- ✅ Do distinguish between `Flows/examples/` (runnable) and `Flows/templates/` (scaffolding).\n\nQuick verification\n\n- Provide a 1–2 line `short_summary` to insert into small prompts.",
       "vector": [
         0.35294117647058826,
         0.9764705882352941,

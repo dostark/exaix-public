@@ -9,7 +9,7 @@
  * Read the User Guide document
  */
 export async function readUserGuide(): Promise<string> {
-  return await Deno.readTextFile("docs/ExoFrame_User_Guide.md");
+  return await Deno.readTextFile("docs/Exaix_User_Guide.md");
 }
 
 /**

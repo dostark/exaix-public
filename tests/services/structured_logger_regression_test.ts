@@ -13,7 +13,7 @@ import { LogLevel } from "../../src/shared/enums.ts";
 
 const TEST_LOG_MESSAGE = "Test log message";
 const TEST_LOG_LEVEL = LogLevel.INFO;
-const TEST_DIR_PREFIX = "exoframe_test_logger_";
+const TEST_DIR_PREFIX = "exaix_test_logger_";
 
 /**
  * Regression test for: "NotFound: No such file or directory (os error 2): writefile ..."

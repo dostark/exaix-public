@@ -5,7 +5,7 @@
  * request lists, approval workflows, and status synchronization with the background daemon.
  */
 
-// Integration tests for exoctl CLI commands not yet covered
+// Integration tests for exactl CLI commands not yet covered
 // Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
@@ -15,21 +15,21 @@ import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
-// Helper to run exoctl command in a given workspace
-async function runExoctl(args: string[], cwd: string) {
+// Helper to run exactl command in a given workspace
+async function runExactl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
-  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
+  const exactlPath = join(repoRoot, "src", "cli", "exactl.ts");
 
-  console.log(`Running CLI command: exoctl ${args.join(" ")} in ${cwd}`);
+  console.log(`Running CLI command: exactl ${args.join(" ")} in ${cwd}`);
 
   const env = Deno.env.toObject();
-  delete env.EXO_TEST_MODE;
-  delete env.EXO_TEST_CLI_MODE;
-  env.EXO_CONFIG_PATH = join(cwd, "exo.config.toml");
+  delete env.EXA_TEST_MODE;
+  delete env.EXA_TEST_CLI_MODE;
+  env.EXA_CONFIG_PATH = join(cwd, "exa.config.toml");
 
   // Run deno directly with cwd set
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", exoctlPath, ...args],
+    args: ["run", "--allow-all", exactlPath, ...args],
     cwd: cwd,
     stdout: "piped",
     stderr: "piped",
@@ -103,7 +103,7 @@ Deno.test("CLI: request list shows created requests", async () => {
     const { traceId } = await env.createRequest("Test integration request");
 
     // List requests using CLI
-    const result = await runExoctl(["request", "list"], env.tempDir);
+    const result = await runExactl(["request", "list"], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, traceId.substring(0, 8));
   } finally {
@@ -117,7 +117,7 @@ Deno.test("[regression] CLI: request list surfaces target_branch", async () => {
     const targetBranch = "release_1.2";
     const { traceId } = await env.createRequest("Request list target branch", { targetBranch });
 
-    const result = await runExoctl(["request", "list"], env.tempDir);
+    const result = await runExactl(["request", "list"], env.tempDir);
     assertEquals(result.code, 0);
     assertStringIncludes(result.stdout, traceId.substring(0, 8));
     assertStringIncludes(result.stdout, "target_branch");
@@ -133,7 +133,7 @@ Deno.test("CLI: request show displays request details", async () => {
     // Create a request
     const { traceId } = await env.createRequest("Show details request");
     // Show request using CLI
-    const result = await runExoctl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
+    const result = await runExactl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, "Show details request");
   } finally {
@@ -147,7 +147,7 @@ Deno.test("[regression] CLI: request show surfaces target_branch", async () => {
     const targetBranch = "release_1.2";
     const { traceId } = await env.createRequest("Show details request with target branch", { targetBranch });
 
-    const result = await runExoctl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
+    const result = await runExactl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
     assertEquals(result.code, 0);
     assertStringIncludes(result.stdout, "target_branch");
     assertStringIncludes(result.stdout, targetBranch);
@@ -163,7 +163,7 @@ Deno.test("CLI: plan list shows generated plans", async () => {
     const { traceId } = await env.createRequest("Plan list integration");
     await env.createPlan(traceId, "plan-list-integration");
     // List plans using CLI
-    const result = await runExoctl(["plan", "list"], env.tempDir);
+    const result = await runExactl(["plan", "list"], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, "plan-list-integration");
   } finally {
@@ -179,7 +179,7 @@ Deno.test("CLI: plan show displays plan details", async () => {
     const _planPath = await env.createPlan(traceId, "plan-show-integration");
     // Use the correct plan id (with _plan suffix)
     const planId = "plan-show-integration_plan";
-    const result = await runExoctl(["plan", "show", planId], env.tempDir);
+    const result = await runExactl(["plan", "show", planId], env.tempDir);
     assert(result.code === 0);
     // Check for plan id and status in output
     assertStringIncludes(result.stdout, planId);
@@ -193,7 +193,7 @@ Deno.test("CLI: review list shows pending reviews", async () => {
   const env = await TestEnvironment.create();
   try {
     // Just check command runs in clean env
-    const result = await runExoctl(["review", "list"], env.tempDir);
+    const result = await runExactl(["review", "list"], env.tempDir);
     assert(result.code === 0);
   } finally {
     await env.cleanup();
@@ -204,7 +204,7 @@ Deno.test("CLI: review show displays review details", async () => {
   const env = await TestEnvironment.create();
   try {
     // Just check command runs with dummy id
-    const result = await runExoctl(["review", "show", "dummy-id"], env.tempDir);
+    const result = await runExactl(["review", "show", "dummy-id"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
   } finally {
     await env.cleanup();
@@ -221,7 +221,7 @@ Deno.test("CLI: review show --diff displays artifact body for artifact IDs", asy
       "# Artifact Title\n\nArtifact body content",
     );
 
-    const result = await runExoctl(["review", "show", artifactId, "--diff"], env.tempDir);
+    const result = await runExactl(["review", "show", artifactId, "--diff"], env.tempDir);
     assertEquals(result.code, 0);
     assertStringIncludes(result.stdout, "Artifact body content");
   } finally {
@@ -239,7 +239,7 @@ Deno.test("CLI: review approve marks artifact as approved (no git)", async () =>
       "# Approve Me\n\nThis is an artifact",
     );
 
-    const approve = await runExoctl(["review", "approve", artifactId], env.tempDir);
+    const approve = await runExactl(["review", "approve", artifactId], env.tempDir);
     assertEquals(approve.code, 0);
 
     const updated = await artifactRegistry.getArtifact(artifactId);
@@ -269,7 +269,7 @@ Deno.test("CLI: review list includes both code reviews and artifact-backed revie
       stderr: "null",
     }).output();
 
-    const result = await runExoctl(["review", "list"], env.tempDir);
+    const result = await runExactl(["review", "list"], env.tempDir);
     assertEquals(result.code, 0);
 
     assertStringIncludes(result.stdout, artifactId);
@@ -285,14 +285,14 @@ Deno.test("CLI: portal add/remove/refresh works", async () => {
     // Create a dummy project to add as portal
     await env.writeFile("Portals/TestPortal/README.md", "# Test Portal");
     // Add portal (use relative path from env.tempDir)
-    const add = await runExoctl(["portal", MemoryOperation.ADD, "./Portals/TestPortal", "TestPortal"], env.tempDir);
+    const add = await runExactl(["portal", MemoryOperation.ADD, "./Portals/TestPortal", "TestPortal"], env.tempDir);
     // Accept both 0 and 1 as valid (some commands may return 1 if portal already exists or not found)
     assert(add.code === 0 || add.code === 1);
     // Refresh portal
-    const refresh = await runExoctl(["portal", "refresh", "TestPortal"], env.tempDir);
+    const refresh = await runExactl(["portal", "refresh", "TestPortal"], env.tempDir);
     assert(refresh.code === 0 || refresh.code === 1);
     // Remove portal
-    const remove = await runExoctl(["portal", "remove", "TestPortal"], env.tempDir);
+    const remove = await runExactl(["portal", "remove", "TestPortal"], env.tempDir);
     assert(remove.code === 0 || remove.code === 1);
   } finally {
     await env.cleanup();
@@ -306,12 +306,12 @@ Deno.test("[regression] CLI: portal analyze and knowledge commands are recognize
     // Even if they fail due to missing portal, they should return exit code 1 or 0
 
     // Analyze help
-    const analyzeHelp = await runExoctl(["portal", "analyze", "--help"], env.tempDir);
+    const analyzeHelp = await runExactl(["portal", "analyze", "--help"], env.tempDir);
     assertEquals(analyzeHelp.code, 0);
     assertStringIncludes(analyzeHelp.stdout, "Trigger codebase knowledge analysis");
 
     // Knowledge help
-    const knowledgeHelp = await runExoctl(["portal", "knowledge", "--help"], env.tempDir);
+    const knowledgeHelp = await runExactl(["portal", "knowledge", "--help"], env.tempDir);
     assertEquals(knowledgeHelp.code, 0);
     assertStringIncludes(knowledgeHelp.stdout, "Display gathered knowledge for a portal");
   } finally {
@@ -325,7 +325,7 @@ Deno.test("[regression] CLI: request --target-branch writes target_branch frontm
     const description = "Target branch frontmatter request";
     const targetBranch = "release_1.2";
 
-    const create = await runExoctl([
+    const create = await runExactl([
       "request",
       description,
       "--target-branch",
@@ -367,7 +367,7 @@ Deno.test("[regression] CLI: portal add persists default_branch and execution_st
     // Create a dummy project to add as portal
     await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
 
-    const add = await runExoctl([
+    const add = await runExactl([
       "portal",
       MemoryOperation.ADD,
       "./ExternalProjects/TestPortal",
@@ -379,7 +379,7 @@ Deno.test("[regression] CLI: portal add persists default_branch and execution_st
     ], env.tempDir);
     assertEquals(add.code, 0);
 
-    const configText = await Deno.readTextFile(join(env.tempDir, "exo.config.toml"));
+    const configText = await Deno.readTextFile(join(env.tempDir, "exa.config.toml"));
     assertStringIncludes(configText, `alias = "${portalAlias}"`);
     assertStringIncludes(configText, `default_branch = "${defaultBranch}"`);
     assertStringIncludes(configText, `execution_strategy = "${executionStrategy}"`);
@@ -397,7 +397,7 @@ Deno.test("[regression] CLI: portal show includes default_branch and execution_s
 
     await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
 
-    const add = await runExoctl([
+    const add = await runExactl([
       "portal",
       MemoryOperation.ADD,
       "./ExternalProjects/TestPortal",
@@ -409,7 +409,7 @@ Deno.test("[regression] CLI: portal show includes default_branch and execution_s
     ], env.tempDir);
     assertEquals(add.code, 0);
 
-    const show = await runExoctl(["portal", "show", portalAlias], env.tempDir);
+    const show = await runExactl(["portal", "show", portalAlias], env.tempDir);
     assertEquals(show.code, 0);
     assertStringIncludes(show.stdout, "default_branch");
     assertStringIncludes(show.stdout, defaultBranch);
@@ -426,7 +426,7 @@ Deno.test("[regression] CLI: portal add rejects invalid --execution-strategy", a
     const portalAlias = "TestPortal";
     await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
 
-    const add = await runExoctl([
+    const add = await runExactl([
       "portal",
       MemoryOperation.ADD,
       "./ExternalProjects/TestPortal",
@@ -445,7 +445,7 @@ Deno.test("[regression] CLI: portal add rejects invalid --execution-strategy", a
 Deno.test("CLI: dashboard launches without error (smoke test)", async () => {
   const env = await TestEnvironment.create();
   try {
-    const result = await runExoctl(["dashboard", "--help"], env.tempDir);
+    const result = await runExactl(["dashboard", "--help"], env.tempDir);
     console.log("dashboard stdout:\n", result.stdout);
     console.log("dashboard stderr:\n", result.stderr);
     // If dashboard is not a known command, skip or pass the test
@@ -468,7 +468,7 @@ Deno.test("CLI: dashboard launches without error (smoke test)", async () => {
 Deno.test("CLI: request create with missing description fails", async () => {
   const env = await TestEnvironment.create();
   try {
-    const result = await runExoctl([FlowInputSource.REQUEST], env.tempDir);
+    const result = await runExactl([FlowInputSource.REQUEST], env.tempDir);
     // Should fail with exit code 1 and error message
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "Description required");
@@ -481,15 +481,15 @@ Deno.test("CLI: plan approve/reject/revise error handling", async () => {
   const env = await TestEnvironment.create();
   try {
     // Approve non-existent plan
-    let result = await runExoctl(["plan", "approve", "nonexistent"], env.tempDir);
+    let result = await runExactl(["plan", "approve", "nonexistent"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "plan approve");
     // Reject non-existent plan
-    result = await runExoctl(["plan", "reject", "nonexistent", "-r", "bad plan"], env.tempDir);
+    result = await runExactl(["plan", "reject", "nonexistent", "-r", "bad plan"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "plan reject");
     // Revise non-existent plan
-    result = await runExoctl(["plan", "revise", "nonexistent", "-c", "needs work"], env.tempDir);
+    result = await runExactl(["plan", "revise", "nonexistent", "-c", "needs work"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "plan revise");
   } finally {
@@ -501,23 +501,23 @@ Deno.test("CLI: blueprint create/list/show/remove/validate edge cases", async ()
   const env = await TestEnvironment.create();
   try {
     // Create blueprint with missing required options
-    let result = await runExoctl(["blueprint", "create", "test-agent"], env.tempDir);
+    let result = await runExactl(["blueprint", "create", "test-agent"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "blueprint create");
     // List blueprints (should be empty)
-    result = await runExoctl(["blueprint", "list"], env.tempDir);
+    result = await runExactl(["blueprint", "list"], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, "count: 0");
     // Show non-existent blueprint
-    result = await runExoctl(["blueprint", "show", "notfound"], env.tempDir);
+    result = await runExactl(["blueprint", "show", "notfound"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "blueprint show");
     // Remove non-existent blueprint
-    result = await runExoctl(["blueprint", "remove", "notfound"], env.tempDir);
+    result = await runExactl(["blueprint", "remove", "notfound"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "blueprint remove");
     // Validate non-existent blueprint
-    result = await runExoctl(["blueprint", "validate", "notfound"], env.tempDir);
+    result = await runExactl(["blueprint", "validate", "notfound"], env.tempDir);
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "blueprint.invalid");
   } finally {
@@ -529,15 +529,15 @@ Deno.test("CLI: daemon start/stop/restart/status/logs error handling", async () 
   const env = await TestEnvironment.create();
   try {
     // These may fail if daemon is not configured, but should not crash
-    let result = await runExoctl(["daemon", "start"], env.tempDir);
+    let result = await runExactl(["daemon", "start"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
-    result = await runExoctl(["daemon", "stop"], env.tempDir);
+    result = await runExactl(["daemon", "stop"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
-    result = await runExoctl(["daemon", "restart"], env.tempDir);
+    result = await runExactl(["daemon", "restart"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
-    result = await runExoctl(["daemon", "status"], env.tempDir);
+    result = await runExactl(["daemon", "status"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
-    result = await runExoctl(["daemon", "logs"], env.tempDir);
+    result = await runExactl(["daemon", "logs"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
   } finally {
     await env.cleanup();

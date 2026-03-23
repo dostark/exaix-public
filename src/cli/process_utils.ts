@@ -10,7 +10,7 @@
 /**
  * Check whether a PID appears alive by using `kill -0`.
  *
- * NOTE: This is POSIX-specific; ExoFrame's CLI currently assumes a Unix-like environment.
+ * NOTE: This is POSIX-specific; Exaix's CLI currently assumes a Unix-like environment.
  */
 export async function isProcessAlive(pid: number): Promise<boolean> {
   try {

@@ -8,7 +8,7 @@
 
 1.
    - ✅ Adequate if the docs specify:
-     - what files/patterns to use (ExoFrame-specific)
+     - what files/patterns to use (Exaix-specific)
      - what invariants to preserve
      - what verification to run (tests/lint/CI checks)
    - ❌ Inadequate if any of these are missing or ambiguous.

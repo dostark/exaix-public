@@ -81,7 +81,7 @@ Deno.test("ConfigService computes checksum", async () => {
   });
 
   try {
-    const configPath = `${tempDir}/exo.config.toml`;
+    const configPath = `${tempDir}/exa.config.toml`;
     const service = new ConfigService(configPath);
     const checksum = service.getChecksum();
 
@@ -110,7 +110,7 @@ Deno.test("ConfigService loads config successfully", async () => {
   });
 
   try {
-    const configPath = `${tempDir}/exo.config.toml`;
+    const configPath = `${tempDir}/exa.config.toml`;
     const service = new ConfigService(configPath);
     const config = service.get();
 
@@ -518,26 +518,26 @@ runtime = "./Runtime"`,
 // Security Tests - Use `deno test --filter "[security]"` to run only these
 // ============================================================================
 
-Deno.test("[security] Env Variable Access: EXO_ prefixed vars are accessible", () => {
-  // This test verifies the security model where only EXO_* env vars should be accessible
-  // In production, the daemon runs with --allow-env=EXO_,HOME,USER
+Deno.test("[security] Env Variable Access: EXA_ prefixed vars are accessible", () => {
+  // This test verifies the security model where only EXA_* env vars should be accessible
+  // In production, the daemon runs with --allow-env=EXA_,HOME,USER
 
-  // Set a test EXO_ variable
+  // Set a test EXA_ variable
   const testValue = "test-value-" + Date.now();
-  Deno.env.set("EXO_TEST_VAR", testValue);
+  Deno.env.set("EXA_TEST_VAR", testValue);
 
   try {
-    // EXO_ prefixed vars should be accessible
-    const value = Deno.env.get("EXO_TEST_VAR");
-    assertEquals(value, testValue, "EXO_ prefixed vars should be accessible");
+    // EXA_ prefixed vars should be accessible
+    const value = Deno.env.get("EXA_TEST_VAR");
+    assertEquals(value, testValue, "EXA_ prefixed vars should be accessible");
   } finally {
-    Deno.env.delete("EXO_TEST_VAR");
+    Deno.env.delete("EXA_TEST_VAR");
   }
 });
 
 Deno.test("[security] Env Variable Access: HOME and USER are accessible for identity", () => {
   // These are explicitly allowed for user identity detection
-  // The start:fg task allows: --allow-env=EXO_,HOME,USER
+  // The start:fg task allows: --allow-env=EXA_,HOME,USER
 
   const home = Deno.env.get("HOME");
   const user = Deno.env.get("USER");
@@ -761,7 +761,7 @@ Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
 
 // Regression: ensure sample config includes production-critical sections
 Deno.test("[regression] Sample config includes required provider strategy entries", () => {
-  const samplePath = "templates/exo.config.sample.toml";
+  const samplePath = "templates/exa.config.sample.toml";
   const sampleContent = Deno.readTextFileSync(samplePath);
   interface ConfigToml {
     [section: string]: unknown;
@@ -905,7 +905,7 @@ Deno.test("[regression] Sample config includes required provider strategy entrie
   assertEquals(
     missingPaths.length,
     0,
-    `Missing required entries in templates/exo.config.sample.toml: ${missingPaths.join(", ")}`,
+    `Missing required entries in templates/exa.config.sample.toml: ${missingPaths.join(", ")}`,
   );
 
   const simpleRouting = getPath(["provider_strategy", "task_routing", "simple"]);

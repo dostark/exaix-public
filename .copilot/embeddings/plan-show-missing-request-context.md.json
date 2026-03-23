@@ -1,9 +1,9 @@
 {
   "path": ".copilot/issues/plan-show-missing-request-context.md",
-  "title": "exoctl plan show/list Missing Request and Agent Context",
+  "title": "exactl plan show/list Missing Request and Agent Context",
   "vecs": [
     {
-      "text": "## Problem\n\nThe `exoctl plan show` and `exoctl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.\n\n## Reproduction Steps\n\n```bash\n# Create a request\nexoctl request \"Test request\"\n\n# Check plan list - missing request and agent info\nexoctl plan list\n\n# Check plan show - missing request and agent info\nexoctl plan show <plan-id>\n```\n\n## Observed Behavior\n\n**Current `exoctl plan list` output:**\n\n```\n✅ plan.list: plans\n   count: 1\n✅ 🔍 request-f493fe2a_plan: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a...\n```\n\n**Current `exoctl plan show` output:**",
+      "text": "## Problem\n\nThe `exactl plan show` and `exactl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.\n\n## Reproduction Steps\n\n```bash\n# Create a request\nexactl request \"Test request\"\n\n# Check plan list - missing request and agent info\nexactl plan list\n\n# Check plan show - missing request and agent info\nexactl plan show <plan-id>\n```\n\n## Observed Behavior\n\n**Current `exactl plan list` output:**\n\n```\n✅ plan.list: plans\n   count: 1\n✅ 🔍 request-f493fe2a_plan: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a...\n```\n\n**Current `exactl plan show` output:**",
       "vector": [
         0.8705882352941177,
         0.7764705882352941,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "```\n✅ plan.show: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597\n✅ plan.content: request-f493fe2a_plan\n   content: [plan content...]\n```\n\n## Expected Behavior\n\n**Enhanced `exoctl plan list` should show:**\n\n- Original request ID/title\n- Agent that created the plan\n- Portal context (if applicable)\n- Creation timestamp\n- Request priority\n\n**Enhanced `exoctl plan show` should show:**\n\n- Link to original request (`request_id`)\n- Agent information\n- Portal context\n- Request metadata (priority, created_by, etc.)\n- Flow information (if applicable)\n\n## Example Enhanced Output",
+      "text": "```\n✅ plan.show: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597\n✅ plan.content: request-f493fe2a_plan\n   content: [plan content...]\n```\n\n## Expected Behavior\n\n**Enhanced `exactl plan list` should show:**\n\n- Original request ID/title\n- Agent that created the plan\n- Portal context (if applicable)\n- Creation timestamp\n- Request priority\n\n**Enhanced `exactl plan show` should show:**\n\n- Link to original request (`request_id`)\n- Agent information\n- Portal context\n- Request metadata (priority, created_by, etc.)\n- Flow information (if applicable)\n\n## Example Enhanced Output",
       "vector": [
         0.47843137254901963,
         0.8823529411764706,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "```\n✅ plan.list: plans\n   count: 1\n✅ 🔍 request-f493fe2a_plan: \"Comprehensive Review of ExoFrame Test Suite\"\n   status: review\n   agent: default\n   portal: original-repo\n   request: request-f493fe2a\n   created: 2026-01-25T16:46:24Z\n   priority: normal\n```\n\n```\n✅ plan.show: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597\n   request: request-f493fe2a (\"Comprehensive Review of ExoFrame Test Suite\")\n   agent: default\n   portal: original-repo\n   created: 2026-01-25T16:46:24Z\n   priority: normal\n   created_by: dkasymov@gmail.com\n✅ plan.content: request-f493fe2a_plan\n   content: [plan content...]\n```\n\n## Technical Details\n\n**Available Data:**",
+      "text": "```\n✅ plan.list: plans\n   count: 1\n✅ 🔍 request-f493fe2a_plan: \"Comprehensive Review of Exaix Test Suite\"\n   status: review\n   agent: default\n   portal: original-repo\n   request: request-f493fe2a\n   created: 2026-01-25T16:46:24Z\n   priority: normal\n```\n\n```\n✅ plan.show: request-f493fe2a_plan\n   status: review\n   trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597\n   request: request-f493fe2a (\"Comprehensive Review of Exaix Test Suite\")\n   agent: default\n   portal: original-repo\n   created: 2026-01-25T16:46:24Z\n   priority: normal\n   created_by: dkasymov@gmail.com\n✅ plan.content: request-f493fe2a_plan\n   content: [plan content...]\n```\n\n## Technical Details\n\n**Available Data:**",
       "vector": [
         0.24313725490196078,
         0.2980392156862745,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "Medium priority - this is a UX improvement that would significantly help users navigate and understand the ExoFrame workflow, but doesn't break existing functionality.\n\n## Resolution\n\n**Root Cause:** Plan commands only displayed basic plan metadata (id, status, trace_id) without loading associated request information, making it difficult for users to understand plan context and trace requests back to their source.\n\n**Fix Applied:**",
+      "text": "Medium priority - this is a UX improvement that would significantly help users navigate and understand the Exaix workflow, but doesn't break existing functionality.\n\n## Resolution\n\n**Root Cause:** Plan commands only displayed basic plan metadata (id, status, trace_id) without loading associated request information, making it difficult for users to understand plan context and trace requests back to their source.\n\n**Fix Applied:**",
       "vector": [
         0.12549019607843137,
         0.11764705882352941,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "1. **Enhanced PlanMetadata Interface:** Added request context fields (`request_id`, `request_title`, `request_agent`, `request_portal`, `request_priority`, `request_created_by`)\n2. **Request Data Loading:** Modified `PlanCommands.extractPlanMetadataWithRequest()` to load request information when `request_id` is present in plan frontmatter\n3. **CLI Display Updates:** Updated `exoctl plan list` and `exoctl plan show` commands to display request context information\n4. **Config Path Fix:** Corrected workspace path configuration in `exo.config.toml` (removed redundant `./Workspace/` prefixes)\n5. **Title Extraction:** Implemented smart title extraction from request content (prefers headers, falls back to first content line)\n\n**Files Modified:**",
+      "text": "1. **Enhanced PlanMetadata Interface:** Added request context fields (`request_id`, `request_title`, `request_agent`, `request_portal`, `request_priority`, `request_created_by`)\n2. **Request Data Loading:** Modified `PlanCommands.extractPlanMetadataWithRequest()` to load request information when `request_id` is present in plan frontmatter\n3. **CLI Display Updates:** Updated `exactl plan list` and `exactl plan show` commands to display request context information\n4. **Config Path Fix:** Corrected workspace path configuration in `exa.config.toml` (removed redundant `./Workspace/` prefixes)\n5. **Title Extraction:** Implemented smart title extraction from request content (prefers headers, falls back to first content line)\n\n**Files Modified:**",
       "vector": [
         0.6745098039215687,
         0.49019607843137253,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "- `src/cli/plan_commands.ts`: Enhanced metadata extraction and request loading\n- `src/cli/exoctl.ts`: Updated CLI display formatting\n- `exo.config.toml`: Fixed workspace path configuration\n- `tests/plan_commands_regression_test.ts`: Added regression test\n\n**Testing:** Added comprehensive regression test that verifies plan list and show commands include complete request context information.",
+      "text": "- `src/cli/plan_commands.ts`: Enhanced metadata extraction and request loading\n- `src/cli/exactl.ts`: Updated CLI display formatting\n- `exa.config.toml`: Fixed workspace path configuration\n- `tests/plan_commands_regression_test.ts`: Added regression test\n\n**Testing:** Added comprehensive regression test that verifies plan list and show commands include complete request context information.",
       "vector": [
         0.44313725490196076,
         0.8509803921568627,

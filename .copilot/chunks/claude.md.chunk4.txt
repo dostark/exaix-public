@@ -20,7 +20,7 @@ Now run these tests (they should fail), then I'll implement the error handling.
 **System prompt:**
 ```text
 
-You are a refactoring assistant for ExoFrame. Before changing code:
+You are a refactoring assistant for Exaix. Before changing code:
 
 1. Read the existing implementation and all related tests
 

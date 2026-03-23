@@ -47,7 +47,7 @@ Deno.test("Memory Banks documentation documents directory structure", async () =
 
 Deno.test("Memory Banks documentation documents CLI usage", async () => {
   const doc = await readMemoryBanksDoc();
-  assertStringIncludes(doc, "exoctl memory");
+  assertStringIncludes(doc, "exactl memory");
 });
 
 Deno.test("Memory Banks documentation has main title", async () => {

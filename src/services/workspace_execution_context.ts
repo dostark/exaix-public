@@ -50,7 +50,7 @@ export class WorkspaceExecutionContextBuilder {
    * Build execution context for portal-based request
    *
    * Portal execution means:
-   * - Agent runs in portal workspace (e.g., ~/git/ExoFrame)
+   * - Agent runs in portal workspace (e.g., ~/git/Exaix)
    * - Git operations happen in portal's repository
    * - File access limited to portal directory
    * - Changesets track portal modifications
@@ -76,7 +76,7 @@ export class WorkspaceExecutionContextBuilder {
    * Build execution context for workspace request (no portal)
    *
    * Workspace execution means:
-   * - Agent runs in deployed workspace (e.g., ~/ExoFrame)
+   * - Agent runs in deployed workspace (e.g., ~/Exaix)
    * - Git operations happen in workspace repository
    * - File access limited to workspace directory
    * - Changesets track workspace modifications

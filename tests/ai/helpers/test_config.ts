@@ -46,7 +46,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     system: {
       version: "1.0.0",
       schema_version: WORKSPACE_SCHEMA_VERSION,
-      root: "/tmp/exoframe-test",
+      root: "/tmp/exaix-test",
       log_level: LogLevel.INFO,
     },
     paths: { ...ExoPathDefaults },
@@ -72,7 +72,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     mcp: {
       enabled: true,
       transport: McpTransportType.STDIO,
-      server_name: "exoframe",
+      server_name: "exaix",
       version: "1.0.0",
     },
     ai_endpoints: {},

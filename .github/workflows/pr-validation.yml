@@ -32,14 +32,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo "GITHUB_SHA=$GITHUB_SHA"
-          echo "EXO_CONFIG_PATH=$EXO_CONFIG_PATH"
+          echo "EXA_CONFIG_PATH=$EXA_CONFIG_PATH"
           echo "Workspace listing:" && ls -la
-          if [ -f exo.config.toml ]; then
-            echo "--- exo.config.toml ---"
-            sed -n '1,200p' exo.config.toml
-            echo "--- end exo.config.toml ---"
+          if [ -f exa.config.toml ]; then
+            echo "--- exa.config.toml ---"
+            sed -n '1,200p' exa.config.toml
+            echo "--- end exa.config.toml ---"
           else
-            echo "exo.config.toml not found in workspace"
+            echo "exa.config.toml not found in workspace"
           fi
 
       - name: "Run Checks"

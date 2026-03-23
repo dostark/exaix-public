@@ -6,7 +6,7 @@
 
 - `src/services/memory_bank.ts` - Memory bank service implementation
 - `src/config/schema.ts` - Configuration schema with memory paths
-- `exo.config.toml` - Configuration file
+- `exa.config.toml` - Configuration file
 
 ## Workaround
 
@@ -18,6 +18,6 @@ Medium priority - doesn't break functionality but violates architecture and crea
 
 ## Examples
 
-- Execution folder appears in `/home/user/ExoFrame/Execution/` instead of `Memory/Execution/`
+- Execution folder appears in `/home/user/Exaix/Execution/` instead of `Memory/Execution/`
 - Memory bank creates execution records but stores them in wrong location
 - Filesystem clutter in workspace root

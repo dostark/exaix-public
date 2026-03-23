@@ -1,6 +1,6 @@
 # Scenario Framework
 
-The Scenario Framework is a reusable tool designed to validate ExoFrame behavior through real deployed workspaces. It executes declarative scenarios, captures evidence, and enforces measurable criteria at each step.
+The Scenario Framework is a reusable tool designed to validate Exaix behavior through real deployed workspaces. It executes declarative scenarios, captures evidence, and enforces measurable criteria at each step.
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ Once you have a workspace set up (or deployed the framework), you can run scenar
 
 **Common Flags:**
 
-- `-w, --workspace <path>`: (Required) Path to the ExoFrame workspace to test.
+- `-w, --workspace <path>`: (Required) Path to the Exaix workspace to test.
 - `-o, --output <path>`: (Required) Path where evidence and manifests will be written.
 - `-m, --mode <auto|step|manual-checkpoint>`: Execution mode (default: `auto`).
 - `-p, --profile <ci-smoke|ci-core|ci-extended>`: CI profile filter.
@@ -51,7 +51,7 @@ When running or filtering scenarios, it is important to match the target environ
 - `bin/`: Convenient shell script wrappers for the runner and deployer.
 - `runner/`: Core execution logic (loader, executor, assertion engine, modes).
 - `scenarios/`: Declarative scenario definitions (YAML).
-  - `agent_flows/`: Validation for recent ExoFrame features.
+  - `agent_flows/`: Validation for recent Exaix features.
   - `smoke/`: Lightweight confidence checks.
 - `fixtures/requests/`: Plain text files containing the request prompts.
 - `schema/`: Zod schemas for scenarios, steps, and manifests.
@@ -86,7 +86,7 @@ portals:
     source_path: /absolute/path/to/repo
 steps:
   - id: start-request
-    type: exoctl
+    type: exactl
     args: [request, start, --path, "$REQUEST_FIXTURE"]
     output_criteria:
       - id: check-plan
@@ -196,20 +196,20 @@ Verifies internal process execution via the workspace journal.
 
 ### Summary Mapping
 
-| Criterion                      | ExoFrame Artifact | Hardening Goal                                    |
-| :----------------------------- | :---------------- | :------------------------------------------------ |
-| **`frontmatter-field-equals`** | Request `.md`     | Enforce explicit user-defined success conditions. |
-| **`json-path-equals`**         | `_analysis.json`  | Validate that LLM intent extraction is accurate.  |
-| **`portal-mounted`**           | Active Workspace  | Ensure environmental pre-conditions are met.      |
-| **`journal-event-exists`**     | `journal.ndjson`  | Confirm the quality pipeline actually executed.   |
-| **`json-path-exists`**         | `plan.yaml`       | Verify per-requirement fulfillment was tracked.   |
+| Criterion                      | Exaix Artifact   | Hardening Goal                                    |
+| :----------------------------- | :--------------- | :------------------------------------------------ |
+| **`frontmatter-field-equals`** | Request `.md`    | Enforce explicit user-defined success conditions. |
+| **`json-path-equals`**         | `_analysis.json` | Validate that LLM intent extraction is accurate.  |
+| **`portal-mounted`**           | Active Workspace | Ensure environmental pre-conditions are met.      |
+| **`journal-event-exists`**     | `journal.ndjson` | Confirm the quality pipeline actually executed.   |
+| **`json-path-exists`**         | `plan.yaml`      | Verify per-requirement fulfillment was tracked.   |
 
 ---
 
 ## Path Model
 
 - **Framework Home**: The directory containing the framework (or its deployed copy).
-- **Workspace Under Test**: The external ExoFrame workspace targeted by the runner.
+- **Workspace Under Test**: The external Exaix workspace targeted by the runner.
 - **Output Directory**: Where evidence, manifests, and summaries are written.
 
 The framework treats the workspace under test as an external system and does not assume repository-root execution.

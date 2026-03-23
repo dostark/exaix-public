@@ -3,7 +3,7 @@
   "title": "Cannot reject plan after changeset rejection",
   "vecs": [
     {
-      "text": "## Problem\n\nAfter rejecting a changeset, the associated plan remains in the plan list but cannot be rejected. Attempting to reject the plan results in \"Plan not found\" error, even though the plan is still visible in `exoctl plan list`.\n\n## Reproduction Steps\n\n```bash\n# List changesets - shows one changeset\nexoctl changeset list\n\n# Reject the changeset successfully\nexoctl changeset reject feat/request-08a998d4-08a998d4 --reason 'Wrong change'\n\n# Verify changeset is gone\nexoctl changeset list  # Shows no changesets\n\n# List plans - still shows the plan\nexoctl plan list\n\n# Attempt to reject the plan - fails with \"Plan not found\"\nexoctl plan reject request-08a998d4_plan --reason 'bad plan'\n```\n\n## Observed Behavior",
+      "text": "## Problem\n\nAfter rejecting a changeset, the associated plan remains in the plan list but cannot be rejected. Attempting to reject the plan results in \"Plan not found\" error, even though the plan is still visible in `exactl plan list`.\n\n## Reproduction Steps\n\n```bash\n# List changesets - shows one changeset\nexactl changeset list\n\n# Reject the changeset successfully\nexactl changeset reject feat/request-08a998d4-08a998d4 --reason 'Wrong change'\n\n# Verify changeset is gone\nexactl changeset list  # Shows no changesets\n\n# List plans - still shows the plan\nexactl plan list\n\n# Attempt to reject the plan - fails with \"Plan not found\"\nexactl plan reject request-08a998d4_plan --reason 'bad plan'\n```\n\n## Observed Behavior",
       "vector": [
         0.22745098039215686,
         0.396078431372549,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "- Changeset rejection succeeds and changeset disappears from list\n- Plan remains in `exoctl plan list` with status: completed\n- Plan rejection command fails with \"Plan not found: request-08a998d4_plan\"\n- Error persists even after multiple attempts\n\n## Expected Behavior\n\n- Plan should be rejectable even after its changeset has been rejected\n- Or plan should be automatically handled/removed when changeset is rejected\n- Rejection should succeed and plan should be removed from list\n\n## Environment\n\n- ExoFrame Version: 1.0.0\n- OS: Linux\n- Deno Version: (unknown)\n- Relevant Config: Default exo.config.toml\n\n## Investigation Needed",
+      "text": "- Changeset rejection succeeds and changeset disappears from list\n- Plan remains in `exactl plan list` with status: completed\n- Plan rejection command fails with \"Plan not found: request-08a998d4_plan\"\n- Error persists even after multiple attempts\n\n## Expected Behavior\n\n- Plan should be rejectable even after its changeset has been rejected\n- Or plan should be automatically handled/removed when changeset is rejected\n- Rejection should succeed and plan should be removed from list\n\n## Environment\n\n- Exaix Version: 1.0.0\n- OS: Linux\n- Deno Version: (unknown)\n- Relevant Config: Default exa.config.toml\n\n## Investigation Needed",
       "vector": [
         0.5568627450980392,
         0.2784313725490196,

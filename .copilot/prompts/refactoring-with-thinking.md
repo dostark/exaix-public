@@ -27,7 +27,7 @@ deno run --allow-read scripts/inject_agent_context.ts claude "refactoring [patte
 
 Requirements from agents/:
 
-- Follow Service Pattern from agents/source/exoframe.md
+- Follow Service Pattern from agents/source/exaix.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md
 - Use PathResolver for all file operations
@@ -58,7 +58,7 @@ deno run --allow-read scripts/inject_agent_context.ts claude "refactoring databa
 
 Requirements from agents/:
 
-- Follow Service Pattern from agents/source/exoframe.md
+- Follow Service Pattern from agents/source/exaix.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md
 - Use proper cleanup patterns

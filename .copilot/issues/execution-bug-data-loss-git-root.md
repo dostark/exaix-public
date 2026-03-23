@@ -11,35 +11,35 @@ labels: [bug, git, data-loss, core]
 
 ## Problem
 
-Executing an approved plan for a portal-based request can lead to apparent data loss in the ExoFrame runtime directory (`~/ExoFrame`). The system incorrectly initializes a Git repository in the runtime root and performs destructive operations (reset/checkout) that hide or remove files from the working directory.
+Executing an approved plan for a portal-based request can lead to apparent data loss in the Exaix runtime directory (`~/Exaix`). The system incorrectly initializes a Git repository in the runtime root and performs destructive operations (reset/checkout) that hide or remove files from the working directory.
 
 ## Reproduction Steps
 
 ```bash
-# 1. Deploy workspace to ~/ExoFrame
+# 1. Deploy workspace to ~/Exaix
 # 2. Add a portal pointing to an external repo
 # 3. Create a request for that portal
 # 4. Approve the generated plan
 # 5. If the execution encounters an error or triggers a rollback
-# 6. Observe that ~/ExoFrame is now empty except for .git and Memory/
+# 6. Observe that ~/Exaix is now empty except for .git and Memory/
 ```
 
 ## Observed Behavior
 
 - Deletion of `src/`, `Blueprints/`, `Workspace/`, and other critical runtime files from the user's view.
-- Files remain in the hidden `.git` history but are missing from the working directory, breaking `exoctl` and the daemon.
+- Files remain in the hidden `.git` history but are missing from the working directory, breaking `exactl` and the daemon.
 - Corruption of the runtime directory with an unwanted Git repository.
-- `git status` in `~/ExoFrame` shows all files as deleted or untracked if on a new branch.
+- `git status` in `~/Exaix` shows all files as deleted or untracked if on a new branch.
 
 ## Expected Behavior
 
 - Git operations should ONLY target the portal repository or the specific execution worktree.
-- The ExoFrame runtime directory (`~/ExoFrame`) should NEVER be used as a Git repository root by the execution engine.
+- The Exaix runtime directory (`~/Exaix`) should NEVER be used as a Git repository root by the execution engine.
 - Rollbacks should be scoped to the portal/worktree, not the system root.
 
 ## Environment
 
-- ExoFrame Version: 0.1.0
+- Exaix Version: 0.1.0
 - OS: Linux
 - Deno Version: 1.x.x
 
@@ -49,7 +49,7 @@ Executing an approved plan for a portal-based request can lead to apparent data 
 
 **Technical Details:**
 
-1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/ExoFrame`.
+1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/Exaix`.
 
 1.
 
@@ -93,7 +93,7 @@ The system has been hardened with multiple layers of security to prevent reposit
 
 **Manual Recovery:**
 
-1. Check current branch: `git branch` in `~/ExoFrame`.
+1. Check current branch: `git branch` in `~/Exaix`.
 
 1.
 1.
@@ -141,14 +141,14 @@ The primary objective is to enforce strict repository isolation and eliminate de
 
 ## Success Criteria
 
-1. **Zero System Root Taint**: Running any plan (successful or failing) never creates a `.git` folder or initializes a repository in `~/ExoFrame`.
+1. **Zero System Root Taint**: Running any plan (successful or failing) never creates a `.git` folder or initializes a repository in `~/Exaix`.
 
 1.
 1.
 
 ## Success Criteria Verification (2026-02-17)
 
-1. **Zero System Root Taint**: **PASSED**. Multi-layered guards in `GitService` and `ExecutionLoop` prevent any Git activity in `~/ExoFrame`.
+1. **Zero System Root Taint**: **PASSED**. Multi-layered guards in `GitService` and `ExecutionLoop` prevent any Git activity in `~/Exaix`.
 
 1.
 1.
@@ -166,4 +166,4 @@ The primary objective is to enforce strict repository isolation and eliminate de
 
 ## Priority Justification
 
-**Critical.** Resolved. The patch eliminates a catastrophic data loss risk and ensures that ExoFrame's runtime environment remains secure and stable during automated plan execution. Detailed reproduction and root cause analysis are preserved for historical audit.
+**Critical.** Resolved. The patch eliminates a catastrophic data loss risk and ensures that Exaix's runtime environment remains secure and stable during automated plan execution. Detailed reproduction and root cause analysis are preserved for historical audit.

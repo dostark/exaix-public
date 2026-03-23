@@ -86,7 +86,7 @@ async function createTestWorkspace(baseDir: string): Promise<{
 
 Deno.test("[regression] Review list shows request and plan context", async () => {
   // Create temporary test directory
-  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_review_test_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exaix_review_test_" });
 
   try {
     const { workspaceDir: _workspaceDir, requestsDir, plansDir, activeDir: _activeDir } = await createTestWorkspace(

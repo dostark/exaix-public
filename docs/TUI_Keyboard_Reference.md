@@ -1,6 +1,6 @@
 # TUI Keyboard Reference
 
-Complete keyboard shortcut reference for the ExoFrame TUI Dashboard.
+Complete keyboard shortcut reference for the Exaix TUI Dashboard.
 
 ---
 
@@ -189,7 +189,7 @@ Monitor agent health and activity.
 
 ### Daemon Control
 
-Manage the ExoFrame daemon.
+Manage the Exaix daemon.
 
 | Key     | Action  | Description                     |
 | ------- | ------- | ------------------------------- |
@@ -224,7 +224,7 @@ Browse and manage Memory Banks.
 
 ## Accessibility
 
-ExoFrame TUI supports accessibility features for users with different needs.
+Exaix TUI supports accessibility features for users with different needs.
 
 ### High Contrast Mode
 
@@ -232,13 +232,13 @@ Enable high contrast colors for better visibility:
 
 - Press `?` to open help, then navigate to Settings
 - Toggle "High Contrast" option
-- Or set `tui.high_contrast = true` in `exo.config.toml`
+- Or set `tui.high_contrast = true` in `exa.config.toml`
 
 ### Screen Reader Support
 
 Enable screen reader announcements:
 
-- Set `tui.screen_reader = true` in `exo.config.toml`
+- Set `tui.screen_reader = true` in `exa.config.toml`
 - Status changes and navigation will be announced
 - List items include ARIA-style descriptions
 
@@ -252,7 +252,7 @@ All features are accessible via keyboard:
 
 ### Configuration
 
-Add to `exo.config.toml`:
+Add to `exa.config.toml`:
 
 ````toml
 [tui]
@@ -267,7 +267,7 @@ theme = "dark"  # "dark", "light", or "system"
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                  ExoFrame TUI Quick Reference               │
+│                  Exaix TUI Quick Reference               │
 ├─────────────────────────────────────────────────────────────┤
 │  NAVIGATION          │  PANES              │  VIEWS         │
 │  ↑↓ or jk = Move     │  v = Split vertical │  ? = Help      │
@@ -288,7 +288,7 @@ theme = "dark"  # "dark", "light", or "system"
 
 ## See Also
 
-- [ExoFrame User Guide](./ExoFrame_User_Guide.md) - Complete user documentation
-- [ExoFrame Architecture](./ExoFrame_Architecture.md) - Technical architecture details
-- [Implementation Plan](./ExoFrame_Implementation_Plan.md) - Development roadmap
+- [Exaix User Guide](./Exaix_User_Guide.md) - Complete user documentation
+- [Exaix Architecture](./Exaix_Architecture.md) - Technical architecture details
+- [Implementation Plan](./Exaix_Implementation_Plan.md) - Development roadmap
 ````

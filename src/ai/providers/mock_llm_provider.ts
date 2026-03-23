@@ -522,7 +522,7 @@ I will analyze the request and provide a detailed architectural assessment.
 {
   "goals": [
     {
-      "description": "Analyze the core architecture of the ExoFrame Scenario Framework",
+      "description": "Analyze the core architecture of the Exaix Scenario Framework",
       "explicit": true,
       "priority": 1
     }

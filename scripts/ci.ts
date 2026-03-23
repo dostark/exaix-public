@@ -118,7 +118,7 @@ async function generateBuilds(options: BuildOptions = {}): Promise<boolean> {
 
   const tasks = buildTargets.map((target) => {
     const isWin = target.includes("windows");
-    const output = isWin ? `${binDir}/exoframe-${target}.exe` : `${binDir}/exoframe-${target}`;
+    const output = isWin ? `${binDir}/exaix-${target}.exe` : `${binDir}/exaix-${target}`;
     return {
       cmd: [
         "deno",
@@ -143,7 +143,7 @@ async function generateBuilds(options: BuildOptions = {}): Promise<boolean> {
     for (const target of buildTargets) {
       const isWin = target.includes("windows");
       const binDir = "dist/bin";
-      const output = isWin ? `${binDir}/exoframe-${target}.exe` : `${binDir}/exoframe-${target}`;
+      const output = isWin ? `${binDir}/exaix-${target}.exe` : `${binDir}/exaix-${target}`;
       try {
         const stats = await Deno.stat(output);
         const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);
@@ -166,7 +166,7 @@ async function verifyCoverage(): Promise<boolean> {
   console.log(`\n⏳ Starting: Coverage Verification...${isDryRun ? " (DRY RUN)" : ""}`);
 
   const COVERAGE_DIR = "coverage";
-  const COVERAGE_INCLUDE_PATTERN = "^file://.*ExoFrame/src/";
+  const COVERAGE_INCLUDE_PATTERN = "^file://.*Exaix/src/";
   const COVERAGE_EXCLUDE_PATTERN = "(^file:///tmp/|test\\.(ts|js)$)";
   const COVERAGE_WARNING_PATTERNS: RegExp[] = [
     /Failed to fetch "file:\/\/\/tmp\//,
@@ -530,13 +530,13 @@ const scenariosCommand = new Command()
 
     console.log(`📂 Prepared temp directory: ${tempDir}`);
 
-    const exoctlPath = resolve("src/cli/exoctl.ts");
-    const shimPath = join(binDir, "exoctl");
-    const shimContent = `#!/bin/bash\ndeno run -A "${exoctlPath}" "$@"\n`;
+    const exactlPath = resolve("src/cli/exactl.ts");
+    const shimPath = join(binDir, "exactl");
+    const shimContent = `#!/bin/bash\ndeno run -A "${exactlPath}" "$@"\n`;
     await Deno.writeTextFile(shimPath, shimContent);
     await Deno.chmod(shimPath, 0o755);
 
-    // 2. Initialize Workspace for exoctl with a minimal config
+    // 2. Initialize Workspace for exactl with a minimal config
     try {
       const minimalConfig = `
 [system]
@@ -561,7 +561,7 @@ model = "test"
 [ai.mock]
 strategy = "pattern"
 `;
-      await Deno.writeTextFile(join(workspaceDest, "exo.config.toml"), minimalConfig.trim());
+      await Deno.writeTextFile(join(workspaceDest, "exa.config.toml"), minimalConfig.trim());
       console.log("✅ Initialized minimal workspace config for CI");
     } catch (error) {
       console.error(`❌ Failed to create minimal config: ${error}`);
@@ -589,15 +589,15 @@ strategy = "pattern"
     const samplePortalDir = "/tmp/portal-sample-app";
     try {
       await Deno.mkdir(samplePortalDir, { recursive: true });
-      // Minor hack: also ensure a .git dir exists so exoctl thinks it's a repo
+      // Minor hack: also ensure a .git dir exists so exactl thinks it's a repo
       await Deno.mkdir(join(samplePortalDir, ".git"), { recursive: true });
       console.log(`✅ Created dummy portal at: ${samplePortalDir}`);
     } catch {
       // ignore
     }
 
-    const configPath = join(workspaceDest, "exo.config.toml");
-    const portalEnv = { ...Deno.env.toObject(), EXO_CONFIG_PATH: configPath };
+    const configPath = join(workspaceDest, "exa.config.toml");
+    const portalEnv = { ...Deno.env.toObject(), EXA_CONFIG_PATH: configPath };
 
     // 3. Initialize Database Schema
     console.log("🗄️ Initializing database...");
@@ -620,7 +620,7 @@ strategy = "pattern"
         "deno",
         "run",
         "-A",
-        exoctlPath,
+        exactlPath,
         "portal",
         "add",
         samplePortalDir,
@@ -630,29 +630,29 @@ strategy = "pattern"
       { env: portalEnv },
     );
 
-    // Mount portal-exoframe pointing to THIS repo
+    // Mount portal-exaix pointing to THIS repo
     await run(
       [
         "deno",
         "run",
         "-A",
-        exoctlPath,
+        exactlPath,
         "portal",
         "add",
         Deno.cwd(),
-        "portal-exoframe",
+        "portal-exaix",
       ],
-      "Mounting portal-exoframe",
+      "Mounting portal-exaix",
       { env: portalEnv },
     );
 
     // 5. Run Scenarios with Mock AI Provider
-    // We set EXO_LLM_PROVIDER=mock to ensure no real LLM calls are made in CI
+    // We set EXA_LLM_PROVIDER=mock to ensure no real LLM calls are made in CI
     const env = {
       ...Deno.env.toObject(),
-      EXO_LLM_PROVIDER: "mock",
-      EXO_LLM_STRATEGY: "pattern",
-      EXO_CONFIG_PATH: configPath,
+      EXA_LLM_PROVIDER: "mock",
+      EXA_LLM_STRATEGY: "pattern",
+      EXA_CONFIG_PATH: configPath,
     };
 
     console.log(`🚀 Running scenarios with Mock AI Provider (Config: ${configPath})...`);
@@ -673,8 +673,8 @@ strategy = "pattern"
       ],
       env: {
         ...env,
-        // Inform the scenario runner how to run exoctl
-        EXO_BIN_PATH: binDir,
+        // Inform the scenario runner how to run exactl
+        EXA_BIN_PATH: binDir,
       },
       stdout: "inherit",
       stderr: "inherit",
@@ -694,7 +694,7 @@ strategy = "pattern"
 await new Command()
   .name("exo-ci")
   .version("0.1.0")
-  .description("ExoFrame Unified CI Pipeline Pipeline")
+  .description("Exaix Unified CI Pipeline Pipeline")
   .option("--dry-run", "Show what would be executed without running commands", {
     global: true,
     action: () => {

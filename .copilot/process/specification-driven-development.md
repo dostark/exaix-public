@@ -1,25 +1,25 @@
 ---
 agent: general
 scope: dev
-title: Specification-Driven Development in ExoFrame
-short_summary: "Analysis of how ExoFrame's request-clarification-planning-execution pipeline implements Specification-Driven Development (SDD) principles for AI agent orchestration."
+title: Specification-Driven Development in Exaix
+short_summary: "Analysis of how Exaix's request-clarification-planning-execution pipeline implements Specification-Driven Development (SDD) principles for AI agent orchestration."
 version: "1.0"
 topics: ["methodology", "sdd", "quality", "request-processing", "architecture"]
 ---
 
-## Specification-Driven Development in ExoFrame
+## Specification-Driven Development in Exaix
 
 ## Overview
 
 **Specification-Driven Development (SDD)** is an approach to building applications with LLM agents where a structured specification is written *before* code generation begins, and that specification serves as both the execution guide and the evaluation rubric. Rather than iterating on generated code ("generate → fix → regenerate"), SDD iterates on the *specification* until it's well-defined, then generates code from a solid foundation.
 
-ExoFrame's Phases 45–49 quality pipeline implements an adapted form of SDD optimized for agent orchestration. This document maps the correlation between SDD principles and ExoFrame's architecture, identifies where ExoFrame goes beyond vanilla SDD, and notes the remaining gap.
+Exaix's Phases 45–49 quality pipeline implements an adapted form of SDD optimized for agent orchestration. This document maps the correlation between SDD principles and Exaix's architecture, identifies where Exaix goes beyond vanilla SDD, and notes the remaining gap.
 
 ---
 
-## Core SDD Principles → ExoFrame Mapping
+## Core SDD Principles → Exaix Mapping
 
-| # | SDD Principle | ExoFrame Implementation | Phase |
+| # | SDD Principle | Exaix Implementation | Phase |
 | --- | --- | --- | --- |
 | 1 | **Write a spec before code** | The Q&A loop produces an `IRequestSpecification` (goals, success criteria, scope, constraints) *before* the agent executes | Phase 47 |
 | 2 | **Spec defines acceptance criteria** | `IRequestAnalysis` extracts acceptance criteria; `CriteriaGenerator` converts them into evaluation rubric items (`GOAL_ALIGNMENT`, `TASK_FULFILLMENT`) | Phase 45 + 48 |
@@ -31,7 +31,7 @@ ExoFrame's Phases 45–49 quality pipeline implements an adapted form of SDD opt
 
 ---
 
-## The ExoFrame SDD Pipeline
+## The Exaix SDD Pipeline
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -77,11 +77,11 @@ ExoFrame's Phases 45–49 quality pipeline implements an adapted form of SDD opt
 
 ---
 
-## Where ExoFrame Goes Beyond Vanilla SDD
+## Where Exaix Goes Beyond Vanilla SDD
 
 ### 1. Assisted Specification Writing
 
-In pure SDD, the human writes the full specification manually. This requires skill — knowing what to specify, how to structure it, and what level of detail agents need. ExoFrame lowers this barrier through **collaborative specification**:
+In pure SDD, the human writes the full specification manually. This requires skill — knowing what to specify, how to structure it, and what level of detail agents need. Exaix lowers this barrier through **collaborative specification**:
 
 - A planning agent identifies what's missing, vague, or ambiguous
 - It generates categorized questions (goal, scope, constraint, acceptance, context)
@@ -91,9 +91,9 @@ In pure SDD, the human writes the full specification manually. This requires ski
 
 ### 2. Progressive Specification Depth
 
-SDD typically applies the same rigor uniformly — every task gets a full spec. ExoFrame adapts the specification effort to the request:
+SDD typically applies the same rigor uniformly — every task gets a full spec. Exaix adapts the specification effort to the request:
 
-- **Clear, well-bounded requests** (e.g., "add a `--verbose` flag to `exoctl portal list`") skip the Q&A loop entirely — the `RequestQualityGate` scores them above threshold and they proceed directly
+- **Clear, well-bounded requests** (e.g., "add a `--verbose` flag to `exactl portal list`") skip the Q&A loop entirely — the `RequestQualityGate` scores them above threshold and they proceed directly
 - **Ambiguous requests** (e.g., "make the TUI better") trigger the full refinement loop
 - **Moderate requests** get auto-enriched via LLM without user interaction
 
@@ -103,7 +103,7 @@ This avoids the friction of over-specifying trivial tasks while ensuring complex
 
 Traditional SDD specs are written by humans who (presumably) know the codebase. When working with AI agents, this assumption breaks down — neither the agent writing the spec nor (sometimes) the user has deep codebase familiarity.
 
-ExoFrame's `PortalKnowledgeService` (Phase 46) addresses this by providing:
+Exaix's `PortalKnowledgeService` (Phase 46) addresses this by providing:
 
 - Actual architecture layers and key files
 - Detected code conventions and patterns
@@ -114,7 +114,7 @@ The planning agent can reference this knowledge when generating questions: *"The
 
 ### 4. Spec-to-Evaluation Traceability
 
-The most distinctive SDD aspect in ExoFrame: the specification doesn't just guide execution — it **becomes** the evaluation rubric. When `CriteriaGenerator` (Phase 48) converts `IRequestAnalysis` goals and requirements into `GOAL_ALIGNMENT` and `TASK_FULFILLMENT` evaluation criteria, the quality gates verify output against the specification, not generic heuristics.
+The most distinctive SDD aspect in Exaix: the specification doesn't just guide execution — it **becomes** the evaluation rubric. When `CriteriaGenerator` (Phase 48) converts `IRequestAnalysis` goals and requirements into `GOAL_ALIGNMENT` and `TASK_FULFILLMENT` evaluation criteria, the quality gates verify output against the specification, not generic heuristics.
 
 This closes the SDD feedback loop:
 ```text
@@ -129,7 +129,7 @@ Without this, evaluation answers "is this good code?" — with it, evaluation an
 
 SDD emphasizes **spec versioning and change management** — if requirements are discovered to be infeasible mid-execution, the specification is updated first, then execution resumes from the revised spec.
 
-ExoFrame's current design finalizes the specification before execution and does not revisit it during the agent's work. If the `ReflexiveAgent` discovers during self-critique that a requirement is infeasible, the current design retries with feedback but doesn't return to the user to revise the specification.
+Exaix's current design finalizes the specification before execution and does not revisit it during the agent's work. If the `ReflexiveAgent` discovers during self-critique that a requirement is infeasible, the current design retries with feedback but doesn't return to the user to revise the specification.
 
 **Impact:** An agent may produce suboptimal output trying to satisfy an infeasible requirement rather than flagging it for spec revision.
 
@@ -160,7 +160,7 @@ Phase 49: Pipeline Hardening ──────▶ Goal-Aware Critique & Frontma
 
 ## Flow (Multi-Agent) Request Coverage
 
-All analysis above describes the **agent request path**. ExoFrame also supports **flow requests** — multi-agent orchestration via `FlowRunner` with gate, branch, consensus, and feedback loop step types.
+All analysis above describes the **agent request path**. Exaix also supports **flow requests** — multi-agent orchestration via `FlowRunner` with gate, branch, consensus, and feedback loop step types.
 
 **Current gap:** The SDD pipeline (quality gate, specification, analysis, criteria, portal knowledge) is designed to integrate with `processAgentRequest()`. Flow requests take a separate path through `processFlowRequest()` that bypasses these services. `FlowRunner.execute()` receives the raw `request.body` as `userPrompt` with no specification, analysis, or portal knowledge attached.
 

@@ -2,7 +2,7 @@
 agent: claude
 scope: dev
 title: "Phase 32: Dynamic Skills Injection for Requests and Plans"
-short_summary: "Implement `--skills` option for `exoctl request` and `exoctl plan approve` commands to enable runtime skill injection, overriding agent limitations on a per-task basis."
+short_summary: "Implement `--skills` option for `exactl request` and `exactl plan approve` commands to enable runtime skill injection, overriding agent limitations on a per-task basis."
 version: "1.0"
 topics: ["skills", "request", "plan", "cli", "agent-runner", "plan-executor"]
 ---
@@ -12,7 +12,7 @@ topics: ["skills", "request", "plan", "cli", "agent-runner", "plan-executor"]
 **Status:** ✅ COMPLETED - All steps implemented and tested
 **Timebox:** 2-3 days
 **Entry Criteria:** Phase 17 (Skills Architecture) complete, request and plan commands working
-**Exit Criteria:** `exoctl request --skills <skills>` and `exoctl plan approve <id> --skills <skills>` inject skills into execution context
+**Exit Criteria:** `exactl request --skills <skills>` and `exactl plan approve <id> --skills <skills>` inject skills into execution context
 
 ## References
 
@@ -44,7 +44,7 @@ However, there are legitimate scenarios where a security expert should write fil
 
 Allow users to inject skills (e.g., `documentation-driven`, `file-ops`) at:
 
-1. **Request creation** - `exoctl request "..." --skills <skills>`
+1. **Request creation** - `exactl request "..." --skills <skills>`
 
 Skills override blueprint constraints via instruction precedence in the LLM prompt.
 
@@ -58,7 +58,7 @@ Skills override blueprint constraints via instruction precedence in the LLM prom
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Request Creation (CLI)                            │
 ├─────────────────────────────────────────────────────────────────────┤
-│  exoctl request "Audit and write report" --skills documentation-driven
+│  exactl request "Audit and write report" --skills documentation-driven
 │                           ↓
 │  RequestCommands.create(description, { skills: ["documentation-driven"] })
 │                           ↓
@@ -89,7 +89,7 @@ Skills override blueprint constraints via instruction precedence in the LLM prom
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Plan Approval (CLI)                               │
 ├─────────────────────────────────────────────────────────────────────┤
-│  exoctl plan approve <id> --skills file-ops,testing
+│  exactl plan approve <id> --skills file-ops,testing
 │                           ↓
 │  PlanCommands.approve(planId, ["file-ops", "testing"])
 │                           ↓
@@ -115,7 +115,7 @@ Skills override blueprint constraints via instruction precedence in the LLM prom
 
 | Layer                  | Component                     | Skills Field                 | Format          |
 | ---------------------- | ----------------------------- | ---------------------------- | --------------- |
-| **CLI**                | `exoctl request --skills a,b` | `options.skills`             | `string[]`      |
+| **CLI**                | `exactl request --skills a,b` | `options.skills`             | `string[]`      |
 | **Request Storage**    | `Workspace/Requests/*.md`     | `frontmatter.skills`         | `string` (JSON) |
 | **Request Processing** | `ParsedRequest`               | `skills`                     | `string[]`      |
 | **Agent Execution**    | `AgentRunner.run()`           | `request.skills`             | `string[]`      |
@@ -180,16 +180,16 @@ if (skillsApplied.length > 0) {
 
 ## Step 32.1: Request CLI Integration ✅ COMPLETED
 
-**Action:** Add `--skills` flag to `exoctl request create` command.
+**Action:** Add `--skills` flag to `exactl request create` command.
 
 **Files Modified:**
 
-- `src/cli/exoctl.ts` - Added `--skills <skills:string>` option to `request create` command
+- `src/cli/exactl.ts` - Added `--skills <skills:string>` option to `request create` command
 
 **Changes:**
 
 ```typescript
-// src/cli/exoctl.ts (line ~312)
+// src/cli/exactl.ts (line ~312)
 .option("--skills <skills:string>", "Comma-separated list of skills to inject")
 .action(async (options, ...args: string[]) => {
   // ...
@@ -205,7 +205,7 @@ if (skillsApplied.length > 0) {
 
 **Success Criteria:**
 
-- [x] `exoctl request --help` shows `--skills` option
+- [x] `exactl request --help` shows `--skills` option
 - [x] Option accepts comma-separated string
 - [x] Skills parsed into `string[]` and passed to `RequestCommands.create()`
 - [x] Backward compatible: works without `--skills`
@@ -312,24 +312,24 @@ export interface RequestEntry {
 **Verification:**
 
 ```bash
-deno check src/cli/exoctl.ts  # ✅ Passed
+deno check src/cli/exactl.ts  # ✅ Passed
 ```text
 
 ---
 
 ## Step 32.4: Plan CLI Integration ✅ COMPLETED
 
-**Action:** Add `--skills` flag to `exoctl plan approve` command.
+**Action:** Add `--skills` flag to `exactl plan approve` command.
 
 **Files Modified:**
 
-- `src/cli/exoctl.ts` - Added `--skills <skills:string>` option to `plan approve` command
+- `src/cli/exactl.ts` - Added `--skills <skills:string>` option to `plan approve` command
 - `src/cli/plan_commands.ts` - Updated `approve` method signature
 
 **Changes:**
 
 ```typescript
-// src/cli/exoctl.ts (line ~526)
+// src/cli/exactl.ts (line ~526)
 .command("approve <id>")
   .description("Approve a plan and move it to Workspace/Active")
   .option("--skills <skills:string>", "Comma-separated list of skills to inject during execution")
@@ -360,7 +360,7 @@ async approve(planId: string, skills?: string[]): Promise<void> {
 
 **Success Criteria:**
 
-- [x] `exoctl plan approve --help` shows `--skills` option
+- [x] `exactl plan approve --help` shows `--skills` option
 - [x] Option accepts comma-separated string
 - [x] Skills stored in plan frontmatter when approving
 - [x] Backward compatible: works without `--skills`
@@ -459,7 +459,7 @@ INSTRUCTIONS:
 **Verification Commands:**
 
 ```bash
-deno check src/cli/exoctl.ts                    # ✅ Passed
+deno check src/cli/exactl.ts                    # ✅ Passed
 deno check src/cli/request_commands.ts          # ✅ Passed
 deno check src/cli/plan_commands.ts             # ✅ Passed
 deno check src/services/plan_executor.ts        # ✅ Passed
@@ -484,8 +484,8 @@ deno check src/services/request_common.ts       # ✅ Passed
 
 - `.copilot/planning/phase-32-dynamic-skills-injection.md` - This planning document
 - `walkthrough.md` (artifact) - User-facing documentation
-- `docs/ExoFrame_User_Guide.md` - Added `--skills` option documentation
-- `docs/dev/ExoFrame_Manual_Test_Scenarios.md` - Added MT-31 test scenario
+- `docs/Exaix_User_Guide.md` - Added `--skills` option documentation
+- `docs/dev/Exaix_Manual_Test_Scenarios.md` - Added MT-31 test scenario
 
 **Changes Made:**
 
@@ -520,7 +520,7 @@ deno check src/services/request_common.ts       # ✅ Passed
 ## Implementation Checklist
 
 - [x] **32.1** Request CLI Integration
-  - [x] Add `--skills` option to `exoctl request create`
+  - [x] Add `--skills` option to `exactl request create`
   - [x] Parse comma-separated string to array
   - [x] Pass to `RequestCommands.create()`
   - [x] Tests for CLI option
@@ -535,7 +535,7 @@ deno check src/services/request_common.ts       # ✅ Passed
   - [x] Add `skills` to `RequestEntry`
   - [x] Type checking passes
 - [x] **32.4** Plan CLI Integration
-  - [x] Add `--skills` option to `exoctl plan approve`
+  - [x] Add `--skills` option to `exactl plan approve`
   - [x] Update `PlanCommands.approve` signature
   - [x] Store skills in plan frontmatter
   - [x] Tests for plan approval with skills
@@ -633,7 +633,7 @@ deno check src/services/request_common.ts       # ✅ Passed
 
 ```bash
 # Create request with skills to override agent limitations
-exoctl request "Perform security audit and write report to audit.md" \
+exactl request "Perform security audit and write report to audit.md" \
   --agent security-expert \
   --skills documentation-driven,file-ops
 
@@ -644,10 +644,10 @@ exoctl request "Perform security audit and write report to audit.md" \
 
 ```bash
 # Create a request
-exoctl request "Refactor authentication module" --agent code-architect
+exactl request "Refactor authentication module" --agent code-architect
 
 # Approve the generated plan with skills
-exoctl plan approve plan-abc123 --skills documentation-driven,testing-best-practices
+exactl plan approve plan-abc123 --skills documentation-driven,testing-best-practices
 
 # Result: Plan execution will apply these skills to all steps
 ```text
@@ -656,14 +656,14 @@ exoctl plan approve plan-abc123 --skills documentation-driven,testing-best-pract
 
 ```bash
 # 1. Create request with initial skills
-exoctl request "Add user profile feature" \
+exactl request "Add user profile feature" \
   --agent feature-developer \
   --skills tdd-methodology
 
 # 2. Review generated plan
 
 # 3. Approve with additional skills
-exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
+exactl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 # Result: Execution uses both TDD and security-first approaches
 ```text
@@ -674,7 +674,7 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 ### CLI Layer
 
-- `src/cli/exoctl.ts` - Added `--skills` options to request and plan commands
+- `src/cli/exactl.ts` - Added `--skills` options to request and plan commands
 - `src/cli/request_commands.ts` - Skills storage, interface updates
 - `src/cli/plan_commands.ts` - Skills storage in plan approval
 
@@ -693,8 +693,8 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 - `.copilot/planning/phase-32-dynamic-skills-injection.md` - This planning document (NEW)
 - `walkthrough.md` (artifact) - User-facing documentation (NEW)
-- `docs/ExoFrame_User_Guide.md` - Added `--skills` option documentation
-- `docs/dev/ExoFrame_Manual_Test_Scenarios.md` - Added MT-31 test scenario
+- `docs/Exaix_User_Guide.md` - Added `--skills` option documentation
+- `docs/dev/Exaix_Manual_Test_Scenarios.md` - Added MT-31 test scenario
 
 ---
 
@@ -708,9 +708,9 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 ### Skill Discovery (Phase 32.6)
 
-- `exoctl request --suggest-skills "description"` - Suggest relevant skills
+- `exactl request --suggest-skills "description"` - Suggest relevant skills
 - Show skill descriptions in CLI help
-- Integrate with `exoctl memory skill list`
+- Integrate with `exactl memory skill list`
 
 ### Skill Analytics (Phase 32.7)
 
@@ -728,8 +728,8 @@ exoctl plan approve plan-xyz789 --skills security-first,documentation-driven
 
 ## Success Metrics
 
-- [x] `exoctl request --skills <skills>` creates requests with skills in frontmatter
-- [x] `exoctl plan approve <id> --skills <skills>` stores skills in approved plans
+- [x] `exactl request --skills <skills>` creates requests with skills in frontmatter
+- [x] `exactl plan approve <id> --skills <skills>` stores skills in approved plans
 - [x] Skills correctly injected into agent execution context
 - [x] Skills correctly injected into plan execution context
 - [x] All tests pass (10/10)

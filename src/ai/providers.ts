@@ -268,7 +268,7 @@ export class ModelFactory {
     // Handle convenience aliases for OpenAI-compatible models
     if (normalizedType.startsWith("gpt-")) {
       // In CI, prevent accidental calls to paid endpoints unless explicitly opted-in
-      if (safeGetEnv("CI") && safeGetEnv("EXO_ENABLE_PAID_LLM") !== "1") {
+      if (safeGetEnv("CI") && safeGetEnv("EXA_ENABLE_PAID_LLM") !== "1") {
         return new MockProvider("CI-protected mock", (config?.id as string) ?? "mock-provider");
       }
 

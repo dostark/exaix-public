@@ -3,16 +3,16 @@ id: "550e8400-e29b-41d4-a716-446655440008"
 created_at: "2026-01-05T00:00:00.000Z"
 source: "user"
 scope: "project"
-project: "ExoFrame"
+project: "Exaix"
 status: "active"
-skill_id: "exoframe-conventions"
-name: "ExoFrame Development Conventions"
+skill_id: "exaix-conventions"
+name: "Exaix Development Conventions"
 version: "1.0.0"
-description: "ExoFrame-specific patterns, conventions, and best practices"
+description: "Exaix-specific patterns, conventions, and best practices"
 
 triggers:
   keywords:
-    - exoframe
+    - exaix
     - agent
     - flow
     - blueprint
@@ -27,7 +27,7 @@ triggers:
     - "src/**/*.ts"
     - "tests/**/*.ts"
   tags:
-    - exoframe
+    - exaix
     - conventions
 
 constraints:
@@ -37,13 +37,13 @@ constraints:
   - "Write tests using Deno.test"
 
 output_requirements:
-  - "Follows ExoFrame architectural patterns"
+  - "Follows Exaix architectural patterns"
   - "Uses initTestDbService() for test databases"
   - "Includes proper Activity Journal logging"
 
 quality_criteria:
   - name: "Pattern Consistency"
-    description: "Code follows established ExoFrame patterns"
+    description: "Code follows established Exaix patterns"
     weight: 40
   - name: "Test Coverage"
     description: "New code has tests"
@@ -59,9 +59,9 @@ compatible_with:
 usage_count: 0
 ---
 
-# ExoFrame Development Conventions
+# Exaix Development Conventions
 
-Follow these ExoFrame-specific patterns and conventions:
+Follow these Exaix-specific patterns and conventions:
 
 ## 1. Project Structure
 
@@ -263,10 +263,10 @@ export default defineFlow({
 
 ## 7. Configuration
 
-Use exo.config.toml for settings:
+Use exa.config.toml for settings:
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [system]
 root = "."
 
@@ -289,7 +289,7 @@ import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@1";
 // Validation
 import { z } from "zod";
 
-// ExoFrame internal
+// Exaix internal
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 ```text
@@ -299,17 +299,17 @@ import type { DatabaseService } from "./db.ts";
 Use typed errors:
 
 ```typescript
-export class ExoFrameError extends Error {
+export class ExaixError extends Error {
   constructor(
     message: string,
     public code: string,
   ) {
     super(message);
-    this.name = "ExoFrameError";
+    this.name = "ExaixError";
   }
 }
 
-export class FlowExecutionError extends ExoFrameError {
+export class FlowExecutionError extends ExaixError {
   constructor(flowId: string, stepId: string, cause: Error) {
     super(
       `Flow ${flowId} failed at step ${stepId}: ${cause.message}`,

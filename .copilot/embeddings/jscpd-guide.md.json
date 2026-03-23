@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "4. **Plan extraction** based on pattern type:\n   - Same file duplication → Extract method\n   - Cross-file duplication → Extract helper/utility\n   - Test duplication → Create test helper or fixture\n\n5. **Implement** with tests first:\n   - Create helper with tests\n   - Refactor one usage\n   - Verify tests pass\n   - Refactor remaining usages\n\n6. **Verify** duplication reduced:\n   ```bash\n   npx jscpd src/ tests/ --reporters json --output ./jscpd-report-after\n   ```\n\n## Integration with CI\n\nAdd to pre-commit or CI pipeline:\n\n```bash\n# Fail if duplication > 5%\nnpx jscpd src/ tests/ --threshold 5\n\n# Or specific directories\nnpx jscpd src/ai/ --threshold 3\n```\n\n## ExoFrame-Specific Patterns\n\n### Test Helper Locations",
+      "text": "4. **Plan extraction** based on pattern type:\n   - Same file duplication → Extract method\n   - Cross-file duplication → Extract helper/utility\n   - Test duplication → Create test helper or fixture\n\n5. **Implement** with tests first:\n   - Create helper with tests\n   - Refactor one usage\n   - Verify tests pass\n   - Refactor remaining usages\n\n6. **Verify** duplication reduced:\n   ```bash\n   npx jscpd src/ tests/ --reporters json --output ./jscpd-report-after\n   ```\n\n## Integration with CI\n\nAdd to pre-commit or CI pipeline:\n\n```bash\n# Fail if duplication > 5%\nnpx jscpd src/ tests/ --threshold 5\n\n# Or specific directories\nnpx jscpd src/ai/ --threshold 3\n```\n\n## Exaix-Specific Patterns\n\n### Test Helper Locations",
       "vector": [
         0.2823529411764706,
         0.8509803921568627,

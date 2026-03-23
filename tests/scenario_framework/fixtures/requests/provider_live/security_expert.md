@@ -1,4 +1,4 @@
-Perform a security audit of ExoFrame's AI provider API key management system. Identify:
+Perform a security audit of Exaix's AI provider API key management system. Identify:
 
 - Key storage security in src/ai/provider_api_key.ts and configuration files
 - Encryption practices for sensitive provider credentials

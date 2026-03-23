@@ -1,7 +1,7 @@
 /**
  * @module GlobalConstants
  * @path src/constants.ts
- * @description Global internal constants for the ExoFrame system, including HTTP codes and hash parameters.
+ * @description Global internal constants for the Exaix system, including HTTP codes and hash parameters.
  * @architectural-layer Core
  * @dependencies []
  * @related-files []

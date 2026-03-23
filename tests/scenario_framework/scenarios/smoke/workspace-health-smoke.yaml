@@ -8,7 +8,7 @@ mode_support: ["auto"]
 portals: []
 steps:
   - id: "workspace-health-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args: ["--file", "$REQUEST_FIXTURE"]
     input_criteria:

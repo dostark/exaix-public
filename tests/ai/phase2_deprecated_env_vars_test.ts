@@ -1,7 +1,7 @@
 /**
  * @module DeprecatedEnvVarsTest
  * @path tests/ai/phase2_deprecated_env_vars_test.ts
- * @description Verifies that deprecated environment variables (EXO_OLLAMA_RETRY_*)
+ * @description Verifies that deprecated environment variables (EXA_OLLAMA_RETRY_*)
  * are correctly ignored in favor of the unified retry policy.
  */
 
@@ -15,8 +15,8 @@ import { createTestConfig } from "./helpers/test_config.ts";
 // Note: We can't easily test OpenAIShim directly as it's not exported,
 // but we test it via the ModelFactory if needed
 
-Deno.test("Phase 2: OllamaProvider ignores EXO_OLLAMA_RETRY_MAX env var", async () => {
-  await withEnv({ EXO_OLLAMA_RETRY_MAX: "99" }, () => {
+Deno.test("Phase 2: OllamaProvider ignores EXA_OLLAMA_RETRY_MAX env var", async () => {
+  await withEnv({ EXA_OLLAMA_RETRY_MAX: "99" }, () => {
     const provider = new OllamaProvider({
       baseUrl: "http://localhost:11434",
       model: "llama3.2",
@@ -32,8 +32,8 @@ Deno.test("Phase 2: OllamaProvider ignores EXO_OLLAMA_RETRY_MAX env var", async 
   });
 });
 
-Deno.test("Phase 2: OllamaProvider ignores EXO_OLLAMA_RETRY_BACKOFF_MS env var", async () => {
-  await withEnv({ EXO_OLLAMA_RETRY_BACKOFF_MS: "9999" }, () => {
+Deno.test("Phase 2: OllamaProvider ignores EXA_OLLAMA_RETRY_BACKOFF_MS env var", async () => {
+  await withEnv({ EXA_OLLAMA_RETRY_BACKOFF_MS: "9999" }, () => {
     const provider = new OllamaProvider({
       baseUrl: "http://localhost:11434",
       model: "llama3.2",
@@ -43,8 +43,8 @@ Deno.test("Phase 2: OllamaProvider ignores EXO_OLLAMA_RETRY_BACKOFF_MS env var",
   });
 });
 
-Deno.test("Phase 2: LlamaProvider ignores EXO_OLLAMA_RETRY_MAX env var", async () => {
-  await withEnv({ EXO_OLLAMA_RETRY_MAX: "99" }, () => {
+Deno.test("Phase 2: LlamaProvider ignores EXA_OLLAMA_RETRY_MAX env var", async () => {
+  await withEnv({ EXA_OLLAMA_RETRY_MAX: "99" }, () => {
     const provider = new LlamaProvider({
       model: "llama3.2:latest",
       endpoint: "http://localhost:11434/api/generate",
@@ -55,8 +55,8 @@ Deno.test("Phase 2: LlamaProvider ignores EXO_OLLAMA_RETRY_MAX env var", async (
   });
 });
 
-Deno.test("Phase 2: LlamaProvider ignores EXO_OLLAMA_RETRY_BACKOFF_MS env var", async () => {
-  await withEnv({ EXO_OLLAMA_RETRY_BACKOFF_MS: "9999" }, () => {
+Deno.test("Phase 2: LlamaProvider ignores EXA_OLLAMA_RETRY_BACKOFF_MS env var", async () => {
+  await withEnv({ EXA_OLLAMA_RETRY_BACKOFF_MS: "9999" }, () => {
     const provider = new LlamaProvider({
       model: "llama3.2:latest",
       endpoint: "http://localhost:11434/api/generate",

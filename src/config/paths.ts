@@ -1,7 +1,7 @@
 /**
  * @module IExoPaths
  * @path src/config/paths.ts
- * @description Defines the standard directory structure and path resolution logic for the ExoFrame workspace and memory banks.
+ * @description Defines the standard directory structure and path resolution logic for the Exaix workspace and memory banks.
  * @architectural-layer Config
  * @dependencies [constants]
  * @related-files [src/config/schema.ts, src/config/constants.ts]

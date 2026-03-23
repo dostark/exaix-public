@@ -191,7 +191,7 @@ export async function initTestDbService(): Promise<
   const config = createMockConfig(tempDir);
 
   // Write mock config to disk so subprocesses can load it if passed via CLI or env explicitly
-  const configPath = join(tempDir, "exo.config.toml");
+  const configPath = join(tempDir, "exa.config.toml");
 
   const configContent = `
 [system]

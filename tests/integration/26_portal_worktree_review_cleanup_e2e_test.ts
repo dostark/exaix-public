@@ -15,7 +15,7 @@ import {
   gitStdout,
   pathExists,
   pathExistsNoFollow,
-  runExoctl,
+  runExactl,
   setupWorktreePortalRepo,
   withSingleWorktreePortal,
 } from "../helpers/portal_test_utils.ts";
@@ -137,7 +137,7 @@ Deno.test(
         reviewBranch,
       } = scenario;
 
-      const reject = await runExoctl([
+      const reject = await runExactl([
         "review",
         "reject",
         reviewBranch,
@@ -180,7 +180,7 @@ Deno.test(
       // Approve requires being on the base branch.
       await gitStdout(portalTargetPath, ["checkout", targetBranch]);
 
-      const approve = await runExoctl(["review", "approve", reviewBranch], env.tempDir);
+      const approve = await runExactl(["review", "approve", reviewBranch], env.tempDir);
       assertEquals(approve.code, 0, approve.stderr);
 
       await assertReviewCleanup({
@@ -253,7 +253,7 @@ Deno.test(
       await gitStdout(portalTargetPath, ["add", "src/conflict.ts"]);
       await gitStdout(portalTargetPath, ["commit", "-m", "Change conflict file on base"]);
 
-      const approve = await runExoctl(["review", "approve", reviewBranch], env.tempDir);
+      const approve = await runExactl(["review", "approve", reviewBranch], env.tempDir);
       assertEquals(approve.code === 0, false, "Expected approve to fail due to merge conflict");
 
       // Repo should not be left in a conflicted merge state (merge --abort should run).

@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "**Stage 1: Event Debouncing** Wait for a configurable delay (default: 200ms, set via `watcher.debounce_ms` in\n`exo.config.toml`) after the _last_ file system event before attempting to read. This prevents processing the same file\nmultiple times due to rapid-fire events.\n\n> [!NOTE]\n> **Configurability:** The 200ms default is a balance between responsiveness and reliability. Increase to 500-1000ms if\n> using network drives or cloud storage. The stability verification (Stage 2) acts as a safety net if debouncing alone\n> is insufficient.\n\n**Implementation Checklist:**",
+      "text": "**Stage 1: Event Debouncing** Wait for a configurable delay (default: 200ms, set via `watcher.debounce_ms` in\n`exa.config.toml`) after the _last_ file system event before attempting to read. This prevents processing the same file\nmultiple times due to rapid-fire events.\n\n> [!NOTE]\n> **Configurability:** The 200ms default is a balance between responsiveness and reliability. Increase to 500-1000ms if\n> using network drives or cloud storage. The stability verification (Stage 2) acts as a safety net if debouncing alone\n> is insufficient.\n\n**Implementation Checklist:**",
       "vector": [
         0.7176470588235294,
         0.3333333333333333,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "**The Solution:** Create a `PathResolver` class that uses the configuration's `blueprints` (and future `portals`) to\nresolve and validate paths.\n\n```typescript\n// Example Usage\nconst resolver = new PathResolver(config);\nconst safePath = resolver.resolve(\"@Blueprints/basic-agent.md\");\n// -> \"/home/user/ExoFrame/Blueprints/basic-agent.md\"\n\nconst unsafePath = resolver.resolve(\"@Blueprints/../../secret.txt\");\n// -> Throws SecurityError\n```\n\n**Implementation Checklist:**\n\n1. Create `src/services/path_resolver.ts`.\n2. Implement `resolve(alias: string, relativePath: string): string`.\n3. Implement `validatePath(path: string, allowedRoots: string[]): string`.\n4. Ensure `Deno.realPath` (or equivalent) is used to resolve symlinks and `..` segments _before_ checking against\n   allowed roots.",
+      "text": "**The Solution:** Create a `PathResolver` class that uses the configuration's `blueprints` (and future `portals`) to\nresolve and validate paths.\n\n```typescript\n// Example Usage\nconst resolver = new PathResolver(config);\nconst safePath = resolver.resolve(\"@Blueprints/basic-agent.md\");\n// -> \"/home/user/Exaix/Blueprints/basic-agent.md\"\n\nconst unsafePath = resolver.resolve(\"@Blueprints/../../secret.txt\");\n// -> Throws SecurityError\n```\n\n**Implementation Checklist:**\n\n1. Create `src/services/path_resolver.ts`.\n2. Implement `resolve(alias: string, relativePath: string): string`.\n3. Implement `validatePath(path: string, allowedRoots: string[]): string`.\n4. Ensure `Deno.realPath` (or equivalent) is used to resolve symlinks and `..` segments _before_ checking against\n   allowed roots.",
       "vector": [
         0.9137254901960784,
         0.03137254901960784,

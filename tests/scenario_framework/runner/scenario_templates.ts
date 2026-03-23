@@ -33,7 +33,7 @@ export function renderScenarioTemplate(
     "portals: []",
     "steps:",
     '  - id: "create-request"',
-    '    type: "exoctl"',
+    '    type: "exactl"',
     '    command: "request create"',
     `    args: ["--from-file", "${options.requestFixture}"]`,
     "    input_criteria:",

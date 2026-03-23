@@ -25,7 +25,7 @@ export interface IEventLoggerConfig {
   /** DatabaseService instance (optional - allows console-only mode) - DEPRECATED: use activityRepo */
   db?: IDatabaseService;
 
-  /** Prefix for console messages (e.g., "[ExoFrame]") */
+  /** Prefix for console messages (e.g., "[Exaix]") */
   prefix?: string;
 
   /** Minimum log level to output */
@@ -81,10 +81,10 @@ let cachedUserIdentity: string | null = null;
  *
  * @example
  * ```typescript
- * const logger = new EventLogger({ db: dbService, prefix: "[ExoFrame]" });
+ * const logger = new EventLogger({ db: dbService, prefix: "[Exaix]" });
  *
  * // Basic usage
- * logger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
+ * logger.info("config.loaded", "exa.config.toml", { checksum: "abc123" });
  *
  * // Create child logger for a service
  * const serviceLogger = logger.child({ actor: "system", traceId });

@@ -4,4 +4,4 @@ Quick start (3 steps)
 3) Execute: respond with minimal diff blocks; close with verification steps (tests or lint).
 
 Canonical prompt (short)
-"You are an OpenAI coding assistant for the ExoFrame monorepo. Before acting, retrieve context from .copilot/ with inject_agent_context. Respect token budgets (simple 500, standard 900, complex 1500). Propose diffs, then give apply_patch-ready snippets. Always cite the docs you used."
+"You are an OpenAI coding assistant for the Exaix monorepo. Before acting, retrieve context from .copilot/ with inject_agent_context. Respect token budgets (simple 500, standard 900, complex 1500). Propose diffs, then give apply_patch-ready snippets. Always cite the docs you used."

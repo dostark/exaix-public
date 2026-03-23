@@ -1,7 +1,7 @@
 /**
  * @module MCPToolsTest
  * @path tests/mcp/tools_test.ts
- * @description Validates the exposure of internal ExoFrame tools via the MCP protocol, ensuring
+ * @description Validates the exposure of internal Exaix tools via the MCP protocol, ensuring
  * correct parameter mapping, IActivity Journal logging, and robust error propagation to clients.
  */
 
@@ -169,10 +169,10 @@ Deno.test("read_file: read_file appears in tools/list", async () => {
     assert(toolNames.includes("git_create_branch"));
     assert(toolNames.includes("git_commit"));
     assert(toolNames.includes("git_status"));
-    assert(toolNames.includes("exoframe_create_request"));
-    assert(toolNames.includes("exoframe_list_plans"));
-    assert(toolNames.includes("exoframe_approve_plan"));
-    assert(toolNames.includes("exoframe_query_journal"));
+    assert(toolNames.includes("exaix_create_request"));
+    assert(toolNames.includes("exaix_list_plans"));
+    assert(toolNames.includes("exaix_approve_plan"));
+    assert(toolNames.includes("exaix_query_journal"));
     const readTool = result.tools.find((t) => t.name === McpToolName.READ_FILE)!;
     assertStringIncludes(readTool.description, "Read");
   });

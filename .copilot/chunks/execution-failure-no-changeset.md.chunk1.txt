@@ -6,19 +6,19 @@ echo "export const version = '1.0';" > src/index.ts
 git add . && git commit -m "Initial commit"
 
 # 4. Mount portal
-cd ~/ExoFrame
-exoctl portal add /tmp/test-portal TestApp
+cd ~/Exaix
+exactl portal add /tmp/test-portal TestApp
 
 # 5. Submit request
-exoctl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
+exactl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
     --agent senior-coder \
     --portal TestApp
 
 # 6. Approve plan
-exoctl plan approve request-<ID>_plan
+exactl plan approve request-<ID>_plan
 
 # 7. Check changesets
-exoctl changeset list
+exactl changeset list
 ```
 
 ## Observed Behavior

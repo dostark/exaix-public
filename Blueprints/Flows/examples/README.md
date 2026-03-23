@@ -1,10 +1,10 @@
-# ExoFrame Flow Examples
+# Exaix Flow Examples
 
-This directory contains comprehensive examples demonstrating ExoFrame's multi-agent flow orchestration capabilities. These examples serve as both learning resources and practical templates for building complex workflows.
+This directory contains comprehensive examples demonstrating Exaix's multi-agent flow orchestration capabilities. These examples serve as both learning resources and practical templates for building complex workflows.
 
 ## Overview
 
-ExoFrame flows enable sophisticated multi-agent orchestration with support for:
+Exaix flows enable sophisticated multi-agent orchestration with support for:
 
 - **Pipeline execution** - Sequential processing with data transformation
 - **Parallel execution** - Concurrent processing with synchronization
@@ -109,19 +109,19 @@ const stagedFlow = defineFlow({
 1. **List available flows:**
 
    ```bash
-   exoctl flow list
+   exactl flow list
    ```
 
 1.
 
    ```bash
-   exoctl flow run --id code-review --request "Please review this TypeScript code for best practices..."
+   exactl flow run --id code-review --request "Please review this TypeScript code for best practices..."
    ```
 
 1.
 
    ```bash
-   exoctl flow validate Blueprints/Flows/examples/development/code_review.flow.yaml
+   exactl flow validate Blueprints/Flows/examples/development/code_review.flow.yaml
    ```
 
 ### Using as Templates
@@ -140,8 +140,8 @@ const stagedFlow = defineFlow({
 1.
 
    ```bash
-   exoctl flow validate my_custom_flow.flow.yaml
-   exoctl flow run --file my_custom_flow.flow.yaml --request "Your request here..."
+   exactl flow validate my_custom_flow.flow.yaml
+   exactl flow run --file my_custom_flow.flow.yaml --request "Your request here..."
    ```
 
 ## Flow Configuration
@@ -182,7 +182,7 @@ const stagedFlow = defineFlow({
 
 ### Testing & Validation
 
-1. **Validate before running** - Always check flows with `exoctl flow validate`
+1. **Validate before running** - Always check flows with `exactl flow validate`
 1. **Test with sample data** - Use realistic test inputs
 1. **Monitor execution** - Check activity logs for debugging
 1. **Review generated reports** - Use FlowReporter output for analysis
@@ -235,7 +235,7 @@ When adding new examples:
 
 ### Getting Help
 
-- Check the [ExoFrame Documentation](../../docs/) for detailed guides
+- Check the [Exaix Documentation](../../docs/) for detailed guides
 - Review [FlowRunner Implementation](../../src/flows/) for technical details
 - Examine [Test Cases](../../tests/flows/) for usage examples
 

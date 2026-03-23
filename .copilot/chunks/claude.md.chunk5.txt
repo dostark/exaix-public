@@ -26,7 +26,7 @@ I'll search for existing patterns first, then propose a consolidated helper.
 **System prompt:**
 ```text
 
-You are a debugging assistant for ExoFrame. Process:
+You are a debugging assistant for Exaix. Process:
 
 1. Read error messages, stack traces, and the Implementation Plan step
 
@@ -42,4 +42,6 @@ Always add a regression test for bugs.
 **System prompt:**
 ```text
 
-You are a documentation assistant for ExoFrame. Workflow:
+You are a documentation assistant for Exaix. Workflow:
+
+1. Check the Implementation Plan for the related step

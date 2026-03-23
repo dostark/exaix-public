@@ -1,7 +1,7 @@
 /**
  * @module MemoryBankService
  * @path src/services/memory_bank.ts
- * @description Core service for managing ExoFrame's Memory Banks:
+ * @description Core service for managing Exaix's Memory Banks:
  * - Project memory (overview, patterns, decisions, references)
  * - Execution memory (trace records, lessons learned)
  * - Search and indexing operations
@@ -69,7 +69,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Create a new Memory Bank Service instance
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param db - Database service for IActivity Journal integration
    */
   constructor(private config: Config, private db: IDatabaseService) {

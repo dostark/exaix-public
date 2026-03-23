@@ -3,7 +3,7 @@
   "title": "Request Processing Fails with Test Provider and Plan Validation Error",
   "vecs": [
     {
-      "text": "# Request Processing Fails with Test Provider and Plan Validation Error\n\n## Problem\n\nWhen submitting a request via `exoctl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.\n\n## Reproduction Steps\n\n```bash\n# 1. Deploy fresh workspace\nrm -rf ~/ExoFrame\n./scripts/deploy_workspace.sh ~/ExoFrame\ncd ~/ExoFrame\n\n# 2. Configure and start daemon\ncp exo.config.sample.toml exo.config.toml\nexoctl daemon start\n\n# 3. Create test portal\ncat >> ~/ExoFrame/exo.config.toml << EOF\n[[portals]]\nalias = \"TestApp\"\ntarget_path = \"/tmp/test-portal\"\nEOF",
+      "text": "# Request Processing Fails with Test Provider and Plan Validation Error\n\n## Problem\n\nWhen submitting a request via `exactl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.\n\n## Reproduction Steps\n\n```bash\n# 1. Deploy fresh workspace\nrm -rf ~/Exaix\n./scripts/deploy_workspace.sh ~/Exaix\ncd ~/Exaix\n\n# 2. Configure and start daemon\ncp exa.config.sample.toml exa.config.toml\nexactl daemon start\n\n# 3. Create test portal\ncat >> ~/Exaix/exa.config.toml << EOF\n[[portals]]\nalias = \"TestApp\"\ntarget_path = \"/tmp/test-portal\"\nEOF",
       "vector": [
         0.8313725490196079,
         0.9803921568627451,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "mkdir -p /tmp/test-portal/src\ncd /tmp/test-portal\ngit init\necho \"# Test App\" > README.md\necho \"export const version = '1.0';\" > src/index.ts\ngit add . && git commit -m \"Initial commit\"\n\n# 4. Mount portal\ncd ~/ExoFrame\nexoctl portal add /tmp/test-portal TestApp\n\n# 5. Submit request\nexoctl request \"Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts\" \\\n    --agent senior-coder \\\n    --portal TestApp\n\n# 6. Check results\nexoctl plan list  # Shows: count: 0, message: No plans found\nexoctl journal    # Shows validation failure\n```\n\n## Observed Behavior\n\nJournal shows the following error sequence:",
+      "text": "mkdir -p /tmp/test-portal/src\ncd /tmp/test-portal\ngit init\necho \"# Test App\" > README.md\necho \"export const version = '1.0';\" > src/index.ts\ngit add . && git commit -m \"Initial commit\"\n\n# 4. Mount portal\ncd ~/Exaix\nexactl portal add /tmp/test-portal TestApp\n\n# 5. Submit request\nexactl request \"Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts\" \\\n    --agent senior-coder \\\n    --portal TestApp\n\n# 6. Check results\nexactl plan list  # Shows: count: 0, message: No plans found\nexactl journal    # Shows validation failure\n```\n\n## Observed Behavior\n\nJournal shows the following error sequence:",
       "vector": [
         0.5647058823529412,
         0.984313725490196,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "1. System should use the configured Google provider (as shown in daemon startup logs: `llm.provider.initialized agent=system trace=b5de8b7f target=google-gemini-2.0-flash-exp`)\n2. Plan should be generated successfully\n3. Plan should pass validation\n4. Plan should be written to `Workspace/Plans/`\n5. `exoctl plan list` should show the generated plan\n\n## Environment\n\n- **ExoFrame Version**: Latest (deployed from scripts/deploy_workspace.sh)\n- **Agent**: senior-coder (google:gemini-2.0-flash-exp)\n- **Portal**: TestApp (/tmp/test-portal)\n- **Config**: exo.config.toml with default settings + TestApp portal\n\n## Resolution (resolved)",
+      "text": "1. System should use the configured Google provider (as shown in daemon startup logs: `llm.provider.initialized agent=system trace=b5de8b7f target=google-gemini-2.0-flash-exp`)\n2. Plan should be generated successfully\n3. Plan should pass validation\n4. Plan should be written to `Workspace/Plans/`\n5. `exactl plan list` should show the generated plan\n\n## Environment\n\n- **Exaix Version**: Latest (deployed from scripts/deploy_workspace.sh)\n- **Agent**: senior-coder (google:gemini-2.0-flash-exp)\n- **Portal**: TestApp (/tmp/test-portal)\n- **Config**: exa.config.toml with default settings + TestApp portal\n\n## Resolution (resolved)",
       "vector": [
         0.2196078431372549,
         0.4117647058823529,

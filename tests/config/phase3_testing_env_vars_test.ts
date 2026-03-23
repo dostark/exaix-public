@@ -2,7 +2,7 @@
  * @module TestModeEnvVarsTest
  * @path tests/config/phase3_testing_env_vars_test.ts
  * @description Verifies the logic for 'test mode' detection, ensuring that
- * 'EXO_TEST_MODE' is correctly parsed across varied boolean string representations.
+ * 'EXA_TEST_MODE' is correctly parsed across varied boolean string representations.
  */
 
 import { assertEquals } from "@std/assert";
@@ -10,9 +10,9 @@ import { withEnv } from "../helpers/env.ts";
 import { isCIMode, isTestMode } from "../../src/config/env_schema.ts";
 
 Deno.test({
-  name: "Phase 3: isTestMode() returns false when EXO_TEST_MODE not set",
+  name: "Phase 3: isTestMode() returns false when EXA_TEST_MODE not set",
   fn() {
-    withEnv({ EXO_TEST_MODE: null, EXO_TEST_CLI_MODE: null }, () => {
+    withEnv({ EXA_TEST_MODE: null, EXA_TEST_CLI_MODE: null }, () => {
       assertEquals(isTestMode(), false);
     });
   },
@@ -21,9 +21,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isTestMode() returns true when EXO_TEST_MODE=1",
+  name: "Phase 3: isTestMode() returns true when EXA_TEST_MODE=1",
   fn() {
-    withEnv({ EXO_TEST_MODE: "1" }, () => {
+    withEnv({ EXA_TEST_MODE: "1" }, () => {
       assertEquals(isTestMode(), true);
     });
   },
@@ -32,9 +32,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isTestMode() returns true when EXO_TEST_MODE=true",
+  name: "Phase 3: isTestMode() returns true when EXA_TEST_MODE=true",
   fn() {
-    withEnv({ EXO_TEST_MODE: "true" }, () => {
+    withEnv({ EXA_TEST_MODE: "true" }, () => {
       assertEquals(isTestMode(), true);
     });
   },
@@ -43,9 +43,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isTestMode() returns false when EXO_TEST_MODE=0",
+  name: "Phase 3: isTestMode() returns false when EXA_TEST_MODE=0",
   fn() {
-    withEnv({ EXO_TEST_MODE: "0", EXO_TEST_CLI_MODE: null }, () => {
+    withEnv({ EXA_TEST_MODE: "0", EXA_TEST_CLI_MODE: null }, () => {
       assertEquals(isTestMode(), false);
     });
   },
@@ -54,9 +54,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isTestMode() returns false when EXO_TEST_MODE=false",
+  name: "Phase 3: isTestMode() returns false when EXA_TEST_MODE=false",
   fn() {
-    withEnv({ EXO_TEST_MODE: "false", EXO_TEST_CLI_MODE: null }, () => {
+    withEnv({ EXA_TEST_MODE: "false", EXA_TEST_CLI_MODE: null }, () => {
       assertEquals(isTestMode(), false);
     });
   },
@@ -65,9 +65,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isCIMode() returns false when neither CI nor EXO_CI_MODE set",
+  name: "Phase 3: isCIMode() returns false when neither CI nor EXA_CI_MODE set",
   fn() {
-    withEnv({ CI: null, EXO_CI_MODE: null }, () => {
+    withEnv({ CI: null, EXA_CI_MODE: null }, () => {
       assertEquals(isCIMode(), false);
     });
   },
@@ -98,9 +98,9 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isCIMode() returns true when EXO_CI_MODE=1",
+  name: "Phase 3: isCIMode() returns true when EXA_CI_MODE=1",
   fn() {
-    withEnv({ EXO_CI_MODE: "1" }, () => {
+    withEnv({ EXA_CI_MODE: "1" }, () => {
       assertEquals(isCIMode(), true);
     });
   },
@@ -131,14 +131,14 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Phase 3: isCIMode() prefers EXO_CI_MODE over CI",
+  name: "Phase 3: isCIMode() prefers EXA_CI_MODE over CI",
   fn() {
-    // If both set, EXO_CI_MODE takes precedence
-    withEnv({ CI: "0", EXO_CI_MODE: "1" }, () => {
+    // If both set, EXA_CI_MODE takes precedence
+    withEnv({ CI: "0", EXA_CI_MODE: "1" }, () => {
       assertEquals(isCIMode(), true);
     });
 
-    withEnv({ CI: "1", EXO_CI_MODE: "0" }, () => {
+    withEnv({ CI: "1", EXA_CI_MODE: "0" }, () => {
       assertEquals(isCIMode(), false);
     });
   },

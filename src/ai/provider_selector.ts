@@ -130,7 +130,7 @@ export class ProviderSelector {
 
   private async trySelectEnvProvider(): Promise<string | null> {
     const envOverrides = getValidatedEnvOverrides();
-    const providerName = envOverrides.EXO_LLM_PROVIDER;
+    const providerName = envOverrides.EXA_LLM_PROVIDER;
     if (!providerName) return null;
 
     const metadata = this.registry.getProviderMetadata(providerName);
@@ -143,7 +143,7 @@ export class ProviderSelector {
 
     if (this.shouldBlockPaidProvider(metadata)) {
       console.warn(
-        `⚠️  Environment-specified paid provider '${providerName}' blocked in test/CI environment. Set EXO_TEST_ENABLE_PAID_LLM=1 to enable. Falling back to intelligent selection`,
+        `⚠️  Environment-specified paid provider '${providerName}' blocked in test/CI environment. Set EXA_TEST_ENABLE_PAID_LLM=1 to enable. Falling back to intelligent selection`,
       );
       return null;
     }
@@ -180,7 +180,7 @@ export class ProviderSelector {
   }
 
   private isPaidLLMEnabled(): boolean {
-    return Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") === "1";
+    return Deno.env.get("EXA_TEST_ENABLE_PAID_LLM") === "1";
   }
 
   private async trySelectRoutedProvider(

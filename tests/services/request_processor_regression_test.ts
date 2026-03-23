@@ -19,7 +19,7 @@ import { RequestStatus } from "../../src/shared/status/request_status.ts";
  * This caused RequestProcessor to use it as an override, bypassing dynamic provider selection.
  */
 Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvider is passed", async () => {
-  const tmpDir = await Deno.makeTempDir({ prefix: "exoframe-regression-" });
+  const tmpDir = await Deno.makeTempDir({ prefix: "exaix-regression-" });
 
   // Initialize global logger for ConfigService
   initializeGlobalLogger({
@@ -29,7 +29,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
   });
 
   try {
-    const configService = new ConfigService(join(tmpDir, "exo.config.toml"));
+    const configService = new ConfigService(join(tmpDir, "exa.config.toml"));
     const config = configService.get();
     config.system.root = tmpDir;
 

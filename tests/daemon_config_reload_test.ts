@@ -15,13 +15,13 @@ import { createConfigReloadHandler } from "../src/config/config_reload_handler.t
 import { LogLevel } from "../src/shared/enums.ts";
 
 /**
- * Test for "Investigate why exoctl portal add not showing in daemon logs"
- * Verifies that modifying exo.config.toml triggers a config reload and log event.
+ * Test for "Investigate why exactl portal add not showing in daemon logs"
+ * Verifies that modifying exa.config.toml triggers a config reload and log event.
  */
 Deno.test("Daemon: Config Reloading on File Change", async () => {
   // 1. Setup Temp Environment
   const tempDir = await Deno.makeTempDir({ prefix: "daemon-config-reload-" });
-  const configPath = join(tempDir, "exo.config.toml");
+  const configPath = join(tempDir, "exa.config.toml");
 
   // Write initial config
   const initialConfig = `
@@ -92,7 +92,7 @@ stability_check = false
     // Wait for watcher initialization
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // 4. Simulate exoctl portal add (Modify config file)
+    // 4. Simulate exactl portal add (Modify config file)
     const updatedConfig = initialConfig +
       `\n[[portals]]\nalias = "test-portal"\ntarget_path = "/tmp/test"\ncreated = "2024-01-01"\n`;
     await Deno.writeTextFile(configPath, updatedConfig);
@@ -110,7 +110,7 @@ stability_check = false
     // Assert Log Event captured
     const updateLog = logs.find((l) => l.action === "config.updated");
     assert(updateLog, "Should have logged config.updated event");
-    assertEquals(updateLog.target, "exo.config.toml");
+    assertEquals(updateLog.target, "exa.config.toml");
     // Type-safe access for portals_count
     if (typeof updateLog.payload === "object" && updateLog.payload !== null && "portals_count" in updateLog.payload) {
       assertEquals((updateLog.payload as { portals_count: number }).portals_count, 1);

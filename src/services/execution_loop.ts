@@ -349,7 +349,7 @@ export class ExecutionLoop {
         // Git exists, continue with branch creation
       } catch {
         // For tasks in the system root that are not portal-assigned and have no .git,
-        // skip git initialization to avoid creating a .git folder in ~/ExoFrame.
+        // skip git initialization to avoid creating a .git folder in ~/Exaix.
         return { executionRoot, executionGitService };
       }
     }

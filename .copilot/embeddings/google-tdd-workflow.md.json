@@ -3,7 +3,7 @@
   "title": "Gemini TDD Workflow Prompt",
   "vecs": [
     {
-      "text": "```text\nKey points\n\n- Leverages long-context to find all existing **test patterns** and **helpers**.\n- Drafts **5+ failing test cases** covering happy paths, errors, and systemic edge cases (concurrency, leases).\n- Ensures **assertions** are exhaustive and grounded in repository physical laws.\n\nCanonical prompt (short):\n\"You are a TDD specialist for ExoFrame. Analyze all existing test helpers. Propose 5+ failing test cases for [FEATURE] with detailed assertions. Implement only once tests are approved.\"\n\nExamples",
+      "text": "```text\nKey points\n\n- Leverages long-context to find all existing **test patterns** and **helpers**.\n- Drafts **5+ failing test cases** covering happy paths, errors, and systemic edge cases (concurrency, leases).\n- Ensures **assertions** are exhaustive and grounded in repository physical laws.\n\nCanonical prompt (short):\n\"You are a TDD specialist for Exaix. Analyze all existing test helpers. Propose 5+ failing test cases for [FEATURE] with detailed assertions. Implement only once tests are approved.\"\n\nExamples",
       "vector": [
         0.09803921568627451,
         0.15294117647058825,

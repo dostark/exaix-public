@@ -11,12 +11,12 @@ Conclusion: agree in general with the need; implement **request-scoped target br
 ### 1) New user-facing concept: target/base branch
 
 - Add a request flag (CLI):
-  - `exoctl request --portal <alias> --target-branch <branch> ...`
+  - `exactl request --portal <alias> --target-branch <branch> ...`
 
 - Persist into request frontmatter:
-  - `portal: "portal-exoframe"`
+  - `portal: "portal-exaix"`
   - `target_branch: "release_1.2"` (optional)
 
 - Propagate to plan frontmatter:
-  - `portal: "portal-exoframe"`
+  - `portal: "portal-exaix"`
   - `target_branch: "release_1.2"`

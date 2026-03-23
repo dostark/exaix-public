@@ -1,7 +1,7 @@
-- ExoFrame Version: current development version
+- Exaix Version: current development version
 - OS: Linux
 - Deno Version: as configured in deno.json
-- Relevant Config: exo.config.toml (LLM provider settings)
+- Relevant Config: exa.config.toml (LLM provider settings)
 
 ## Proposed Plan
 

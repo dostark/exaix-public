@@ -3,7 +3,7 @@
   "title": "Extended Code Review - Additional Architecture & Quality Issues (v2)",
   "vecs": [
     {
-      "text": "# Phase 22: Architecture & Quality Improvement\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n\n## Executive Summary\n\nExtended systematic analysis of ExoFrame's `src/` directory identified **16 additional critical issues** beyond the original phase-22 findings. These issues span performance bottlenecks, security vulnerabilities, architectural weaknesses, and reliability concerns that require immediate attention.\n\n### Overall Assessment\n\n**Status**: 🔴 **REQUIRES IMMEDIATE ACTION**\n**Additional Technical Debt**: **+3.5/10** (Total: 11/10)\n**Code Quality Impact**: **-1 grade** (Total: D+)\n**Reliability Risk**: **HIGH**\n\n### Key Metrics (Additional Issues)",
+      "text": "# Phase 22: Architecture & Quality Improvement\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n\n## Executive Summary\n\nExtended systematic analysis of Exaix's `src/` directory identified **16 additional critical issues** beyond the original phase-22 findings. These issues span performance bottlenecks, security vulnerabilities, architectural weaknesses, and reliability concerns that require immediate attention.\n\n### Overall Assessment\n\n**Status**: 🔴 **REQUIRES IMMEDIATE ACTION**\n**Additional Technical Debt**: **+3.5/10** (Total: 11/10)\n**Code Quality Impact**: **-1 grade** (Total: D+)\n**Reliability Risk**: **HIGH**\n\n### Key Metrics (Additional Issues)",
       "vector": [
         0.9176470588235294,
         0.8235294117647058,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "**Priority**: P0 🔴 **CRITICAL**\n**Status**: ✅ **RESOLVED** (Implemented SafeSubprocess utility with timeout protection)\n**File**: `src/services/agent_executor.ts`\n**Lines**: 250-400 (auditGitChanges, revertUnauthorizedChanges methods)\n**Estimated Effort**: 8 hours\n**Impact Score**: 10/10 (Availability, Performance, Reliability)\n\n#### Problem Statement\n\nGit subprocess operations execute without timeout protection, potentially blocking indefinitely. A single corrupted repository can halt the entire ExoFrame instance, requiring manual intervention and creating a critical availability risk.\n\n#### Current Vulnerable Code\n\n**File**: `src/services/agent_executor.ts` (Lines 273-297)",
+      "text": "**Priority**: P0 🔴 **CRITICAL**\n**Status**: ✅ **RESOLVED** (Implemented SafeSubprocess utility with timeout protection)\n**File**: `src/services/agent_executor.ts`\n**Lines**: 250-400 (auditGitChanges, revertUnauthorizedChanges methods)\n**Estimated Effort**: 8 hours\n**Impact Score**: 10/10 (Availability, Performance, Reliability)\n\n#### Problem Statement\n\nGit subprocess operations execute without timeout protection, potentially blocking indefinitely. A single corrupted repository can halt the entire Exaix instance, requiring manual intervention and creating a critical availability risk.\n\n#### Current Vulnerable Code\n\n**File**: `src/services/agent_executor.ts` (Lines 273-297)",
       "vector": [
         0.7490196078431373,
         0.09019607843137255,

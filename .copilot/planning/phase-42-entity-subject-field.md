@@ -24,7 +24,7 @@ The subject is stored in each entity's frontmatter/metadata, displayed in CLI `l
 
 - [x] Add `subject` optional field to `IRequestFrontmatter`.
 - [x] Add `subject` optional field to `IRequestOptions`, `IRequestMetadata`, `IRequestEntry`.
-- [x] Add `--subject` CLI option to `exoctl request create`.
+- [x] Add `--subject` CLI option to `exactl request create`.
 - [x] Require `subject` field in agent plan response schema.
 - [x] Agent-generated subject: validate (non-empty, ≤ 80 chars, single line).
 - [x] Fallback subject: extract from request body when agent omits or returns invalid subject.
@@ -168,7 +168,7 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 **Files to modify:**
 
 - `src/cli/command_builders/request_actions.ts` — Add `subject?: string` to `RequestCreateOptions`.
-- `src/cli/exoctl.ts` — Register `--subject <text>` option on the `request create` command.
+- `src/cli/exactl.ts` — Register `--subject <text>` option on the `request create` command.
 - `src/cli/handlers/request_create_handler.ts` — Accept subject from options; use `extractFallbackSubject()` as initial subject when `--subject` is absent. This initial subject is written to request frontmatter at creation time.
 - `src/services/request_processing/request_writer.ts` (or equivalent) — Write `subject` into the request frontmatter YAML.
 
@@ -176,10 +176,10 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 
 **Success Criteria:**
 
-- `exoctl request create "Fix login bug" --subject "Login Fix"` creates a request with `subject: Login Fix`.
-- `exoctl request create "Fix login bug"` creates a request with fallback `subject: Fix login bug`.
-- `exoctl request create --file req.md --subject "Auth Patch"` uses provided subject.
-- `exoctl request create --file req.md` extracts fallback from file content.
+- `exactl request create "Fix login bug" --subject "Login Fix"` creates a request with `subject: Login Fix`.
+- `exactl request create "Fix login bug"` creates a request with fallback `subject: Fix login bug`.
+- `exactl request create --file req.md --subject "Auth Patch"` uses provided subject.
+- `exactl request create --file req.md` extracts fallback from file content.
 
 **Planned Tests:**
 
@@ -248,14 +248,14 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 **Files to modify:**
 
 - `src/cli/command_builders/request_actions.ts` — Include `subject` in `handleRequestList` and `handleRequestShow` display.
-- `src/cli/exoctl.ts` — Include `subject` in `logReviewListItem` and plan list display.
+- `src/cli/exactl.ts` — Include `subject` in `logReviewListItem` and plan list display.
 
 **Success Criteria:**
 
-- `exoctl request list` shows subject column.
-- `exoctl request show <id>` shows subject field.
-- `exoctl plan list` shows subject.
-- `exoctl review list` shows subject.
+- `exactl request list` shows subject column.
+- `exactl request show <id>` shows subject field.
+- `exactl plan list` shows subject.
+- `exactl review list` shows subject.
 
 **Planned Tests:**
 
@@ -302,10 +302,10 @@ Request (subject) ──→ Plan (subject) ──→ Review (subject)
 
 ### Manual Verification
 
-- Run `exoctl request create "Implement dark mode" --subject "Dark Mode"` and verify `subject: Dark Mode` in frontmatter.
-- Run `exoctl request create "Implement dark mode"` and verify fallback subject, then verify agent upgrades it after processing.
-- Run `exoctl request list` and verify subject column appears.
-- Run `exoctl request show <id>` and verify subject field.
+- Run `exactl request create "Implement dark mode" --subject "Dark Mode"` and verify `subject: Dark Mode` in frontmatter.
+- Run `exactl request create "Implement dark mode"` and verify fallback subject, then verify agent upgrades it after processing.
+- Run `exactl request list` and verify subject column appears.
+- Run `exactl request show <id>` and verify subject field.
 - Process a request through to plan and verify subject propagation.
 - Review a plan and verify subject propagation to review.
 

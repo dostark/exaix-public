@@ -1,9 +1,9 @@
 {
   "path": ".copilot/tests/testing.md",
-  "title": "ExoFrame Test Development Guidelines",
+  "title": "Exaix Test Development Guidelines",
   "vecs": [
     {
-      "text": "# ExoFrame Test Development Guidelines\n\nKey points\n\n- Use `initTestDbService()` and `createCliTestContext()` to centralize db+tempdir setup\n- Use `withEnv()` for temporary env var changes in tests\n- **Mocking**: Use `MockLLMProvider` for deterministic agent testing (avoid real API calls).\n- **Integration**: Use `TestEnvironment.create()` to scaffold full workspace/DB structures.\n- **Leases**: File locking integration tests live in `tests/execution_loop_test.ts`.\n\n- Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`\n\nCanonical prompt (short):\n\"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate.\"\n\nExamples",
+      "text": "# Exaix Test Development Guidelines\n\nKey points\n\n- Use `initTestDbService()` and `createCliTestContext()` to centralize db+tempdir setup\n- Use `withEnv()` for temporary env var changes in tests\n- **Mocking**: Use `MockLLMProvider` for deterministic agent testing (avoid real API calls).\n- **Integration**: Use `TestEnvironment.create()` to scaffold full workspace/DB structures.\n- **Leases**: File locking integration tests live in `tests/execution_loop_test.ts`.\n\n- Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`\n\nCanonical prompt (short):\n\"You are a test-writing assistant for Exaix. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate.\"\n\nExamples",
       "vector": [
         0.1568627450980392,
         0.34901960784313724,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "### Integration TestEnvironment — Recommended Pattern\n\nUse `TestEnvironment.create()` for full integration tests that require workspace layout, DB, and optional git initialization. Prefer small, focused integration tests that exercise end-to-end behavior with deterministic teardown.\n\n### Test Environment Variables (Phase 28)\n\nAll test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:\n\n**Standard Test Variables:**",
+      "text": "### Integration TestEnvironment — Recommended Pattern\n\nUse `TestEnvironment.create()` for full integration tests that require workspace layout, DB, and optional git initialization. Prefer small, focused integration tests that exercise end-to-end behavior with deterministic teardown.\n\n### Test Environment Variables (Phase 28)\n\nAll test-related environment variables use the `EXA_TEST_*` prefix for clarity and separation from production env vars:\n\n**Standard Test Variables:**",
       "vector": [
         0.7490196078431373,
         0.9176470588235294,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- `EXO_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)\n- `EXO_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXOCTL_TEST_MODE`)\n- `EXO_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)\n- `EXO_TEST_ENABLE_OLLAMA` — Enable Ollama integration tests (0 or 1)\n- `EXO_TEST_ENABLE_LLAMA` — Enable Llama provider tests (true or false)\n- `EXO_TEST_LLM_MODEL` — Override model for tests\n- `EXO_TEST_OPENAI_API_KEY` — OpenAI API key for integration tests\n\n**Helper Functions:**\n\nUse the helper functions from `src/config/env_schema.ts` instead of direct env var access:\n\n```typescript\nimport { isCIMode, isTestMode } from \"../config/env_schema.ts\";",
+      "text": "- `EXA_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)\n- `EXA_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXACTL_TEST_MODE`)\n- `EXA_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)\n- `EXA_TEST_ENABLE_OLLAMA` — Enable Ollama integration tests (0 or 1)\n- `EXA_TEST_ENABLE_LLAMA` — Enable Llama provider tests (true or false)\n- `EXA_TEST_LLM_MODEL` — Override model for tests\n- `EXA_TEST_OPENAI_API_KEY` — OpenAI API key for integration tests\n\n**Helper Functions:**\n\nUse the helper functions from `src/config/env_schema.ts` instead of direct env var access:\n\n```typescript\nimport { isCIMode, isTestMode } from \"../config/env_schema.ts\";",
       "vector": [
         0.7215686274509804,
         0.611764705882353,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "// Check if in test environment\nif (isTestMode()) {\n  // Skip timer-based operations in tests\n  console.log(\"Running in test mode, skipping delays\");\n}\n\n// Check if in CI environment\nif (isCIMode() && !Deno.env.get(\"EXO_TEST_ENABLE_PAID_LLM\")) {\n  // Skip paid API tests in CI\n  test.ignore = true;\n}\n```\n\n**Best Practices:**\n\n- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly\n- ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly\n- ✅ Use `EXO_TEST_*` prefix for any new test-related env vars\n- ❌ Never use legacy env vars (`DENO_TEST`, `EXOCTL_TEST_MODE`) in new code\n\n### CI (GitHub Actions) — Common Pitfalls",
+      "text": "// Check if in test environment\nif (isTestMode()) {\n  // Skip timer-based operations in tests\n  console.log(\"Running in test mode, skipping delays\");\n}\n\n// Check if in CI environment\nif (isCIMode() && !Deno.env.get(\"EXA_TEST_ENABLE_PAID_LLM\")) {\n  // Skip paid API tests in CI\n  test.ignore = true;\n}\n```\n\n**Best Practices:**\n\n- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXA_TEST_MODE` directly\n- ✅ Always use `isCIMode()` instead of checking `CI` or `EXA_CI_MODE` directly\n- ✅ Use `EXA_TEST_*` prefix for any new test-related env vars\n- ❌ Never use legacy env vars (`DENO_TEST`, `EXACTL_TEST_MODE`) in new code\n\n### CI (GitHub Actions) — Common Pitfalls",
       "vector": [
         0.8823529411764706,
         0.2549019607843137,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "- Treat `CI` as a truthy flag (`CI=true` on GitHub Actions), not strictly `\"1\"`.\n  - **Prefer** the shared helpers in `src/config/env_schema.ts` (`isCIMode()`, `isTestMode()`).\n- When CI guard is active, paid LLM providers are intentionally disabled unless explicitly opted in.\n  - Expect mock behavior unless `EXO_TEST_ENABLE_PAID_LLM=1` is set.\n  - Tests that assert provider selection should include a CI-guard branch (e.g., accept `mock-provider` or `CI-protected ...`).\n- Avoid requiring compiled binaries in tests.\n  - If you need to run the CLI from a temp workspace, prefer:\n    - `new Deno.Command(Deno.execPath(), { args: [\"run\", \"--allow-all\", \"--config\", <repo>/deno.json, <repo>/src/cli/exoctl.ts, ...] })`\n  - This keeps behavior consistent between local runs and CI without extra build steps.",
+      "text": "- Treat `CI` as a truthy flag (`CI=true` on GitHub Actions), not strictly `\"1\"`.\n  - **Prefer** the shared helpers in `src/config/env_schema.ts` (`isCIMode()`, `isTestMode()`).\n- When CI guard is active, paid LLM providers are intentionally disabled unless explicitly opted in.\n  - Expect mock behavior unless `EXA_TEST_ENABLE_PAID_LLM=1` is set.\n  - Tests that assert provider selection should include a CI-guard branch (e.g., accept `mock-provider` or `CI-protected ...`).\n- Avoid requiring compiled binaries in tests.\n  - If you need to run the CLI from a temp workspace, prefer:\n    - `new Deno.Command(Deno.execPath(), { args: [\"run\", \"--allow-all\", \"--config\", <repo>/deno.json, <repo>/src/cli/exactl.ts, ...] })`\n  - This keeps behavior consistent between local runs and CI without extra build steps.",
       "vector": [
         0.5882352941176471,
         0.09803921568627451,

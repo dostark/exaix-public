@@ -1,5 +1,3 @@
-## Workaround
-
 None currently available - review cannot be rejected if branch is in use by worktree.
 
 ## Priority Justification

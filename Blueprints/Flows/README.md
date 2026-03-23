@@ -1,4 +1,4 @@
-# ExoFrame Flows
+# Exaix Flows
 
 This directory contains Flow definitions and templates for multi-agent orchestration.
 
@@ -41,7 +41,7 @@ export default defineFlow({
 Active flows in this directory can be run immediately:
 
 ```bash
-exoctl flow run --id code-review
+exactl flow run --id code-review
 ```
 
 ### Using Examples
@@ -113,7 +113,7 @@ Since flows are TypeScript files, they should use standard ES module imports to 
 Flows are defined in TypeScript using the `defineFlow` helper.
 
 ```typescript
-import { defineFlow } from "exoframe/flows";
+import { defineFlow } from "exaix/flows";
 
 export default defineFlow({
   id: "my-flow",

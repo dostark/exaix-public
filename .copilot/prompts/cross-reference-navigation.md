@@ -8,7 +8,7 @@ topics: ["cross-reference", "navigation", "prompts", "workflow"]
 ---
 
 **Purpose:**
-This document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.
+This document provides a prompt template and usage examples for agents to navigate Exaix's cross-reference map when performing development tasks.
 
 ## Prompt Template
 
@@ -85,7 +85,7 @@ First, consult `.copilot/cross-reference.md` for the workflow:
 
 1.
 
-Read the errors, understand the patterns from `source/exoframe.md`, then fix following:
+Read the errors, understand the patterns from `source/exaix.md`, then fix following:
 
 - Service Pattern if it's a service
 - Proper error handling

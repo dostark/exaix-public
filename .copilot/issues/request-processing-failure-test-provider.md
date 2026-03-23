@@ -11,22 +11,22 @@ labels: [bug, request-processor, provider-selection, plan-validation]
 
 ## Problem
 
-When submitting a request via `exoctl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.
+When submitting a request via `exactl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.
 
 ## Reproduction Steps
 
 ```bash
 # 1. Deploy fresh workspace
-rm -rf ~/ExoFrame
-./scripts/deploy_workspace.sh ~/ExoFrame
-cd ~/ExoFrame
+rm -rf ~/Exaix
+./scripts/deploy_workspace.sh ~/Exaix
+cd ~/Exaix
 
 # 2. Configure and start daemon
-cp exo.config.sample.toml exo.config.toml
-exoctl daemon start
+cp exa.config.sample.toml exa.config.toml
+exactl daemon start
 
 # 3. Create test portal
-cat >> ~/ExoFrame/exo.config.toml << EOF
+cat >> ~/Exaix/exa.config.toml << EOF
 [[portals]]
 alias = "TestApp"
 target_path = "/tmp/test-portal"
@@ -40,17 +40,17 @@ echo "export const version = '1.0';" > src/index.ts
 git add . && git commit -m "Initial commit"
 
 # 4. Mount portal
-cd ~/ExoFrame
-exoctl portal add /tmp/test-portal TestApp
+cd ~/Exaix
+exactl portal add /tmp/test-portal TestApp
 
 # 5. Submit request
-exoctl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
+exactl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
     --agent senior-coder \
     --portal TestApp
 
 # 6. Check results
-exoctl plan list  # Shows: count: 0, message: No plans found
-exoctl journal    # Shows validation failure
+exactl plan list  # Shows: count: 0, message: No plans found
+exactl journal    # Shows validation failure
 ```text
 
 ## Observed Behavior
@@ -85,10 +85,10 @@ Journal shows the following error sequence:
 
 ## Environment
 
-- **ExoFrame Version**: Latest (deployed from scripts/deploy_workspace.sh)
+- **Exaix Version**: Latest (deployed from scripts/deploy_workspace.sh)
 - **Agent**: senior-coder (google:gemini-2.0-flash-exp)
 - **Portal**: TestApp (/tmp/test-portal)
-- **Config**: exo.config.toml with default settings + TestApp portal
+- **Config**: exa.config.toml with default settings + TestApp portal
 
 ## Resolution (resolved)
 

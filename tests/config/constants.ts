@@ -310,7 +310,7 @@ export const TEST_PROVIDER_ID_ANTHROPIC_ERROR = "anthropic-test";
 // ============================================================================
 
 // Environment variable names
-export const ENV_TEST_ENABLE_PAID_LLM = "EXO_TEST_ENABLE_PAID_LLM";
+export const ENV_TEST_ENABLE_PAID_LLM = "EXA_TEST_ENABLE_PAID_LLM";
 export const ENV_TEST_ENABLE_PAID_LLM_VALUE = "1";
 
 // Test prompts for token metrics validation
@@ -332,7 +332,7 @@ export const ACTION_TYPE_LLM_USAGE = "llm.usage";
 
 // Skip messages for common API errors
 export const SKIP_MSG_OPT_IN_REQUIRED =
-  "EXO_TEST_ENABLE_PAID_LLM is not set to '1' (opt-in required to avoid API costs)";
+  "EXA_TEST_ENABLE_PAID_LLM is not set to '1' (opt-in required to avoid API costs)";
 export const SKIP_MSG_GOOGLE_API_KEY_MISSING = "GOOGLE_API_KEY not set";
 export const SKIP_MSG_OPENAI_API_KEY_MISSING = "OPENAI_API_KEY not set";
 export const SKIP_MSG_ANTHROPIC_API_KEY_MISSING = "ANTHROPIC_API_KEY not set";

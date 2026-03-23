@@ -6,11 +6,11 @@ After approving a correct plan for the `code-analyst` agent, execution completes
 
 1. Run the validation request for `code-analyst` from docs/dev/agent-validation-requests.md (line 70).
 1. Approve the plan:
-   - `exoctl plan approve request-f60f935d_plan`
+   - `exactl plan approve request-f60f935d_plan`
 1. Verify the plan is completed:
-   - `exoctl plan show request-f60f935d_plan`
+   - `exactl plan show request-f60f935d_plan`
 1. Inspect the review artifact:
-   - `exoctl review list`
-   - `exoctl review show artifact-74ff00ab`
+   - `exactl review list`
+   - `exactl review show artifact-74ff00ab`
 
 ## Expected Behavior

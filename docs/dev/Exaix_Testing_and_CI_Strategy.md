@@ -1,10 +1,10 @@
-# ExoFrame Testing and CI Strategy
+# Exaix Testing and CI Strategy
 
 - **Version:** 2.0.0
 - **Release Date:** 2026-01-16
 - **Status:** Planning Document
-- **Reference:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
-- **Architecture:** [ExoFrame Architecture](./ExoFrame_Architecture.md)
+- **Reference:** [Exaix 2.0 Roadmap](./Exaix_2.0_Roadmap.md)
+- **Architecture:** [Exaix Architecture](./Exaix_Architecture.md)
 
 > **Edition Model:** Testing covers all three editions: **Solo** (🟢), **Team** (🔵), and **Enterprise** (🟣). Edition-specific tests are tagged with `[solo]`, `[team]`, `[enterprise]` labels.
 
@@ -12,7 +12,7 @@
 
 ## 1. Overview
 
-This document defines the testing strategy for ExoFrame, covering:
+This document defines the testing strategy for Exaix, covering:
 
 - Test types and their purposes
 - v1.0 test scope and priorities
@@ -21,7 +21,7 @@ This document defines the testing strategy for ExoFrame, covering:
 
 ### Testing Philosophy
 
-ExoFrame follows a **test pyramid** approach:
+Exaix follows a **test pyramid** approach:
 
 ```text
       ┌─────────────┐
@@ -90,7 +90,7 @@ ExoFrame follows a **test pyramid** approach:
 | Clarification engine         | `tests/services/quality_gate/clarification_engine_test.ts`      | P1       | ✅ Complete |
 | Clarification persistence    | `tests/services/quality_gate/clarification_persistence_test.ts` | P1       | ✅ Complete |
 | Quality gate config schema   | `tests/shared/schemas/config_quality_gate_test.ts`              | P1       | ✅ Complete |
-| `exoctl request clarify` CLI | `tests/cli/commands/request_clarify_test.ts`                    | P2       | ✅ Complete |
+| `exactl request clarify` CLI | `tests/cli/commands/request_clarify_test.ts`                    | P2       | ✅ Complete |
 
 **Running Unit Tests:**
 
@@ -151,7 +151,7 @@ temporary directories created during daemon tests.
 - **Worktree strategy:** worktree checkout + `Memory/Execution/{trace-id}/worktree` pointer are removed after approve/reject
 - **Approve merge conflict (worktree):** merge is aborted best-effort and worktree checkout + pointer are removed, while the feature branch is preserved for manual conflict resolution
 
-Debugging tip: when investigating test failures, `exoctl git worktrees list --portal <alias>` can help confirm which worktrees exist, and `exoctl git worktrees prune --portal <alias>` can clean up stale metadata.
+Debugging tip: when investigating test failures, `exactl git worktrees list --portal <alias>` can help confirm which worktrees exist, and `exactl git worktrees prune --portal <alias>` can clean up stale metadata.
 
 **Test Structure:**
 
@@ -303,7 +303,7 @@ The production daemon (`deno task start:fg`) runs with restricted permissions:
 - `--allow-read=.` — Only workspace directory
 - `--allow-write=.` — Only workspace directory
 - `--allow-net=api.anthropic.com,api.openai.com,localhost:11434` — Only LLM APIs
-- `--allow-env=EXO_,HOME,USER` — Only EXO_* vars and identity
+- `--allow-env=EXA_,HOME,USER` — Only EXA_* vars and identity
 
 ---
 
@@ -366,7 +366,7 @@ deno run scripts/compare_benchmarks.ts --baseline=baseline.json --current=curren
 | Category             | Validates                        | Example                              |
 | -------------------- | -------------------------------- | ------------------------------------ |
 | **Section Presence** | Required sections exist          | "Installation" in User Guide         |
-| **CLI Coverage**     | All commands documented          | `exoctl plan approve` has entry      |
+| **CLI Coverage**     | All commands documented          | `exactl plan approve` has entry      |
 | **Link Validity**    | Internal links resolve           | `[Dashboard](./Dashboard.md)` exists |
 | **Code Examples**    | Examples are syntactically valid | TypeScript blocks compile            |
 
@@ -394,7 +394,7 @@ deno test tests/docs/
 
 **QA Scenarios:**
 
-See [Manual Test Scenarios](./ExoFrame_Manual_Test_Scenarios.md) for detailed test scripts with step-by-step commands and expected results.
+See [Manual Test Scenarios](./Exaix_Manual_Test_Scenarios.md) for detailed test scripts with step-by-step commands and expected results.
 
 ---
 
@@ -629,7 +629,7 @@ const slowMock = createSlowMock(3000); // 3 second delay
 
 ```bash
 # Record LLM responses during manual testing
-EXO_RECORD_LLM=true exoctl request "Test task"
+EXA_RECORD_LLM=true exactl request "Test task"
 
 # Responses saved to tests/fixtures/llm_responses/<hash>.json
 ```
@@ -673,7 +673,7 @@ Deno.test("Plan generation uses correct format", async () => {
 **Features:**
 
 - Creates temporary directory for each test
-- Scaffolds complete ExoFrame workspace
+- Scaffolds complete Exaix workspace
 - Provides helper methods for common operations
 - Automatic cleanup on test completion
 
@@ -719,7 +719,7 @@ Deno.test("Example test", async () => {
 
 ### 3.3 CI/CD Pipeline Integration
 
-ExoFrame uses a **"Single Script, Multiple Workflows"** architecture. All CI/CD logic is centralized in a unified controller script, ensuring that local development and cloud validation remain perfectly synchronized.
+Exaix uses a **"Single Script, Multiple Workflows"** architecture. All CI/CD logic is centralized in a unified controller script, ensuring that local development and cloud validation remain perfectly synchronized.
 
 #### The CI Controller: `scripts/ci.ts`
 
@@ -744,7 +744,7 @@ deno run -A scripts/ci.ts build --compile
 
 We employ workflows across **multiple repositories** to support the open-core edition model:
 
-##### Core Repository Workflows (`exoframe-core`)
+##### Core Repository Workflows (`exaix-core`)
 
 | Workflow             | Trigger             | Scope                   | Purpose                                                            |
 | :------------------- | :------------------ | :---------------------- | :----------------------------------------------------------------- |
@@ -752,7 +752,7 @@ We employ workflows across **multiple repositories** to support the open-core ed
 | **Merge Validation** | `push` to `main`    | `all`                   | Full QA: Integration suite, coverage enforcement for Solo edition. |
 | **Release Pipeline** | `release` (created) | `build --edition=solo`  | Distribution: Generates Solo edition binaries (open-source).       |
 
-##### Composition Repository Workflows (`exoframe` - private)
+##### Composition Repository Workflows (`exaix` - private)
 
 | Workflow             | Trigger          | Scope                        | Purpose                                                          |
 | :------------------- | :--------------- | :--------------------------- | :--------------------------------------------------------------- |
@@ -812,7 +812,7 @@ Test code related to the CI pipeline and quality gates is isolated from regular 
 
 ### 3.4 Local Git Hooks
 
-To "shift-left" code quality, ExoFrame provides automated git hooks that run the same gates as the CI pipeline before code is even committed or pushed.
+To "shift-left" code quality, Exaix provides automated git hooks that run the same gates as the CI pipeline before code is even committed or pushed.
 
 **Installation:**
 
@@ -853,7 +853,7 @@ deno task test:all
 
 **Execute on each target platform before major releases.**
 
-See **[Manual Test Scenarios](./ExoFrame_Manual_Test_Scenarios.md)** for detailed step-by-step instructions with exact commands and expected results.
+See **[Manual Test Scenarios](./Exaix_Manual_Test_Scenarios.md)** for detailed step-by-step instructions with exact commands and expected results.
 
 **Scenario Summary (14 total):**
 
@@ -880,7 +880,7 @@ See **[Manual Test Scenarios](./ExoFrame_Manual_Test_Scenarios.md)** for detaile
 
 ### 4.3 Sign-off Template
 
-Use the **QA Sign-off Template** in [Manual Test Scenarios](./ExoFrame_Manual_Test_Scenarios.md#qa-sign-off-template) for release sign-off.
+Use the **QA Sign-off Template** in [Manual Test Scenarios](./Exaix_Manual_Test_Scenarios.md#qa-sign-off-template) for release sign-off.
 
 The template includes:
 
@@ -1156,7 +1156,7 @@ Every identified risk maps to at least one automated test:
 
 ```bash
 # Re-record LLM responses after prompt changes
-EXO_RECORD_LLM=true deno task dry-run
+EXA_RECORD_LLM=true deno task dry-run
 
 # Update benchmark baselines after optimization
 deno bench tests/benchmarks/ --json > tests/benchmarks/baseline.json
@@ -1177,7 +1177,7 @@ git commit -m "chore: update benchmark baselines"
 
 ## 9. Code Coverage Strategy
 
-ExoFrame uses Deno's built-in coverage tool to track test coverage, ensuring reliability and maintainability.
+Exaix uses Deno's built-in coverage tool to track test coverage, ensuring reliability and maintainability.
 
 ### 9.1 Coverage Goals
 

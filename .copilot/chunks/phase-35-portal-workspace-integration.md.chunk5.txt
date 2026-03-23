@@ -1,17 +1,17 @@
 ```bash
 # Request targets portal
-exoctl request --portal portal-exoframe --agent code-analyst "Analyze src/cli/"
+exactl request --portal portal-exaix --agent code-analyst "Analyze src/cli/"
 
-# Expected: Branch created in ~/git/ExoFrame
-# Actual: Branch created in ~/ExoFrame
+# Expected: Branch created in ~/git/Exaix
+# Actual: Branch created in ~/Exaix
 ```
 
 **Changeset shows incorrect behavior:**
 
 ```bash
-exoctl review show request-f05f6840
+exactl review show request-f05f6840
 # Shows:
-#   branch: feat/request-f05f6840-f05f6840 (in ~/ExoFrame)
+#   branch: feat/request-f05f6840-f05f6840 (in ~/Exaix)
 #   files_changed: 320 (all workspace files appear as "new")
 #   commits: 1 (in wrong repository)
 ```

@@ -541,7 +541,7 @@ export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
  */
 export function renderKnowledgeSection(knowledge: IPortalKnowledge | null): string[] {
   if (!knowledge) {
-    return ["No analysis available — run `exoctl portal analyze`"];
+    return ["No analysis available — run `exactl portal analyze`"];
   }
   return formatKnowledge(knowledge);
 }

@@ -3,11 +3,11 @@
 - **Version:** 2.0.0
 - **Release Date:** 2026-01-16
 - **Status:** Active
-- **Reference:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+- **Reference:** [Exaix 2.0 Roadmap](./Exaix_2.0_Roadmap.md)
 
-> **Edition Model:** ExoFrame 2.0 uses a multi-repository architecture. Solo edition uses only `exoframe-core` (public). Team/Enterprise editions require access to private submodules.
+> **Edition Model:** Exaix 2.0 uses a multi-repository architecture. Solo edition uses only `exaix-core` (public). Team/Enterprise editions require access to private submodules.
 
-Provide step-by-step instructions to bootstrap a local development workspace for ExoFrame. Two platforms are supported
+Provide step-by-step instructions to bootstrap a local development workspace for Exaix. Two platforms are supported
 in this plan: **Ubuntu (pure)** and **Windows with WSL2**. The goal is a reproducible, minimal environment that allows
 contributors to run the daemon, tests and benchmarks locally.
 
@@ -99,33 +99,33 @@ rm microsoft.gpg
 
 ```bash
 # Solo Edition (open-source) - public repository only
-git clone https://github.com/dostark/exoframe-core.git ~/ExoFrame
-cd ~/ExoFrame
+git clone https://github.com/dostark/exaix-core.git ~/Exaix
+cd ~/Exaix
 
 # Team Edition - requires GitHub access token for private submodules
-git clone https://github.com/dostark/exoframe.git ~/ExoFrame
-cd ~/ExoFrame
+git clone https://github.com/dostark/exaix.git ~/Exaix
+cd ~/Exaix
 git submodule update --init --recursive
 # Note: Requires GITHUB_TOKEN with repo scope for private submodules
 
 # Enterprise Edition - all submodules including enterprise components
-git clone https://github.com/dostark/exoframe.git ~/ExoFrame
-cd ~/ExoFrame
+git clone https://github.com/dostark/exaix.git ~/Exaix
+cd ~/Exaix
 git submodule update --init --recursive
-# Note: Requires access to exoframe-enterprise private repo
+# Note: Requires access to exaix-enterprise private repo
 
 # Install dependencies (Deno caches on first run)
 deno task cache
 
 # Scaffold runtime directories and configuration
-# This creates Workspace, Memory, .exo, Portals and copies exo.config.toml
+# This creates Workspace, Memory, .exo, Portals and copies exa.config.toml
 ./scripts/scaffold.sh .
 
 # Initialize the database
 deno task setup
 
 # Edit configuration if needed
-nano exo.config.toml
+nano exa.config.toml
 
 # Initialize git branch for work
 git checkout -b feat/setup-workspace
@@ -164,8 +164,8 @@ deno test --allow-all
 deno task start
 
 # In another terminal, test CLI
-exoctl daemon status
-exoctl memory projects
+exactl daemon status
+exactl memory projects
 ```
 
 - ☑ Auto pair markdown syntax
@@ -189,7 +189,7 @@ Prerequisite on Windows host:
 
 Notes specific to WSL2:
 
-- Ensure Git on Windows and Git inside WSL are consistent. Use the WSL-side git for repository work inside `~/ExoFrame`.
+- Ensure Git on Windows and Git inside WSL are consistent. Use the WSL-side git for repository work inside `~/Exaix`.
 
 1. Symlink behavior
 
@@ -210,16 +210,16 @@ Notes specific to WSL2:
 - Create a test portal and verify watcher triggers:
 
 ```bash
-exoctl portal add ~/Dev/MyProject MyProject
-echo "# Test Request" > ~/ExoFrame/Workspace/Requests/test.md
+exactl portal add ~/Dev/MyProject MyProject
+echo "# Test Request" > ~/Exaix/Workspace/Requests/test.md
 
 # Observe daemon logs in real time
-exoctl daemon logs --follow
+exactl daemon logs --follow
 ```
 
 ### 4. File Format Standards (Developer Reference)
 
-ExoFrame uses a **hybrid format strategy**:
+Exaix uses a **hybrid format strategy**:
 
 | File Type                | Format   | Reason                                             |
 | ------------------------ | -------- | -------------------------------------------------- |
@@ -350,7 +350,7 @@ The tests validate manifest generation, file copying, and basic shape of the emb
 
 ### 5. Agent Context & Documentation
 
-ExoFrame includes a dedicated `.copilot/` directory containing machine-friendly documentation, provider adaptation notes (OpenAI, Claude, Google), and canonical prompt templates. This directory is designed to be consumed by both VS Code Copilot (dev-time) and the ExoFrame runtime system.
+Exaix includes a dedicated `.copilot/` directory containing machine-friendly documentation, provider adaptation notes (OpenAI, Claude, Google), and canonical prompt templates. This directory is designed to be consumed by both VS Code Copilot (dev-time) and the Exaix runtime system.
 
 **Usage with VS Code / Copilot:**
 When asking Copilot to perform repository tasks, it is highly recommended to instruct it to consult `.copilot/manifest.json`. The recommended canonical prompt is:
@@ -378,7 +378,7 @@ This ensures downstream tools and agents always have access to the latest docume
 - On Ubuntu, ensure `libsecret` is installed for keyring support: `sudo apt install -y libsecret-1-0 libsecret-1-dev`.
 - On WSL, GUI keyrings are not available by default; prefer environment-based secrets or Windows credential manager with
   secure bridging.
-- Keep API keys out of the repository; use `exoctl secret set <name>` to store them in the OS keyring.
+- Keep API keys out of the repository; use `exactl secret set <name>` to store them in the OS keyring.
 
 ### 6. Next steps (automation)
 
@@ -387,15 +387,15 @@ This ensures downstream tools and agents always have access to the latest docume
 
 #### Clarification — Development repo vs Deployed workspace
 
-This Implementation Plan documents work for the _ExoFrame development repository_ — the source repository containing
-`src/`, tests, CI, and developer tooling. The _deployed workspace_ (where end-users run the ExoFrame daemon and keep
+This Implementation Plan documents work for the _Exaix development repository_ — the source repository containing
+`src/`, tests, CI, and developer tooling. The _deployed workspace_ (where end-users run the Exaix daemon and keep
 their Memory scaffold) is a distinct runtime instance that can be created from the development repository.
 
 Recommended workflow:
 
-- Developers edit code and push to the development repo (`/path/to/exoframe-repo`).
+- Developers edit code and push to the development repo (`/path/to/exaix-repo`).
 - From the development repo you produce a _deployed workspace_ using `./scripts/deploy_workspace.sh /target/path` (see
-  `docs/ExoFrame_Repository_Build.md` for details).
+  `docs/Exaix_Repository_Build.md` for details).
 - The deployed workspace is intended for running the daemon, storing `.exo/journal.db`, and housing user content
   (`Memory`). It should not be used as a primary development checkout (no tests, no CI config required there).
 
@@ -410,16 +410,16 @@ Produce a deployed workspace for an end-user (runtime)
 
 ```bash
 # Option A: full deploy (runs deno tasks automatically)
-./scripts/deploy_workspace.sh /home/alice/ExoFrame
+./scripts/deploy_workspace.sh /home/alice/Exaix
 
 # Option B: deploy but skip running deno tasks (safe for CI/offline)
-./scripts/deploy_workspace.sh --no-run /home/alice/ExoFrame
+./scripts/deploy_workspace.sh --no-run /home/alice/Exaix
 
 # Option C: only scaffold the target layout and copy templates
-./scripts/scaffold.sh /home/alice/ExoFrame
+./scripts/scaffold.sh /home/alice/Exaix
 
 # After scaffold (manual initialization)
-cd /home/alice/ExoFrame
+cd /home/alice/Exaix
 deno task cache
 deno task setup
 deno task start

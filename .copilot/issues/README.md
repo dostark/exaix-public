@@ -6,7 +6,7 @@ topics: ["issues", "bug-tracking", "documentation"]
 
 ## Issues Folder Guidelines
 
-This folder contains structured issue reports for ExoFrame bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.
+This folder contains structured issue reports for Exaix bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.
 
 ## When to Create an Issue Here
 
@@ -64,10 +64,10 @@ What should happen instead?
 
 ## Environment
 
-- ExoFrame Version: x.x.x
+- Exaix Version: x.x.x
 - OS: Linux/macOS/Windows
 - Deno Version: x.x.x
-- Relevant Config: exo.config.toml settings
+- Relevant Config: exa.config.toml settings
 
 ## Investigation Needed
 
@@ -166,7 +166,7 @@ Common labels to use:
 ❌ `todo.md`
 
 ### Good Description
-✅ "When submitting a request via `exoctl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail."
+✅ "When submitting a request via `exactl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail."
 
 ### Bad Description
 ❌ "Requests don't work"

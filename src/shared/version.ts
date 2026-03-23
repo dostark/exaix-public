@@ -1,7 +1,7 @@
 /**
- * @module ExoFrameVersion
+ * @module ExaixVersion
  * @path src/shared/version.ts
- * @description Canonical SemVer constants for ExoFrame binary and workspace schema.
+ * @description Canonical SemVer constants for Exaix binary and workspace schema.
  * Any MINOR or MAJOR bump to WORKSPACE_SCHEMA_VERSION requires workspace migration
  * before the new binary can run against an existing deployed workspace.
  * @architectural-layer Shared
@@ -9,7 +9,7 @@
  * @related-files [scripts/check_version.ts, src/shared/schemas/config.ts]
  */
 
-/** SemVer of the exoctl binary and ExoFrame daemon. */
+/** SemVer of the exactl binary and Exaix daemon. */
 export const BINARY_VERSION = "1.0.2";
 
 /**

@@ -12,7 +12,7 @@ import { isCi } from "../helpers/env.ts";
 import { DEFAULT_OPENAI_BASE_URL } from "../../src/shared/constants.ts";
 
 function isCiGuardActive(): boolean {
-  return isCi() && Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") !== "1";
+  return isCi() && Deno.env.get("EXA_TEST_ENABLE_PAID_LLM") !== "1";
 }
 
 Deno.test("OpenAIShim retries on 429 and returns content", async () => {
@@ -54,13 +54,13 @@ Deno.test("OpenAIShim retries on 429 and returns content", async () => {
 
 // --------------------------------------------------------------------------
 // Manual sanity test: check actual provider availability (opt-in)
-// This test is ignored unless EXO_TEST_ENABLE_PAID_LLM=1 and EXO_TEST_OPENAI_API_KEY is set.
+// This test is ignored unless EXA_TEST_ENABLE_PAID_LLM=1 and EXA_TEST_OPENAI_API_KEY is set.
 // --------------------------------------------------------------------------
-const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
+const _enabled = Deno.env.get("EXA_TEST_ENABLE_PAID_LLM");
 Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: _enabled !== "1" }, async () => {
-  const apiKey = Deno.env.get("EXO_TEST_OPENAI_API_KEY");
+  const apiKey = Deno.env.get("EXA_TEST_OPENAI_API_KEY");
   if (!apiKey) {
-    console.warn("Skipping manual LLM availability test: EXO_TEST_OPENAI_API_KEY not set");
+    console.warn("Skipping manual LLM availability test: EXA_TEST_OPENAI_API_KEY not set");
     return;
   }
 
@@ -81,12 +81,12 @@ Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: 
     }
 
     if (msg.includes("401") || msg.toLowerCase().includes("unauthorized")) {
-      console.warn("LLM sanity check: skipped due to unauthorized (401). Check EXO_TEST_OPENAI_API_KEY.");
+      console.warn("LLM sanity check: skipped due to unauthorized (401). Check EXA_TEST_OPENAI_API_KEY.");
       return;
     }
 
     if (msg.includes("404") || msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("model")) {
-      console.warn("LLM sanity check: skipped due to model not found (404). Check EXO_TEST_LLM_MODEL and API access.");
+      console.warn("LLM sanity check: skipped due to model not found (404). Check EXA_TEST_LLM_MODEL and API access.");
       return;
     }
 

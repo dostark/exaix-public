@@ -30,7 +30,7 @@ async function runDeploy(target: string) {
 }
 
 Deno.test("deploy_workspace.sh copies Memory, Blueprints, and not docs subfolders", async () => {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-deploy-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-deploy-test-" });
   try {
     const result = await runDeploy(tmp);
     if (result.code !== 0) {

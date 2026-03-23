@@ -1,8 +1,8 @@
 ## Success Criteria
 
 - Plans from read-only agents, write agents, and flows validate successfully when `steps[].dependencies` are strings.
-- `exoctl plan show` displays token usage statistics (prompt, completion, total, provider, model) when a plan exists.
-- `exoctl request show` displays the same token stats for requests with plans.
+- `exactl plan show` displays token usage statistics (prompt, completion, total, provider, model) when a plan exists.
+- `exactl request show` displays the same token stats for requests with plans.
 - No regression in plan validation for existing numeric dependency plans (if still encountered).
 
 ## Plan Regression Test

@@ -16,7 +16,7 @@
 **The Solution (Two-Stage Protection):**
 
 **Stage 1: Event Debouncing** Wait for a configurable delay (default: 200ms, set via `watcher.debounce_ms` in
-`exo.config.toml`) after the _last_ file system event before attempting to read. This prevents processing the same file
+`exa.config.toml`) after the _last_ file system event before attempting to read. This prevents processing the same file
 multiple times due to rapid-fire events.
 
 > [!NOTE]
@@ -118,7 +118,7 @@ resolve and validate paths.
 // Example Usage
 const resolver = new PathResolver(config);
 const safePath = resolver.resolve("@Blueprints/basic-agent.md");
-// -> "/home/user/ExoFrame/Blueprints/basic-agent.md"
+// -> "/home/user/Exaix/Blueprints/basic-agent.md"
 
 const unsafePath = resolver.resolve("@Blueprints/../../secret.txt");
 // -> Throws SecurityError

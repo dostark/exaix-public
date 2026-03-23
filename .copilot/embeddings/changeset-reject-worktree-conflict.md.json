@@ -3,7 +3,7 @@
   "title": "Cannot reject changeset when branch is used by worktree",
   "vecs": [
     {
-      "text": "## Problem\n\nWhen attempting to reject a changeset using `exoctl changeset reject <id> --reason \"reason\"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:\n\n```text\nFailed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'\n```\n\nThis prevents users from rejecting changesets that are associated with active portals.\n\n## Reproduction Steps\n\n```bash\n# Create and approve a plan (creates changeset)\nexoctl request \"Add feature\" --agent senior-coder --portal TestPortal\nexoctl plan approve <plan-id>",
+      "text": "## Problem\n\nWhen attempting to reject a changeset using `exactl changeset reject <id> --reason \"reason\"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:\n\n```text\nFailed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'\n```\n\nThis prevents users from rejecting changesets that are associated with active portals.\n\n## Reproduction Steps\n\n```bash\n# Create and approve a plan (creates changeset)\nexactl request \"Add feature\" --agent senior-coder --portal TestPortal\nexactl plan approve <plan-id>",
       "vector": [
         0.9686274509803922,
         0.7647058823529411,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "# Try to reject the changeset\nexoctl changeset reject <request-id> --reason \"Implementation issues\"\n# Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'\n```\n\n## Observed Behavior\n\n- `exoctl changeset reject` fails when the branch is checked out in a worktree\n- Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`\n- No alternative way to reject the changeset\n\n## Expected Behavior\n\n- `exoctl changeset reject` should succeed even when the branch is used by a worktree\n- Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions\n- Changesets should be rejectable regardless of worktree status\n\n## Environment",
+      "text": "# Try to reject the changeset\nexactl changeset reject <request-id> --reason \"Implementation issues\"\n# Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'\n```\n\n## Observed Behavior\n\n- `exactl changeset reject` fails when the branch is checked out in a worktree\n- Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`\n- No alternative way to reject the changeset\n\n## Expected Behavior\n\n- `exactl changeset reject` should succeed even when the branch is used by a worktree\n- Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions\n- Changesets should be rejectable regardless of worktree status\n\n## Environment",
       "vector": [
         0.10588235294117647,
         0.596078431372549,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- ExoFrame Version: 1.0.0\n- OS: Linux\n- Deno Version: (current)\n- Git Version: (current)\n\n## Investigation Needed\n\n1. **Worktree Detection**: Check if branch is in use by worktree before attempting deletion\n   - Use `git worktree list` to find worktrees using the branch\n   - Determine if worktree can be safely removed\n\n2. **Worktree Removal**: Implement safe worktree removal\n   - For portal worktrees: check if portal is still needed\n   - For temporary worktrees: safe to remove\n   - Consider `git worktree remove --force` vs `git worktree prune`\n\n3. **Error Handling**: Provide better error messages\n   - Detect worktree conflict and explain the issue\n   - Suggest manual resolution steps if automatic removal isn't safe\n\n## Related Files",
+      "text": "- Exaix Version: 1.0.0\n- OS: Linux\n- Deno Version: (current)\n- Git Version: (current)\n\n## Investigation Needed\n\n1. **Worktree Detection**: Check if branch is in use by worktree before attempting deletion\n   - Use `git worktree list` to find worktrees using the branch\n   - Determine if worktree can be safely removed\n\n2. **Worktree Removal**: Implement safe worktree removal\n   - For portal worktrees: check if portal is still needed\n   - For temporary worktrees: safe to remove\n   - Consider `git worktree remove --force` vs `git worktree prune`\n\n3. **Error Handling**: Provide better error messages\n   - Detect worktree conflict and explain the issue\n   - Suggest manual resolution steps if automatic removal isn't safe\n\n## Related Files",
       "vector": [
         0.984313725490196,
         0.7019607843137254,

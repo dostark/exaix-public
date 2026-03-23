@@ -10,7 +10,7 @@
 
 ## Step 30.3: Add CLI Option ✅ COMPLETED
 
-**Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
+**Action:** Extend the `exactl request` command definition in `src/cli/exactl.ts`:
 
 1. Add `--flow <flow:string>` option
 
@@ -18,7 +18,7 @@
 
 **Success Criteria:**
 
-- [x] `exoctl request --help` shows `--flow` option
+- [x] `exactl request --help` shows `--flow` option
 - [x] Option accepts flow ID string
 - [x] Flow parameter passed to request creation
 - [x] CLI integration test verifies `--flow` option works correctly

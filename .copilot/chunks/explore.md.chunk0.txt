@@ -1,4 +1,4 @@
-**Purpose:** Systematically explore the ExoFrame codebase to answer questions or map architecture.
+**Purpose:** Systematically explore the Exaix codebase to answer questions or map architecture.
 
 ---
 

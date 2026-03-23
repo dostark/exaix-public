@@ -7,7 +7,7 @@ Close the gap between "what was asked" and "what quality gates evaluate" by prop
 ## Executive Summary
 
 **Problem:**
-ExoFrame's quality evaluation system (`GateEvaluator`, `JudgeEvaluator`, `ReflexiveAgent`, `ConfidenceScorer`) operates with **generic criteria only**. The built-in `CRITERIA` library in `evaluation_criteria.ts` covers universal dimensions (code correctness, security, style, completeness) but has no mechanism to evaluate whether a response satisfies the **specific goals and requirements** of the original request.
+Exaix's quality evaluation system (`GateEvaluator`, `JudgeEvaluator`, `ReflexiveAgent`, `ConfidenceScorer`) operates with **generic criteria only**. The built-in `CRITERIA` library in `evaluation_criteria.ts` covers universal dimensions (code correctness, security, style, completeness) but has no mechanism to evaluate whether a response satisfies the **specific goals and requirements** of the original request.
 
 The `CODE_COMPLETENESS` criterion says *"All requirements from the prompt are addressed"* — but relies entirely on the judge LLM to infer what those requirements were from the raw prompt text. There is no structured data telling the judge: "these are the specific requirements; check each one."
 
@@ -815,14 +815,14 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Files to modify:**
 
-- `docs/dev/ExoFrame*Technical*Spec.md`
-- `.copilot/source/exoframe.md`
+- `docs/dev/Exaix*Technical*Spec.md`
+- `.copilot/source/exaix.md`
 - `.copilot/cross-reference.md`
 - `.copilot/manifest.json`
 
 **Updates:**
 
-1. **`docs/dev/ExoFrame*Technical*Spec.md`:**
+1. **`docs/dev/Exaix*Technical*Spec.md`:**
    - Add `CriteriaGenerator` service specification
    - Document dynamic criteria generation from analysis and specification
    - Document `includeRequestCriteria` gate config
@@ -834,7 +834,7 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
    - Update evaluation pipeline description
 
 1.
-   - Add row: `acceptance criteria / goal-aligned evaluation` → `source/exoframe.md` + `planning/phase-48-acceptance-criteria-propagation.md`
+   - Add row: `acceptance criteria / goal-aligned evaluation` → `source/exaix.md` + `planning/phase-48-acceptance-criteria-propagation.md`
    - Add topic index entries: `acceptance-criteria`, `goal-alignment`, `dynamic-criteria`
 
 1.
@@ -849,7 +849,7 @@ The `IRequestAnalysis` must be persisted in plan metadata or passed through the 
 
 **Planned tests:** `deno task check:docs` passes.
 
-**✅ IMPLEMENTED** in `docs/dev/ExoFrame_Technical_Spec.md` (`### 7.5 Acceptance Criteria Propagation`), `.copilot/source/exoframe.md` (Phase 48 bullet), `.copilot/cross-reference.md` (new row + topic entries).
+**✅ IMPLEMENTED** in `docs/dev/Exaix_Technical_Spec.md` (`### 7.5 Acceptance Criteria Propagation`), `.copilot/source/exaix.md` (Phase 48 bullet), `.copilot/cross-reference.md` (new row + topic entries).
 
 ---
 

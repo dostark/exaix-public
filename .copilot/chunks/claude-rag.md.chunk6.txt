@@ -19,10 +19,10 @@ Use pre-generated embeddings from external sources:
 ```json
 {
   "path": ".copilot/tests/testing.md",
-  "title": "ExoFrame Test Development Guidelines",
+  "title": "Exaix Test Development Guidelines",
   "vecs": [
     {
-      "text": "# ExoFrame Test Development Guidelines\n\nKey points...",
+      "text": "# Exaix Test Development Guidelines\n\nKey points...",
       "vector": [0.123, -0.456, 0.789, ...]
     }
   ]

@@ -3,12 +3,12 @@
 > [!NOTE]
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
-> See `docs/ExoFrame_User_Guide.md` for current usage.
+> See `docs/Exaix_User_Guide.md` for current usage.
 > Strategy
 
 ## Executive Summary
 
-This phase evaluates ExoFrame's current architecture for AI provider
+This phase evaluates Exaix's current architecture for AI provider
 management and multi-model orchestration to determine ease of switching
 between free and paid LLM providers. The analysis builds upon Phase 24's
 security improvements and examines the provider abstraction layer,
@@ -60,7 +60,7 @@ on task requirements.
 ### **Current Capabilities:**
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [system]
 version = "1.0.0"
 log_level = "info"
@@ -269,7 +269,7 @@ const provider = await ProviderFactory.createWithFallback(config, {
 
 - [x] `ProviderFactory.createWithFallback()` method successfully creates providers with automatic fallback
 - [x] System automatically switches to secondary providers when primary fails (API outage, quota exceeded, rate limit)
-- [x] Fallback chains configurable via `exo.config.toml` without code changes
+- [x] Fallback chains configurable via `exa.config.toml` without code changes
 - [x] Health checks prevent returning unhealthy providers from fallback chain
 - [x] Fallback events logged with clear indication of which provider failed and which succeeded
 - [x] No interruption to agent execution during provider failures (seamless failover)
@@ -583,7 +583,7 @@ const provider = await ProviderFactory.createWithFallback(config, {
 **Proposal:**
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 
 [system]
 version = "1.0.0"
@@ -661,7 +661,7 @@ rate_limit_rpm = 60
 
 **Projected Success Criteria:**
 
-- [x] `[provider_strategy]` section successfully parsed from `exo.config.toml`
+- [x] `[provider_strategy]` section successfully parsed from `exa.config.toml`
 - [x] `prefer_free`, `allow_local`, `max_daily_cost_usd` settings control
       provider selection behavior
 - [x] `fallback_chains` configuration defines automatic provider failover
@@ -726,7 +726,7 @@ rate_limit_rpm = 60
    - Add `fallback_chains`, `budgets`, `task_routing` ✅ **IMPLEMENTED**
    - Update `src/config/schema.ts` with new types ✅ **IMPLEMENTED**
    - Files: `src/config/schema.ts`, `src/config/ai_config.ts`,
-     `exo.config.toml` ✅ **IMPLEMENTED**
+     `exa.config.toml` ✅ **IMPLEMENTED**
 
 1.
    - Replace static provider creation with ProviderSelector ✅ **IMPLEMENTED**
@@ -778,7 +778,7 @@ rate_limit_rpm = 60
    - Files: `src/services/health_check_service.ts`, `src/services/cost_tracker.ts`, `src/ai/provider_selector.ts`
 
 1.
-   - Update `docs/dev/ExoFrame_Technical_Spec.md`
+   - Update `docs/dev/Exaix_Technical_Spec.md`
    - Create `docs/Provider_Strategy_Guide.md`
    - Add configuration examples for common scenarios
    - Update README with multi-provider setup
@@ -1259,7 +1259,7 @@ alerts:
 ### Example 1: Development Environment (Local + Free)
 
 ```toml
-# exo.config.dev.toml
+# exa.config.dev.toml
 [system]
 version = "1.0.0"
 log_level = "debug"
@@ -1292,7 +1292,7 @@ timeout_ms = 60000
 ### Example 2: Production Environment (Balanced Cost)
 
 ```toml
-# exo.config.prod.toml
+# exa.config.prod.toml
 [system]
 version = "1.0.0"
 log_level = "info"
@@ -1351,7 +1351,7 @@ rate_limit_rpm = 60
 ### Example 3: Enterprise Environment (Premium Only)
 
 ```toml
-# exo.config.enterprise.toml
+# exa.config.enterprise.toml
 [system]
 version = "1.0.0"
 log_level = "info"
@@ -1665,9 +1665,9 @@ The proposed implementation is **low-risk and high-confidence** for several reas
 1.
 1.
 
-### Alignment with ExoFrame Philosophy
+### Alignment with Exaix Philosophy
 
-This phase aligns perfectly with ExoFrame's core principles:
+This phase aligns perfectly with Exaix's core principles:
 
 - **Local-First**: Prioritizes Ollama and local models when possible
 - **Type-Safe**: TypeScript implementation with strong typing throughout
@@ -1701,7 +1701,7 @@ This phase aligns perfectly with ExoFrame's core principles:
 
 Phase 26 will be considered **successful** when:
 
-1. [x] User can configure provider fallback chains in `exo.config.toml`
+1. [x] User can configure provider fallback chains in `exa.config.toml`
 
 1.
 1.
@@ -1733,7 +1733,7 @@ Phase 26 will be considered **successful** when:
 - ✅ **Database migration applied** - Cost tracking table active
 - ✅ **Monitoring operational** - Health checks and cost tracking live
 - ✅ **Configuration deployed** - Provider strategies configurable via
-  exo.config.toml
+  exa.config.toml
 
 ---
 
@@ -1744,7 +1744,7 @@ Phase 26 will be considered **successful** when:
 - **Version**: 1.2
 - **Status**: COMPLETE - Implementation Delivered
 - **Classification**: Internal Planning Document
-- **Distribution**: ExoFrame Core Team, Project Stakeholders
+- **Distribution**: Exaix Core Team, Project Stakeholders
 
 #### **Author Information:**
 
@@ -1769,8 +1769,8 @@ Phase 26 will be considered **successful** when:
   - [Phase 24: Security & Architecture Audit Report](./phase-24-addressing-
     security-issues.md) - Security hardening
 - **Technical Docs**:
-  - [ExoFrame Technical Specification](../docs/dev/ExoFrame_Technical_Spec.md)
-  - [ExoFrame Architecture Diagrams](../docs/dev/ExoFrame_Architecture.md)
+  - [Exaix Technical Specification](../docs/dev/Exaix_Technical_Spec.md)
+  - [Exaix Architecture Diagrams](../docs/dev/Exaix_Architecture.md)
   - [Building with AI Agents Guide](../docs/dev/Building_with_AI_Agents.md)
 - **Future Work**: Phase 27+ considerations documented in "Future Enhancements"
   section
@@ -1860,14 +1860,14 @@ metadata (capabilities, cost tier, pricing, strengths, limitations)
 - `src/services/health_check_service.ts` - Provider health monitoring
 - `src/config/ai_config.ts` - AI configuration schema and defaults
 - `src/config/schema.ts` - TypeScript types for configuration
-- `exo.config.toml` - System configuration file with named models
+- `exa.config.toml` - System configuration file with named models
 
 #### **Planning Documents:**
 
 - `.copilot/planning/phase-22-architecture-and-quality-improvement.md` - Provider registry refactoring
 - `.copilot/planning/phase-24-addressing-security-issues.md` - Security audit and remediation
-- `docs/dev/ExoFrame_Technical_Spec.md` - System architecture and terminology
-- `docs/dev/ExoFrame_Architecture.md` - Architectural diagrams and patterns
+- `docs/dev/Exaix_Technical_Spec.md` - System architecture and terminology
+- `docs/dev/Exaix_Architecture.md` - Architectural diagrams and patterns
 - `docs/dev/Building_with_AI_Agents.md` - Guide for agent development
 
 ### External Resources

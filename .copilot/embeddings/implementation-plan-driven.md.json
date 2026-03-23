@@ -3,7 +3,7 @@
   "title": "Implementation Plan Driven Development Prompt",
   "vecs": [
     {
-      "text": "## Prompt Template\n\n```text\nI want to work on [feature/fix].\n\nImplementation Plan workflow:\n\n1. READ PLAN:\n   - Open docs/ExoFrame_Implementation_Plan.md\n   - Find relevant Phase and Step\n   - If no step exists, create one following existing format\n\n2. UNDERSTAND REQUIREMENTS:\n   - Read step's \"Action\" section\n   - Review \"Success Criteria\"\n   - Check any referenced docs or examples\n\n3. INJECT CONTEXT:\n   deno run --allow-read scripts/inject_agent_context.ts claude \"[step topic] [component]\" 6\n\n4. IMPLEMENT:\n   - Follow TDD if code changes\n   - Update docs if needed\n   - Follow patterns from agents/\n\n5. VERIFY:\n   - Check all success criteria met [x]\n   - Run tests\n   - Update step status",
+      "text": "## Prompt Template\n\n```text\nI want to work on [feature/fix].\n\nImplementation Plan workflow:\n\n1. READ PLAN:\n   - Open docs/Exaix_Implementation_Plan.md\n   - Find relevant Phase and Step\n   - If no step exists, create one following existing format\n\n2. UNDERSTAND REQUIREMENTS:\n   - Read step's \"Action\" section\n   - Review \"Success Criteria\"\n   - Check any referenced docs or examples\n\n3. INJECT CONTEXT:\n   deno run --allow-read scripts/inject_agent_context.ts claude \"[step topic] [component]\" 6\n\n4. IMPLEMENT:\n   - Follow TDD if code changes\n   - Update docs if needed\n   - Follow patterns from agents/\n\n5. VERIFY:\n   - Check all success criteria met [x]\n   - Run tests\n   - Update step status",
       "vector": [
         0.4117647058823529,
         0.17254901960784313,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "6. MARK COMPLETE:\n   - Update Implementation Plan step checkboxes\n   - Note any deviations or learnings\n\nPhase: [number]\nStep: [number]\nFeature: [description]\n```\n\n## Example Usage (Existing Step)\n\n**User:**\n\n```text\nI want to work on Flow parameter validation (Phase 8, Step 8.3).\n\nImplementation Plan workflow:\n\n1. READ PLAN:\n   - Open docs/ExoFrame_Implementation_Plan.md\n   - Find Phase 8, Step 8.3\n   - Read the full step definition\n\n2. UNDERSTAND REQUIREMENTS:\n   Action: Add Zod schema for Flow parameter validation\n   Success Criteria:\n   - [ ] Schema validates required/optional parameters\n   - [ ] Schema validates parameter types\n   - [ ] Tests cover invalid parameter cases\n   - [ ] Error messages are user-friendly",
+      "text": "6. MARK COMPLETE:\n   - Update Implementation Plan step checkboxes\n   - Note any deviations or learnings\n\nPhase: [number]\nStep: [number]\nFeature: [description]\n```\n\n## Example Usage (Existing Step)\n\n**User:**\n\n```text\nI want to work on Flow parameter validation (Phase 8, Step 8.3).\n\nImplementation Plan workflow:\n\n1. READ PLAN:\n   - Open docs/Exaix_Implementation_Plan.md\n   - Find Phase 8, Step 8.3\n   - Read the full step definition\n\n2. UNDERSTAND REQUIREMENTS:\n   Action: Add Zod schema for Flow parameter validation\n   Success Criteria:\n   - [ ] Schema validates required/optional parameters\n   - [ ] Schema validates parameter types\n   - [ ] Tests cover invalid parameter cases\n   - [ ] Error messages are user-friendly",
       "vector": [
         0.5333333333333333,
         0.596078431372549,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "1. READ PLAN:\n   - Open docs/ExoFrame_Implementation_Plan.md\n   - Find appropriate Phase (Phase 7: Activity Logging)\n   - No existing step for export feature\n\n2. CREATE NEW STEP:\n   Add Step 7.5 between 7.4 and 7.6:\n\n#### Step 7.5: Activity Log Export\n\n**Action:** Add JSON export functionality for activity logs\n\n**Files:**\n   - `src/services/EventLogger.ts` — Add export() method\n   - `src/cli/commands/export.ts` — New CLI command\n   - `tests/event_logger_test.ts` — Export functionality tests\n\n**Success Criteria:**\n   - [ ] export() method returns JSON array of events\n   - [ ] CLI command `exo export-activity --format json` works\n   - [ ] Tests verify export format matches schema\n   - [ ] Large logs handled efficiently (streaming)",
+      "text": "1. READ PLAN:\n   - Open docs/Exaix_Implementation_Plan.md\n   - Find appropriate Phase (Phase 7: Activity Logging)\n   - No existing step for export feature\n\n2. CREATE NEW STEP:\n   Add Step 7.5 between 7.4 and 7.6:\n\n#### Step 7.5: Activity Log Export\n\n**Action:** Add JSON export functionality for activity logs\n\n**Files:**\n   - `src/services/EventLogger.ts` — Add export() method\n   - `src/cli/commands/export.ts` — New CLI command\n   - `tests/event_logger_test.ts` — Export functionality tests\n\n**Success Criteria:**\n   - [ ] export() method returns JSON array of events\n   - [ ] CLI command `exo export-activity --format json` works\n   - [ ] Tests verify export format matches schema\n   - [ ] Large logs handled efficiently (streaming)",
       "vector": [
         0.5372549019607843,
         0.8862745098039215,

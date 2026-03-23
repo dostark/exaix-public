@@ -168,7 +168,7 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   /**
    * Create a new Memory Embedding Service instance
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    */
   constructor(private config: Config) {
     this.embeddingsDir = join(config.system.root, config.paths.memory, "Index", "embeddings");

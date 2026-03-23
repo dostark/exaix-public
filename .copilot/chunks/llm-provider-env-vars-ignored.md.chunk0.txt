@@ -1,17 +1,17 @@
 ## Problem
 
-The ExoFrame daemon ignores `EXO_LLM_PROVIDER` and `EXO_LLM_MODEL` environment variables when selecting which AI provider to use for request processing. Despite these variables being correctly set in the daemon's environment, the provider selection logic always falls back to the mock provider due to preferring "free" providers.
+The Exaix daemon ignores `EXA_LLM_PROVIDER` and `EXA_LLM_MODEL` environment variables when selecting which AI provider to use for request processing. Despite these variables being correctly set in the daemon's environment, the provider selection logic always falls back to the mock provider due to preferring "free" providers.
 
 ## Reproduction Steps
 
 ```bash
 # 1. Set environment variables for real LLM provider
-export EXO_LLM_PROVIDER=google
-export EXO_LLM_MODEL=gemini-2.0-flash-exp
+export EXA_LLM_PROVIDER=google
+export EXA_LLM_MODEL=gemini-2.0-flash-exp
 
 # 2. Start daemon with these variables
-exoctl daemon start
+exactl daemon start
 
 # 3. Verify variables are set in daemon process
-cat /proc/$(pgrep -f "exoctl daemon")/environ | tr '\0' '\n' | grep EXO_LLM
-# Shows: EXO_LLM_PROVIDER=google, EXO_LLM_MODEL=gemini-2.0-flash-exp
+cat /proc/$(pgrep -f "exactl daemon")/environ | tr '\0' '\n' | grep EXA_LLM
+# Shows: EXA_LLM_PROVIDER=google, EXA_LLM_MODEL=gemini-2.0-flash-exp

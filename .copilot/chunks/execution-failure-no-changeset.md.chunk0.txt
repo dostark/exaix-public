@@ -2,22 +2,22 @@
 
 ## Problem
 
-After approving an execution plan, the journal indicates that execution was started and completed successfully, including git operations (`git.init`, `git.branch_created`, `git.committed`). However, the actual files proposed in the plan are not created in the target portal, and `exoctl changeset list` reports that no changesets found.
+After approving an execution plan, the journal indicates that execution was started and completed successfully, including git operations (`git.init`, `git.branch_created`, `git.committed`). However, the actual files proposed in the plan are not created in the target portal, and `exactl changeset list` reports that no changesets found.
 
 ## Reproduction Steps
 
 ```bash
 # 1. Deploy fresh workspace
-rm -rf ~/ExoFrame
-./scripts/deploy_workspace.sh ~/ExoFrame
-cd ~/ExoFrame
+rm -rf ~/Exaix
+./scripts/deploy_workspace.sh ~/Exaix
+cd ~/Exaix
 
 # 2. Configure and start daemon
-cp exo.config.sample.toml exo.config.toml
-exoctl daemon start
+cp exa.config.sample.toml exa.config.toml
+exactl daemon start
 
 # 3. Create test portal
-cat >> ~/ExoFrame/exo.config.toml << EOF
+cat >> ~/Exaix/exa.config.toml << EOF
 [[portals]]
 alias = "TestApp"
 target_path = "/tmp/test-portal"

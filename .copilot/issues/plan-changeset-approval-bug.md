@@ -10,12 +10,12 @@ labels: [bug, plan, changeset, cli, approval, regression]
 
 When following the manual test scenario for plan approval and changeset approval, the following issues were observed:
 
-- After approving a plan, `exoctl plan list` does not show the approved plan (even with `--status=approved`).
-- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exoctl changeset list` returns an empty list.
+- After approving a plan, `exactl plan list` does not show the approved plan (even with `--status=approved`).
+- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exactl changeset list` returns an empty list.
 
 ## Reproduction Steps
 
-1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.
+1. Deploy a fresh Exaix workspace and configure a test portal as described in the manual scenario.
 
 1.
 1.
@@ -27,13 +27,13 @@ When following the manual test scenario for plan approval and changeset approval
 
 **Expected:**
 
-- Approved plans should be visible in `exoctl plan list` (with or without status filter).
-- Created changesets should be listed by `exoctl changeset list` after plan approval and execution.
+- Approved plans should be visible in `exactl plan list` (with or without status filter).
+- Created changesets should be listed by `exactl changeset list` after plan approval and execution.
 
 **Observed:**
 
-- `exoctl plan list` returns no plans after approval.
-- `exoctl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
+- `exactl plan list` returns no plans after approval.
+- `exactl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
 
 ## Additional Context
 
@@ -47,7 +47,7 @@ When following the manual test scenario for plan approval and changeset approval
 
 ## Attachments
 
-- See detailed CLI session and scenario in `docs/dev/ExoFrame_Manual_Test_Scenarios.md` (lines 830+)
+- See detailed CLI session and scenario in `docs/dev/Exaix_Manual_Test_Scenarios.md` (lines 830+)
 
 ## Suggested Investigation
 
@@ -55,12 +55,12 @@ When following the manual test scenario for plan approval and changeset approval
 
 ## Latest Update (2026-01-22)
 
-Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
+Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exactl changeset list` still returns empty.
 
 ### Reproduction from Latest Test
 
 ```bash
-exoctl changeset list
+exactl changeset list
 ✅ changeset.list: changesets
    count: 0
    message: No changesets found
@@ -80,7 +80,7 @@ The changeset listing logic needs to be investigated further.
 
 Root causes identified and resolved:
 
-1. **Changeset List Missing Config Portals**: The `exoctl changeset list` command only scanned portal symlinks in the workspace but ignored portals defined in `config.portals`. Changesets in portal repositories defined only in config were not discovered.
+1. **Changeset List Missing Config Portals**: The `exactl changeset list` command only scanned portal symlinks in the workspace but ignored portals defined in `config.portals`. Changesets in portal repositories defined only in config were not discovered.
 
 1.
 
@@ -93,5 +93,5 @@ Root causes identified and resolved:
 ### Verification
 
 - All existing tests pass
-- Manual testing confirms `exoctl changeset list` now shows changesets from portal repositories
+- Manual testing confirms `exactl changeset list` now shows changesets from portal repositories
 - Plan approval and archiving now uses correct configured paths

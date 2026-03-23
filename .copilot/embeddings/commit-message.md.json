@@ -3,7 +3,7 @@
   "title": "Detailed Commit Message Prompt",
   "vecs": [
     {
-      "text": "```text\nKey points\n- Review changes with `git status` and `git diff` before committing\n- Use conventional commit format: `<type>(<scope>): <summary>`\n- Reference Implementation Plan steps and issues\n- Wrap body at 72 chars, keep summary ≤72 chars\n\nCanonical prompt (short):\n\"You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references.\"",
+      "text": "```text\nKey points\n- Review changes with `git status` and `git diff` before committing\n- Use conventional commit format: `<type>(<scope>): <summary>`\n- Reference Implementation Plan steps and issues\n- Wrap body at 72 chars, keep summary ≤72 chars\n\nCanonical prompt (short):\n\"You've completed [work]. Create a detailed commit message following Exaix conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references.\"",
       "vector": [
         0.3843137254901961,
         0.8235294117647058,

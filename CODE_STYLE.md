@@ -70,7 +70,7 @@ checklists (pre‑commit, CI, etc.).
 
 - Never hardcode numeric literals or string constants in production or test code
   (timeouts, status values, provider names, etc.).
-- **User‑configurable values** belong in `exo.config.sample.toml` with a
+- **User‑configurable values** belong in `exa.config.sample.toml` with a
   comment, the matching Zod schema (`src/config/schema.ts`), and a default in
   `src/config/constants.ts` (the config service handles loading).
 - **Internal constants** belong in `src/constants.ts` or a module‑scoped
@@ -279,14 +279,14 @@ export class PlanExecutor {
 Environment‑variable rules were formalised in Phase 28 and are part of the
 style guide:
 
-- **Production overrides** are limited to the `EXO_LLM_*` family:
+- **Production overrides** are limited to the `EXA_LLM_*` family:
   `PROVIDER`, `MODEL`, `BASE_URL`, and `TIMEOUT_MS`.
 - **All** env vars **must** be validated via the Zod schema in
   `src/config/env_schema.ts` – use `getValidatedEnvOverrides()`, not
   `Deno.env.get()` directly.
-- **Test variables** use the `EXO_TEST_*` prefix and helpers such as
+- **Test variables** use the `EXA_TEST_*` prefix and helpers such as
   `isTestMode()` and `isCIMode()` for detection.
-- Never read `EXO_LLM_*` vars without validation; direct access is prohibited.
+- Never read `EXA_LLM_*` vars without validation; direct access is prohibited.
 
 These guidelines ensure consistent error handling and prevent a class of
 runtime bugs.
@@ -306,7 +306,7 @@ runtime bugs.
 
 ## 7. Module Boundaries & TUI Isolation
 
-ExoFrame enforces a strict boundary between the Terminal User Interface (TUI) and the core system. This decoupling is essential for maintainability and independent evolution of the layers.
+Exaix enforces a strict boundary between the Terminal User Interface (TUI) and the core system. This decoupling is essential for maintainability and independent evolution of the layers.
 
 - **Strict TUI Isolation**: Code in `src/tui/` is prohibited from importing any modules from `src/cli/`, `src/services/`, or `src/config/`.
 - **Communication via Interfaces**: TUI components must interact with core functionality exclusively through service interfaces defined in `src/shared/interfaces/`.
@@ -331,7 +331,7 @@ Boundary checks run as part of the standard quality gates in pre-commit hooks an
 
 ## 8. Module Boundaries & CLI Isolation
 
-ExoFrame enforces a strict boundary between the CLI command layer and core implementations to preserve interface-driven separation.
+Exaix enforces a strict boundary between the CLI command layer and core implementations to preserve interface-driven separation.
 
 - **CLI boundary scope**: `src/cli/commands/`, `src/cli/handlers/`, `src/cli/formatters/`, and `src/cli/command_builders/`.
 - **No direct core service imports**: Files in the CLI boundary scope must not import from `src/services/` except `src/services/adapters/`.
@@ -358,7 +358,7 @@ following documents only as cross‑references:
 
 - [`CLAUDE.md`](CLAUDE.md)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- [`.copilot/source/exoframe.md`](.copilot/source/exoframe.md)
+- [`.copilot/source/exaix.md`](.copilot/source/exaix.md)
 - [`.copilot/README.md`](.copilot/README.md)
 
 When editing those documents in the future, update the link above if this file’s
@@ -368,5 +368,5 @@ location changes.
 
 > ⚠️ Keep this file short and focused. Architectural patterns such as timeout
 > protection, file locking, or error classification belong in other guides
-> (e.g. `.copilot/source/exoframe.md`) and **are not** repeated here unless they
+> (e.g. `.copilot/source/exaix.md`) and **are not** repeated here unless they
 > directly impact the way code is written.

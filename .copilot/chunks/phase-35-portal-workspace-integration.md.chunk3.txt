@@ -6,10 +6,10 @@
 
 **Implementation:**
 
-- Artifacts written to `~/ExoFrame/Memory/Execution/artifact-<request-id>.md`
+- Artifacts written to `~/Exaix/Memory/Execution/artifact-<request-id>.md`
 - Frontmatter schema: `status: pending|approved|rejected`, `created`, `agent`, `portal`
 - Database tracks artifact location (file path instead of git branch)
-- `exoctl review show` detects type (git diff vs file content) automatically
+- `exactl review show` detects type (git diff vs file content) automatically
 - **Phase 36 Update:** All commands use `review` terminology (completed 2026-02-03)
 
 ## References

@@ -1,7 +1,7 @@
 /**
  * @module DaemonControlView
  * @path src/tui/daemon_control_view.ts
- * @description Interactive TUI view for managing the ExoFrame daemon, featuring status visualization, log tailing, and configuration viewing.
+ * @description Interactive TUI view for managing the Exaix daemon, featuring status visualization, log tailing, and configuration viewing.
  * @architectural-layer TUI
  * @dependencies [TuiSessionBase, spinner, help_renderer, dialog_base, keyboard, enums, KeyBindingsBase, constants, tui.config]
  * @related-files [src/services/daemon_service.ts, src/cli/daemon_commands.ts]
@@ -58,7 +58,7 @@ const CLI_CMD_DAEMON = "daemon";
 const UI_CLOSE_LOGS = "[ESC] Close logs";
 const UI_CLOSE_CONFIG = "[ESC] Close config";
 const UI_STATUS_PANEL_KEYS = "  [s] Start  [k] Stop  [r] Restart  [l] Logs  [R] Refresh";
-const UI_CONFIG_FILE = "exo.config.toml";
+const UI_CONFIG_FILE = "exa.config.toml";
 const UI_CONFIG_COMING_SOON = "(Configuration viewer coming soon)";
 
 /** Help text constants */
@@ -179,7 +179,7 @@ export const DAEMON_KEY_BINDINGS = new DaemonKeyBindings().KEY_BINDINGS;
  * CLI-backed implementation of DaemonService.
  */
 export class CLIDaemonService implements IDaemonService {
-  #cliScript = new URL("../../src/cli/exoctl.ts", import.meta.url).pathname;
+  #cliScript = new URL("../../src/cli/exactl.ts", import.meta.url).pathname;
 
   async start(): Promise<void> {
     await this.#runDaemonCmd([CLI_CMD_START]);

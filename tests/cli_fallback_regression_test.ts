@@ -14,7 +14,7 @@ import { ExoPathDefaults } from "../src/shared/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { RequestCommands } from "../src/cli/commands/request_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
-import { __test_initializeServices } from "../src/cli/exoctl.ts";
+import { __test_initializeServices } from "../src/cli/exactl.ts";
 
 const TEST_ACTION = "test.action";
 const TEST_WARNING = "test.warning";
@@ -31,7 +31,7 @@ const TEST_USER = "test-user";
 // ============================================================================
 
 Deno.test("[regression] Stub db object has required logActivity method", () => {
-  // This is the stub db object used in exoctl.ts fallback paths
+  // This is the stub db object used in exactl.ts fallback paths
   const stubDb = createStubDb();
 
   // Verify methods exist and are callable
@@ -46,7 +46,7 @@ Deno.test("[regression] Stub db object has required logActivity method", () => {
 });
 
 Deno.test("[regression] EventLogger works with stub db that has logActivity", async () => {
-  // Simulate the fallback db stub from exoctl.ts
+  // Simulate the fallback db stub from exactl.ts
   const stubDb = createStubDb();
 
   // Create EventLogger with stub db (same as CLI does in fallback mode)
@@ -135,12 +135,12 @@ Deno.test({
   // Disable resource sanitizer as ConfigService may load SQLite dynamic library
   sanitizeResources: false,
   async fn() {
-    // Set test mode before importing exoctl to prevent top-level service initialization
-    const originalEnv = Deno.env.get("EXO_TEST_CLI_MODE");
-    Deno.env.set("EXO_TEST_CLI_MODE", "1");
+    // Set test mode before importing exactl to prevent top-level service initialization
+    const originalEnv = Deno.env.get("EXA_TEST_CLI_MODE");
+    Deno.env.set("EXA_TEST_CLI_MODE", "1");
 
     try {
-      // Import the test helper from exoctl to verify fallback behavior
+      // Import the test helper from exactl to verify fallback behavior
 
       // Simulate service initialization failure
       const result = await __test_initializeServices({ simulateFail: true });
@@ -155,9 +155,9 @@ Deno.test({
     } finally {
       // Restore environment
       if (originalEnv === undefined) {
-        Deno.env.delete("EXO_TEST_CLI_MODE");
+        Deno.env.delete("EXA_TEST_CLI_MODE");
       } else {
-        Deno.env.set("EXO_TEST_CLI_MODE", originalEnv);
+        Deno.env.set("EXA_TEST_CLI_MODE", originalEnv);
       }
     }
   },
@@ -165,8 +165,8 @@ Deno.test({
 
 Deno.test("[regression] CLI test mode context has stub db with required methods", async () => {
   // Set environment to force test mode
-  const originalEnv = Deno.env.get("EXO_TEST_CLI_MODE");
-  Deno.env.set("EXO_TEST_CLI_MODE", "1");
+  const originalEnv = Deno.env.get("EXA_TEST_CLI_MODE");
+  Deno.env.set("EXA_TEST_CLI_MODE", "1");
 
   try {
     // Re-import to get test mode context
@@ -181,9 +181,9 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
   } finally {
     // Restore environment
     if (originalEnv === undefined) {
-      Deno.env.delete("EXO_TEST_CLI_MODE");
+      Deno.env.delete("EXA_TEST_CLI_MODE");
     } else {
-      Deno.env.set("EXO_TEST_CLI_MODE", originalEnv);
+      Deno.env.set("EXA_TEST_CLI_MODE", originalEnv);
     }
   }
 });

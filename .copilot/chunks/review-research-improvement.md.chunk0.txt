@@ -1,6 +1,6 @@
 ## Review-Research-Improvement Pattern
 
-A structured methodology for evaluating ExoFrame subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.
+A structured methodology for evaluating Exaix subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.
 
 ## When to Use
 

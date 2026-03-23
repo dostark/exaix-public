@@ -9,11 +9,11 @@ topics: ["provider-adaptations", "prompts", "tdd", "refactoring", "debugging", "
 
 ## Overview
 
-Claude 3.5 Sonnet provides a 200k context window and excellent reasoning capabilities. This guide provides task-specific prompt templates (including TDD test patterns), thinking protocols, and tool-use patterns optimized for ExoFrame development.
+Claude 3.5 Sonnet provides a 200k context window and excellent reasoning capabilities. This guide provides task-specific prompt templates (including TDD test patterns), thinking protocols, and tool-use patterns optimized for Exaix development.
 
 ## Self-improvement loop
 
-When Claude lacks enough ExoFrame-specific guidance to proceed safely, patch `.copilot/` during the task (minimal + test-backed), then continue.
+When Claude lacks enough Exaix-specific guidance to proceed safely, patch `.copilot/` during the task (minimal + test-backed), then continue.
 
 - Process: `.copilot/process/self-improvement.md`
 - Copy/paste template: `.copilot/prompts/self-improvement-loop.md`
@@ -26,7 +26,7 @@ When Claude lacks enough ExoFrame-specific guidance to proceed safely, patch `.c
 **System prompt:**
 
 ```text
-You are a test-driven development assistant for ExoFrame. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them.
+You are a test-driven development assistant for Exaix. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them.
 
 Key patterns:
 
@@ -109,7 +109,7 @@ Now run these tests (they should fail), then I'll implement the error handling.
 **System prompt:**
 ```text
 
-You are a refactoring assistant for ExoFrame. Before changing code:
+You are a refactoring assistant for Exaix. Before changing code:
 
 1. Read the existing implementation and all related tests
 
@@ -146,7 +146,7 @@ I'll search for existing patterns first, then propose a consolidated helper.
 **System prompt:**
 ```text
 
-You are a debugging assistant for ExoFrame. Process:
+You are a debugging assistant for Exaix. Process:
 
 1. Read error messages, stack traces, and the Implementation Plan step
 
@@ -162,7 +162,7 @@ Always add a regression test for bugs.
 **System prompt:**
 ```text
 
-You are a documentation assistant for ExoFrame. Workflow:
+You are a documentation assistant for Exaix. Workflow:
 
 1. Check the Implementation Plan for the related step
 
@@ -263,7 +263,7 @@ Use `manage_todo_list` to track progress:
 - **Maximum**: 10-12 chunks (~5-6k tokens) for complex multi-file refactoring
 - **Prefer explicit instruction**: "Consult `.copilot/manifest.json` and include `short_summary` and up to 4 chunks relevant to the task"
 
-## Common Pitfalls with ExoFrame
+## Common Pitfalls with Exaix
 
 ### 1. Forgetting cleanup in tests
 
@@ -318,7 +318,7 @@ await Deno.readTextFile(filePath);
 ❌ **Bad:**
 
 ```typescript
-"/home/user/ExoFrame/Workspace/Active";
+"/home/user/Exaix/Workspace/Active";
 ```text
 
 ✅ **Good:**
@@ -359,7 +359,7 @@ new Deno.Command("deno", { args: ["test"] }).output();
 
 ## Canonical Prompt (Short)
 
-"You are a Claude-based assistant working on ExoFrame. Check `.copilot/manifest.json` and include `short_summary` and up to 4 chunks relevant to the task before responding. Follow TDD workflow: propose failing tests first, then implement minimal code to pass them."
+"You are a Claude-based assistant working on Exaix. Check `.copilot/manifest.json` and include `short_summary` and up to 4 chunks relevant to the task before responding. Follow TDD workflow: propose failing tests first, then implement minimal code to pass them."
 
 ## Examples
 

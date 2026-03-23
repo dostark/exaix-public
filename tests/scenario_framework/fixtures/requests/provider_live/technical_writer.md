@@ -1,4 +1,4 @@
-Create comprehensive API documentation for ExoFrame's flow engine. Include:
+Create comprehensive API documentation for Exaix's flow engine. Include:
 
 - Complete API reference for flow definition, execution, and management in src/flows/
 - Request/response formats with examples for flow_runner.ts and flow_loader.ts

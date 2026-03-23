@@ -18,7 +18,7 @@ Deno.test({
     // 1. Run build for current target (for speed in test)
     const target = Deno.build.target;
     const isWin = target.includes("windows");
-    const expectedName = isWin ? `exoframe-${target}.exe` : `exoframe-${target}`;
+    const expectedName = isWin ? `exaix-${target}.exe` : `exaix-${target}`;
     const expectedPath = join(DIST_DIR, expectedName);
 
     // Clean up first

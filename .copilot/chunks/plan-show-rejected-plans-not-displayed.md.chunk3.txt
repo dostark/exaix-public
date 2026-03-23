@@ -1,4 +1,4 @@
-Use `exoctl plan list` to see rejected plans, but cannot view their content.
+Use `exactl plan list` to see rejected plans, but cannot view their content.
 
 ## Priority Justification
 

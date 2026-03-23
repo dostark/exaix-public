@@ -2,7 +2,7 @@
 
 ### "I want to add a new feature"
 
-1. Read [docs/ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) to find or create Implementation Plan step
+1. Read [docs/Exaix_Implementation_Plan.md](../docs/Exaix_Implementation_Plan.md) to find or create Implementation Plan step
 
 1.
 1.

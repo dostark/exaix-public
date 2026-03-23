@@ -3,7 +3,7 @@
   "title": "Plan Validation Failed for Senior Coder Agent",
   "vecs": [
     {
-      "text": "## Problem\n\nAfter deploying a new workspace and submitting a request to the `senior-coder` agent via `exoctl`, the request processing fails with `plan.validation.failed`. This occurs despite the daemon starting successfully and the agent apparently completing its execution.\n\n## Reproduction Steps\n\n```bash\n# 1. deploy workspace (simulated)\n./scripts/deploy_workspace.sh ~/ExoFrame\n\n# 2. Configure and start daemon\ncp exo.config.sample.toml exo.config.toml\nexoctl daemon start\n\n# 3. Create test portal\ncat >> ~/ExoFrame/exo.config.toml << EOF\n[[portals]]\nalias = \"TestApp\"\ntarget_path = \"/tmp/test-portal\"\nEOF\n\nmkdir -p /tmp/test-portal/src\ncd /tmp/test-portal\ngit init\necho \"# Test App\" > README.md\necho \"export const version = '1.0';\" > src/index.ts\ngit add . && git commit -m \"Initial commit\"",
+      "text": "## Problem\n\nAfter deploying a new workspace and submitting a request to the `senior-coder` agent via `exactl`, the request processing fails with `plan.validation.failed`. This occurs despite the daemon starting successfully and the agent apparently completing its execution.\n\n## Reproduction Steps\n\n```bash\n# 1. deploy workspace (simulated)\n./scripts/deploy_workspace.sh ~/Exaix\n\n# 2. Configure and start daemon\ncp exa.config.sample.toml exa.config.toml\nexactl daemon start\n\n# 3. Create test portal\ncat >> ~/Exaix/exa.config.toml << EOF\n[[portals]]\nalias = \"TestApp\"\ntarget_path = \"/tmp/test-portal\"\nEOF\n\nmkdir -p /tmp/test-portal/src\ncd /tmp/test-portal\ngit init\necho \"# Test App\" > README.md\necho \"export const version = '1.0';\" > src/index.ts\ngit add . && git commit -m \"Initial commit\"",
       "vector": [
         0.7843137254901961,
         0.023529411764705882,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "# 4. Mount portal\ncd ~/ExoFrame\nexoctl portal add /tmp/test-portal TestApp\n\n# 5. Submit request\nexoctl request \"Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts\" \\\n    --agent senior-coder \\\n    --portal TestApp\n```\n\n## Observed Behavior\n\nThe daemon logs show:\n\n```bash\n1/21/2026, 6:26:02 PM request.failed agent=agent:request-processor trace=c9152997 target=/.../request-c9152997.md\n1/21/2026, 6:26:02 PM plan.validation.failed agent=agent trace=c9152997 target=request-c9152997\n1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997\n```\n\n`exoctl plan list` shows 0 plans.\n\n## Expected Behavior",
+      "text": "# 4. Mount portal\ncd ~/Exaix\nexactl portal add /tmp/test-portal TestApp\n\n# 5. Submit request\nexactl request \"Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts\" \\\n    --agent senior-coder \\\n    --portal TestApp\n```\n\n## Observed Behavior\n\nThe daemon logs show:\n\n```bash\n1/21/2026, 6:26:02 PM request.failed agent=agent:request-processor trace=c9152997 target=/.../request-c9152997.md\n1/21/2026, 6:26:02 PM plan.validation.failed agent=agent trace=c9152997 target=request-c9152997\n1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997\n```\n\n`exactl plan list` shows 0 plans.\n\n## Expected Behavior",
       "vector": [
         0.7607843137254902,
         0.7254901960784313,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "The plan should be validated successfully and appear in `exoctl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).\n\n## Investigation Needed\n\n1. **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.\n2. **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.\n3. **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.\n\n## Related Files\n\n- `src/services/request_processor.ts`\n- `src/schemas/plan_schema.ts`\n- `Blueprints/Agents/senior-coder.md`",
+      "text": "The plan should be validated successfully and appear in `exactl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).\n\n## Investigation Needed\n\n1. **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.\n2. **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.\n3. **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.\n\n## Related Files\n\n- `src/services/request_processor.ts`\n- `src/schemas/plan_schema.ts`\n- `Blueprints/Agents/senior-coder.md`",
       "vector": [
         0.3333333333333333,
         0.3607843137254902,

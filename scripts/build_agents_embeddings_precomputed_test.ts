@@ -10,7 +10,7 @@ Deno.test("build precomputed embeddings copies files and writes manifest", async
   const tmp = await Deno.makeTempDir();
   const sample = {
     path: ".copilot/tests/testing.md",
-    title: "ExoFrame Test Development Guidelines",
+    title: "Exaix Test Development Guidelines",
     vecs: [
       { text: "snippet 1", vector: new Array(64).fill(0.123) },
     ],

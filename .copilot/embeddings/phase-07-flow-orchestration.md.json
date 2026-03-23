@@ -3,7 +3,7 @@
   "title": "phase-07-flow-orchestration.md",
   "vecs": [
     {
-      "text": "## Phase 7: Flow Orchestration (Multi-Agent Coordination) ✅ COMPLETED\n\n> **Status:** ✅ COMPLETED\n> **Prerequisites:** Phases 1–6 (Core system validated via Testing & QA)\n> **Goal:** Enable declarative multi-agent workflows with dependency resolution, parallel execution, and result aggregation.\n\n### Overview\n\nCurrently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.\n\n**Use Cases:**",
+      "text": "## Phase 7: Flow Orchestration (Multi-Agent Coordination) ✅ COMPLETED\n\n> **Status:** ✅ COMPLETED\n> **Prerequisites:** Phases 1–6 (Core system validated via Testing & QA)\n> **Goal:** Enable declarative multi-agent workflows with dependency resolution, parallel execution, and result aggregation.\n\n### Overview\n\nCurrently, Exaix supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.\n\n**Use Cases:**",
       "vector": [
         0.8196078431372549,
         0.6078431372549019,

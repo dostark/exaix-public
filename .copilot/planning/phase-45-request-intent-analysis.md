@@ -4,7 +4,7 @@
 
 ## Status: COMPLETED
 
-Introduce a `RequestAnalyzer` service that extracts structured intent, requirements, and constraints from raw request text before agent execution — closing the largest gap in ExoFrame's quality pipeline.
+Introduce a `RequestAnalyzer` service that extracts structured intent, requirements, and constraints from raw request text before agent execution — closing the largest gap in Exaix's quality pipeline.
 
 ## Executive Summary
 
@@ -558,7 +558,7 @@ export interface IParsedRequest {
 
 ---
 
-### Step 14: Add Analysis to `exoctl request show` CLI Output
+### Step 14: Add Analysis to `exactl request show` CLI Output
 
 **What:** Enhance the CLI `request show` command to display analysis data alongside request metadata.
 
@@ -575,7 +575,7 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [x] `exoctl request show <id>` includes analysis section when available
+- [x] `exactl request show <id>` includes analysis section when available
 - [x] Output is clean and readable without analysis
 - [x] Complexity and actionability are prominent
 - [x] Goals and ambiguities are listed concisely
@@ -587,7 +587,7 @@ export interface IParsedRequest {
 
 ---
 
-### Step 15: Add `exoctl request analyze` CLI Command
+### Step 15: Add `exactl request analyze` CLI Command
 
 **What:** Add a standalone CLI command to trigger analysis on an existing request, enabling manual re-analysis and analysis review.
 
@@ -597,7 +597,7 @@ export interface IParsedRequest {
 
 **Architecture notes:**
 
-- `exoctl request analyze <id> [--mode heuristic|llm|hybrid] [--force]`
+- `exactl request analyze <id> [--mode heuristic|llm|hybrid] [--force]`
 - Loads request file, runs `RequestAnalyzer.analyze()`, persists result, displays summary
 - `--force` re-analyzes even if `_analysis.json` exists
 - Without `--force`, shows existing analysis if present
@@ -605,7 +605,7 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [x] `exoctl request analyze <id>` produces and displays analysis
+- [x] `exactl request analyze <id>` produces and displays analysis
 - [x] `--mode` flag controls analysis mode
 - [x] `--force` flag re-analyzes even when `_analysis.json` exists
 - [x] Displays formatted analysis summary (complexity, actionability, goals count, ambiguity count)
@@ -621,12 +621,12 @@ export interface IParsedRequest {
 
 ### Step 16: Add TOML Configuration for Request Analysis
 
-**What:** Add `[request_analysis]` section to `exo.config.toml` schema so users can configure the analyzer globally.
+**What:** Add `[request_analysis]` section to `exa.config.toml` schema so users can configure the analyzer globally.
 
 **Files to modify:**
 
 - `src/shared/schemas/config.ts` (extend `ConfigSchema`)
-- [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) (add default section — deployed to workspace root as `exo.config.toml` via `scripts/deploy_workspace.sh`)
+- [`templates/exa.config.sample.toml`](../../templates/exa.config.sample.toml) (add default section — deployed to workspace root as `exa.config.toml` via `scripts/deploy_workspace.sh`)
 
 **Architecture notes:**
 
@@ -739,18 +739,18 @@ export interface IParsedRequest {
 
 **Files to modify:**
 
-- `docs/ExoFrame_User_Guide.md`
-- `docs/dev/ExoFrame_Technical_Spec.md`
+- `docs/Exaix_User_Guide.md`
+- `docs/dev/Exaix_Technical_Spec.md`
 - `docs/dev/Agent_Validation_Requests.md`
-- `docs/dev/ExoFrame_Testing_and_CI_Strategy.md`
+- `docs/dev/Exaix_Testing_and_CI_Strategy.md`
 
 **Updates per file:**
 
-1. **`docs/ExoFrame_User_Guide.md`:**
+1. **`docs/Exaix_User_Guide.md`:**
    - Add section explaining request analysis: what it does, when it runs, how to configure it
-   - Document `exoctl request analyze <id>` command with flags (`--mode`, `--force`)
-   - Note that `exoctl request show <id>` now displays analysis summary
-   - Explain `[request_analysis]` config section in `exo.config.toml` with examples
+   - Document `exactl request analyze <id>` command with flags (`--mode`, `--force`)
+   - Note that `exactl request show <id>` now displays analysis summary
+   - Explain `[request_analysis]` config section in `exa.config.toml` with examples
    - Describe `_analysis.json` files in `Workspace/Requests/`
 
 1.
@@ -772,7 +772,7 @@ export interface IParsedRequest {
 **Success criteria:**
 
 - [x] User guide explains request analysis in user-accessible language
-- [x] `exoctl request analyze` command documented with usage examples
+- [x] `exactl request analyze` command documented with usage examples
 - [x] `[request_analysis]` config section documented with TOML examples
 - [x] Technical spec includes `IRequestAnalysis` schema definition
 - [x] Test strategy doc covers new test categories
@@ -788,20 +788,20 @@ export interface IParsedRequest {
 
 **Files to modify:**
 
-- `.copilot/source/exoframe.md` (add RequestAnalyzer to service catalog)
+- `.copilot/source/exaix.md` (add RequestAnalyzer to service catalog)
 - `.copilot/cross-reference.md` (add request-analysis task mapping)
 - `.copilot/manifest.json` (regenerate via build script)
 
 **Updates:**
 
-1. **`.copilot/source/exoframe.md`:**
+1. **`.copilot/source/exaix.md`:**
    - Add `RequestAnalyzer` to the services section with: purpose, location (`src/services/request_analysis/`), config interface, key methods, integration point
    - Add `RequestAnalysisSchema` to the schemas section
    - Update the request processing pipeline description to include analysis step
    - Document the `src/services/request_analysis/` directory structure (mod.ts, heuristic_analyzer.ts, llm_analyzer.ts, request_analyzer.ts, analysis_persistence.ts)
 
 1.
-   - Add row: `request analysis / intent extraction` → `source/exoframe.md` + `planning/phase-45-request-intent-analysis.md`
+   - Add row: `request analysis / intent extraction` → `source/exaix.md` + `planning/phase-45-request-intent-analysis.md`
    - Add topic index entries: `request-analysis`, `intent-extraction`, `actionability`
 
 1.
@@ -809,7 +809,7 @@ export interface IParsedRequest {
 
 **Success criteria:**
 
-- [x] `.copilot/source/exoframe.md` lists `RequestAnalyzer` in service catalog
+- [x] `.copilot/source/exaix.md` lists `RequestAnalyzer` in service catalog
 - [x] `.copilot/cross-reference.md` has `request analysis` task row
 - [x] `manifest.json` is fresh (passes `deno task check:docs`)
 - [x] Future agents can find request analysis guidance via cross-reference
@@ -886,14 +886,14 @@ Update `LlmAnalyzer` prompt template and `HeuristicAnalyzer` output to populate 
 ### Step 22: Fix Analyzer Mode Default and Config Wiring (Gaps 3, 4, 5)
 
 **What:** Correct the production default analyzer mode from `HEURISTIC` to `HYBRID` as designed,
-expose the `[request_analysis]` section in `exo.config.toml` for user discoverability, and add
+expose the `[request_analysis]` section in `exa.config.toml` for user discoverability, and add
 the missing `enabled` and `persist_analysis` config fields so operators can disable analysis or
 persistence without code changes.
 
 **Files modified:**
 
 - [`src/services/request_processor.ts`](../../src/services/request_processor.ts) (fix fallback to reference `DEFAULT_ANALYZER_MODE` constant)
-- [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) (add `[request_analysis]` section — deployed to `exo.config.toml` via `scripts/deploy_workspace.sh`)
+- [`templates/exa.config.sample.toml`](../../templates/exa.config.sample.toml) (add `[request_analysis]` section — deployed to `exa.config.toml` via `scripts/deploy_workspace.sh`)
 - [`src/shared/schemas/config.ts`](../../src/shared/schemas/config.ts) (add `enabled` and `persist_analysis` to `request_analysis` block)
 - [`tests/services/request_processor_analysis_test.ts`](../../tests/services/request_processor_analysis_test.ts) (assert enabled=false skips analysis; persist_analysis=false skips persistence)
 - `tests/schemas/config_request_analysis_test.ts` (new defaults coverage — completed fully in Step 26)
@@ -912,7 +912,7 @@ persistence without code changes.
 
    Add import of `DEFAULT_ANALYZER_MODE` from `src/shared/constants.ts` if not already imported.
 
-1. **`exo.config.toml`** — append block (note: edit [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml) — deployed via `scripts/deploy_workspace.sh`):
+1. **`exa.config.toml`** — append block (note: edit [`templates/exa.config.sample.toml`](../../templates/exa.config.sample.toml) — deployed via `scripts/deploy_workspace.sh`):
 
    ```toml
    [request_analysis]
@@ -950,7 +950,7 @@ persistence without code changes.
 **Success criteria:**
 
 - [x] `RequestProcessor` uses `DEFAULT_ANALYZER_MODE` constant as fallback — hard-coded `HEURISTIC` removed
-- [x] `templates/exo.config.sample.toml` contains the `[request_analysis]` section with all five keys
+- [x] `templates/exa.config.sample.toml` contains the `[request_analysis]` section with all five keys
 - [x] `ConfigSchema` accepts `enabled: false` and `persist_analysis: false` without error
 - [x] `RequestProcessor` skips analysis entirely when `enabled: false`
 - [x] `RequestProcessor` skips `saveAnalysis()` when `persist_analysis: false`
@@ -1013,9 +1013,9 @@ actually produces a `HYBRID` analysis instead of silently falling back to `HEURI
 
 **Success criteria:**
 
-- [x] `exoctl request analyze <id>` returns cached `_analysis.json` without making an LLM call when cached result exists
-- [x] `exoctl request analyze <id> --force` always re-runs analysis and overwrites the cache
-- [x] `exoctl request analyze <id> --mode hybrid` produces hybrid-mode analysis (not silently downgraded to heuristic)
+- [x] `exactl request analyze <id>` returns cached `_analysis.json` without making an LLM call when cached result exists
+- [x] `exactl request analyze <id> --force` always re-runs analysis and overwrites the cache
+- [x] `exactl request analyze <id> --mode hybrid` produces hybrid-mode analysis (not silently downgraded to heuristic)
 - [x] `RequestService.analyze()` with the default `force=false` short-circuits if `_analysis.json` is present
 - [x] All three mode values (heuristic, llm, hybrid) are exercised in tests
 
@@ -1567,13 +1567,13 @@ Request File (.md)
 
 Phase 45 is **COMPLETE**.
 
-We have successfully introduced a comprehensive Request Intent Analysis layer into the ExoFrame pipeline. This phase delivered:
+We have successfully introduced a comprehensive Request Intent Analysis layer into the Exaix pipeline. This phase delivered:
 
 - A structured `IRequestAnalysis` schema for capturing goals, requirements, constraints, and ambiguities.
 - A multi-modal `RequestAnalyzer` service supporting heuristic (zero-cost), LLM-based (deep), and hybrid analysis strategies.
 - Content-aware task complexity classification that replaces naive agent-name-based logic.
 - Persistence of analysis results as `_analysis.json` sibling files.
-- Integration across CLI (`exoctl request analyze`), TUI (Request Manager Detail View), and the core processing pipeline.
+- Integration across CLI (`exactl request analyze`), TUI (Request Manager Detail View), and the core processing pipeline.
 - Propagation of analysis context to both agent and flow-based execution paths.
 
 All 58 related tests (covering schemas, services, TUI, CLI, and E2E integration) have been verified as passing.
@@ -1593,7 +1593,7 @@ The following questions from the [Open Questions](#open-questions) section were 
 | Question                                                          | Decision                                                                                                                                                  |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Should analysis be persisted as `_analysis.json`?                 | **Yes** — `saveAnalysis()` writes atomically alongside the request file. `loadAnalysis()` validates on read via `RequestAnalysisSchema`.                  |
-| Should analysis results be visible in CLI/TUI?                    | **Yes** — `exoctl request show` displays analysis section; TUI Request Manager Detail View shows complexity badge, actionability bar, goals, ambiguities. |
+| Should analysis results be visible in CLI/TUI?                    | **Yes** — `exactl request show` displays analysis section; TUI Request Manager Detail View shows complexity badge, actionability bar, goals, ambiguities. |
 | What is the right actionability threshold?                        | **60** — `DEFAULT_ACTIONABILITY_THRESHOLD = 60` in `src/shared/constants.ts`. Hybrid mode escalates to LLM when heuristic score is below 60.              |
 | Should the `product-manager` agent be usable as the LLM analyzer? | **Not implemented** — `LlmAnalyzer` uses a hard-coded prompt template. Blueprint-based LLM analysis deferred to a future phase.                           |
 
@@ -1649,19 +1649,19 @@ The actual `AmbiguitySchema` only contains `description` and `impact`. **Impact:
 mode: config.request_analysis?.mode ?? AnalysisMode.HEURISTIC,
 ```
 
-Since the `[request_analysis]` TOML section is absent from `exo.config.toml` (see Gap 4), `config.request_analysis` is `undefined`, and every production `RequestProcessor` runs in `HEURISTIC` mode — never calling the LLM even for severely underspecified requests. The `DEFAULT_ANALYZER_MODE` constant is declared but never referenced. **Impact:** vague requests receive the same heuristic analysis as clear ones; the accuracy advantage of hybrid mode is silently lost.
+Since the `[request_analysis]` TOML section is absent from `exa.config.toml` (see Gap 4), `config.request_analysis` is `undefined`, and every production `RequestProcessor` runs in `HEURISTIC` mode — never calling the LLM even for severely underspecified requests. The `DEFAULT_ANALYZER_MODE` constant is declared but never referenced. **Impact:** vague requests receive the same heuristic analysis as clear ones; the accuracy advantage of hybrid mode is silently lost.
 
-> **To fix:** Change the fallback from `AnalysisMode.HEURISTIC` to `AnalysisMode.HYBRID as AnalysisMode` (or reference the string constant). Or, preferably, ensure `[request_analysis]` is present in `exo.config.toml` so `config.request_analysis.mode` always resolves. Ref Gap 4 below.
+> **To fix:** Change the fallback from `AnalysisMode.HEURISTIC` to `AnalysisMode.HYBRID as AnalysisMode` (or reference the string constant). Or, preferably, ensure `[request_analysis]` is present in `exa.config.toml` so `config.request_analysis.mode` always resolves. Ref Gap 4 below.
 
 ---
 
 ### Feasibility & Correctness Gaps
 
-#### Gap 4: `[request_analysis]` section is absent from `templates/exo.config.sample.toml`
+#### Gap 4: `[request_analysis]` section is absent from `templates/exa.config.sample.toml`
 
-Step 16 specifies adding a `[request_analysis]` TOML block with explicit defaults. The `exo.config.toml` in the repo root is deployed by copying `templates/exo.config.sample.toml` via `scripts/deploy_workspace.sh` — it must not be edited directly. The sample template had no `[request_analysis]` section. The ConfigSchema has `request_analysis` optional with defaults, so there is no validation error — but the config file gives users no discoverable way to change analyzer mode, threshold, or enable/disable analysis. When the section is absent the ConfigSchema default kicks in and sets `mode = HYBRID`, but Gap 3 above shows `RequestProcessor` ignores the config default entirely. **Impact:** users who want `heuristic` or `llm` mode have no obvious configuration knob; the feature is invisible at install time.
+Step 16 specifies adding a `[request_analysis]` TOML block with explicit defaults. The `exa.config.toml` in the repo root is deployed by copying `templates/exa.config.sample.toml` via `scripts/deploy_workspace.sh` — it must not be edited directly. The sample template had no `[request_analysis]` section. The ConfigSchema has `request_analysis` optional with defaults, so there is no validation error — but the config file gives users no discoverable way to change analyzer mode, threshold, or enable/disable analysis. When the section is absent the ConfigSchema default kicks in and sets `mode = HYBRID`, but Gap 3 above shows `RequestProcessor` ignores the config default entirely. **Impact:** users who want `heuristic` or `llm` mode have no obvious configuration knob; the feature is invisible at install time.
 
-> **Fixed:** Added the following section to [`templates/exo.config.sample.toml`](../../templates/exo.config.sample.toml):
+> **Fixed:** Added the following section to [`templates/exa.config.sample.toml`](../../templates/exa.config.sample.toml):
 >
 > ```toml
 > [request_analysis]
@@ -1684,15 +1684,15 @@ The Detailed Design (Step 16) TOML snippet lists `enabled = true` and `persist_a
 
 ---
 
-#### Gap 6: `--force` flag on `exoctl request analyze` is never propagated to the CLI layer
+#### Gap 6: `--force` flag on `exactl request analyze` is never propagated to the CLI layer
 
-`IRequestService.analyze()` accepts `options: { mode?: AnalysisMode; force?: boolean }` and `RequestService.analyze()` has the signature — but the `force` parameter is never checked in the service body (the `analyze()` implementation always calls `saveAnalysis()` unconditionally). Worse, `src/cli/handlers/request_show_handler.ts` (line 32–34) calls `this.requests.analyze(idOrFilename, { mode })` without ever passing `force`. `src/cli/command_builders/request_actions.ts` maps no CLI option to a `force` flag. **Impact:** `exoctl request analyze <id>` always re-analyzes (which is correct behavior, but the documented "show existing analysis without `--force`" path in Step 15 is never taken), and there is no skip-if-cached path at all.
+`IRequestService.analyze()` accepts `options: { mode?: AnalysisMode; force?: boolean }` and `RequestService.analyze()` has the signature — but the `force` parameter is never checked in the service body (the `analyze()` implementation always calls `saveAnalysis()` unconditionally). Worse, `src/cli/handlers/request_show_handler.ts` (line 32–34) calls `this.requests.analyze(idOrFilename, { mode })` without ever passing `force`. `src/cli/command_builders/request_actions.ts` maps no CLI option to a `force` flag. **Impact:** `exactl request analyze <id>` always re-analyzes (which is correct behavior, but the documented "show existing analysis without `--force`" path in Step 15 is never taken), and there is no skip-if-cached path at all.
 
 > **To fix:** (a) In `RequestService.analyze()`, check existing `_analysis.json` via `loadAnalysis(path)` at the start; if present and `!force`, return cached result. (b) In `request_show_handler.ts`, accept and forward a `force` flag. (c) In `request_actions.ts`, add `--force` boolean option to the analyze action binding.
 
 ---
 
-#### Gap 7: `hybrid` mode is unreachable from `exoctl request analyze`
+#### Gap 7: `hybrid` mode is unreachable from `exactl request analyze`
 
 `request_actions.ts` maps the CLI engine option as: `options.engine === AnalysisMode.LLM` → `LLM`, else `HEURISTIC`. The `hybrid` value is never produced by the CLI mapping. Since `hybrid` is the recommended default and arguably the most useful mode (saves LLM cost but catches vague requests), having it unreachable from the explicit CLI command is counterproductive. **Impact:** developers wanting to preview their hybrid-mode results for a specific request cannot do so without modifying code.
 

@@ -3,7 +3,7 @@
   "title": "phase-03-intelligence-and-agency.md",
   "vecs": [
     {
-      "text": "## Phase 3: The Brain (Intelligence & Agency) ✅ COMPLETED\n\n**Goal:** Connect LLMs, inject memory, and generate plans.\n\n> **Agent Types:** ExoFrame must drive both fully local agents (Ollama, offline evaluators, scripted coders),\n> third-party API agents (Claude, GPT), **and hybrid workflows** where a request spans both types. Token limits and\n> privacy guarantees differ per type; design every step in this phase to detect the agent class (local, federated,\n> hybrid) and apply the correct constraints automatically. Hybrid mode requires explicit data-sharing policies logged\n> per hop.\n\n### Step 3.1: The Model Adapter (Mocked & Real) ✅ COMPLETED",
+      "text": "## Phase 3: The Brain (Intelligence & Agency) ✅ COMPLETED\n\n**Goal:** Connect LLMs, inject memory, and generate plans.\n\n> **Agent Types:** Exaix must drive both fully local agents (Ollama, offline evaluators, scripted coders),\n> third-party API agents (Claude, GPT), **and hybrid workflows** where a request spans both types. Token limits and\n> privacy guarantees differ per type; design every step in this phase to detect the agent class (local, federated,\n> hybrid) and apply the correct constraints automatically. Hybrid mode requires explicit data-sharing policies logged\n> per hop.\n\n### Step 3.1: The Model Adapter (Mocked & Real) ✅ COMPLETED",
       "vector": [
         0.8117647058823529,
         0.058823529411764705,

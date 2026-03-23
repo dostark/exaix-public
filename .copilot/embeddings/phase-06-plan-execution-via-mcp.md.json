@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- **Dependencies:** Step 5.12 (Plan Detection & Parsing)\n- **Rollback:** Set `mcp.enabled = false` in exo.config.toml\n- **Action:** Implement Model Context Protocol (MCP) server for agent-tool communication\n- **Location:** `src/mcp/server.ts`, `src/mcp/tools.ts`, `src/mcp/resources.ts`, `src/mcp/prompts.ts`\n- **Status:** ✅ COMPLETE (All 5 Phases complete - 71 tests passing)\n- **Commits:**\n  - 140d307 - Phase 1 Walking Skeleton (8 tests)\n  - 55a52f9 - Phase 2 read_file tool (15 tests)\n  - 21e5818 - Phase 3 write_file & list_directory tools (26 tests)\n  - b6694ab - Phase 4 git tools (git_create_branch, git_commit, git_status) (37 tests)\n  - 82759ab - Phase 5 Resources (portal:// URIs, resource discovery) (53 tests)\n  - 461ca83 - Phase 5 Prompts (execute_plan, create_changeset templates) (71 tests)",
+      "text": "- **Dependencies:** Step 5.12 (Plan Detection & Parsing)\n- **Rollback:** Set `mcp.enabled = false` in exa.config.toml\n- **Action:** Implement Model Context Protocol (MCP) server for agent-tool communication\n- **Location:** `src/mcp/server.ts`, `src/mcp/tools.ts`, `src/mcp/resources.ts`, `src/mcp/prompts.ts`\n- **Status:** ✅ COMPLETE (All 5 Phases complete - 71 tests passing)\n- **Commits:**\n  - 140d307 - Phase 1 Walking Skeleton (8 tests)\n  - 55a52f9 - Phase 2 read_file tool (15 tests)\n  - 21e5818 - Phase 3 write_file & list_directory tools (26 tests)\n  - b6694ab - Phase 4 git tools (git_create_branch, git_commit, git_status) (37 tests)\n  - 82759ab - Phase 5 Resources (portal:// URIs, resource discovery) (53 tests)\n  - 461ca83 - Phase 5 Prompts (execute_plan, create_changeset templates) (71 tests)",
       "vector": [
         0.5137254901960784,
         0.06666666666666667,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "**Problem Statement:**\n\nLLM agents need a standardized, secure interface to interact with ExoFrame and portal repositories. Direct file system access or response parsing approaches are:\n\n- Fragile (parsing markdown responses is unreliable)\n- Insecure (agents could bypass ExoFrame controls)\n- Non-standard (proprietary interfaces)\n\n**The Solution: ExoFrame as MCP Server**\n\nImplement an MCP (Model Context Protocol) server that exposes tools, resources, and prompts to LLM agents:",
+      "text": "**Problem Statement:**\n\nLLM agents need a standardized, secure interface to interact with Exaix and portal repositories. Direct file system access or response parsing approaches are:\n\n- Fragile (parsing markdown responses is unreliable)\n- Insecure (agents could bypass Exaix controls)\n- Non-standard (proprietary interfaces)\n\n**The Solution: Exaix as MCP Server**\n\nImplement an MCP (Model Context Protocol) server that exposes tools, resources, and prompts to LLM agents:",
       "vector": [
         0.21568627450980393,
         0.47058823529411764,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "**Architecture:**\n┌─────────────────────────────────────────────┐\n│ ExoFrame MCP Server │\n├─────────────────────────────────────────────┤\n│ Tools: 6 tools (read_file, write_file, │\n│ list_directory, git_*) │\n├─────────────────────────────────────────────┤\n│ Resources: portal://PortalName/path URIs │\n├─────────────────────────────────────────────┤\n│ Prompts: execute_plan, create_changeset │\n├─────────────────────────────────────────────┤\n│ Transport: stdio or SSE (HTTP) │\n└─────────────────────────────────────────────┘\n\n**MCP Tools Specification:**",
+      "text": "**Architecture:**\n┌─────────────────────────────────────────────┐\n│ Exaix MCP Server │\n├─────────────────────────────────────────────┤\n│ Tools: 6 tools (read_file, write_file, │\n│ list_directory, git_*) │\n├─────────────────────────────────────────────┤\n│ Resources: portal://PortalName/path URIs │\n├─────────────────────────────────────────────┤\n│ Prompts: execute_plan, create_changeset │\n├─────────────────────────────────────────────┤\n│ Transport: stdio or SSE (HTTP) │\n└─────────────────────────────────────────────┘\n\n**MCP Tools Specification:**",
       "vector": [
         0.6823529411764706,
         0.21176470588235294,
@@ -831,7 +831,7 @@
       ]
     },
     {
-      "text": "Portal files exposed as MCP resources with URI format: `portal://PortalName/path/to/file.ts`\n\n```typescript\n// Resources are dynamically discovered from portal filesystem\nconst portalResources = [\n  {\n    uri: \"portal://MyApp/src/auth.ts\",\n    name: \"MyApp: src/auth.ts\",\n    mimeType: \"text/x-typescript\",\n    description: \"Authentication module\",\n  },\n  // ... more resources\n];\n```\n\n**MCP Prompts:**\n\n```typescript\nconst EXECUTE_PLAN_PROMPT = {\n  name: \"execute_plan\",\n  description: \"Execute an approved ExoFrame plan\",\n  arguments: [\n    { name: \"plan_id\", description: \"Plan UUID\", required: true },\n    { name: \"portal\", description: \"Target portal name\", required: true },\n  ],\n};",
+      "text": "Portal files exposed as MCP resources with URI format: `portal://PortalName/path/to/file.ts`\n\n```typescript\n// Resources are dynamically discovered from portal filesystem\nconst portalResources = [\n  {\n    uri: \"portal://MyApp/src/auth.ts\",\n    name: \"MyApp: src/auth.ts\",\n    mimeType: \"text/x-typescript\",\n    description: \"Authentication module\",\n  },\n  // ... more resources\n];\n```\n\n**MCP Prompts:**\n\n```typescript\nconst EXECUTE_PLAN_PROMPT = {\n  name: \"execute_plan\",\n  description: \"Execute an approved Exaix plan\",\n  arguments: [\n    { name: \"plan_id\", description: \"Plan UUID\", required: true },\n    { name: \"portal\", description: \"Target portal name\", required: true },\n  ],\n};",
       "vector": [
         0.5490196078431373,
         0.9176470588235294,
@@ -900,7 +900,7 @@
       ]
     },
     {
-      "text": "const CREATE_CHANGESET_PROMPT = {\n  name: \"create_changeset\",\n  description: \"Create a changeset for code changes\",\n  arguments: [\n    { name: \"portal\", description: \"Portal name\", required: true },\n    { name: \"description\", description: \"Changeset description\", required: true },\n    { name: \"trace_id\", description: \"Request trace ID\", required: true },\n  ],\n};\n```\n\n**Configuration:**\n\n```toml\n# exo.config.toml\n\n[mcp]\nenabled = true\ntransport = \"stdio\"  # or \"sse\" for HTTP\nserver_name = \"exoframe\"\nversion = \"1.0.0\"\n```\n\n**Implementation Files:**",
+      "text": "const CREATE_CHANGESET_PROMPT = {\n  name: \"create_changeset\",\n  description: \"Create a changeset for code changes\",\n  arguments: [\n    { name: \"portal\", description: \"Portal name\", required: true },\n    { name: \"description\", description: \"Changeset description\", required: true },\n    { name: \"trace_id\", description: \"Request trace ID\", required: true },\n  ],\n};\n```\n\n**Configuration:**\n\n```toml\n# exa.config.toml\n\n[mcp]\nenabled = true\ntransport = \"stdio\"  # or \"sse\" for HTTP\nserver_name = \"exaix\"\nversion = \"1.0.0\"\n```\n\n**Implementation Files:**",
       "vector": [
         0.3843137254901961,
         0.7647058823529411,

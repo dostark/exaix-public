@@ -27,7 +27,7 @@ import { LogLevel, ProviderType } from "../src/shared/enums.ts";
 Deno.test("Reproduction: Zombie Plan Lifecycle in Manual Execution Mode", async () => {
   // 1. Setup Environment
   const testRoot = await Deno.makeTempDir({ prefix: "exo_test_zombie_" });
-  const configPath = `${testRoot}/exo.config.toml`;
+  const configPath = `${testRoot}/exa.config.toml`;
   console.log("testRoot:", testRoot);
   console.log("configPath:", configPath);
   console.log("isAbsolute:", configPath.startsWith("/"));

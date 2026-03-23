@@ -14,10 +14,10 @@ In this specific reported instance, the user requested an audit document, but th
 
 ## Reproduction Steps
 
-1. Start the daemon: `exoctl daemon start`
+1. Start the daemon: `exactl daemon start`
 
    ```bash
-   exoctl request --agent security-expert --portal <portal> "Perform a security audit... Do not make any changes... Your goal is to create only readable audit document..."
+   exactl request --agent security-expert --portal <portal> "Perform a security audit... Do not make any changes... Your goal is to create only readable audit document..."
    ```
 
 1.

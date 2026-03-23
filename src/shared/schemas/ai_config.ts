@@ -5,7 +5,7 @@
  * validating provider settings, retry policies, timeouts, and model configurations.
  * @architectural-layer Configuration
  * @dependencies [zod, src/ai/provider_registry.ts, src/enums.ts, src/config/constants.ts]
- * @related-files [src/config/service.ts, src/ai/provider_factory.ts, exo.config.toml]
+ * @related-files [src/config/service.ts, src/ai/provider_factory.ts, exa.config.toml]
  */
 import { z } from "zod";
 import { ProviderRegistry } from "../../ai/provider_registry.ts";
@@ -79,7 +79,7 @@ export const MockConfigSchema = z.object({
 export type MockConfig = z.infer<typeof MockConfigSchema>;
 
 /**
- * AI configuration schema for [ai] section in exo.config.toml
+ * AI configuration schema for [ai] section in exa.config.toml
  */
 export const AiConfigSchema = z.object({
   /** Provider type: mock, ollama, anthropic, openai */

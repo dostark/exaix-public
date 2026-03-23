@@ -85,7 +85,7 @@ async function setupPlanReviewerTest(options: {
     config: {
       get: () => config,
       getAll: () => config,
-      getConfigPath: () => `${root}/exo.config.toml`,
+      getConfigPath: () => `${root}/exa.config.toml`,
       reload: () => config,
       addPortal: () => Promise.resolve(),
       removePortal: () => Promise.resolve(),

@@ -1,5 +1,5 @@
 - `src/cli/changeset_commands.ts` - Add metadata loading methods
-- `src/cli/exoctl.ts` - Update display formatting
+- `src/cli/exactl.ts` - Update display formatting
 - `src/schemas/changeset.ts` - Add new fields
 - `migrations/005_changeset_enhancement.sql` - Schema updates
 - `src/services/changeset_registry.ts` - Update registration logic

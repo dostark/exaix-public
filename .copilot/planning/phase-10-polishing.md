@@ -6,7 +6,7 @@
 
 ### Overview
 
-Phase 10 collects finishing touches that improve user experience, reduce operational costs, and broaden accessibility. Activities in this phase are low-risk, high-impact improvements that make ExoFrame feel production-ready without changing core architecture.
+Phase 10 collects finishing touches that improve user experience, reduce operational costs, and broaden accessibility. Activities in this phase are low-risk, high-impact improvements that make Exaix feel production-ready without changing core architecture.
 
 ### Step 10.1: Add cost-free LLM providers ✅ COMPLETED
 
@@ -24,14 +24,14 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Test Definitions:**
 
 - Unit tests: Adapter interface conformance tests for each provider (`tests/ai/free_providers_test.ts`). ✅ (added)
-- Integration tests: Flow runs using cost-free providers in a sandbox environment (tests/integration/llm_free_provider_test.ts) — **manual and opt-in**; runs only when `EXO_ENABLE_PAID_LLM=1` and appropriate API keys are set.
-- CI behavior: Default CI uses `mock` provider and will not call paid endpoints unless explicitly opted-in via `EXO_ENABLE_PAID_LLM=1`. ✅ (config defaults to `mock`)
+- Integration tests: Flow runs using cost-free providers in a sandbox environment (tests/integration/llm_free_provider_test.ts) — **manual and opt-in**; runs only when `EXA_ENABLE_PAID_LLM=1` and appropriate API keys are set.
+- CI behavior: Default CI uses `mock` provider and will not call paid endpoints unless explicitly opted-in via `EXA_ENABLE_PAID_LLM=1`. ✅ (config defaults to `mock`)
 
 **Notes:**
 
 - Implemented a minimal `OpenAIShim` in `src/ai/providers.ts` to provide quick, low-coupling adapters for model-specific usage and to avoid circular imports with the full `OpenAIProvider` implementation.
-- Added documentation at `docs/CostFree_LLMs.md` with setup instructions, a sample `exo.config` snippet, environment variables, and instructions for running the manual integration test.
-- The manual integration test is intentionally **ignored by default** and also guards on `EXO_ENABLE_PAID_LLM=1` and the appropriate API key to prevent accidental paid calls in CI or local runs.
+- Added documentation at `docs/CostFree_LLMs.md` with setup instructions, a sample `exa.config` snippet, environment variables, and instructions for running the manual integration test.
+- The manual integration test is intentionally **ignored by default** and also guards on `EXA_ENABLE_PAID_LLM=1` and the appropriate API key to prevent accidental paid calls in CI or local runs.
 
 ### Step 10.2: Modernize IDE/Agent instruction files for VS Code (Copilot) & multi-provider agents ✅ COMPLETED
 
@@ -52,7 +52,7 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Test Definitions:**
 
 - Unit tests: `tests/agents_docs_test.ts` to validate YAML schema and presence of required sections and examples. ✅
-- Integration (manual): A documented manual test that illustrates loading `agents/copilot/exoframe.md` content into VS Code Copilot (via Copilot Labs or local Copilot preview) and verifies suggested code or prose references repository-specific guidance.
+- Integration (manual): A documented manual test that illustrates loading `agents/copilot/exaix.md` content into VS Code Copilot (via Copilot Labs or local Copilot preview) and verifies suggested code or prose references repository-specific guidance.
 - CI checks: `validate-agent-docs` workflow step that fails PRs missing required metadata or example prompts.
 
 **Notes:**
@@ -102,7 +102,7 @@ Phase 10 collects finishing touches that improve user experience, reduce operati
 **Estimated Effort & Risks (updated):**
 
 - Effort: 2–3 days for initial scaffold, validation scripts, and CI integration; another 1–2 days for embedding index and optional RAG flow. Adding CI retrieval smoke tests and provider-specific prompts increases testing overhead but improves reliability.
-- Risks: Embeddings and RAG introduce maintenance and cost considerations. If using external embeddings, make the embedding build optional and gated behind CI flags (e.g., `EXO_BUILD_EMBEDDINGS=1`) to prevent accidental costs.
+- Risks: Embeddings and RAG introduce maintenance and cost considerations. If using external embeddings, make the embedding build optional and gated behind CI flags (e.g., `EXA_BUILD_EMBEDDINGS=1`) to prevent accidental costs.
 
 **Final Note:**
 
@@ -199,14 +199,14 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 
   ```text
   dist/bin/
-  ├── exoframe-x86_64-unknown-linux-gnu
-  ├── exoframe-x86_64-apple-darwin
-  ├── exoframe-aarch64-apple-darwin
-  └── exoframe-x86_64-pc-windows-msvc.exe
+  ├── exaix-x86_64-unknown-linux-gnu
+  ├── exaix-x86_64-apple-darwin
+  ├── exaix-aarch64-apple-darwin
+  └── exaix-x86_64-pc-windows-msvc.exe
   ```text
 - **Validation**:
   - Verify binary size is within limits (e.g. < 100MB).
-  - Run `dist/bin/exoframe-<target> --version` to verify successful compilation.
+  - Run `dist/bin/exaix-<target> --version` to verify successful compilation.
 - **Success Criteria:**
   - [x] `scripts/ci.ts build --compile` produces all 4 targets
   - [x] Binaries are executable on host system
@@ -215,7 +215,7 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 
 #### 10.4. GitHub Actions CI Enablement Guide
 
-- **Action**: Document the setup process for enabling and maintaining the ExoFrame CI pipeline on GitHub.
+- **Action**: Document the setup process for enabling and maintaining the Exaix CI pipeline on GitHub.
 - **Guideline**:
   1. **Permissions**: Go to Repo Settings -> Actions -> General. Ensure "Allow all actions and reusable workflows" is selected. Set "Workflow permissions" to "Read and write permissions" (required for the Release Pipeline to upload assets).
   1.
@@ -250,7 +250,7 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 **Test Definitions:**
 
 - Validation tests: `tests/agents/claude_enhancements_test.ts` to verify all new sections exist and contain required elements (canonical prompts, examples, code snippets)
-- Integration tests (manual): Load enhanced Claude docs into Claude API and verify responses reference ExoFrame-specific patterns (e.g., `initTestDbService()`, TDD workflow, PathResolver usage)
+- Integration tests (manual): Load enhanced Claude docs into Claude API and verify responses reference Exaix-specific patterns (e.g., `initTestDbService()`, TDD workflow, PathResolver usage)
 - CI checks: Extend `validate-agent-docs` workflow to check for minimum section requirements in provider-specific docs
 
 **Enhancement Details:**
@@ -262,7 +262,7 @@ The combination of a manifest, short summaries, chunking, optional embeddings, a
 **Action:** Expand from minimal (16 lines) to comprehensive prompt templates:
 
 - **System prompts** for different task types:
-  - **TDD workflow**: "You are a test-driven development assistant for ExoFrame. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them."
+  - **TDD workflow**: "You are a test-driven development assistant for Exaix. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them."
   - **Refactoring**: "You are a refactoring assistant. Before changing code, read the existing implementation and all related tests. Propose refactoring steps that preserve behavior (proven by unchanged test results). Use `deno test --coverage` to verify coverage is maintained."
   - **Debugging**: "You are a debugging assistant. Start by reading error messages, stack traces, and the Implementation Plan step. Identify the root cause before proposing fixes. Suggest a test that reproduces the bug, then fix it."
   - **Documentation**: "You are a documentation assistant. Check the Implementation Plan for the related step. Maintain version sync, update cross-references, and include a short summary of changes with required tests."
@@ -353,7 +353,7 @@ topics: ["rag", "embeddings", "context-injection", "semantic-search"]
 
 ## Overview
 
-ExoFrame pre-computes embeddings for all agent documentation, enabling semantic search and automatic context injection for Claude-powered workflows.
+Exaix pre-computes embeddings for all agent documentation, enabling semantic search and automatic context injection for Claude-powered workflows.
 
 ## Workflow
 
@@ -409,7 +409,7 @@ const context = await inject("claude", query, 6);
 
 // 3. Build system prompt
 const systemPrompt = `
-You are a security-focused test developer for ExoFrame.
+You are a security-focused test developer for Exaix.
 
 Relevant context:
 ${context.short_summary}
@@ -645,23 +645,23 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 | Task Type                | Primary Doc                                                                     | Secondary Docs                                                 |
 | ------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Write unit tests         | [tests/testing.md](tests/testing.md)                                            | [source/exoframe.md](source/exoframe.md)                       |
-| Refactor code            | [source/exoframe.md](source/exoframe.md)                                        | [tests/testing.md](tests/testing.md)                           |
+| Write unit tests         | [tests/testing.md](tests/testing.md)                                            | [source/exaix.md](source/exaix.md)                       |
+| Refactor code            | [source/exaix.md](source/exaix.md)                                        | [tests/testing.md](tests/testing.md)                           |
 | Update documentation     | [docs/documentation.md](docs/documentation.md)                                  | -                                                              |
-| Fix TypeScript errors    | [source/exoframe.md](source/exoframe.md)                                        | [copilot/exoframe.md](copilot/exoframe.md)                     |
-| Add new feature          | [source/exoframe.md](source/exoframe.md) + [tests/testing.md](tests/testing.md) | [docs/documentation.md](docs/documentation.md)                 |
-| Debug test failures      | [tests/testing.md](tests/testing.md)                                            | [source/exoframe.md](source/exoframe.md)                       |
-| Security audit           | [tests/testing.md](tests/testing.md) (#Security Tests)                          | [source/exoframe.md](source/exoframe.md) (#System Constraints) |
+| Fix TypeScript errors    | [source/exaix.md](source/exaix.md)                                        | [copilot/exaix.md](copilot/exaix.md)                     |
+| Add new feature          | [source/exaix.md](source/exaix.md) + [tests/testing.md](tests/testing.md) | [docs/documentation.md](docs/documentation.md)                 |
+| Debug test failures      | [tests/testing.md](tests/testing.md)                                            | [source/exaix.md](source/exaix.md)                       |
+| Security audit           | [tests/testing.md](tests/testing.md) (#Security Tests)                          | [source/exaix.md](source/exaix.md) (#System Constraints) |
 | Claude-specific guidance | [providers/claude.md](providers/claude.md)                                      | [README.md](README.md)                                         |
 | RAG/embeddings usage     | [providers/claude-rag.md](providers/claude-rag.md)                              | [README.md](README.md) (#Building embeddings)                  |
 
 ## Search by Topic
 
-- **`tdd`** → [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
+- **`tdd`** → [source/exaix.md](source/exaix.md), [tests/testing.md](tests/testing.md)
 - **`security`** → [tests/testing.md](tests/testing.md) (Security Tests as First-Class Citizens)
 - **`database`** → [tests/testing.md](tests/testing.md) (Database Initialization, initTestDbService)
 - **`docs`** → [docs/documentation.md](docs/documentation.md)
-- **`patterns`** → [source/exoframe.md](source/exoframe.md) (Service Pattern, Module Documentation)
+- **`patterns`** → [source/exaix.md](source/exaix.md) (Service Pattern, Module Documentation)
 - **`helpers`** → [tests/testing.md](tests/testing.md) (Test Organization, Helpers)
 - **`embeddings`** → [providers/claude-rag.md](providers/claude-rag.md), [README.md](README.md)
 
@@ -669,7 +669,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 **"I want to add a new feature"**
 
-1. Read [docs/ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) to find or create Implementation Plan step
+1. Read [docs/Exaix_Implementation_Plan.md](../docs/Exaix_Implementation_Plan.md) to find or create Implementation Plan step
 
 1.
 1.
@@ -698,10 +698,10 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 **File:** `agents/providers/claude.md` (append section)
 
-**Action:** Add ExoFrame-specific anti-patterns:
+**Action:** Add Exaix-specific anti-patterns:
 
 ```markdown
-### Common Pitfalls with ExoFrame
+### Common Pitfalls with Exaix
 
 1. **Forgetting cleanup in tests**
    - ❌ Bad: `const { db, tempDir, cleanup } = await initTestDbService(); // no cleanup`
@@ -721,7 +721,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 1.
 
-- ❌ Bad: `"/home/user/ExoFrame/.exo/Active"`
+- ❌ Bad: `"/home/user/Exaix/.exo/Active"`
 - ✅ Good: `join(workspaceRoot, ".exo", "Active")` (use PathResolver)
 
 1.
@@ -741,7 +741,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 - [x] At least 8 common pitfalls documented
 - [x] Each pitfall includes ❌ Bad and ✅ Good examples
-- [x] Code snippets are ExoFrame-specific (not generic advice)
+- [x] Code snippets are Exaix-specific (not generic advice)
 
 #### 8. Short Summary Optimization (LOW PRIORITY)
 
@@ -762,7 +762,7 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
 **Files to review:**
 
 - `agents/docs/documentation.md`
-- `agents/source/exoframe.md`
+- `agents/source/exaix.md`
 - `agents/tests/testing.md`
 - `agents/README.md`
 
@@ -780,7 +780,7 @@ short_summary: "How to maintain docs/ and sync with Implementation Plan. Include
     const claudeMd = await Deno.readTextFile("agents/providers/claude.md");
     assert(claudeMd.includes("### Tool-Use Patterns for Claude"));
     assert(claudeMd.includes("### Thinking Protocol for Complex Tasks"));
-    assert(claudeMd.includes("### Common Pitfalls with ExoFrame"));
+    assert(claudeMd.includes("### Common Pitfalls with Exaix"));
 
     const ragMd = await Deno.readTextFile("agents/providers/claude-rag.md");
     assert(ragMd.includes("## Workflow"));

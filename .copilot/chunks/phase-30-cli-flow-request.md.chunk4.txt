@@ -12,7 +12,7 @@
 
 **Success Criteria:**
 
-- [x] `exoctl request --help` shows flow examples
+- [x] `exactl request --help` shows flow examples
 - [x] Command description mentions multi-agent flows
 - [x] Usage examples include `--flow` option
 
@@ -20,7 +20,7 @@
 
 **Files Modified:**
 
-- `src/cli/exoctl.ts`: Updated command description, enhanced --flow option help text, added usage examples
+- `src/cli/exactl.ts`: Updated command description, enhanced --flow option help text, added usage examples
 
 ---
 

@@ -1,8 +1,8 @@
-# UI Strategy Evaluation: ExoFrame MVP
+# UI Strategy Evaluation: Exaix MVP
 
 ## 1. Problem Statement
 
-The current ExoFrame workflow relies on manual file manipulation in the `Workspace/Requests` directory or CLI commands. While functional, it lacks a cohesive "cockpit" for monitoring agent activity, reviewing plans, and managing portals.
+The current Exaix workflow relies on manual file manipulation in the `Workspace/Requests` directory or CLI commands. While functional, it lacks a cohesive "cockpit" for monitoring agent activity, reviewing plans, and managing portals.
 
 ## 2. Evaluation Matrix
 
@@ -18,7 +18,7 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
 
 ### Rationale:
 
-1. **Developer Workflow**: Developers spend most of their time in the terminal. A TUI provides a "cockpit" that feels native to the existing `exoctl` workflow.
+1. **Developer Workflow**: Developers spend most of their time in the terminal. A TUI provides a "cockpit" that feels native to the existing `exactl` workflow.
 
 1.
 1.
@@ -39,6 +39,6 @@ The current ExoFrame workflow relies on manual file manipulation in the `Workspa
    - **Portal Manager**: List and status of active portals.
    - **Daemon Control**: Start/Stop/Restart the daemon from within the TUI.
 
-### Step 9.6: Integration with exoctl
+### Step 9.6: Integration with exactl
 
-1. Implement `exoctl dashboard` (or `exoctl cockpit`) to launch the TUI.
+1. Implement `exactl dashboard` (or `exactl cockpit`) to launch the TUI.

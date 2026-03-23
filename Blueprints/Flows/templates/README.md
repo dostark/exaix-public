@@ -98,6 +98,6 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
    - **Define Inputs:** Configure how data flows into each step.
 1.
    ```bash
-   exoctl flow validate ../my-process.flow.yaml
+   exactl flow validate ../my-process.flow.yaml
    ```
 

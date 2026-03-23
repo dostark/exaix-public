@@ -9,17 +9,17 @@
  */
 import { SecureCredentialStore } from "../helpers/credential_security.ts";
 
-/** Extended globalThis shape used when EXO_PERSIST_ENV_CREDENTIALS is set by the host process. */
+/** Extended globalThis shape used when EXA_PERSIST_ENV_CREDENTIALS is set by the host process. */
 interface ExoGlobal {
-  EXO_PERSIST_ENV_CREDENTIALS?: boolean;
+  EXA_PERSIST_ENV_CREDENTIALS?: boolean;
 }
 
 export async function getApiKeyWithOptionalPersistence(envKey: string): Promise<string | null> {
   const envValue = Deno.env.get(envKey);
   if (envValue) {
-    // Only persist if EXO_PERSIST_ENV_CREDENTIALS is true
-    const globalWithPersistence = globalThis as { EXO_PERSIST_ENV_CREDENTIALS?: boolean };
-    if (globalWithPersistence.EXO_PERSIST_ENV_CREDENTIALS) {
+    // Only persist if EXA_PERSIST_ENV_CREDENTIALS is true
+    const globalWithPersistence = globalThis as { EXA_PERSIST_ENV_CREDENTIALS?: boolean };
+    if (globalWithPersistence.EXA_PERSIST_ENV_CREDENTIALS) {
       // Only persist if not already present in store
       const stored = await SecureCredentialStore.get(envKey);
       if (!stored) {

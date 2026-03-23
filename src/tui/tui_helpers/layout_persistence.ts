@@ -11,7 +11,7 @@ import { MessageType } from "../../shared/enums.ts";
 import type { IPane, ITuiView } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../helpers/constants.ts";
 
-export const getLayoutFile = () => `${Deno.env.get("HOME")}/.exoframe/tui_layout.json`;
+export const getLayoutFile = () => `${Deno.env.get("HOME")}/.exaix/tui_layout.json`;
 
 export async function saveLayout(
   panes: IPane[],
@@ -19,7 +19,7 @@ export async function saveLayout(
   addNotification: (m: string, t?: string) => void,
 ) {
   try {
-    await Deno.mkdir(`${Deno.env.get("HOME")}/.exoframe`, { recursive: true });
+    await Deno.mkdir(`${Deno.env.get("HOME")}/.exaix`, { recursive: true });
     const layout = {
       panes: panes.map((p) => ({
         id: p.id,

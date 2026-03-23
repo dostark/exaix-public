@@ -3,7 +3,7 @@
   "title": "Cross-Reference Navigation Prompt",
   "vecs": [
     {
-      "text": "**Purpose:**\nThis document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.\n\n## Prompt Template\n\n```text\nI want to [task type].\n\nFirst, consult `.copilot/cross-reference.md` for the workflow:\n1. Find my task type in \"Task → Agent Doc Quick Reference\"\n2. Read the Primary Doc listed\n3. Check Secondary Docs if needed\n4. Follow the workflow example if available\n\nTask type: [write tests / refactor / update docs / fix errors / add feature / debug / security audit / etc.]\n\nThen proceed with the work following guidance from those docs.\n```\n\n---\n\n## Example Usage\n\n### Add New Feature\n\n```text\nI want to add a new feature: Flow parameter validation.",
+      "text": "**Purpose:**\nThis document provides a prompt template and usage examples for agents to navigate Exaix's cross-reference map when performing development tasks.\n\n## Prompt Template\n\n```text\nI want to [task type].\n\nFirst, consult `.copilot/cross-reference.md` for the workflow:\n1. Find my task type in \"Task → Agent Doc Quick Reference\"\n2. Read the Primary Doc listed\n3. Check Secondary Docs if needed\n4. Follow the workflow example if available\n\nTask type: [write tests / refactor / update docs / fix errors / add feature / debug / security audit / etc.]\n\nThen proceed with the work following guidance from those docs.\n```\n\n---\n\n## Example Usage\n\n### Add New Feature\n\n```text\nI want to add a new feature: Flow parameter validation.",
       "vector": [
         0.17647058823529413,
         0.6666666666666666,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "First, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Add new feature\"\n2. Primary Docs: `.copilot/source/exoframe.md` + `.copilot/tests/testing.md`\n3. Secondary Docs: `.copilot/docs/documentation.md`\n4. Workflow example: \"I want to add a new feature\"\n\nThen proceed with:\n1. Read Implementation Plan to find/create step\n2. Follow TDD from `source/exoframe.md`\n3. Use test helpers from `tests/testing.md`\n4. Update docs per `documentation.md`\n```\n\n---\n\n### Security Audit\n\n```text\nI want to perform a security audit on Portal permission boundaries.",
+      "text": "First, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Add new feature\"\n2. Primary Docs: `.copilot/source/exaix.md` + `.copilot/tests/testing.md`\n3. Secondary Docs: `.copilot/docs/documentation.md`\n4. Workflow example: \"I want to add a new feature\"\n\nThen proceed with:\n1. Read Implementation Plan to find/create step\n2. Follow TDD from `source/exaix.md`\n3. Use test helpers from `tests/testing.md`\n4. Update docs per `documentation.md`\n```\n\n---\n\n### Security Audit\n\n```text\nI want to perform a security audit on Portal permission boundaries.",
       "vector": [
         0.7019607843137254,
         0.7176470588235294,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "First, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Security audit\"\n2. Primary Docs: `.copilot/tests/testing.md` (#Security Tests)\n3. Secondary Docs: `.copilot/source/exoframe.md` (#System Constraints)\n4. Topics to search: \"security\", \"Portal\"\n\nThen design security tests covering:\n- Path traversal attempts (../)\n- Symlink escape detection\n- Absolute path restrictions\n- Cross-portal access attempts\n```\n\n---\n\n### Fix TypeScript Errors\n\n```text\nI have TypeScript errors in `src/flows/plan_executor.ts`\n\nFirst, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Fix TypeScript errors\"\n2. Primary Docs: `.copilot/source/exoframe.md`\n3. Secondary Docs: `.copilot/copilot/exoframe.md`",
+      "text": "First, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Security audit\"\n2. Primary Docs: `.copilot/tests/testing.md` (#Security Tests)\n3. Secondary Docs: `.copilot/source/exaix.md` (#System Constraints)\n4. Topics to search: \"security\", \"Portal\"\n\nThen design security tests covering:\n- Path traversal attempts (../)\n- Symlink escape detection\n- Absolute path restrictions\n- Cross-portal access attempts\n```\n\n---\n\n### Fix TypeScript Errors\n\n```text\nI have TypeScript errors in `src/flows/plan_executor.ts`\n\nFirst, consult `.copilot/cross-reference.md` for the workflow:\n1. Task type: \"Fix TypeScript errors\"\n2. Primary Docs: `.copilot/source/exaix.md`\n3. Secondary Docs: `.copilot/copilot/exaix.md`",
       "vector": [
         0.23137254901960785,
         0.3058823529411765,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "Read the errors, understand the patterns from `source/exoframe.md`, then fix following:\n- Service Pattern if it's a service\n- Proper error handling\n- Type safety throughout\n```\n\n---\n\n### Topic Search\n\n```text\nI need help with embeddings and RAG.\n\nUse `.copilot/cross-reference.md` topic search:\n- Topic: \"embeddings\" → `.copilot/providers/claude-rag.md`, `.copilot/README.md`\n- Topic: \"rag\" → `.copilot/providers/claude-rag.md`\n\nRead `claude-rag.md` sections:\n- RAG Workflow (4 steps)\n- Tools usage (`inspect_embeddings.ts`, `inject_agent_context.ts`)\n- Token budget strategies\n\nThen answer my questions about using embeddings.\n```\n\n---\n\n## Expected Response Pattern\n\nAgent should:",
+      "text": "Read the errors, understand the patterns from `source/exaix.md`, then fix following:\n- Service Pattern if it's a service\n- Proper error handling\n- Type safety throughout\n```\n\n---\n\n### Topic Search\n\n```text\nI need help with embeddings and RAG.\n\nUse `.copilot/cross-reference.md` topic search:\n- Topic: \"embeddings\" → `.copilot/providers/claude-rag.md`, `.copilot/README.md`\n- Topic: \"rag\" → `.copilot/providers/claude-rag.md`\n\nRead `claude-rag.md` sections:\n- RAG Workflow (4 steps)\n- Tools usage (`inspect_embeddings.ts`, `inject_agent_context.ts`)\n- Token budget strategies\n\nThen answer my questions about using embeddings.\n```\n\n---\n\n## Expected Response Pattern\n\nAgent should:",
       "vector": [
         0.2901960784313726,
         0.11764705882352941,

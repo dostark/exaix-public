@@ -1,9 +1,9 @@
-# ExoFrame Manual Test Scenarios
+# Exaix Manual Test Scenarios
 
 - **Version:** 2.0.0
 - **Release Date:** 2026-01-16
 - **Status:** Active
-- **Reference:** [Testing Strategy](./ExoFrame_Testing_and_CI_Strategy.md) Section 2.4
+- **Reference:** [Testing Strategy](./Exaix_Testing_and_CI_Strategy.md) Section 2.4
 
 ---
 
@@ -80,7 +80,7 @@
 
 ## Overview
 
-This document contains detailed manual test scenarios for ExoFrame. Each scenario includes:
+This document contains detailed manual test scenarios for Exaix. Each scenario includes:
 
 - **Preconditions** — Required setup before testing
 - **Steps** — Exact commands to execute
@@ -136,12 +136,12 @@ Execute these scenarios on each target platform before major releases.
 # Verify Deno is installed (v2.x required)
 deno --version
 
-# Clone ExoFrame repository (if fresh install test)
-git clone https://github.com/dostark/exoframe.git
-cd exoframe
+# Clone Exaix repository (if fresh install test)
+git clone https://github.com/dostark/exaix.git
+cd exaix
 
 # Or use existing workspace
-cd ~/ExoFrame
+cd ~/Exaix
 ```
 
 ### Environment Variables
@@ -157,27 +157,27 @@ export OPENAI_API_KEY="your-api-key"
 
 ## Scenario MT-01: Fresh Installation
 
-**Purpose:** Verify ExoFrame can be installed and initialized on a clean system.
+**Purpose:** Verify Exaix can be installed and initialized on a clean system.
 
 ### Preconditions
 
 - Fresh system or clean user account
 - Deno v2.x installed
-- No existing ExoFrame installation
+- No existing Exaix installation
 
 ### Steps
 
 ```bash
 # Step 1: Clone the repository
-git clone https://github.com/dostark/exoframe.git
-cd exoframe
+git clone https://github.com/dostark/exaix.git
+cd exaix
 
 # Step 2: Deploy workspace using the deploy script (recommended)
-./scripts/deploy_workspace.sh ~/ExoFrame
+./scripts/deploy_workspace.sh ~/Exaix
 
 # Step 3: Navigate to workspace and verify CLI
-cd ~/ExoFrame
-exoctl --help
+cd ~/Exaix
+exactl --help
 ```
 
 ### Expected Results
@@ -185,7 +185,7 @@ exoctl --help
 **Step 1:**
 
 - Repository cloned successfully
-- All files present in `exoframe/` directory
+- All files present in `exaix/` directory
 
 **Step 2:**
 
@@ -193,25 +193,25 @@ exoctl --help
 - Creates runtime folders (`System`, `Memory`, `Workspace`, `Portals`, `.exo`)
 - Copies runtime artifacts to target workspace
 - Runs `deno task cache` and `deno task setup` automatically
-- Installs `exoctl` CLI globally to `~/.deno/bin/`
+- Installs `exactl` CLI globally to `~/.deno/bin/`
 
 **Step 3:**
 
-- Shows available exoctl commands
+- Shows available exactl commands
 - Should include: `daemon`, `request`, `plan`, `blueprint`, `portal`, etc.
 
 ### Verification
 
 ```bash
 # Check directory structure was created
-ls -la ~/ExoFrame/
+ls -la ~/Exaix/
 # Expected: Blueprints/ Workspace/ Memory/ Portals/ .exo/
 
 # Check config file exists
-cat ~/ExoFrame/exo.config.toml
+cat ~/Exaix/exa.config.toml
 
-# Verify exoctl is installed
-exoctl --help
+# Verify exactl is installed
+exactl --help
 ```
 
 ### Pass Criteria
@@ -219,7 +219,7 @@ exoctl --help
 - [ ] All directories created (Blueprints, Workspace, Memory, Portals, .exo)
 - [ ] Config file exists and is valid TOML
 - [ ] Database initialized (`.exo/journal.db`)
-- [ ] `exoctl` CLI accessible
+- [ ] `exactl` CLI accessible
 - [ ] No error messages during setup
 
 ---
@@ -230,23 +230,23 @@ exoctl --help
 
 ### Preconditions
 
-- ExoFrame installed (MT-01 complete)
+- Exaix installed (MT-01 complete)
 - No daemon currently running
 
 ### Steps
 
 ```bash
 # Step 1: Navigate to workspace
-cd ~/ExoFrame
+cd ~/Exaix
 
 # Step 2: Start daemon in foreground (for visibility)
-exoctl daemon start
+exactl daemon start
 
 # Step 3: Wait for startup (2-3 seconds)
 sleep 3
 
 # Step 4: Check daemon status
-exoctl daemon status
+exactl daemon status
 ```
 
 ### Expected Results
@@ -254,7 +254,7 @@ exoctl daemon status
 **Step 2:**
 
 - Daemon starts without errors
-- Output shows: "ExoFrame daemon started"
+- Output shows: "Exaix daemon started"
 - Shows watching directories
 
 **Step 3:**
@@ -270,29 +270,29 @@ exoctl daemon status
 
 ```bash
 # Check process is running
-pgrep -f "exoframe" || ps aux | grep exoframe
+pgrep -f "exaix" || ps aux | grep exaix
 
 # Check database was created
-ls -la ~/ExoFrame/.exo/journal.db
+ls -la ~/Exaix/.exo/journal.db
 
 # Check log output
-tail -20 ~/ExoFrame/.exo/daemon.log
+tail -20 ~/Exaix/.exo/daemon.log
 ```
 
 ### Cleanup
 
 ```bash
 # Stop the daemon
-exoctl daemon stop
+exactl daemon stop
 # OR kill the process
-pkill -f "exoframe"
+pkill -f "exaix"
 ```
 
 ### Pass Criteria
 
 - [ ] Daemon process running
 - [ ] Database file created
-- [ ] `exoctl daemon status` shows "Running"
+- [ ] `exactl daemon status` shows "Running"
 - [ ] No error messages in logs
 
 ---
@@ -303,7 +303,7 @@ pkill -f "exoframe"
 
 ### Preconditions
 
-- ExoFrame workspace deployed at `~/ExoFrame`
+- Exaix workspace deployed at `~/Exaix`
 - Database initialized
 - No existing test blueprints
 
@@ -311,28 +311,28 @@ pkill -f "exoframe"
 
 ````bash
 # Step 1: List existing blueprints (should be empty or only defaults)
-cd ~/ExoFrame
-exoctl blueprint list
+cd ~/Exaix
+exactl blueprint list
 
 # Step 2: Create a blueprint from scratch
-exoctl blueprint create test-agent \
+exactl blueprint create test-agent \
   --name "Test Agent" \
   --model "ollama:codellama:13b" \
   --description "Test agent for manual scenarios"
 
 # Step 3: Create a blueprint using template
-exoctl blueprint create coder-test \
+exactl blueprint create coder-test \
   --name "Test Coder" \
   --template coder
 
 # Step 4: List blueprints again
-exoctl blueprint list
+exactl blueprint list
 
 # Step 5: Show blueprint details
-exoctl blueprint show coder-test
+exactl blueprint show coder-test
 
 # Step 6: Validate blueprint
-exoctl blueprint validate coder-test
+exactl blueprint validate coder-test
 
 # Step 7: Create blueprint with custom system prompt
 cat > /tmp/custom-prompt.txt << 'EOF'
@@ -353,18 +353,18 @@ Test content
 \```
 EOF
 
-exoctl blueprint create custom-test\
+exactl blueprint create custom-test\
 --name "Custom Test"\
 --model "mock:test-model"\
 --system-prompt-file /tmp/custom-prompt.txt
 
 # Step 8: Validate custom blueprint
 
-exoctl blueprint validate custom-test
+exactl blueprint validate custom-test
 
 # Step 9: Create an invalid blueprint manually
 
-cat > ~/ExoFrame/Blueprints/Agents/invalid-test.md << 'EOF'
+cat > ~/Exaix/Blueprints/Agents/invalid-test.md << 'EOF'
 +++
 name = "Missing agent_id"
 model = "ollama:llama3.2"
@@ -375,38 +375,38 @@ EOF
 
 # Step 10: Try to validate invalid blueprint
 
-exoctl blueprint validate invalid-test
+exactl blueprint validate invalid-test
 
 # Step 11: Test reserved name rejection
 
-exoctl blueprint create system\
+exactl blueprint create system\
 --name "System Agent"\
 --model "ollama:llama3.2" 2>&1 || echo "Expected: Reserved name rejected"
 
 # Step 12: Test duplicate rejection
 
-exoctl blueprint create test-agent\
+exactl blueprint create test-agent\
 --name "Duplicate Test"\
 --model "ollama:llama3.2" 2>&1 || echo "Expected: Duplicate rejected"
 
 # Step 13: Test edit command (requires EDITOR)
 
 export EDITOR="cat" # Use cat to just display without editing
-exoctl blueprint edit test-agent
+exactl blueprint edit test-agent
 
 # Step 14: Use blueprint in a request
 
-exoctl blueprint create mock-agent --name "Mock Agent" --template mock
-exoctl request "Test request for manual scenario" --agent mock-agent
+exactl blueprint create mock-agent --name "Mock Agent" --template mock
+exactl request "Test request for manual scenario" --agent mock-agent
 
 # Step 15: Remove blueprints
 
 ```bash
-exoctl blueprint remove custom-test --force
-exoctl blueprint remove coder-test --force
-exoctl blueprint remove mock-agent --force
-exoctl blueprint remove test-agent --force
-exoctl blueprint remove invalid-test --force
+exactl blueprint remove custom-test --force
+exactl blueprint remove coder-test --force
+exactl blueprint remove mock-agent --force
+exactl blueprint remove test-agent --force
+exactl blueprint remove invalid-test --force
 ```
 
 ### Expected Results
@@ -419,7 +419,7 @@ exoctl blueprint remove invalid-test --force
 **Step 2:**
 
 - Blueprint created successfully
-- File created at `~/ExoFrame/Blueprints/Agents/test-agent.md`
+- File created at `~/Exaix/Blueprints/Agents/test-agent.md`
 - Success message with path shown
 - Activity logged
 
@@ -476,7 +476,7 @@ exoctl blueprint remove invalid-test --force
 
 - Command fails with error
 - Error message: "Blueprint 'test-agent' already exists"
-- Suggests using `exoctl blueprint edit` instead
+- Suggests using `exactl blueprint edit` instead
 
 **Step 13:**
 
@@ -499,28 +499,28 @@ exoctl blueprint remove invalid-test --force
 
 ```bash
 # Check blueprint files were created
-ls -la ~/ExoFrame/Blueprints/Agents/
+ls -la ~/Exaix/Blueprints/Agents/
 # Expected: test-agent.md, coder-test.md, custom-test.md, mock-agent.md, invalid-test.md
 
 # Check TOML frontmatter format
-head -20 ~/ExoFrame/Blueprints/Agents/test-agent.md
+head -20 ~/Exaix/Blueprints/Agents/test-agent.md
 # Expected: Starts with +++, has TOML fields, ends with +++
 
 # Check system prompt from file was loaded
-grep "Custom Test Agent" ~/ExoFrame/Blueprints/Agents/custom-test.md
+grep "Custom Test Agent" ~/Exaix/Blueprints/Agents/custom-test.md
 # Expected: Custom prompt content present
 
 # Check Activity Journal logged blueprint operations
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE 'blueprint.%' ORDER BY timestamp DESC LIMIT 10;"
-exoctl journal --filter action_type=blueprint.% --tail 10
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE 'blueprint.%' ORDER BY timestamp DESC LIMIT 10;"
+exactl journal --filter action_type=blueprint.% --tail 10
 # Expected: blueprint.created, blueprint.edited, blueprint.removed entries
 
 # Verify blueprints were removed
-ls ~/ExoFrame/Blueprints/Agents/*.md 2>/dev/null | grep -E "(test-agent|coder-test|custom-test|mock-agent)" || echo "All test blueprints removed"
+ls ~/Exaix/Blueprints/Agents/*.md 2>/dev/null | grep -E "(test-agent|coder-test|custom-test|mock-agent)" || echo "All test blueprints removed"
 # Expected: No test blueprint files remain
 
 # Check request was created with custom agent
-cat ~/ExoFrame/Workspace/Requests/request-*.md | grep "mock-agent"
+cat ~/Exaix/Workspace/Requests/request-*.md | grep "mock-agent"
 # Expected: Request references mock-agent
 ````
 
@@ -528,17 +528,17 @@ cat ~/ExoFrame/Workspace/Requests/request-*.md | grep "mock-agent"
 
 ```bash
 # Remove any remaining test blueprints
-rm -f ~/ExoFrame/Blueprints/Agents/test-agent.md
-rm -f ~/ExoFrame/Blueprints/Agents/coder-test.md
-rm -f ~/ExoFrame/Blueprints/Agents/custom-test.md
-rm -f ~/ExoFrame/Blueprints/Agents/mock-agent.md
-rm -f ~/ExoFrame/Blueprints/Agents/invalid-test.md
+rm -f ~/Exaix/Blueprints/Agents/test-agent.md
+rm -f ~/Exaix/Blueprints/Agents/coder-test.md
+rm -f ~/Exaix/Blueprints/Agents/custom-test.md
+rm -f ~/Exaix/Blueprints/Agents/mock-agent.md
+rm -f ~/Exaix/Blueprints/Agents/invalid-test.md
 
 # Remove custom prompt file
 rm -f /tmp/custom-prompt.txt
 
 # Remove test request
-rm -f ~/ExoFrame/Workspace/Requests/request-*.md
+rm -f ~/Exaix/Workspace/Requests/request-*.md
 
 # Reset EDITOR
 unset EDITOR
@@ -546,18 +546,18 @@ unset EDITOR
 
 ### Pass Criteria
 
-- [ ] `exoctl blueprint list` shows all blueprints
-- [ ] `exoctl blueprint create` generates valid TOML frontmatter
+- [ ] `exactl blueprint list` shows all blueprints
+- [ ] `exactl blueprint create` generates valid TOML frontmatter
 - [ ] Template system applies correct defaults (model, capabilities)
 - [ ] `--system-prompt-file` loads content from file
-- [ ] `exoctl blueprint show` displays full blueprint
-- [ ] `exoctl blueprint validate` detects schema errors
+- [ ] `exactl blueprint show` displays full blueprint
+- [ ] `exactl blueprint validate` detects schema errors
 - [ ] Validation requires `<thought>` and `<content>` tags
 - [ ] Reserved names (`system`, `test`) are rejected
 - [ ] Duplicate agent_id names are rejected
-- [ ] `exoctl blueprint edit` opens in $EDITOR
-- [ ] Blueprints can be used in `exoctl request --agent`
-- [ ] `exoctl blueprint remove` deletes files
+- [ ] `exactl blueprint edit` opens in $EDITOR
+- [ ] Blueprints can be used in `exactl request --agent`
+- [ ] `exactl blueprint remove` deletes files
 - [ ] All operations logged to Activity Journal
 - [ ] Invalid frontmatter detected during validation
 - [ ] Clear error messages for all failure cases
@@ -577,18 +577,18 @@ unset EDITOR
 
 ```bash
 # Step 1: Create mock blueprint (if not exists)
-exoctl blueprint create mock-agent \
+exactl blueprint create mock-agent \
   --name "Mock Agent" \
   --template mock
 
 # Step 2: Create a simple request using mock agent
-exoctl request "Add a hello world function to utils.ts" --agent mock-agent
+exactl request "Add a hello world function to utils.ts" --agent mock-agent
 
 # Step 3: List requests
-exoctl request list
+exactl request list
 
 # Step 4: Verify request file
-ls -la ~/ExoFrame/Workspace/Requests/
+ls -la ~/Exaix/Workspace/Requests/
 ```
 
 ### Expected Results
@@ -619,7 +619,7 @@ ls -la ~/ExoFrame/Workspace/Requests/
 
 ```bash
 # Read the request file
-cat ~/ExoFrame/Workspace/Requests/request-*.md
+cat ~/Exaix/Workspace/Requests/request-*.md
 
 # Expected content (YAML frontmatter):
 # ---
@@ -641,7 +641,7 @@ cat ~/ExoFrame/Workspace/Requests/request-*.md
 
 ```bash
 # Remove test request if not proceeding to MT-05
-rm -f ~/ExoFrame/Workspace/Requests/request-*.md
+rm -f ~/Exaix/Workspace/Requests/request-*.md
 ```
 
 ### Pass Criteria
@@ -649,7 +649,7 @@ rm -f ~/ExoFrame/Workspace/Requests/request-*.md
 - [ ] Request file created in `Workspace/Requests/`
 - [ ] Valid YAML frontmatter with trace_id
 - [ ] Request content matches input
-- [ ] `exoctl request list` shows the request
+- [ ] `exactl request list` shows the request
 
 ---
 
@@ -659,7 +659,7 @@ rm -f ~/ExoFrame/Workspace/Requests/request-*.md
 
 ### Preconditions
 
-- Daemon running with mock LLM (requires `EXO_LLM_PROVIDER=mock` or config)
+- Daemon running with mock LLM (requires `EXA_LLM_PROVIDER=mock` or config)
 - Request created (MT-04 complete)
 
 **Note:** MockLLMProvider automatically initializes with default pattern fallbacks when no recordings are provided, so it will generate valid plans without requiring pre-recorded responses.
@@ -668,25 +668,25 @@ rm -f ~/ExoFrame/Workspace/Requests/request-*.md
 
 ```bash
 # Step 1: Verify daemon is running
-exoctl daemon status
+exactl daemon status
 
 # Step 2: Create a mock blueprint (if not exists)
-exoctl blueprint create mock-agent \
+exactl blueprint create mock-agent \
   --name "Mock Agent" \
   --template mock
 
 # Step 3: Create request using mock agent
-exoctl request "Add a hello world function to utils.ts" --agent mock-agent
+exactl request "Add a hello world function to utils.ts" --agent mock-agent
 
 # Step 4: Wait for plan generation
 sleep 5
-exoctl plan list
+exactl plan list
 
 # Step 5: View the generated plan
-exoctl plan show <plan-id>
+exactl plan show <plan-id>
 
 # Step 6: Verify plan file
-ls -la ~/ExoFrame/Workspace/Plans/
+ls -la ~/Exaix/Workspace/Plans/
 ```
 
 ### Expected Results
@@ -694,7 +694,7 @@ ls -la ~/ExoFrame/Workspace/Plans/
 **Step 1:**
 
 - Daemon status shows "Running"
-- If not running, start with: `EXO_LLM_PROVIDER=mock exoctl daemon start`
+- If not running, start with: `EXA_LLM_PROVIDER=mock exactl daemon start`
 
 **Step 2:**
 
@@ -724,7 +724,7 @@ ls -la ~/ExoFrame/Workspace/Plans/
 
 ```bash
 # Read the plan file
-cat ~/ExoFrame/Workspace/Plans/*_plan.md
+cat ~/Exaix/Workspace/Plans/*_plan.md
 
 # Expected structure with YAML frontmatter:
 # ---
@@ -777,31 +777,31 @@ If no plans are generated after 30 seconds:
 
 ```bash
 # Check daemon logs for errors
-tail -50 ~/ExoFrame/.exo/daemon.log
+tail -50 ~/Exaix/.exo/daemon.log
 
 # Look for processing errors
-grep -i "request.*processing\|plan.*generated\|error" ~/ExoFrame/.exo/daemon.log | tail -10
+grep -i "request.*processing\|plan.*generated\|error" ~/Exaix/.exo/daemon.log | tail -10
 
 # Check if request processor is running
-grep -i "watcher\|detected" ~/ExoFrame/.exo/daemon.log | tail -20
+grep -i "watcher\|detected" ~/Exaix/.exo/daemon.log | tail -20
 
 # Verify request file is valid YAML
-cat ~/ExoFrame/Workspace/Requests/request-*.md
+cat ~/Exaix/Workspace/Requests/request-*.md
 
 # Check request status
-cat ~/ExoFrame/Workspace/Requests/request-*.md | grep "^status:"
+cat ~/Exaix/Workspace/Requests/request-*.md | grep "^status:"
 
 # Try restarting daemon
-exoctl daemon stop
-exoctl daemon start
+exactl daemon stop
+exactl daemon start
 sleep 5
-exoctl plan list
+exactl plan list
 ```
 
 **Common Issues:**
 
 1. **Plan not generated** - Check that:
-   - Daemon is running (`exoctl daemon status`)
+   - Daemon is running (`exactl daemon status`)
    - Request file has valid YAML frontmatter
    - Blueprint file exists for the specified agent
    - No errors in daemon logs
@@ -837,14 +837,14 @@ exoctl plan list
 
 ```bash
 # Step 1: List plans in review
-exoctl plan list --status review
+exactl plan list --status review
 
 # Step 2: Approve the plan
-exoctl plan approve <plan-id>
+exactl plan approve <plan-id>
 
 # Step 3: Verify plan moved
-exoctl plan list --status approved
-ls -la ~/ExoFrame/Workspace/Active/
+exactl plan list --status approved
+ls -la ~/Exaix/Workspace/Active/
 ```
 
 ### Expected Results
@@ -867,13 +867,13 @@ ls -la ~/ExoFrame/Workspace/Active/
 
 ```bash
 # Check plan is no longer in Workspace
-ls ~/ExoFrame/Workspace/Plans/ | grep "_plan.md"  # Should be empty
+ls ~/Exaix/Workspace/Plans/ | grep "_plan.md"  # Should be empty
 
 # Check plan is in Active
-ls ~/ExoFrame/Workspace/Active/ | grep "_plan.md"  # Should show file
+ls ~/Exaix/Workspace/Active/ | grep "_plan.md"  # Should show file
 
 # Read moved plan file
-cat ~/ExoFrame/Workspace/Active/*_plan.md
+cat ~/Exaix/Workspace/Active/*_plan.md
 # YAML frontmatter should show:
 # ---
 # status: approved
@@ -901,18 +901,18 @@ cat ~/ExoFrame/Workspace/Active/*_plan.md
 
 ```bash
 # Step 1: Create a new request
-exoctl request "Create a test feature"
+exactl request "Create a test feature"
 
 # Step 2: Wait for plan generation
 sleep 5
-exoctl plan list --status review
+exactl plan list --status review
 
 # Step 3: Reject the plan with reason
-exoctl plan reject <plan-id> --reason "Needs different approach"
+exactl plan reject <plan-id> --reason "Needs different approach"
 
 # Step 4: Verify plan archived
-exoctl plan list --status rejected
-ls -la ~/ExoFrame/Workspace/Archive/
+exactl plan list --status rejected
+ls -la ~/Exaix/Workspace/Archive/
 ```
 
 ### Expected Results
@@ -931,8 +931,8 @@ ls -la ~/ExoFrame/Workspace/Archive/
 
 ```bash
 # Read archived plan
-cat ~/ExoFrame/Workspace/Archive/*_plan.md 2>/dev/null || \
-cat ~/ExoFrame/Workspace/Plans/*_rejected.md 2>/dev/null
+cat ~/Exaix/Workspace/Archive/*_plan.md 2>/dev/null || \
+cat ~/Exaix/Workspace/Plans/*_rejected.md 2>/dev/null
 
 # YAML frontmatter should contain:
 # ---
@@ -965,20 +965,20 @@ cat ~/ExoFrame/Workspace/Plans/*_rejected.md 2>/dev/null
 
 ```bash
 # Step 1: Create senior-coder blueprint (if not exists)
-exoctl blueprint create senior-coder \
+exactl blueprint create senior-coder \
     --name "Senior Coder" \
     --model ollama:codellama:7b-instruct \
     --template coder
 
 # OR use mock blueprint for testing
-exoctl blueprint create mock \
+exactl blueprint create mock \
     --name "Mock Agent" \
     --model mock:test-model \
     --template mock
 
 # Step 2: Verify blueprint exists
-exoctl blueprint list
-exoctl blueprint show senior-coder
+exactl blueprint list
+exactl blueprint show senior-coder
 ```
 
 ### Part B: Portal Security Configuration
@@ -997,22 +997,22 @@ git commit -m "Initial commit"
 git checkout -b release_1.2
 git checkout main
 
-# Step 3: Mount portal in ExoFrame
-cd ~/ExoFrame
-exoctl portal add /tmp/test-portal TestApp \
+# Step 3: Mount portal in Exaix
+cd ~/Exaix
+exactl portal add /tmp/test-portal TestApp \
   --default-branch main \
   --execution-strategy worktree
 
 # Step 4: Verify portal configuration
-exoctl portal list
-exoctl portal show TestApp
+exactl portal list
+exactl portal show TestApp
 ```
 
 ### Part C: Plan Execution (Happy Path)
 
 ```bash
 # Step 1: Create request targeting the portal and a specific base branch
-exoctl request "Add hello world function to src/utils.ts" \
+exactl request "Add hello world function to src/utils.ts" \
     --agent senior-coder \
   --portal TestApp \
   --target-branch release_1.2
@@ -1021,34 +1021,34 @@ exoctl request "Add hello world function to src/utils.ts" \
 sleep 5
 
 # Step 3: List and show generated plan
-exoctl plan list
-exoctl plan show <plan-id>
+exactl plan list
+exactl plan show <plan-id>
 
 # Step 4: Approve the plan (triggers execution)
-exoctl plan approve <plan-id>
+exactl plan approve <plan-id>
 
 # Step 5: Wait for execution
 sleep 10
 
 # Step 6: Verify review created
-exoctl review list
+exactl review list
 
 # Expected output:
 # ✅ review-uuid  TestApp  feat/hello-world-abc  pending
 
 # Step 7: Verify worktree execution pointer exists (worktree strategy)
 # Note: This is a discoverability pointer; it may be a symlink or a PATH.txt file.
-ls -la ~/ExoFrame/Memory/Execution/<trace-id>/worktree
+ls -la ~/Exaix/Memory/Execution/<trace-id>/worktree
 
 # Step 8: List git worktrees for the portal repo (optional, helps debugging)
-exoctl git worktrees list --portal TestApp
+exactl git worktrees list --portal TestApp
 ```
 
 ### Part D: Review Verification
 
 ```bash
 # Step 1: View review details
-exoctl review show <review-id>
+exactl review show <review-id>
 
 # Expected output:
 # Portal: TestApp
@@ -1061,7 +1061,7 @@ exoctl review show <review-id>
 # Created By: senior-coder
 
 # Step 2: View diff
-exoctl review show <review-id> --diff
+exactl review show <review-id> --diff
 
 # Expected output:
 # +++ src/utils.ts
@@ -1075,8 +1075,8 @@ git branch -a
 # Should show: feat/hello-world-<trace-id-prefix>
 
 # Step 4: Check Activity Journal for execution events
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '<trace-id>' ORDER BY timestamp DESC LIMIT 50;"
-exoctl journal --filter trace_id=<trace-id>
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '<trace-id>' ORDER BY timestamp DESC LIMIT 50;"
+exactl journal --filter trace_id=<trace-id>
 
 # Expected events:
 # plan.execution_started
@@ -1091,7 +1091,7 @@ exoctl journal --filter trace_id=<trace-id>
 
 ```bash
 # Step 1: Approve the review (merges to recorded base branch)
-exoctl review approve <review-id>
+exactl review approve <review-id>
 
 # Step 2: Verify merge completed
 cd /tmp/test-portal
@@ -1104,14 +1104,14 @@ cat /tmp/test-portal/src/utils.ts
 # Should contain hello world function
 
 # Step 4: Check review status updated
-exoctl review show <review-id>
+exactl review show <review-id>
 # Status should be: approved
 # approved_by and approved_at should be set
 
 # Step 5: Cleanup expectations
 # - Branch-based execution: merge occurs; feature branch may remain.
 # - Worktree-based execution: worktree checkout + pointer are cleaned up, and the feature branch is deleted.
-#   - Pointer path: ~/ExoFrame/Memory/Execution/<trace-id>/worktree (symlink or PATH.txt).
+#   - Pointer path: ~/Exaix/Memory/Execution/<trace-id>/worktree (symlink or PATH.txt).
 # - If a merge conflict occurs during approve (worktree-based): merge is aborted best-effort and worktree checkout + pointer are cleaned up,
 #   but the feature branch is kept for manual conflict resolution.
 ```
@@ -1120,14 +1120,14 @@ exoctl review show <review-id>
 
 ```bash
 # Step 1: Create another request and wait for review
-exoctl request "Add goodbye function" --agent senior-coder --portal TestApp
+exactl request "Add goodbye function" --agent senior-coder --portal TestApp
 sleep 15
 
 # Step 2: Reject the review with reason
-exoctl review reject <review-id> --reason "Needs different approach"
+exactl review reject <review-id> --reason "Needs different approach"
 
 # Step 3: Verify rejection recorded
-exoctl review show <review-id>
+exactl review show <review-id>
 # Status: rejected
 # rejected_by and rejected_at should be set
 # rejection_reason: "Needs different approach"
@@ -1145,12 +1145,12 @@ git branch -a
 # ToolRegistry prevents access outside allowed roots (Workspace, Memory, Blueprints, Portals)
 
 # Create a request that tries to read /etc/passwd
-exoctl request "Read /etc/passwd" --agent senior-coder
+exactl request "Read /etc/passwd" --agent senior-coder
 
 # Wait for execution and check logs
 sleep 10
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
-exoctl journal --filter action_type=action.failed
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
+exactl journal --filter action_type=action.failed
 
 # Expected:
 # Error: Access denied: Path /etc/passwd resolves to /etc/passwd, outside allowed roots
@@ -1159,12 +1159,12 @@ exoctl journal --filter action_type=action.failed
 # ToolRegistry only allows whitelisted commands (echo, cat, ls, git, etc.)
 
 # Create a request that tries to run 'rm -rf /' (dangerous command)
-exoctl request "Run rm -rf /" --agent senior-coder
+exactl request "Run rm -rf /" --agent senior-coder
 
 # Wait for execution and check logs
 sleep 10
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
-exoctl journal --filter action_type=action.failed
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
+exactl journal --filter action_type=action.failed
 
 # Expected:
 # Error: Command 'rm' is not allowed.
@@ -1174,16 +1174,16 @@ exoctl journal --filter action_type=action.failed
 
 ```bash
 # Step 1: Verify git commands available
-exoctl git --help
+exactl git --help
 
 # Step 2: List branches across portals
-exoctl git branches
+exactl git branches
 
 # Step 3: Check git status
-exoctl git status
+exactl git status
 
 # Step 4: Search git log for trace_id
-exoctl git log <trace-id>
+exactl git log <trace-id>
 # Should find commits with [ExoTrace: <trace-id>] footer
 ```
 
@@ -1192,13 +1192,13 @@ exoctl git log <trace-id>
 **Part A (Blueprint Setup):**
 
 - Agent blueprint created or verified
-- Blueprint visible in `exoctl blueprint list`
+- Blueprint visible in `exactl blueprint list`
 
 **Part B (Portal Configuration):**
 
 - Portal configured
 - Git repo initialized in portal directory
-- Portal mounted and visible in ExoFrame
+- Portal mounted and visible in Exaix
 
 **Part C (Execution):**
 
@@ -1237,11 +1237,11 @@ exoctl git log <trace-id>
 **Blueprint Setup:**
 
 - [ ] Agent blueprint (`senior-coder` or `mock`) created or exists
-- [ ] Blueprint visible in `exoctl blueprint list`
+- [ ] Blueprint visible in `exactl blueprint list`
 
 **Configuration & Setup:**
 
-- [ ] Portal mounted and accessible via ExoFrame
+- [ ] Portal mounted and accessible via Exaix
 
 **Plan Execution:**
 
@@ -1254,10 +1254,10 @@ exoctl git log <trace-id>
 **Review Lifecycle:**
 
 - [ ] Review registered in database with status=pending
-- [ ] `exoctl review list` shows pending reviews
-- [ ] `exoctl review show <id>` displays details and diff
-- [ ] `exoctl review approve <id>` merges to main
-- [ ] `exoctl review reject <id>` records reason and updates status
+- [ ] `exactl review list` shows pending reviews
+- [ ] `exactl review show <id>` displays details and diff
+- [ ] `exactl review approve <id>` merges to main
+- [ ] `exactl review reject <id>` records reason and updates status
 
 **Activity Journal:**
 
@@ -1273,9 +1273,9 @@ exoctl git log <trace-id>
 
 **Git Commands:**
 
-- [ ] `exoctl git branches` lists all portal branches
-- [ ] `exoctl git status` shows repository status
-- [ ] `exoctl git log <trace-id>` finds commits by trace_id
+- [ ] `exactl git branches` lists all portal branches
+- [ ] `exactl git status` shows repository status
+- [ ] `exactl git log <trace-id>` finds commits by trace_id
 
 ---
 
@@ -1285,7 +1285,7 @@ exoctl git log <trace-id>
 
 ### Preconditions
 
-- ExoFrame running
+- Exaix running
 - External project directory exists
 
 ### Steps
@@ -1297,14 +1297,14 @@ echo "# Test Project" > /tmp/test-project/README.md
 echo "export const version = '1.0';" > /tmp/test-project/index.ts
 
 # Step 2: Mount the portal
-exoctl portal add /tmp/test-project TestProject
+exactl portal add /tmp/test-project TestProject
 
 # Step 3: Verify portal created
-exoctl portal list
-ls -la ~/ExoFrame/Portals/
+exactl portal list
+ls -la ~/Exaix/Portals/
 
 # Step 4: Verify symlink works
-cat ~/ExoFrame/Portals/TestProject/README.md
+cat ~/Exaix/Portals/TestProject/README.md
 ```
 
 ### Expected Results
@@ -1328,21 +1328,21 @@ cat ~/ExoFrame/Portals/TestProject/README.md
 
 ```bash
 # Check symlink
-ls -la ~/ExoFrame/Portals/TestProject
+ls -la ~/Exaix/Portals/TestProject
 # Should show: TestProject -> /tmp/test-project
 
 # Verify context card generated
-cat ~/ExoFrame/Knowledge/Portals/TestProject.md
+cat ~/Exaix/Knowledge/Portals/TestProject.md
 ```
 
 ### Cleanup
 
 ```bash
 # Remove portal
-exoctl portal remove TestProject
+exactl portal remove TestProject
 
 # Verify removal
-ls ~/ExoFrame/Portals/ | grep TestProject  # Should be empty
+ls ~/Exaix/Portals/ | grep TestProject  # Should be empty
 
 # Clean up test project
 rm -rf /tmp/test-project
@@ -1373,8 +1373,8 @@ rm -rf /tmp/test-project
 DAEMON_PID=$(pgrep -f "deno.*main.ts" | head -1)
 echo "Daemon PID: $DAEMON_PID"
 
-# Alternative: Use exoctl to get PID
-# exoctl daemon status | grep "PID:"
+# Alternative: Use exactl to get PID
+# exactl daemon status | grep "PID:"
 
 # Step 2: Force kill the daemon (simulate crash)
 kill -9 $DAEMON_PID
@@ -1383,12 +1383,12 @@ kill -9 $DAEMON_PID
 pgrep -f "deno.*main.ts" || echo "Daemon stopped"
 
 # Step 4: Restart daemon
-cd ~/ExoFrame
-exoctl daemon start
+cd ~/Exaix
+exactl daemon start
 sleep 3
 
 # Step 5: Check status
-exoctl daemon status
+exactl daemon status
 ```
 
 ### Expected Results
@@ -1412,21 +1412,21 @@ exoctl daemon status
 
 ```bash
 # Check daemon is running
-exoctl daemon status
+exactl daemon status
 # Should show: Status: Running ✓
 
 # Check database integrity
-sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
+sqlite3 ~/Exaix/.exo/journal.db "PRAGMA integrity_check;"
 # Should show: ok
 
 # Verify requests still tracked
-exoctl request list
+exactl request list
 ```
 
 ### Pass Criteria
 
 - [ ] Daemon restarts without errors
-- [ ] `exoctl daemon status` shows Running
+- [ ] `exactl daemon status` shows Running
 - [ ] Database remains intact
 - [ ] Previous requests still visible
 
@@ -1434,7 +1434,7 @@ exoctl request list
 
 ## Scenario MT-11: Real LLM Integration
 
-**Purpose:** Verify ExoFrame works with real LLM API providers (Anthropic, OpenAI, Google Gemini) through complete end-to-end workflows including plan generation, execution, and review creation.
+**Purpose:** Verify Exaix works with real LLM API providers (Anthropic, OpenAI, Google Gemini) through complete end-to-end workflows including plan generation, execution, and review creation.
 
 ### Preconditions
 
@@ -1448,9 +1448,9 @@ exoctl request list
 # Step 1: Set API key
 export ANTHROPIC_API_KEY="sk-ant-api03-..."
 
-# Step 2: Configure ExoFrame to use Anthropic
-cd ~/ExoFrame
-cat >> exo.config.toml << 'EOF'
+# Step 2: Configure Exaix to use Anthropic
+cd ~/Exaix
+cat >> exa.config.toml << 'EOF'
 
 [ai]
 provider = "anthropic"
@@ -1462,7 +1462,7 @@ api_key_env = "ANTHROPIC_API_KEY"
 EOF
 
 # Step 3: Start daemon
-exoctl daemon start
+exactl daemon start
 
 # Step 4: Verify provider loaded
 grep -i "anthropic\|claude" .exo/daemon.log | head -5
@@ -1474,38 +1474,38 @@ git init
 echo "# Test Project" > README.md
 git add . && git commit -m "Initial commit"
 
-# Step 6: Add portal to ExoFrame
-cd ~/ExoFrame
-exoctl portal add /tmp/real-llm-test RealLLMTest
-exoctl daemon restart
+# Step 6: Add portal to Exaix
+cd ~/Exaix
+exactl portal add /tmp/real-llm-test RealLLMTest
+exactl daemon restart
 
 # Step 7: Create request with real LLM
-exoctl request "Add a utility function to calculate factorial in src/math.ts" \
+exactl request "Add a utility function to calculate factorial in src/math.ts" \
     --agent senior-coder \
     --portal RealLLMTest
 
 # Step 8: Wait for plan generation (real LLM takes time)
 sleep 30
-exoctl plan list --status review
+exactl plan list --status review
 
 # Step 9: View generated plan
-PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $2}')
-exoctl plan show $PLAN_ID
+PLAN_ID=$(exactl plan list --status review | head -1 | awk '{print $2}')
+exactl plan show $PLAN_ID
 
 # Step 10: Approve and execute plan
-exoctl plan approve $PLAN_ID
+exactl plan approve $PLAN_ID
 
 # Step 11: Wait for execution
 sleep 45
-exoctl review list
+exactl review list
 
 # Step 12: Verify review created
-CHANGESET_ID=$(exoctl review list | grep pending | head -1 | awk '{print $2}')
-exoctl review show $CHANGESET_ID
+CHANGESET_ID=$(exactl review list | grep pending | head -1 | awk '{print $2}')
+exactl review show $CHANGESET_ID
 
 # Step 13: Check token usage
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
-exoctl journal --payload %tokens% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+exactl journal --payload %tokens% --tail 5
 ```
 
 ### Part B: OpenAI GPT Testing
@@ -1515,7 +1515,7 @@ exoctl journal --payload %tokens% --tail 5
 export OPENAI_API_KEY="sk-proj-..."
 
 # Step 2: Update config for OpenAI
-cat > ~/ExoFrame/exo.config.toml << 'EOF'
+cat > ~/Exaix/exa.config.toml << 'EOF'
 [system]
 root = "./"
 log_level = "info"
@@ -1535,28 +1535,28 @@ target_path = "/tmp/real-llm-test"
 EOF
 
 # Step 3: Restart daemon with OpenAI
-exoctl daemon restart
+exactl daemon restart
 
 # Step 4: Verify provider
 grep -i "openai\|gpt" .exo/daemon.log | head -5
 
 # Step 5: Create request
-exoctl request "Add input validation to the factorial function" \
+exactl request "Add input validation to the factorial function" \
     --agent senior-coder \
     --portal RealLLMTest
 
 # Step 6: Monitor plan generation
-watch -n 5 'exoctl plan list'
+watch -n 5 'exactl plan list'
 # Wait until plan appears, then Ctrl+C
 
 # Step 7: Review and approve
-PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $2}')
-exoctl plan show $PLAN_ID
-exoctl plan approve $PLAN_ID
+PLAN_ID=$(exactl plan list --status review | head -1 | awk '{print $2}')
+exactl plan show $PLAN_ID
+exactl plan approve $PLAN_ID
 
 # Step 8: Wait for execution and verify review
 sleep 45
-exoctl review list
+exactl review list
 
 # Step 9: Compare quality with Anthropic
 # Check daemon log for response characteristics
@@ -1570,7 +1570,7 @@ tail -100 .exo/daemon.log | grep -A 5 "plan.generated"
 export GOOGLE_API_KEY="AIza..."
 
 # Step 2: Configure for Gemini
-cat > ~/ExoFrame/exo.config.toml << 'EOF'
+cat > ~/Exaix/exa.config.toml << 'EOF'
 [system]
 root = "./"
 log_level = "info"
@@ -1589,24 +1589,24 @@ target_path = "/tmp/real-llm-test"
 EOF
 
 # Step 3: Restart with Gemini
-exoctl daemon restart
+exactl daemon restart
 
 # Step 4: Verify provider
 grep -i "google\|gemini" .exo/daemon.log | head -5
 
 # Step 5: Create request
-exoctl request "Add error handling and tests for factorial function" \
+exactl request "Add error handling and tests for factorial function" \
     --agent senior-coder \
     --portal RealLLMTest
 
 # Step 6: Full workflow
 sleep 30
-PLAN_ID=$(exoctl plan list --status review | head -1 |awk '{print $2}')
-exoctl plan show $PLAN_ID
-exoctl plan approve $PLAN_ID
+PLAN_ID=$(exactl plan list --status review | head -1 |awk '{print $2}')
+exactl plan show $PLAN_ID
+exactl plan approve $PLAN_ID
 
 sleep 45
-exoctl review list
+exactl review list
 ```
 
 ### Part D: Provider Comparison
@@ -1682,7 +1682,7 @@ git branch -a
 git diff master
 
 # Check cost tracking (if enabled)
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM cost_tracking ORDER BY timestamp DESC LIMIT 10;"
+sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM cost_tracking ORDER BY timestamp DESC LIMIT 10;"
 
 # Compare plan quality
 for plan in Workspace/Plans/*.md; do
@@ -1695,10 +1695,10 @@ done
 
 ```bash
 # Stop daemon
-exoctl daemon stop
+exactl daemon stop
 
 # Remove test portal
-exoctl portal remove RealLLMTest
+exactl portal remove RealLLMTest
 rm -rf /tmp/real-llm-test
 
 # Unset API keys
@@ -1707,8 +1707,8 @@ unset OPENAI_API_KEY
 unset GOOGLE_API_KEY
 
 # Restore mock configuration
-cd ~/ExoFrame
-cp exo.config.sample.toml exo.config.toml
+cd ~/Exaix
+cp exa.config.sample.toml exa.config.toml
 ```
 
 ### Pass Criteria
@@ -1751,10 +1751,10 @@ grep "API key" .exo/daemon.log
 
 ```bash
 # Check config syntax
-deno run --allow-read scripts/validate_config.ts exo.config.toml
+deno run --allow-read scripts/validate_config.ts exa.config.toml
 
 # Verify provider string exact match
-grep "provider =" exo.config.toml
+grep "provider =" exa.config.toml
 ```
 
 **No Review Created:**
@@ -1781,7 +1781,7 @@ grep "<actions>" .exo/daemon.log
 
 ```bash
 # Step 1: Create request with invalid YAML
-cat > ~/ExoFrame/Workspace/Requests/invalid-test.md << 'EOF'
+cat > ~/Exaix/Workspace/Requests/invalid-test.md << 'EOF'
 ---
 id: broken
 status: [invalid yaml
@@ -1795,8 +1795,8 @@ EOF
 sleep 5
 
 # Step 3: Check for error handling
-exoctl request list
-tail -20 ~/ExoFrame/.exo/daemon.log
+exactl request list
+tail -20 ~/Exaix/.exo/daemon.log
 ```
 
 ### Expected Results
@@ -1811,17 +1811,17 @@ tail -20 ~/ExoFrame/.exo/daemon.log
 
 ```bash
 # Check error log
-grep -i "validation error\|parse error\|invalid" ~/ExoFrame/.exo/daemon.log
+grep -i "validation error\|parse error\|invalid" ~/Exaix/.exo/daemon.log
 
 # Verify daemon still healthy
-exoctl daemon status
+exactl daemon status
 ```
 
 ### Cleanup
 
 ```bash
 # Remove invalid file
-rm ~/ExoFrame/Workspace/Requests/invalid-test.md
+rm ~/Exaix/Workspace/Requests/invalid-test.md
 ```
 
 ### Pass Criteria
@@ -1846,21 +1846,21 @@ rm ~/ExoFrame/Workspace/Requests/invalid-test.md
 
 ```bash
 # Step 1: Stop daemon if running
-exoctl daemon stop 2>/dev/null || true
+exactl daemon stop 2>/dev/null || true
 
 # Step 2: Backup current database
-cp ~/ExoFrame/.exo/journal.db ~/ExoFrame/.exo/journal.db.backup
+cp ~/Exaix/.exo/journal.db ~/Exaix/.exo/journal.db.backup
 
 # Step 3: Corrupt/delete database
-rm ~/ExoFrame/.exo/journal.db
+rm ~/Exaix/.exo/journal.db
 
 # Step 4: Start daemon
-cd ~/ExoFrame
-exoctl daemon start
+cd ~/Exaix
+exactl daemon start
 sleep 5
 
 # Step 5: Check status
-exoctl daemon status
+exactl daemon status
 ```
 
 ### Expected Results
@@ -1879,17 +1879,17 @@ exoctl daemon status
 
 ```bash
 # Check if database recreated
-ls -la ~/ExoFrame/.exo/journal.db
+ls -la ~/Exaix/.exo/journal.db
 
 # Check log for recovery messages
-grep -i "database\|recovery\|init" ~/ExoFrame/.exo/daemon.log
+grep -i "database\|recovery\|init" ~/Exaix/.exo/daemon.log
 ```
 
 ### Cleanup
 
 ```bash
 # Restore backup if needed
-cp ~/ExoFrame/.exo/journal.db.backup ~/ExoFrame/.exo/journal.db
+cp ~/Exaix/.exo/journal.db.backup ~/Exaix/.exo/journal.db
 ```
 
 ### Pass Criteria
@@ -1914,7 +1914,7 @@ cp ~/ExoFrame/.exo/journal.db.backup ~/ExoFrame/.exo/journal.db
 ```bash
 # Step 1: Create multiple requests rapidly
 for i in 1 2 3; do
-  exoctl request "Test request number $i" &
+  exactl request "Test request number $i" &
 done
 wait
 
@@ -1922,10 +1922,10 @@ wait
 sleep 10
 
 # Step 3: List all requests
-exoctl request list
+exactl request list
 
 # Step 4: Check for plans
-exoctl plan list
+exactl plan list
 ```
 
 ### Expected Results
@@ -1948,11 +1948,11 @@ exoctl plan list
 
 ```bash
 # Check no duplicate IDs
-exoctl request list | sort | uniq -d
+exactl request list | sort | uniq -d
 # Should output nothing (no duplicates)
 
 # Check logs for errors
-grep -i "error\|conflict\|race" ~/ExoFrame/.exo/daemon.log
+grep -i "error\|conflict\|race" ~/Exaix/.exo/daemon.log
 ```
 
 ### Pass Criteria
@@ -1977,7 +1977,7 @@ grep -i "error\|conflict\|race" ~/ExoFrame/.exo/daemon.log
 ```bash
 # Step 1: Create files rapidly (proper format with frontmatter)
 for i in $(seq 1 5); do
-  cat > ~/ExoFrame/Workspace/Requests/rapid-$i.md << EOF
+  cat > ~/Exaix/Workspace/Requests/rapid-$i.md << EOF
 ---
 trace_id: "00000000-0000-0000-0000-00000000000$i"
 created: "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
@@ -1996,7 +1996,7 @@ done
 
 # Step 2: Modify files (update status)
 for i in $(seq 1 5); do
-  sed -i 's/status: pending/status: processing/' ~/ExoFrame/Workspace/Requests/rapid-$i.md
+  sed -i 's/status: pending/status: processing/' ~/Exaix/Workspace/Requests/rapid-$i.md
   sleep 0.1
 done
 
@@ -2004,7 +2004,7 @@ done
 sleep 5
 
 # Step 4: Check detection
-tail -50 ~/ExoFrame/.exo/daemon.log | grep -c "file\|detected\|changed"
+tail -50 ~/Exaix/.exo/daemon.log | grep -c "file\|detected\|changed"
 ```
 
 ### Expected Results
@@ -2018,7 +2018,7 @@ tail -50 ~/ExoFrame/.exo/daemon.log | grep -c "file\|detected\|changed"
 
 ```bash
 # Check daemon logs for file detection
-tail -50 ~/ExoFrame/.exo/daemon.log | grep -c "file\|detected\|changed"
+tail -50 ~/Exaix/.exo/daemon.log | grep -c "file\|detected\|changed"
 # Should show entries for file changes
 ```
 
@@ -2026,7 +2026,7 @@ tail -50 ~/ExoFrame/.exo/daemon.log | grep -c "file\|detected\|changed"
 
 ```bash
 # Remove test files
-rm ~/ExoFrame/Workspace/Requests/rapid-*.md
+rm ~/Exaix/Workspace/Requests/rapid-*.md
 ```
 
 ### Pass Criteria
@@ -2043,64 +2043,64 @@ rm ~/ExoFrame/Workspace/Requests/rapid-*.md
 
 ### Preconditions
 
-- ExoFrame installed (MT-01 complete)
+- Exaix installed (MT-01 complete)
 - No daemon currently running
-- Ollama installed and running (see [Developer Setup - Ollama Installation](./ExoFrame_Developer_Setup.md#3-install-ollama-for-local-llm-inference) for installation instructions and model selection guide based on hardware)
+- Ollama installed and running (see [Developer Setup - Ollama Installation](./Exaix_Developer_Setup.md#3-install-ollama-for-local-llm-inference) for installation instructions and model selection guide based on hardware)
 
 ### Steps
 
 ```bash
 # Step 1: Test default behavior (Google provider) - Assumes GOOGLE_API_KEY set
-cd ~/ExoFrame
-exoctl daemon start
+cd ~/Exaix
+exactl daemon start
 sleep 3
 
 # Step 2: Check startup logs for provider
-grep -i "LLM Provider" ~/ExoFrame/.exo/daemon.log
+grep -i "LLM Provider" ~/Exaix/.exo/daemon.log
 
 # Step 3: Stop daemon
-exoctl daemon stop
+exactl daemon stop
 
 # Step 4: Test Ollama provider via environment
-cd ~/ExoFrame
-EXO_LLM_PROVIDER=ollama exoctl daemon start
+cd ~/Exaix
+EXA_LLM_PROVIDER=ollama exactl daemon start
 sleep 3
-grep -i "LLM Provider\|provider" ~/ExoFrame/.exo/daemon.log | tail -5
-exoctl daemon stop
+grep -i "LLM Provider\|provider" ~/Exaix/.exo/daemon.log | tail -5
+exactl daemon stop
 
 # Step 5: Test Ollama with custom model
-cd ~/ExoFrame
-EXO_LLM_PROVIDER=ollama EXO_LLM_MODEL=codellama exoctl daemon start
+cd ~/Exaix
+EXA_LLM_PROVIDER=ollama EXA_LLM_MODEL=codellama exactl daemon start
 sleep 3
-grep -i "LLM Provider\|provider" ~/ExoFrame/.exo/daemon.log | tail -5
-exoctl daemon stop
+grep -i "LLM Provider\|provider" ~/Exaix/.exo/daemon.log | tail -5
+exactl daemon stop
 
 # Step 6: Test missing API key error (Anthropic)
-cd ~/ExoFrame
+cd ~/Exaix
 unset ANTHROPIC_API_KEY
-EXO_LLM_PROVIDER=anthropic exoctl daemon start 2>&1 || echo "Expected: API key error"
+EXA_LLM_PROVIDER=anthropic exactl daemon start 2>&1 || echo "Expected: API key error"
 sleep 2
 # Check if daemon failed to start (expected)
-exoctl daemon status 2>&1 || echo "Daemon not running (expected)"
+exactl daemon status 2>&1 || echo "Daemon not running (expected)"
 
 # Step 7: Test config file provider selection
-cat >> ~/ExoFrame/exo.config.toml << 'EOF'
+cat >> ~/Exaix/exa.config.toml << 'EOF'
 [ai]
 provider = "ollama"
 model = "llama3.2"
 EOF
 
-exoctl daemon start
+exactl daemon start
 sleep 3
-grep -i "LLM Provider" ~/ExoFrame/.exo/daemon.log
-exoctl daemon stop
+grep -i "LLM Provider" ~/Exaix/.exo/daemon.log
+exactl daemon stop
 
 # Step 8: Test environment overrides config
-cd ~/ExoFrame
-EXO_LLM_PROVIDER=mock exoctl daemon start
+cd ~/Exaix
+EXA_LLM_PROVIDER=mock exactl daemon start
 sleep 3
-grep -i "LLM Provider\|provider" ~/ExoFrame/.exo/daemon.log | tail -5
-exoctl daemon stop
+grep -i "LLM Provider\|provider" ~/Exaix/.exo/daemon.log | tail -5
+exactl daemon stop
 ```
 
 ### Expected Results
@@ -2118,7 +2118,7 @@ exoctl daemon stop
 **Step 5:**
 
 - Shows: `✅ LLM Provider: ollama-codellama`
-- Custom model from EXO_LLM_MODEL
+- Custom model from EXA_LLM_MODEL
 
 **Step 6:**
 
@@ -2139,7 +2139,7 @@ exoctl daemon stop
 
 ```bash
 # Check daemon log for provider initialization
-grep -E "LLM Provider|provider.*mock|provider.*ollama" ~/ExoFrame/.exo/daemon.log
+grep -E "LLM Provider|provider.*mock|provider.*ollama" ~/Exaix/.exo/daemon.log
 
 # Verify provider ID format
 # Expected patterns:
@@ -2154,20 +2154,20 @@ grep -E "LLM Provider|provider.*mock|provider.*ollama" ~/ExoFrame/.exo/daemon.lo
 
 ```bash
 # Stop daemon
-exoctl daemon stop 2>/dev/null || pkill -f "exoframe"
+exactl daemon stop 2>/dev/null || pkill -f "exaix"
 
 # Remove test config section (if added)
-# Edit ~/ExoFrame/exo.config.toml and remove [ai] section
+# Edit ~/Exaix/exa.config.toml and remove [ai] section
 
 # Unset test environment variables
-unset EXO_LLM_PROVIDER EXO_LLM_MODEL EXO_LLM_BASE_URL
+unset EXA_LLM_PROVIDER EXA_LLM_MODEL EXA_LLM_BASE_URL
 ```
 
 ### Pass Criteria
 
 - [ ] Default provider is MockLLMProvider
-- [ ] `EXO_LLM_PROVIDER=ollama` creates OllamaProvider
-- [ ] `EXO_LLM_MODEL` overrides model name
+- [ ] `EXA_LLM_PROVIDER=ollama` creates OllamaProvider
+- [ ] `EXA_LLM_MODEL` overrides model name
 - [ ] Missing API key shows clear error (does not crash)
 - [ ] Config file `[ai]` section is respected
 - [ ] Environment variables override config file
@@ -2181,7 +2181,7 @@ unset EXO_LLM_PROVIDER EXO_LLM_MODEL EXO_LLM_BASE_URL
 
 ### Preconditions
 
-- ExoFrame workspace deployed at `~/ExoFrame`
+- Exaix workspace deployed at `~/Exaix`
 - Daemon running
 - At least one portal configured
 - At least one completed request/plan
@@ -2192,21 +2192,21 @@ unset EXO_LLM_PROVIDER EXO_LLM_MODEL EXO_LLM_BASE_URL
 # Part A: Memory Reports Storage
 
 # Step 1: Create a request and complete execution
-exoctl request "Create a test utility function" --agent mock-agent
+exactl request "Create a test utility function" --agent mock-agent
 
 # Step 2: Wait for plan generation and approve
 sleep 5
-PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $1}')
-exoctl plan approve $PLAN_ID
+PLAN_ID=$(exactl plan list --status review | head -1 | awk '{print $1}')
+exactl plan approve $PLAN_ID
 
 # Step 3: Verify report created in Memory/Reports/
-ls -la ~/ExoFrame/Memory/Reports/
-cat ~/ExoFrame/Memory/Reports/*.md
+ls -la ~/Exaix/Memory/Reports/
+cat ~/Exaix/Memory/Reports/*.md
 
 # Part B: Context Storage
 
 # Step 4: Add context document manually
-cat > ~/ExoFrame/Memory/Context/test-context.md << 'EOF'
+cat > ~/Exaix/Memory/Context/test-context.md << 'EOF'
 ---
 title: "Test Context Document"
 created: "2026-01-16T12:00:00Z"
@@ -2224,7 +2224,7 @@ This is a test context document for Memory Banks verification.
 EOF
 
 # Step 5: Verify context is accessible
-cat ~/ExoFrame/Memory/Context/test-context.md
+cat ~/Exaix/Memory/Context/test-context.md
 
 # Part C: Portal Context Cards
 
@@ -2233,24 +2233,24 @@ mkdir -p /tmp/test-memory-portal
 echo "# Test Portal" > /tmp/test-memory-portal/README.md
 echo "export const version = '1.0';" > /tmp/test-memory-portal/index.ts
 
-# Step 7: Add portal to ExoFrame
-exoctl portal add /tmp/test-memory-portal TestMemoryPortal
+# Step 7: Add portal to Exaix
+exactl portal add /tmp/test-memory-portal TestMemoryPortal
 
 # Step 8: Verify context card generated
-ls -la ~/ExoFrame/Memory/Portals/
-cat ~/ExoFrame/Memory/Portals/TestMemoryPortal.md
+ls -la ~/Exaix/Memory/Portals/
+cat ~/Exaix/Memory/Portals/TestMemoryPortal.md
 
 # Part D: Memory Search and Retrieval
 
 # Step 9: Search memory by tag
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%testing%' ORDER BY timestamp DESC LIMIT 5;"
-exoctl journal --payload %testing% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%testing%' ORDER BY timestamp DESC LIMIT 5;"
+exactl journal --payload %testing% --tail 5
 
 # Step 10: Query memory reports
-find ~/ExoFrame/Memory/Reports/ -name "*.md" -type f
+find ~/Exaix/Memory/Reports/ -name "*.md" -type f
 
 # Step 11: List all memory entries
-find ~/ExoFrame/Memory/ -name "*.md" -type f | head -20
+find ~/Exaix/Memory/ -name "*.md" -type f | head -20
 ```
 
 ### Expected Results
@@ -2283,34 +2283,34 @@ find ~/ExoFrame/Memory/ -name "*.md" -type f | head -20
 
 ```bash
 # Check Memory directory structure
-tree ~/ExoFrame/Memory/ -L 2
+tree ~/Exaix/Memory/ -L 2
 
 # Verify report frontmatter format
-head -20 ~/ExoFrame/Memory/Reports/*.md | grep -A 10 "^---"
+head -20 ~/Exaix/Memory/Reports/*.md | grep -A 10 "^---"
 
 # Check portal context card exists
-ls -la ~/ExoFrame/Memory/Portals/TestMemoryPortal.md
+ls -la ~/Exaix/Memory/Portals/TestMemoryPortal.md
 
 # Verify context is indexed
-find ~/ExoFrame/Memory/ -name "*.md" | wc -l
+find ~/Exaix/Memory/ -name "*.md" | wc -l
 # Should show multiple memory files
 
 # Check Activity Journal logged memory operations
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%memory%' ORDER BY timestamp DESC LIMIT 10;"
-exoctl journal --filter action_type=%memory% --tail 10
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 10;"
-exoctl journal --filter action_type=%portal% --tail 10
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%memory%' ORDER BY timestamp DESC LIMIT 10;"
+exactl journal --filter action_type=%memory% --tail 10
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 10;"
+exactl journal --filter action_type=%portal% --tail 10
 ```
 
 ### Cleanup
 
 ```bash
 # Remove test portal
-exoctl portal remove TestMemoryPortal
+exactl portal remove TestMemoryPortal
 rm -rf /tmp/test-memory-portal
 
 # Remove test context
-rm -f ~/ExoFrame/Memory/Context/test-context.md
+rm -f ~/Exaix/Memory/Context/test-context.md
 
 # Note: Keep reports for historical record (don't clean unless testing)
 ```
@@ -2333,7 +2333,7 @@ rm -f ~/ExoFrame/Memory/Context/test-context.md
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - Daemon running
 - Multiple agent blueprints exist
 - Flow definitions available in `Blueprints/Flows/`
@@ -2344,7 +2344,7 @@ rm -f ~/ExoFrame/Memory/Context/test-context.md
 # Part A: Flow Definition Setup
 
 # Step 1: Create a test flow using defineFlow() helper
-cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml << 'EOF'
+cat > ~/Exaix/Blueprints/Flows/test-review-flow.flow.yaml << 'EOF'
 import { defineFlow } from "./define_flow.ts";
 
 export default defineFlow({
@@ -2401,17 +2401,17 @@ export default defineFlow({
 EOF
 
 # Step 2: Create required agent blueprints (if not exist)
-exoctl blueprint create senior-coder \
+exactl blueprint create senior-coder \
   --name "Senior Coder" \
   --template coder \
   2>/dev/null || echo "Agent already exists"
 
-exoctl blueprint create security-expert \
+exactl blueprint create security-expert \
   --name "Security Expert" \
   --template security \
   2>/dev/null || echo "Agent already exists"
 
-exoctl blueprint create code-reviewer \
+exactl blueprint create code-reviewer \
   --name "Code Reviewer" \
   --template reviewer \
   2>/dev/null || echo "Agent already exists"
@@ -2419,46 +2419,46 @@ exoctl blueprint create code-reviewer \
 # Part B: CLI Flow Request Creation
 
 # Step 3: Create request using CLI --flow option
-exoctl request "Review authentication module for security and code quality" --flow test-review-flow --priority high
+exactl request "Review authentication module for security and code quality" --flow test-review-flow --priority high
 
 # Step 4: Verify request was created with flow metadata
-REQUEST_ID=$(exoctl request list | grep "test-review-flow" | head -1 | awk '{print $1}')
-exoctl request show $REQUEST_ID
+REQUEST_ID=$(exactl request list | grep "test-review-flow" | head -1 | awk '{print $1}')
+exactl request show $REQUEST_ID
 
 # Step 5: Check activity journal for flow routing
 sleep 2
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
-exoctl journal --filter action_type=request.created --limit 1
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
+exactl journal --filter action_type=request.created --limit 1
 
 # Part C: Flow Execution and Monitoring
 
 # Step 6: Wait for plan generation
 sleep 5
-exoctl plan list --status pending
+exactl plan list --status pending
 
 # Step 7: Find and approve the flow plan
-PLAN_ID=$(exoctl plan list --status pending | grep "test-review-flow" | head -1 | awk '{print $1}')
-exoctl plan show $PLAN_ID
+PLAN_ID=$(exactl plan list --status pending | grep "test-review-flow" | head -1 | awk '{print $1}')
+exactl plan show $PLAN_ID
 
 # Step 8: Approve and execute the flow
-exoctl plan approve $PLAN_ID
+exactl plan approve $PLAN_ID
 
 # Step 9: Monitor flow execution progress
 sleep 10
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' ORDER BY timestamp DESC LIMIT 20;"
-exoctl journal --filter trace_id=$REQUEST_ID --limit 20
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' ORDER BY timestamp DESC LIMIT 20;"
+exactl journal --filter trace_id=$REQUEST_ID --limit 20
 
 # Step 10: Check for multi-agent execution
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id = '$REQUEST_ID' AND agent_id IS NOT NULL;"
-exoctl journal --filter trace_id=$REQUEST_ID --distinct agent_id
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id = '$REQUEST_ID' AND agent_id IS NOT NULL;"
+exactl journal --filter trace_id=$REQUEST_ID --distinct agent_id
 
 # Part D: Error Handling and Validation
 
 # Step 11: Test invalid flow (should fail)
-exoctl request "Test invalid flow" --flow nonexistent-flow 2>&1 || echo "Expected error for invalid flow"
+exactl request "Test invalid flow" --flow nonexistent-flow 2>&1 || echo "Expected error for invalid flow"
 
 # Step 12: Test flow + agent conflict (should fail)
-exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1 || echo "Expected error for flow+agent conflict"
+exactl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1 || echo "Expected error for flow+agent conflict"
 ```
 
 ### Expected Results
@@ -2471,10 +2471,10 @@ exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1
 
 **Part B (CLI Flow Support):**
 
-- `exoctl request --flow` command succeeds
+- `exactl request --flow` command succeeds
 - Request created with `flow:` field in frontmatter
 - Activity journal shows `request.created` with flow metadata
-- Request appears in `exoctl request list` with flow indicator
+- Request appears in `exactl request list` with flow indicator
 
 **Part C (Flow Execution):**
 
@@ -2494,51 +2494,51 @@ exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1
 
 ```bash
 # Check flow definition exists and compiles
-ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
-deno check ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
+ls -la ~/Exaix/Blueprints/Flows/test-review-flow.flow.yaml
+deno check ~/Exaix/Blueprints/Flows/test-review-flow.flow.yaml
 
 # Verify CLI flow request creation
-exoctl request list | grep test-review-flow
+exactl request list | grep test-review-flow
 
 # Check request metadata includes flow
-exoctl request show $REQUEST_ID | grep -A 5 -B 5 "flow:"
+exactl request show $REQUEST_ID | grep -A 5 -B 5 "flow:"
 
 # Verify flow routing in activity journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
-exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=request.created --tail 1
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
+exactl journal --filter trace_id=$REQUEST_ID --filter action_type=request.created --tail 1
 
 # Check multi-agent execution
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type LIKE 'step.%' ORDER BY timestamp DESC LIMIT 50;"
-exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=step.%
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type LIKE 'step.%' ORDER BY timestamp DESC LIMIT 50;"
+exactl journal --filter trace_id=$REQUEST_ID --filter action_type=step.%
 
 # Verify step dependencies respected
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'step.started' ORDER BY timestamp DESC LIMIT 50;"
-exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=step.started
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'step.started' ORDER BY timestamp DESC LIMIT 50;"
+exactl journal --filter trace_id=$REQUEST_ID --filter action_type=step.started
 ```
 
 ### Cleanup
 
 ```bash
 # Remove flow definition
-rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
+rm -f ~/Exaix/Blueprints/Flows/test-review-flow.flow.yaml
 
 # Remove test requests (find by flow name)
-for req_file in ~/ExoFrame/Workspace/Requests/*; do
+for req_file in ~/Exaix/Workspace/Requests/*; do
   if grep -q "flow: test-review-flow" "$req_file" 2>/dev/null; then
     rm -f "$req_file"
   fi
 done
 
 # Remove generated plans and reviews
-rm -f ~/ExoFrame/Workspace/Plans/*test-review-flow*.md
-rm -f ~/ExoFrame/Workspace/Active/*test-review-flow*.md
-rm -f ~/ExoFrame/Workspace/Reviews/*test-review-flow*.md
+rm -f ~/Exaix/Workspace/Plans/*test-review-flow*.md
+rm -f ~/Exaix/Workspace/Active/*test-review-flow*.md
+rm -f ~/Exaix/Workspace/Reviews/*test-review-flow*.md
 ```
 
 ### Pass Criteria
 
 - [ ] Flow definition created with `defineFlow()` and TypeScript validation passes
-- [ ] `exoctl request --flow <id>` creates request with flow metadata
+- [ ] `exactl request --flow <id>` creates request with flow metadata
 - [ ] Request routing works (FlowRunner vs AgentRunner)
 - [ ] Activity journal logs flow execution events
 - [ ] Multiple agents execute in correct dependency order
@@ -2555,7 +2555,7 @@ rm -f ~/ExoFrame/Workspace/Reviews/*test-review-flow*.md
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - Daemon running
 - Skills directory exists at `.agent/workflows/` or configured path
 
@@ -2565,8 +2565,8 @@ rm -f ~/ExoFrame/Workspace/Reviews/*test-review-flow*.md
 # Part A: Skills Directory Setup
 
 # Step 1: Create test skill
-mkdir -p ~/ExoFrame/.agent/workflows
-cat > ~/ExoFrame/.agent/workflows/test-skill.md << 'EOF'
+mkdir -p ~/Exaix/.agent/workflows
+cat > ~/Exaix/.agent/workflows/test-skill.md << 'EOF'
 ---
 description: Test skill for manual scenarios
 ---
@@ -2583,31 +2583,31 @@ This is a test skill for verifying Skills Management functionality.
 EOF
 
 # Step 2: List available skills
-exoctl skills list
+exactl skills list
 
 # Step 3: Show skill details
-exoctl skills show test-skill
+exactl skills show test-skill
 
 # Part B: TUI Skills Manager
 
 # Step 4: Launch dashboard and navigate to Skills view
-exoctl dashboard
+exactl dashboard
 # Navigate to Skills Manager view using Tab key
 # Press Enter on a skill to view details
 
 # Part C: Skill Validation
 
 # Step 5: Test skill metadata parsing
-cat ~/ExoFrame/.agent/workflows/test-skill.md | grep -A 5 "^---"
+cat ~/Exaix/.agent/workflows/test-skill.md | grep -A 5 "^---"
 
 # Step 6: Verify skill is indexed
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
-exoctl journal --filter action_type=%skill% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+exactl journal --filter action_type=%skill% --tail 5
 
 # Part D: Skill Dependencies (if applicable)
 
 # Step 7: Create skill with dependencies
-cat > ~/ExoFrame/.agent/workflows/complex-skill.md << 'EOF'
+cat > ~/Exaix/.agent/workflows/complex-skill.md << 'EOF'
 ---
 description: Complex skill with dependencies
 dependencies:
@@ -2621,7 +2621,7 @@ This skill has dependencies on other skills.
 EOF
 
 # Step 8: Validate dependency checking
-exoctl skills validate complex-skill
+exactl skills validate complex-skill
 ```
 
 ### Expected Results
@@ -2629,7 +2629,7 @@ exoctl skills validate complex-skill
 **Part A (Skills Setup):**
 
 - Skill file created successfully
-- Skill appears in `exoctl skills list`
+- Skill appears in `exactl skills list`
 - Skill metadata parsed from YAML frontmatter
 
 **Part B (TUI Skills Manager):**
@@ -2654,25 +2654,25 @@ exoctl skills validate complex-skill
 
 ```bash
 # Check skills directory
-ls -la ~/ExoFrame/.agent/workflows/
+ls -la ~/Exaix/.agent/workflows/
 
 # Verify skill format
-head -10 ~/ExoFrame/.agent/workflows/test-skill.md
+head -10 ~/Exaix/.agent/workflows/test-skill.md
 
 # Check skills are indexed
-find ~/ExoFrame/.agent/workflows/ -name "*.md" | wc -l
+find ~/Exaix/.agent/workflows/ -name "*.md" | wc -l
 
 # Verify Activity Journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
-exoctl journal --filter action_type=%skill% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+exactl journal --filter action_type=%skill% --tail 5
 ```
 
 ### Cleanup
 
 ```bash
 # Remove test skills
-rm -f ~/ExoFrame/.agent/workflows/test-skill.md
-rm -f ~/ExoFrame/.agent/workflows/complex-skill.md
+rm -f ~/Exaix/.agent/workflows/test-skill.md
+rm -f ~/Exaix/.agent/workflows/complex-skill.md
 ```
 
 ### Pass Criteria
@@ -2694,7 +2694,7 @@ rm -f ~/ExoFrame/.agent/workflows/complex-skill.md
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - Daemon running
 - At least one agent blueprint exists (e.g., `security-expert`)
 - Skills available in `Memory/Skills/core/` (e.g., `documentation-driven`, `file-ops`)
@@ -2705,55 +2705,55 @@ rm -f ~/ExoFrame/.agent/workflows/complex-skill.md
 # Part A: Request-Level Skills Injection
 
 # Step 1: Create request with skills to override agent limitations
-exoctl request "Perform security audit and write report to audit.md" \
+exactl request "Perform security audit and write report to audit.md" \
   --agent security-expert \
   --skills documentation-driven,file-ops
 
 # Step 2: Verify request frontmatter contains skills
-REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+REQUEST_FILE=$(ls -t ~/Exaix/Workspace/Requests/request-*.md | head -1)
 cat "$REQUEST_FILE" | head -20
 
 # Step 3: Check skills are stored as JSON string in frontmatter
 grep "skills:" "$REQUEST_FILE"
 
 # Step 4: List requests to verify skills field populated
-exoctl request list
+exactl request list
 
 # Part B: Plan-Level Skills Injection
 
 # Step 5: Create a basic request (without skills)
-exoctl request "Refactor authentication module" --agent code-architect
+exactl request "Refactor authentication module" --agent code-architect
 
 # Step 6: Wait for plan generation (or generate manually)
 sleep 10
 
 # Step 7: List plans to get plan ID
-exoctl plan list
+exactl plan list
 
 # Step 8: Approve plan with skills injection
-PLAN_ID=$(exoctl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
-exoctl plan approve "$PLAN_ID" --skills testing-best-practices,documentation-driven
+PLAN_ID=$(exactl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
+exactl plan approve "$PLAN_ID" --skills testing-best-practices,documentation-driven
 
 # Step 9: Verify plan frontmatter in Workspace/Active contains skills
-cat ~/ExoFrame/Workspace/Active/"$PLAN_ID".md | head -30
+cat ~/Exaix/Workspace/Active/"$PLAN_ID".md | head -30
 
 # Step 10: Check skills are stored in approved plan
-grep "skills:" ~/ExoFrame/Workspace/Active/"$PLAN_ID".md
+grep "skills:" ~/Exaix/Workspace/Active/"$PLAN_ID".md
 
 # Part C: Skills Validation
 
 # Step 11: Create request with single skill
-exoctl request "Add unit tests" --skills tdd-methodology
+exactl request "Add unit tests" --skills tdd-methodology
 
 # Step 12: Verify single skill stored correctly
-REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+REQUEST_FILE=$(ls -t ~/Exaix/Workspace/Requests/request-*.md | head -1)
 grep "skills:" "$REQUEST_FILE"
 
 # Step 13: Create request without skills (backward compatibility)
-exoctl request "Fix bug in utils.ts"
+exactl request "Fix bug in utils.ts"
 
 # Step 14: Verify no skills field when not provided
-REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+REQUEST_FILE=$(ls -t ~/Exaix/Workspace/Requests/request-*.md | head -1)
 grep "skills:" "$REQUEST_FILE" || echo "No skills field (expected)"
 ```
 
@@ -2783,42 +2783,42 @@ grep "skills:" "$REQUEST_FILE" || echo "No skills field (expected)"
 
 ```bash
 # Verify request frontmatter structure
-REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+REQUEST_FILE=$(ls -t ~/Exaix/Workspace/Requests/request-*.md | head -1)
 echo "=== Request Frontmatter ==="
 cat "$REQUEST_FILE" | sed -n '/^---$/,/^---$/p'
 
 # Verify plan frontmatter structure
-PLAN_FILE=$(ls -t ~/ExoFrame/Workspace/Active/plan-*.md | head -1)
+PLAN_FILE=$(ls -t ~/Exaix/Workspace/Active/plan-*.md | head -1)
 if [ -f "$PLAN_FILE" ]; then
   echo "=== Plan Frontmatter ==="
   cat "$PLAN_FILE" | sed -n '/^---$/,/^---$/p'
 fi
 
 # Check activity journal for skill-related events
-exoctl journal --filter "request.created" --tail 5
+exactl journal --filter "request.created" --tail 5
 
 # Verify TypeScript compilation (no type errors)
-cd ~/ExoFrame
-deno check src/cli/exoctl.ts
+cd ~/Exaix
+deno check src/cli/exactl.ts
 ```
 
 ### Cleanup
 
 ```bash
 # Remove test requests
-rm -f ~/ExoFrame/Workspace/Requests/request-*.md
+rm -f ~/Exaix/Workspace/Requests/request-*.md
 
 # Remove test plans
-rm -f ~/ExoFrame/Workspace/Active/plan-*.md
-rm -f ~/ExoFrame/Workspace/Plans/plan-*.md
+rm -f ~/Exaix/Workspace/Active/plan-*.md
+rm -f ~/Exaix/Workspace/Plans/plan-*.md
 ```
 
 ### Pass Criteria
 
-- [ ] `exoctl request --skills` creates request with skills in frontmatter
+- [ ] `exactl request --skills` creates request with skills in frontmatter
 - [ ] Skills stored as JSON string in YAML frontmatter
 - [ ] YAML parser correctly deserializes skills to array
-- [ ] `exoctl plan approve --skills` stores skills in plan frontmatter
+- [ ] `exactl plan approve --skills` stores skills in plan frontmatter
 - [ ] Skills persisted through plan approval workflow
 - [ ] Single skill stored as array (not string)
 - [ ] Requests without `--skills` have no skills field (backward compatible)
@@ -2832,7 +2832,7 @@ rm -f ~/ExoFrame/Workspace/Plans/plan-*.md
 
 ```bash
 # 1. Create request with skills
-exoctl request "Security audit with report" \
+exactl request "Security audit with report" \
   --agent security-expert \
   --skills documentation-driven
 
@@ -2840,12 +2840,12 @@ exoctl request "Security audit with report" \
 sleep 10
 
 # 3. Approve plan with additional skills
-PLAN_ID=$(exoctl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
-exoctl plan approve "$PLAN_ID" --skills file-ops,security-first
+PLAN_ID=$(exactl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
+exactl plan approve "$PLAN_ID" --skills file-ops,security-first
 
 # 4. Verify execution uses both request and plan skills
 # (Check execution logs for skill context injection)
-tail -50 ~/ExoFrame/.exo/daemon.log | grep -i "skill"
+tail -50 ~/Exaix/.exo/daemon.log | grep -i "skill"
 ```
 
 **Expected:** Skills from both request and plan approval are available during execution.
@@ -2854,11 +2854,11 @@ tail -50 ~/ExoFrame/.exo/daemon.log | grep -i "skill"
 
 ## Scenario MT-20: TUI Dashboard Launch and Core Views Navigation
 
-**Purpose:** Verify `exoctl dashboard` launches successfully and all core views (Monitor, Plan Reviewer, Portal Manager, Daemon Control, Agent Status, Request Manager) are accessible and functional.
+**Purpose:** Verify `exactl dashboard` launches successfully and all core views (Monitor, Plan Reviewer, Portal Manager, Daemon Control, Agent Status, Request Manager) are accessible and functional.
 
 ### Preconditions
 
-- ExoFrame workspace deployed and initialized
+- Exaix workspace deployed and initialized
 - Daemon running (for full functionality)
 - At least one request, plan, and portal exist in the system
 
@@ -2866,7 +2866,7 @@ tail -50 ~/ExoFrame/.exo/daemon.log | grep -i "skill"
 
 ```bash
 # Step 1: Launch the dashboard
-exoctl dashboard
+exactl dashboard
 
 # Step 2: Verify initial view (Portal Manager) loads
 # Step 3: Navigate to Monitor view (Tab key)
@@ -2880,7 +2880,7 @@ exoctl dashboard
 
 ### Expected Results
 
-- Dashboard launches without errors showing "ExoFrame TUI Dashboard"
+- Dashboard launches without errors showing "Exaix TUI Dashboard"
 - All 6 core views are accessible via Tab navigation
 - Each view displays appropriate content and status information
 - Navigation is smooth with clear visual feedback for active view
@@ -2889,11 +2889,11 @@ exoctl dashboard
 ### Verification
 
 ```bash
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%dashboard%' ORDER BY timestamp DESC LIMIT 5;";
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%dashboard%' ORDER BY timestamp DESC LIMIT 5;";
 # Check that all views load without errors
 # Verify view titles and content are displayed correctly
 # Confirm Activity Journal shows dashboard launch event
-exoctl journal --filter action_type=%dashboard% --tail 5
+exactl journal --filter action_type=%dashboard% --tail 5
 ```
 
 ### Pass Criteria
@@ -2910,7 +2910,7 @@ exoctl journal --filter action_type=%dashboard% --tail 5
 
 ### Preconditions
 
-- ExoFrame workspace with activity history
+- Exaix workspace with activity history
 - Daemon running to generate logs
 - Multiple agents and actions in the system
 
@@ -2918,7 +2918,7 @@ exoctl journal --filter action_type=%dashboard% --tail 5
 
 ```bash
 # Step 1: Launch dashboard and navigate to Monitor view
-exoctl dashboard
+exactl dashboard
 # Press Tab until Monitor view is active
 
 # Step 2: Observe real-time log streaming
@@ -2961,12 +2961,12 @@ exoctl dashboard
 
 ```bash
 # Check exported log file exists and contains expected content
-ls -la ~/ExoFrame/logs_*.txt
-cat ~/ExoFrame/logs_*.txt | head -10
+ls -la ~/Exaix/logs_*.txt
+cat ~/Exaix/logs_*.txt | head -10
 
 # Verify filter state in Activity Journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%filter%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%filter% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%filter%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%filter% --tail 5
 ```
 
 ### Pass Criteria
@@ -2991,7 +2991,7 @@ exoctl journal --filter action_type=%filter% --tail 5
 
 ```bash
 # Step 1: Launch dashboard and navigate to Plan Reviewer view
-exoctl dashboard
+exactl dashboard
 # Press Tab until Plan Reviewer view is active
 
 # Step 2: Navigate through plans
@@ -3029,13 +3029,13 @@ exoctl dashboard
 
 ```bash
 # Check Activity Journal for approval/rejection events
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%plan%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%plan% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%plan%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%plan% --tail 5
 
 # Verify plans moved to correct directories
-ls ~/ExoFrame/Workspace/Plans/  # Should not contain approved/rejected plans
-ls ~/ExoFrame/Workspace/Approved/  # Should contain approved plans
-ls ~/ExoFrame/Workspace/Rejected/  # Should contain rejected plans
+ls ~/Exaix/Workspace/Plans/  # Should not contain approved/rejected plans
+ls ~/Exaix/Workspace/Approved/  # Should contain approved plans
+ls ~/Exaix/Workspace/Rejected/  # Should contain rejected plans
 ```
 
 ### Pass Criteria
@@ -3060,7 +3060,7 @@ ls ~/ExoFrame/Workspace/Rejected/  # Should contain rejected plans
 
 ```bash
 # Step 1: Launch dashboard and navigate to Portal Manager view
-exoctl dashboard
+exactl dashboard
 # Verify Portal Manager view is active
 
 # Step 2: Navigate through portals
@@ -3090,8 +3090,8 @@ exoctl dashboard
 
 ```bash
 # Verify portal actions in Activity Journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%portal% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%portal% --tail 5
 ```
 
 ### Pass Criteria
@@ -3115,7 +3115,7 @@ exoctl journal --filter action_type=%portal% --tail 5
 
 ```bash
 # Step 1: Launch dashboard and navigate to Daemon Control view
-exoctl dashboard
+exactl dashboard
 # Press Tab until Daemon Control view is active
 
 # Step 2: View daemon status
@@ -3137,8 +3137,8 @@ exoctl dashboard
 
 ```bash
 # Verify daemon actions in Activity Journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%daemon%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%daemon% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%daemon%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%daemon% --tail 5
 ```
 
 ### Pass Criteria
@@ -3162,7 +3162,7 @@ exoctl journal --filter action_type=%daemon% --tail 5
 
 ```bash
 # Step 1: Launch dashboard and navigate to Request Manager view
-exoctl dashboard
+exactl dashboard
 # Press Tab until Request Manager view is active
 
 # Step 2: Navigate through requests
@@ -3189,8 +3189,8 @@ exoctl dashboard
 
 ```bash
 # Verify request actions in Activity Journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%request%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%request% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%request%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%request% --tail 5
 ```
 
 ### Pass Criteria
@@ -3207,7 +3207,7 @@ exoctl journal --filter action_type=%request% --tail 5
 
 ### Preconditions
 
-- ExoFrame workspace with activity history
+- Exaix workspace with activity history
 - Multiple requests, plans, and actions executed
 - Activity Journal database populated
 
@@ -3217,53 +3217,53 @@ exoctl journal --filter action_type=%request% --tail 5
 # Part A: Basic Queries
 
 # Step 1: Query all activity
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity ORDER BY timestamp DESC LIMIT 20;";
-exoctl journal --tail 20
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity ORDER BY timestamp DESC LIMIT 20;";
+exactl journal --tail 20
 
 # Step 2: Query by trace_id
-TRACE_ID=$(exoctl journal --tail 1 --format json | jq -r '.[0].trace_id')
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
-exoctl journal --filter trace_id=$TRACE_ID
+TRACE_ID=$(exactl journal --tail 1 --format json | jq -r '.[0].trace_id')
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
+exactl journal --filter trace_id=$TRACE_ID
 
 # Step 3: Query by action_type
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created';";
-exoctl journal --filter action_type=request.created
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created';";
+exactl journal --filter action_type=request.created
 
 # Step 4: Query by agent_id
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE agent_id = 'mock-agent';";
-exoctl journal --filter agent_id=mock-agent
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE agent_id = 'mock-agent';";
+exactl journal --filter agent_id=mock-agent
 
 # Part B: Time-Based Filtering
 
 # Step 5: Query last activity since specific time
 # (Assuming 'since' implementation allows string date)
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE timestamp >= '2024-01-01';";
-exoctl journal --filter since=2024-01-01
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE timestamp >= '2024-01-01';";
+exactl journal --filter since=2024-01-01
 
 # Part C: Formatted Output
 
 # Step 6: JSON Output for processing
-exoctl journal --tail 5 --format json | jq '.'
+exactl journal --tail 5 --format json | jq '.'
 
 # Step 7: Export to file
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity;";
-exoctl journal --format json > /tmp/activity_log.json
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity;";
+exactl journal --format json > /tmp/activity_log.json
 
 # Part D: Advanced Debugging (Backup)
 
 # Step 8: Direct SQL access for complex analysis (Debug only)
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;";
-exoctl journal --count
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT COUNT(*) FROM activity;";
+exactl journal --count
 
 # Step 9: Verify integrity
-sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
+sqlite3 ~/Exaix/.exo/journal.db "PRAGMA integrity_check;"
 ```
 
 ### Expected Results
 
 **Part A (Basic Queries):**
 
-- `exoctl journal` returns recent activity table
+- `exactl journal` returns recent activity table
 - Trace ID filter isolates specific operation
 - Action and Agent filters work as expected
 
@@ -3286,17 +3286,17 @@ sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
 
 ```bash
 # Verify journal database structure
-sqlite3 ~/ExoFrame/.exo/journal.db ".schema activity"
+sqlite3 ~/Exaix/.exo/journal.db ".schema activity"
 
 # Check row count
-exoctl journal | wc -l
+exactl journal | wc -l
 
 # Verify export file created
 ls -lh /tmp/activity_log.json
 wc -l /tmp/activity_log.json
 
 # Check index existence for performance
-sqlite3 ~/ExoFrame/.exo/journal.db ".indices activity"
+sqlite3 ~/Exaix/.exo/journal.db ".indices activity"
 ```
 
 ### Cleanup
@@ -3308,7 +3308,7 @@ rm -f /tmp/activity_log.json
 
 ### Pass Criteria
 
-- [ ] All `exoctl journal` commands execute without errors
+- [ ] All `exactl journal` commands execute without errors
 - [ ] Filtering by filters behaves as expected
 - [ ] JSON output is valid
 - [ ] Export file is created
@@ -3323,7 +3323,7 @@ rm -f /tmp/activity_log.json
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - Daemon running with Deno permission model
 - Multiple portals configured
 
@@ -3349,11 +3349,11 @@ mkdir -p /tmp/portal-a /tmp/portal-b
 echo "Secret A" > /tmp/portal-a/secret.txt
 echo "Secret B" > /tmp/portal-b/secret.txt
 
-exoctl portal add /tmp/portal-a PortalA
-exoctl portal add /tmp/portal-b PortalB
+exactl portal add /tmp/portal-a PortalA
+exactl portal add /tmp/portal-b PortalB
 
 # Step 5: Create request targeting PortalA
-exoctl request "Read secret.txt from PortalA" --agent mock-agent --portal PortalA
+exactl request "Read secret.txt from PortalA" --agent mock-agent --portal PortalA
 
 # Step 6: Verify agent cannot access PortalB
 # (Implementation detail: ToolRegistry should restrict access)
@@ -3361,12 +3361,12 @@ exoctl request "Read secret.txt from PortalA" --agent mock-agent --portal Portal
 # Part C: Command Whitelist Validation
 
 # Step 7: Test allowed commands
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.executing' AND payload LIKE '%command%' ORDER BY timestamp DESC LIMIT 10;";
-exoctl journal --filter action_type=action.executing --payload %command% --tail 10
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.executing' AND payload LIKE '%command%' ORDER BY timestamp DESC LIMIT 10;";
+exactl journal --filter action_type=action.executing --payload %command% --tail 10
 
 # Step 8: Verify dangerous commands are blocked
 # Check logs for rejected commands (rm, dd, chmod, etc.)
-grep -i "command.*not allowed\|blocked" ~/ExoFrame/.exo/daemon.log | tail -10
+grep -i "command.*not allowed\|blocked" ~/Exaix/.exo/daemon.log | tail -10
 
 # Part D: Symlink Traversal Prevention
 
@@ -3374,14 +3374,14 @@ grep -i "command.*not allowed\|blocked" ~/ExoFrame/.exo/daemon.log | tail -10
 ln -s /etc/passwd /tmp/malicious-link
 
 # Step 10: Attempt to add as portal (should fail or be sanitized)
-exoctl portal add /tmp/malicious-link MaliciousPortal 2>&1 || echo "Expected: symlink validation failed"
+exactl portal add /tmp/malicious-link MaliciousPortal 2>&1 || echo "Expected: symlink validation failed"
 
 # Part E: Multi-Portal Isolation
 
 # Step 11: Verify portal separation
-ls -la ~/ExoFrame/Portals/
-readlink ~/ExoFrame/Portals/PortalA
-readlink ~/ExoFrame/Portals/PortalB
+ls -la ~/Exaix/Portals/
+readlink ~/Exaix/Portals/PortalA
+readlink ~/Exaix/Portals/PortalB
 
 # Step 12: Verify no cross-portal contamination
 # Each portal should only access its own files
@@ -3389,17 +3389,17 @@ readlink ~/ExoFrame/Portals/PortalB
 # Part F: Activity Journal Security
 
 # Step 13: Verify sensitive data not logged
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%password%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %password% --tail 5
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%api_key%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %api_key% --tail 5
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%secret%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %secret% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%password%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %password% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%api_key%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %api_key% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%secret%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %secret% --tail 5
 # Should return no sensitive credentials
 
 # Step 14: Verify actor attribution
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT actor FROM activity;";
-exoctl journal --distinct actor
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT DISTINCT actor FROM activity;";
+exactl journal --distinct actor
 # Should show: agent names, 'system', 'human', but not 'unknown' or NULL
 ```
 
@@ -3445,20 +3445,20 @@ exoctl journal --distinct actor
 
 ```bash
 # Check Deno startup permissions
-ps aux | grep deno | grep ExoFrame
+ps aux | grep deno | grep Exaix
 # Should show --allow-read, --allow-write with specific paths
 
 # Verify portal isolation
-ls -la ~/ExoFrame/Portals/
+ls -la ~/Exaix/Portals/
 
 # Check for security violations in logs
-grep -i "permission denied\|access denied\|blocked\|security" ~/ExoFrame/.exo/daemon.log | tail -20
+grep -i "permission denied\|access denied\|blocked\|security" ~/Exaix/.exo/daemon.log | tail -20
 
 # Verify no sensitive data in journal
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%api%key%';";
-exoctl journal --payload %api%key% | wc -l
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%password%';";
-exoctl journal --payload %password% | wc -l
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%api%key%';";
+exactl journal --payload %api%key% | wc -l
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%password%';";
+exactl journal --payload %password% | wc -l
 # Should be 0
 ```
 
@@ -3466,8 +3466,8 @@ exoctl journal --payload %password% | wc -l
 
 ```bash
 # Remove test portals
-exoctl portal remove PortalA
-exoctl portal remove PortalB
+exactl portal remove PortalA
+exactl portal remove PortalB
 rm -rf /tmp/portal-a /tmp/portal-b
 
 # Remove malicious symlink
@@ -3496,9 +3496,9 @@ rm -f /tmp/malicious-link
 
 ### Preconditions
 
-- ExoFrame installed
+- Exaix installed
 - Multiple LLM providers configured (or mock providers)
-- Provider strategy configured in `exo.config.toml`
+- Provider strategy configured in `exa.config.toml`
 
 ### Steps
 
@@ -3506,7 +3506,7 @@ rm -f /tmp/malicious-link
 # Part A: Provider Strategy Configuration
 
 # Step 1: Configure provider strategy
-cat >> ~/ExoFrame/exo.config.toml << 'EOF'
+cat >> ~/Exaix/exa.config.toml << 'EOF'
 
 [provider_strategy]
 prefer_free = true
@@ -3524,24 +3524,24 @@ default = ["ollama", "google-gemini-2.0-flash", "anthropic-claude-3.5-haiku"]
 EOF
 
 # Step 2: Verify configuration loaded
-cat ~/ExoFrame/exo.config.toml | grep -A 10 "provider_strategy"
+cat ~/Exaix/exa.config.toml | grep -A 10 "provider_strategy"
 
 # Part B: Cost-Based Provider Selection
 
 # Step 3: Start daemon and verify provider selection
-exoctl daemon stop 2>/dev/null || true
-exoctl daemon start
+exactl daemon stop 2>/dev/null || true
+exactl daemon start
 sleep 3
 
 # Step 4: Check which provider was selected
-grep -i "provider.*selected\|LLM Provider" ~/ExoFrame/.exo/daemon.log | tail -5
+grep -i "provider.*selected\|LLM Provider" ~/Exaix/.exo/daemon.log | tail -5
 
 # Step 5: Create simple request (should use free/local provider)
-exoctl request "Simple task: list files" --tags simple
+exactl request "Simple task: list files" --tags simple
 
 # Step 6: Monitor provider usage
 sleep 10
-grep -i "provider\|model" ~/ExoFrame/.exo/daemon.log | tail -10
+grep -i "provider\|model" ~/Exaix/.exo/daemon.log | tail -10
 
 # Part C: Fallback Chain Testing
 
@@ -3549,14 +3549,14 @@ grep -i "provider\|model" ~/ExoFrame/.exo/daemon.log | tail -10
 systemctl status ollama 2>/dev/null || echo "Ollama not running - fallback expected"
 
 # Step 8: Create request and observe fallback
-exoctl request "Test fallback behavior"
+exactl request "Test fallback behavior"
 sleep 10
 
 # Step 9: Verify fallback logged
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter action_type=%fallback% --tail 5
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %fallback% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter action_type=%fallback% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %fallback% --tail 5
 
 # Part D: Health Check Validation
 
@@ -3564,15 +3564,15 @@ exoctl journal --payload %fallback% --tail 5
 # This may require specific implementation
 
 # Step 11: Verify unhealthy providers skipped
-grep -i "health\|skip\|unavailable" ~/ExoFrame/.exo/daemon.log | tail -10
+grep -i "health\|skip\|unavailable" ~/Exaix/.exo/daemon.log | tail -10
 
 # Part E: Cost Tracking
 
 # Step 12: Query cost tracking (if implemented)
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %cost% --tail 5
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %tokens% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %cost% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %tokens% --tail 5
 
 # Step 13: Verify daily cost limit enforcement
 # Create multiple requests and verify limit checking
@@ -3614,26 +3614,26 @@ exoctl journal --payload %tokens% --tail 5
 
 ```bash
 # Check provider strategy config
-grep -A 15 "provider_strategy" ~/ExoFrame/exo.config.toml
+grep -A 15 "provider_strategy" ~/Exaix/exa.config.toml
 
 # Verify provider selection logs
-grep -i "provider\|model\|fallback" ~/ExoFrame/.exo/daemon.log | tail -20
+grep -i "provider\|model\|fallback" ~/Exaix/.exo/daemon.log | tail -20
 
 # Check cost tracking
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %tokens% --tail 5
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --payload %cost% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %tokens% --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --payload %cost% --tail 5
 ```
 
 ### Cleanup
 
 ```bash
-# Remove test configuration (edit exo.config.toml manually)
+# Remove test configuration (edit exa.config.toml manually)
 # Or restore backup if created
 
 # Stop daemon
-exoctl daemon stop
+exactl daemon stop
 ```
 
 ### Pass Criteria
@@ -3657,7 +3657,7 @@ exoctl daemon stop
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - At least one portal with git repository
 - Daemon running
 
@@ -3670,26 +3670,26 @@ exoctl daemon stop
 mkdir -p /tmp/git-test-portal
 cd /tmp/git-test-portal
 git init
-git config user.email "test@exoframe.dev"
-git config user.name "ExoFrame Tester"
+git config user.email "test@exaix.dev"
+git config user.name "Exaix Tester"
 echo "# Test Project" > README.md
 git add README.md
 git commit -m "Initial commit"
 
-# Step 2: Add portal to ExoFrame
-cd ~/ExoFrame
-exoctl portal add /tmp/git-test-portal GitTestPortal
+# Step 2: Add portal to Exaix
+cd ~/Exaix
+exactl portal add /tmp/git-test-portal GitTestPortal
 
 # Part B: Branch Creation with Trace ID
 
 # Step 3: Create request targeting portal
-exoctl request "Add utils.ts file" --agent mock-agent --portal GitTestPortal
+exactl request "Add utils.ts file" --agent mock-agent --portal GitTestPortal
 
 # Step 4: Wait for plan and approve
 sleep 5
-PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $1}')
-TRACE_ID=$(exoctl plan show $PLAN_ID | grep trace_id | awk '{print $2}')
-exoctl plan approve $PLAN_ID
+PLAN_ID=$(exactl plan list --status review | head -1 | awk '{print $1}')
+TRACE_ID=$(exactl plan show $PLAN_ID | grep trace_id | awk '{print $2}')
+exactl plan approve $PLAN_ID
 
 # Step 5: Wait for execution and verify branch created
 sleep 10
@@ -3714,26 +3714,26 @@ git log --all --grep="ExoTrace: $TRACE_ID"
 # Part D: Multi-Portal Git Status
 
 # Step 10: Check git status across all portals
-cd ~/ExoFrame
-exoctl git status
+cd ~/Exaix
+exactl git status
 
 # Step 11: List branches across all portals
-exoctl git branches
+exactl git branches
 
 # Part E: Git Log Search
 
 # Step 12: Search git logs for trace_id
-exoctl git log $TRACE_ID
+exactl git log $TRACE_ID
 
 # Step 13: Verify trace_id linkage
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
-exoctl journal --filter trace_id=$TRACE_ID
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
+exactl journal --filter trace_id=$TRACE_ID
 
 # Part F: Merge Operations
 
 # Step 14: Approve review (merge to main)
-CHANGESET_ID=$(exoctl review list | grep pending | head -1 | awk '{print $1}')
-exoctl review approve $CHANGESET_ID
+CHANGESET_ID=$(exactl review list | grep pending | head -1 | awk '{print $1}')
+exactl review approve $CHANGESET_ID
 
 # Step 15: Verify merge commit
 cd /tmp/git-test-portal
@@ -3749,7 +3749,7 @@ git log --grep="ExoTrace: $TRACE_ID" --oneline
 **Part A (Setup):**
 
 - Git repository initialized
-- Portal added to ExoFrame
+- Portal added to Exaix
 - Initial commit present
 
 **Part B (Branch Creation):**
@@ -3793,11 +3793,11 @@ git branch -a | grep "feat/"
 git log -1 --format="%B" | grep "ExoTrace"
 
 # Verify git commands available
-exoctl git --help
+exactl git --help
 
 # Check Activity Journal linkage
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id LIKE '%$TRACE_ID%';";
-exoctl journal --filter trace_id=%$TRACE_ID% | wc -l
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id LIKE '%$TRACE_ID%';";
+exactl journal --filter trace_id=%$TRACE_ID% | wc -l
 
 # Verify merge completed
 git log --oneline --graph -10
@@ -3807,7 +3807,7 @@ git log --oneline --graph -10
 
 ```bash
 # Remove test portal
-exoctl portal remove GitTestPortal
+exactl portal remove GitTestPortal
 rm -rf /tmp/git-test-portal
 ```
 
@@ -3821,7 +3821,7 @@ rm -rf /tmp/git-test-portal
 - [ ] Multi-portal git status works
 - [ ] Multi-portal branch listing works
 - [ ] Merge commits preserve trace_id
-- [ ] `exoctl git` commands functional
+- [ ] `exactl git` commands functional
 - [ ] Activity Journal links to git commits
 
 ---
@@ -3832,7 +3832,7 @@ rm -rf /tmp/git-test-portal
 
 ### Preconditions
 
-- ExoFrame workspace deployed
+- Exaix workspace deployed
 - Daemon running
 - At least one flow defined in `Blueprints/Flows/`
 - Portal configured (optional for flow requests)
@@ -3843,17 +3843,17 @@ rm -rf /tmp/git-test-portal
 # Part A: Flow Request Creation
 
 # Step 1: List available flows
-exoctl flow list
+exactl flow list
 
 # Step 2: Create flow request via CLI
-FLOW_REQUEST_ID=$(exoctl request "Process user data pipeline" --flow data-processing-flow --agent mock-agent)
+FLOW_REQUEST_ID=$(exactl request "Process user data pipeline" --flow data-processing-flow --agent mock-agent)
 
 # Step 3: Verify request created with flow metadata
-exoctl request show $FLOW_REQUEST_ID
+exactl request show $FLOW_REQUEST_ID
 
 # Step 4: Check Activity Journal for flow request creation
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' ORDER BY timestamp DESC LIMIT 5;";
-exoctl journal --filter trace_id=$FLOW_REQUEST_ID --tail 5
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' ORDER BY timestamp DESC LIMIT 5;";
+exactl journal --filter trace_id=$FLOW_REQUEST_ID --tail 5
 
 # Part B: Flow Execution and Routing
 
@@ -3861,52 +3861,52 @@ exoctl journal --filter trace_id=$FLOW_REQUEST_ID --tail 5
 sleep 5
 
 # Step 6: Verify flow routed to FlowRunner (not AgentRunner)
-exoctl request show $FLOW_REQUEST_ID | grep -E "(flow|FlowRunner)"
+exactl request show $FLOW_REQUEST_ID | grep -E "(flow|FlowRunner)"
 
 # Step 7: Check flow execution progress
-exoctl flow status $FLOW_REQUEST_ID
+exactl flow status $FLOW_REQUEST_ID
 
 # Step 8: Monitor Activity Journal for flow steps
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type LIKE '%flow%';";
-exoctl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=%flow%
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type LIKE '%flow%';";
+exactl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=%flow%
 
 # Part C: Flow Validation and Error Handling
 
 # Step 9: Test invalid flow name
-exoctl request "Test invalid flow" --flow nonexistent-flow --agent mock-agent 2>&1 || echo "Expected error for invalid flow"
+exactl request "Test invalid flow" --flow nonexistent-flow --agent mock-agent 2>&1 || echo "Expected error for invalid flow"
 
 # Step 10: Test flow without required dependencies
-exoctl request "Test missing deps" --flow complex-workflow --agent mock-agent 2>&1 || echo "Expected error for missing dependencies"
+exactl request "Test missing deps" --flow complex-workflow --agent mock-agent 2>&1 || echo "Expected error for missing dependencies"
 
 # Step 11: Verify error logged in Activity Journal
-INVALID_REQUEST_ID=$(exoctl request list | grep "Test invalid flow" | head -1 | awk '{print $1}')
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$INVALID_REQUEST_ID' AND action_type = 'error' ORDER BY timestamp DESC LIMIT 1;";
-exoctl journal --filter trace_id=$INVALID_REQUEST_ID --filter action_type=error --tail 1
+INVALID_REQUEST_ID=$(exactl request list | grep "Test invalid flow" | head -1 | awk '{print $1}')
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$INVALID_REQUEST_ID' AND action_type = 'error' ORDER BY timestamp DESC LIMIT 1;";
+exactl journal --filter trace_id=$INVALID_REQUEST_ID --filter action_type=error --tail 1
 
 # Part D: Flow with Portal Integration
 
 # Step 12: Create flow request with portal
-PORTAL_FLOW_ID=$(exoctl request "Deploy feature with flow" --flow deployment-flow --portal TestPortal --agent mock-agent)
+PORTAL_FLOW_ID=$(exactl request "Deploy feature with flow" --flow deployment-flow --portal TestPortal --agent mock-agent)
 
 # Step 13: Verify portal metadata included
-exoctl request show $PORTAL_FLOW_ID | grep portal
+exactl request show $PORTAL_FLOW_ID | grep portal
 
 # Step 14: Check git operations triggered by flow
 sleep 10
-exoctl git status | grep TestPortal
+exactl git status | grep TestPortal
 
 # Part E: Flow Completion and Results
 
 # Step 15: Wait for flow completion
 sleep 15
-exoctl request show $FLOW_REQUEST_ID | grep -E "(completed|failed)"
+exactl request show $FLOW_REQUEST_ID | grep -E "(completed|failed)"
 
 # Step 16: Verify final activity log
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id = '$FLOW_REQUEST_ID';";
-exoctl journal --filter trace_id=$FLOW_REQUEST_ID | wc -l
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id = '$FLOW_REQUEST_ID';";
+exactl journal --filter trace_id=$FLOW_REQUEST_ID | wc -l
 
 # Step 17: Check flow execution summary
-exoctl flow summary $FLOW_REQUEST_ID
+exactl flow summary $FLOW_REQUEST_ID
 ```
 
 ### Expected Results
@@ -3949,34 +3949,34 @@ exoctl flow summary $FLOW_REQUEST_ID
 
 ```bash
 # Verify flow request metadata
-exoctl request show $FLOW_REQUEST_ID | jq '.metadata.flow'
+exactl request show $FLOW_REQUEST_ID | jq '.metadata.flow'
 
 # Check routing decision
-# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type = 'request_routed' ORDER BY timestamp DESC LIMIT 1;";
-exoctl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=request_routed --tail 1
+# sqlite3 ~/Exaix/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type = 'request_routed' ORDER BY timestamp DESC LIMIT 1;";
+exactl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=request_routed --tail 1
 
 # Validate flow execution steps
-exoctl flow status $FLOW_REQUEST_ID
+exactl flow status $FLOW_REQUEST_ID
 
 # Verify error handling
-exoctl request list | grep -E "(failed|error)" | wc -l
+exactl request list | grep -E "(failed|error)" | wc -l
 
 # Check portal-flow integration
-exoctl git log $PORTAL_FLOW_ID
+exactl git log $PORTAL_FLOW_ID
 ```
 
 ### Cleanup
 
 ```bash
 # Clean up test requests (optional)
-# exoctl request delete $FLOW_REQUEST_ID
-# exoctl request delete $INVALID_REQUEST_ID
-# exoctl request delete $PORTAL_FLOW_ID
+# exactl request delete $FLOW_REQUEST_ID
+# exactl request delete $INVALID_REQUEST_ID
+# exactl request delete $PORTAL_FLOW_ID
 ```
 
 ### Pass Criteria
 
-- [ ] `exoctl request --flow` creates flow requests
+- [ ] `exactl request --flow` creates flow requests
 - [ ] Flow requests routed to FlowRunner automatically
 - [ ] Flow metadata preserved in request
 - [ ] Activity Journal logs flow execution steps

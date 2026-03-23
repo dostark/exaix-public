@@ -7,7 +7,7 @@ created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"
 description: "Architecture design specialist for scalable, maintainable system design"
-default_skills: ["exoframe-conventions", "typescript-patterns", "portal-grounding"]
+default_skills: ["exaix-conventions", "typescript-patterns", "portal-grounding"]
 ---
 
 # Software Architect Agent

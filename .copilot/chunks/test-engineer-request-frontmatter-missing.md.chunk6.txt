@@ -7,4 +7,4 @@
 
 1. **Align naming with CLI expectations**
    - Write rejected plans with the `_rejected.md` suffix (instead of `_failed.md`) so the CLI treats them as rejected plans.
-   - Ensure `exoctl plan list` and `exoctl plan show` can parse and display them without warnings.
+   - Ensure `exactl plan list` and `exactl plan show` can parse and display them without warnings.

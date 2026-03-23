@@ -1,9 +1,9 @@
 # Check plan status - shows completed
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan list
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan list
 
 # Check execution results - no actual work done
-cd ~/ExoFrame && git branch -a  # May show unexpected commits
-cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
+cd ~/Exaix && git branch -a  # May show unexpected commits
+cd ~/Exaix && ls -la Memory/Execution/  # May be missing expected results
 ```
 
 ## Observed Behavior

@@ -6,17 +6,17 @@ tags: ["provider-live", "planning"]
 request_fixture: "fixtures/requests/provider_live/code_reviewer.md"
 mode_support: ["auto", "step"]
 portals:
-  - alias: "portal-exoframe"
-    source_path: "/home/dkasymov/git/ExoFrame"
+  - alias: "portal-exaix"
+    source_path: "/home/dkasymov/git/Exaix"
 steps:
   - id: "create-plan-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args:
       - "--agent"
       - "examples/code-reviewer"
       - "--portal"
-      - "portal-exoframe"
+      - "portal-exaix"
       - "--plan-only"
       - "--file"
       - "$REQUEST_FIXTURE"

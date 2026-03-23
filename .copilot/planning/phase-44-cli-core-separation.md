@@ -6,7 +6,7 @@
 
 - ✅ Completed: Steps 1, 2, 3, 4, 5, 6, 7, and 8
 
-Decouple the CLI implementation from the ExoFrame core by enforcing a strict interface-driven boundary. This mirrors Phase 43 (TUI/Core separation) and is a prerequisite for moving the CLI into a separate Git repository in a future phase.
+Decouple the CLI implementation from the Exaix core by enforcing a strict interface-driven boundary. This mirrors Phase 43 (TUI/Core separation) and is a prerequisite for moving the CLI into a separate Git repository in a future phase.
 
 ## Executive Summary
 
@@ -364,19 +364,19 @@ grep -rn 'from ".*\.\./config/service' src/cli/commands/ src/cli/handlers/ src/c
 
 ---
 
-### Step 7: Update Composition Root (`init.ts` / `exoctl.ts`)
+### Step 7: Update Composition Root (`init.ts` / `exactl.ts`)
 
-**Objective**: Ensure `src/cli/init.ts` builds a fully-formed `ICliApplicationContext` using real adapter instances, and `src/cli/exoctl.ts` passes that bundle to command constructors.
+**Objective**: Ensure `src/cli/init.ts` builds a fully-formed `ICliApplicationContext` using real adapter instances, and `src/cli/exactl.ts` passes that bundle to command constructors.
 
 **Files to modify:**
 
 - `src/cli/init.ts` — Instantiate all adapters; return `ICliApplicationContext` from `initializeServices()`. This file **remains allowed** to import concrete implementations — it is the composition root.
-- `src/cli/exoctl.ts` — Accept `ICliApplicationContext` from `init.ts` and pass it to each command constructor instead of scattering individual raw services.
+- `src/cli/exactl.ts` — Accept `ICliApplicationContext` from `init.ts` and pass it to each command constructor instead of scattering individual raw services.
 
 **Success Criteria:**
 
 - `deno task cli request list`, `plan list`, `portal list`, `memory list`, `daemon status` all function correctly.
-- `deno check src/cli/exoctl.ts` passes.
+- `deno check src/cli/exactl.ts` passes.
 - All existing CLI integration tests pass.
 
 ---
@@ -418,7 +418,7 @@ grep -rn 'from ".*\.\./config/service' src/cli/commands/ src/cli/handlers/ src/c
 ## Architectural Decisions
 
 - **Reuse Phase 43 adapters**: `RequestServiceAdapter`, `PlanServiceAdapter`, `PortalServiceAdapter`, `DaemonServiceAdapter`, and `AgentServiceAdapter` already exist in `src/services/adapters/` and are reused as-is. Only the five new adapters (Step 4) need to be created.
-- **Composition root exception**: `src/cli/init.ts` and `src/cli/exoctl.ts` remain explicitly allowed to import concrete implementations — they are the wiring layer and must construct and assemble all adapters.
+- **Composition root exception**: `src/cli/init.ts` and `src/cli/exactl.ts` remain explicitly allowed to import concrete implementations — they are the wiring layer and must construct and assemble all adapters.
 - **`FrontmatterParser` is infrastructure**: `src/parsers/markdown.ts` is treated like `@std/path` — a cross-cutting parsing utility with no service-layer concerns. CLI files may import it directly; it is not a boundary violation.
 - **`IModelProvider` is already abstract**: `src/ai/types.ts` exposes only an interface. CLI files may continue importing it until `src/ai/types.ts` is relocated to `src/shared/` in a dedicated future phase.
 - **`IDisplayService` wraps `EventLogger`**: Rather than leaking the concrete `EventLogger` into commands, all display/logging calls go through the narrow `IDisplayService` interface. The `DisplayAdapter` in core satisfies the contract.
@@ -429,7 +429,7 @@ grep -rn 'from ".*\.\./config/service' src/cli/commands/ src/cli/handlers/ src/c
 ## Backward Compatibility
 
 - This is a **pure structural refactoring**. No CLI commands, flags, output formats, or user-facing behaviour change.
-- The composition root (`init.ts`, `exoctl.ts`) continues to wire real implementations — runtime behaviour is unchanged.
+- The composition root (`init.ts`, `exactl.ts`) continues to wire real implementations — runtime behaviour is unchanged.
 - Existing tests remain valid; new adapter unit tests supplement coverage.
 
 ## Out of Scope

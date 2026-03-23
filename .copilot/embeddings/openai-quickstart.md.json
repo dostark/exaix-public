@@ -3,7 +3,7 @@
   "title": "OpenAI Quickstart: Use agents/ first",
   "vecs": [
     {
-      "text": "## Key points\n\n- Always retrieve relevant context from `agents/` before proposing changes.\n- Keep output small and actionable: diffs first, then verification.\n- If requirements are unclear, ask 1–3 clarifying questions before editing.\n\n## Canonical prompt (short)\n\n\"You are an OpenAI coding assistant for ExoFrame. Before acting, retrieve context from agents/ using inject_agent_context (2–3 chunks simple, 4–6 standard, 8–10 complex). Output format is mandatory: Files → Plan → Diffs → Verification. Cite agent doc paths used. Ask clarifying questions if ambiguous.\"\n\n## Examples",
+      "text": "## Key points\n\n- Always retrieve relevant context from `agents/` before proposing changes.\n- Keep output small and actionable: diffs first, then verification.\n- If requirements are unclear, ask 1–3 clarifying questions before editing.\n\n## Canonical prompt (short)\n\n\"You are an OpenAI coding assistant for Exaix. Before acting, retrieve context from agents/ using inject_agent_context (2–3 chunks simple, 4–6 standard, 8–10 complex). Output format is mandatory: Files → Plan → Diffs → Verification. Cite agent doc paths used. Ask clarifying questions if ambiguous.\"\n\n## Examples",
       "vector": [
         0.8980392156862745,
         0.6078431372549019,

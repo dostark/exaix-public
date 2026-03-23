@@ -3,7 +3,7 @@
   "title": "OpenAI TDD Workflow (tests first)",
   "vecs": [
     {
-      "text": "```text\nKey points\n- Start by proposing failing tests with explicit assertions.\n- Use existing ExoFrame test helpers (retrieve guidance from agents/ first).\n- Only then implement the minimal change to make tests pass.\n\nCanonical prompt (short)\n\n\"You are implementing a change in ExoFrame using TDD. First, inject agents/ context for testing patterns. Then propose 2–4 failing tests with explicit assertions. After that, provide minimal file-scoped diffs to make them pass. End with verification commands. Cite agent doc paths used.\"\n\nExamples\n\n- Example prompt:\n  \"Feature: ConfigLoader should surface malformed TOML errors clearly. Inject agents/ context for 'testing helpers ConfigLoader'. Propose 3 failing tests with explicit assertions, then minimal diffs to pass them.\"",
+      "text": "```text\nKey points\n- Start by proposing failing tests with explicit assertions.\n- Use existing Exaix test helpers (retrieve guidance from agents/ first).\n- Only then implement the minimal change to make tests pass.\n\nCanonical prompt (short)\n\n\"You are implementing a change in Exaix using TDD. First, inject agents/ context for testing patterns. Then propose 2–4 failing tests with explicit assertions. After that, provide minimal file-scoped diffs to make them pass. End with verification commands. Cite agent doc paths used.\"\n\nExamples\n\n- Example prompt:\n  \"Feature: ConfigLoader should surface malformed TOML errors clearly. Inject agents/ context for 'testing helpers ConfigLoader'. Propose 3 failing tests with explicit assertions, then minimal diffs to pass them.\"",
       "vector": [
         0.23529411764705882,
         0.7725490196078432,

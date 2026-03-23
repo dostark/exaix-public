@@ -2,9 +2,9 @@
 {
   "found": true,
   "path": ".copilot/tests/testing.md",
-  "title": "ExoFrame Test Development Guidelines",
+  "title": "Exaix Test Development Guidelines",
   "short_summary": "Testing patterns and unified test context...",
-  "snippet": "# ExoFrame Test Development Guidelines\n\nKey points\n- Use `initTestDbService()`..."
+  "snippet": "# Exaix Test Development Guidelines\n\nKey points\n- Use `initTestDbService()`..."
 }
 ```
 

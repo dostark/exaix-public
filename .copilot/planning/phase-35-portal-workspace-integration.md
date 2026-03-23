@@ -7,7 +7,7 @@ version: "1.0"
 topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboration", "version-control"]
 ---
 
-**Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/ExoFrame`) instead of the deployed workspace (e.g., `~/ExoFrame`), ensuring git operations, feature branches, and reviews track actual source code changes in the correct repositories.
+**Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/Exaix`) instead of the deployed workspace (e.g., `~/Exaix`), ensuring git operations, feature branches, and reviews track actual source code changes in the correct repositories.
 
 **Status:** [x] IN PROGRESS
 **Timebox:** 4-6 weeks
@@ -24,11 +24,11 @@ topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboratio
 
 1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
 1. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
-1. **Unified Command:** `exoctl review` works for both:
+1. **Unified Command:** `exactl review` works for both:
    - Git reviews (write agents in portal repos)
    - File artifacts (read-only agents in Memory/Execution/)
-1. **Approval Workflow:** `exoctl review approve/reject` updates artifact status without git operations
-1. **Phase 36 Completion:** Renamed `exoctl changeset` → `exoctl review` for semantic clarity (complete)
+1. **Approval Workflow:** `exactl review approve/reject` updates artifact status without git operations
+1. **Phase 36 Completion:** Renamed `exactl changeset` → `exactl review` for semantic clarity (complete)
 
 **Benefits:**
 
@@ -40,10 +40,10 @@ topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboratio
 
 **Implementation:**
 
-- Artifacts written to `~/ExoFrame/Memory/Execution/artifact-<request-id>.md`
+- Artifacts written to `~/Exaix/Memory/Execution/artifact-<request-id>.md`
 - Frontmatter schema: `status: pending|approved|rejected`, `created`, `agent`, `portal`
 - Database tracks artifact location (file path instead of git branch)
-- `exoctl review show` detects type (git diff vs file content) automatically
+- `exactl review show` detects type (git diff vs file content) automatically
 - **Phase 36 Update:** All commands use `review` terminology (completed 2026-02-03)
 
 ## References
@@ -51,8 +51,8 @@ topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboratio
 - **Related Issue:** Portal workspace git operations creating branches in wrong repository
 - **Related Phase:** [Phase 04: Tools and Git](./phase-04-tools-and-git.md)
 - **Related Phase:** [Phase 19: Folder Restructuring](./phase-19-folder-restructuring.md)
-- **User Guide:** `docs/ExoFrame_User_Guide.md` - Portal configuration
-- **Technical Spec:** `docs/dev/ExoFrame_Technical_Spec.md` - Portal architecture
+- **User Guide:** `docs/Exaix_User_Guide.md` - Portal configuration
+- **Technical Spec:** `docs/dev/Exaix_Technical_Spec.md` - Portal architecture
 
 ---
 
@@ -61,24 +61,24 @@ topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboratio
 ### Current Behavior (Broken)
 
 **Observed Issue:**
-When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
+When agents execute requests targeting portals (e.g., `exactl request --portal portal-exaix "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/Exaix`) instead of the **portal workspace** (`~/git/Exaix`).
 
 **Example:**
 
 ```bash
 # Request targets portal
-exoctl request --portal portal-exoframe --agent code-analyst "Analyze src/cli/"
+exactl request --portal portal-exaix --agent code-analyst "Analyze src/cli/"
 
-# Expected: Branch created in ~/git/ExoFrame
-# Actual: Branch created in ~/ExoFrame
+# Expected: Branch created in ~/git/Exaix
+# Actual: Branch created in ~/Exaix
 ```
 
 **Changeset shows incorrect behavior:**
 
 ```bash
-exoctl review show request-f05f6840
+exactl review show request-f05f6840
 # Shows:
-#   branch: feat/request-f05f6840-f05f6840 (in ~/ExoFrame)
+#   branch: feat/request-f05f6840-f05f6840 (in ~/Exaix)
 #   files_changed: 320 (all workspace files appear as "new")
 #   commits: 1 (in wrong repository)
 ```
@@ -87,22 +87,22 @@ exoctl review show request-f05f6840
 
 **Architecture Flaw:**
 
-1. **Agent Execution Environment**: Agents execute with working directory set to deployed workspace (`~/ExoFrame`)
-1. **Portal Access**: Portals are symlinked under `~/ExoFrame/Portals/`, but git operations happen in parent directory
+1. **Agent Execution Environment**: Agents execute with working directory set to deployed workspace (`~/Exaix`)
+1. **Portal Access**: Portals are symlinked under `~/Exaix/Portals/`, but git operations happen in parent directory
 1. **Git Context**: Git commands inherit the execution directory, creating branches/commits in deployed workspace's repo
 1. **Changeset Tracking**: Changesets compare against deployed workspace's minimal `master` branch, not portal's actual codebase
 
 **File Structure:**
 
 ```text
-~/ExoFrame/                     # Deployed workspace (execution environment)
+~/Exaix/                     # Deployed workspace (execution environment)
 ├── .git/                       # ❌ Wrong repo for agent operations
 │   ├── master                  # Minimal "Initial commit" branch
 │   └── feat/request-*          # ❌ Feature branches created here
 ├── Portals/
-│   └── portal-exoframe -> ~/git/ExoFrame/  # Symlink to actual repo
+│   └── portal-exaix -> ~/git/Exaix/  # Symlink to actual repo
 
-~/git/ExoFrame/                 # Portal workspace (source of truth)
+~/git/Exaix/                 # Portal workspace (source of truth)
 ├── .git/                       # ✅ Where git operations SHOULD happen
 │   ├── main                    # Actual codebase
 │   └── (no feature branches)   # ❌ Branches missing here
@@ -133,10 +133,10 @@ exoctl review show request-f05f6840
 
 **Functional Requirements:**
 
-- [ ] Agents create feature branches in portal workspace (`~/git/ExoFrame/.git/`)
+- [ ] Agents create feature branches in portal workspace (`~/git/Exaix/.git/`)
 - [ ] Git commits happen in portal repository, not deployed workspace
 - [ ] Changesets reflect actual code modifications (not all workspace files)
-- [ ] `exoctl review show` displays diffs from portal repo
+- [ ] `exactl review show` displays diffs from portal repo
 - [ ] Multiple portals can be used simultaneously without conflicts
 - [ ] Read-only agents (e.g., `code-analyst`) don't create unnecessary branches
 - [ ] Write agents (e.g., `feature-developer`) modify portal files directly
@@ -162,12 +162,12 @@ sequenceDiagram
     participant User
     participant Daemon
     participant Agent
-    participant DeployedWS as ~/ExoFrame
-    participant Portal as ~/git/ExoFrame
+    participant DeployedWS as ~/Exaix
+    participant Portal as ~/git/Exaix
 
-    User->>Daemon: request --portal portal-exoframe
-    Daemon->>Agent: Execute with cwd=~/ExoFrame
-    Agent->>DeployedWS: Read Portals/portal-exoframe/*
+    User->>Daemon: request --portal portal-exaix
+    Daemon->>Agent: Execute with cwd=~/Exaix
+    Agent->>DeployedWS: Read Portals/portal-exaix/*
     Agent->>DeployedWS: git create-branch (WRONG REPO!)
     Agent->>DeployedWS: git commit (WRONG REPO!)
     DeployedWS->>Daemon: Changeset (320 files)
@@ -181,11 +181,11 @@ sequenceDiagram
     participant User
     participant Daemon
     participant Agent
-    participant Portal as ~/git/ExoFrame
-    participant DeployedWS as ~/ExoFrame
+    participant Portal as ~/git/Exaix
+    participant DeployedWS as ~/Exaix
 
-    User->>Daemon: request --portal portal-exoframe
-    Daemon->>Agent: Execute with cwd=~/git/ExoFrame
+    User->>Daemon: request --portal portal-exaix
+    Daemon->>Agent: Execute with cwd=~/git/Exaix
     Agent->>Portal: Read src/*, tests/*
     Agent->>Portal: git create-branch
     Agent->>Portal: git commit
@@ -211,8 +211,8 @@ sequenceDiagram
 
 - Execute in portal workspace for analysis
 - Create artifacts in `Memory/Execution/` with frontmatter status
-- Tracked via `exoctl review` command (unified with git reviews)
-- Approval workflow: `exoctl review approve <id>` updates status field
+- Tracked via `exactl review` command (unified with git reviews)
+- Approval workflow: `exactl review approve <id>` updates status field
 - No git branch creation (artifacts are files, not code changes)
 
 **Write-Capable Agents** (e.g., `feature-developer`, `senior-coder`):
@@ -531,14 +531,14 @@ Analyzed 15 files in `src/cli/` directory...
 **Implementation:**
 
 - Artifact storage + DB tracking: `src/services/artifact_registry.ts` and `src/schemas/artifact.ts`
-- Unified review CLI behavior (artifacts + git changesets): `src/cli/review_commands.ts` and `src/cli/exoctl.ts`
+- Unified review CLI behavior (artifacts + git changesets): `src/cli/review_commands.ts` and `src/cli/exactl.ts`
 
 **Success Criteria:**
 
 - ✅ Artifacts created in `Memory/Execution/` with frontmatter
 - ✅ Artifact status tracked (pending/approved/rejected)
-- ✅ `exoctl review` works for both git reviews and artifacts
-- ✅ Artifact content displayed with `exoctl review show`
+- ✅ `exactl review` works for both git reviews and artifacts
+- ✅ Artifact content displayed with `exactl review show`
 - ✅ Approval updates frontmatter status field
 - ✅ Database tracks artifacts alongside reviews
 
@@ -554,8 +554,8 @@ Analyzed 15 files in `src/cli/` directory...
 - ✅ Unit test: Get artifact with content
 - ✅ Unit test: Create artifact without portal (null portal)
 - ✅ Unit test: Memory/Execution directory auto-created
-- ✅ Integration test: `exoctl review show artifact-* --diff` displays artifact body
-- ✅ Integration test: `exoctl review approve artifact-*` updates status
+- ✅ Integration test: `exactl review show artifact-* --diff` displays artifact body
+- ✅ Integration test: `exactl review approve artifact-*` updates status
 - ✅ Integration test: Mixed list shows both git reviews and artifacts
 - ⏳ E2E test: Complete workflow - request → execution → artifact → review → approve
 
@@ -615,7 +615,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 - Prefer creating the artifact only once per request execution, even if multiple internal steps write intermediate files.
 - If both `summary.md` and `plan.md` exist, artifact should be derived from the _final_ post-execution summary.
 
-#### Task 4.5: Implement Unified `exoctl review` for Artifacts
+#### Task 4.5: Implement Unified `exactl review` for Artifacts
 
 **Status:** COMPLETE
 
@@ -624,7 +624,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 **Files (expected):**
 
 - `src/cli/review_commands.ts`
-- `src/cli/exoctl.ts`
+- `src/cli/exactl.ts`
 - `src/services/artifact_registry.ts`
 - `src/schemas/artifact.ts`
 
@@ -647,14 +647,14 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 **Success Criteria:**
 
-- [x] `exoctl review show artifact-...` prints artifact content (no git required)
-- [x] `exoctl review approve artifact-...` updates artifact frontmatter + DB status
-- [x] `exoctl review reject artifact-... --reason ...` persists rejection reason
-- [x] `exoctl review list` can show pending artifacts alongside code reviews
+- [x] `exactl review show artifact-...` prints artifact content (no git required)
+- [x] `exactl review approve artifact-...` updates artifact frontmatter + DB status
+- [x] `exactl review reject artifact-... --reason ...` persists rejection reason
+- [x] `exactl review list` can show pending artifacts alongside code reviews
 
 **Test Scenarios:**
 
-- [x] Integration test: `exoctl review show artifact-*` displays content
+- [x] Integration test: `exactl review show artifact-*` displays content
 - [x] Integration test: approving artifact updates status and is reflected in subsequent list
 - [x] Integration test: mixed list shows both git and artifact entries
 
@@ -750,8 +750,8 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 
 **Files Updated:**
 
-1. **`docs/ExoFrame_User_Guide.md`** - Added section 5.8 Portal Workflows
-1. **`docs/dev/ExoFrame_Technical_Spec.md`** - Added section 8.5 Portal Workspace Integration
+1. **`docs/Exaix_User_Guide.md`** - Added section 5.8 Portal Workflows
+1. **`docs/dev/Exaix_Technical_Spec.md`** - Added section 8.5 Portal Workspace Integration
 
 **User Guide Additions (Section 5.8):**
 
@@ -788,8 +788,8 @@ Task 5.2 completed with comprehensive documentation updates. Both User Guide and
 
 **Docs (source of truth):**
 
-- `docs/ExoFrame_User_Guide.md` (Portal workflows)
-- `docs/dev/ExoFrame_Technical_Spec.md` (Portal execution + review architecture)
+- `docs/Exaix_User_Guide.md` (Portal workflows)
+- `docs/dev/Exaix_Technical_Spec.md` (Portal execution + review architecture)
 
 **Success Criteria:**
 
@@ -881,18 +881,18 @@ Task 5.2 completed with comprehensive documentation updates. Both User Guide and
 
 ```bash
 # Requests executed in deployed workspace
-exoctl request "Analyze code"
-# Result: Branch in ~/ExoFrame/.git/
+exactl request "Analyze code"
+# Result: Branch in ~/Exaix/.git/
 ```
 
 **After Phase 35:**
 
 ```bash
 # Portal-based requests (RECOMMENDED)
-exoctl request --portal my-project "Analyze code"
+exactl request --portal my-project "Analyze code"
 # Result: No branch (read-only agent)
 
-exoctl request --portal my-project --agent feature-developer "Add feature"
+exactl request --portal my-project --agent feature-developer "Add feature"
 # Result: Branch in ~/git/MyProject/.git/
 ```
 
@@ -901,17 +901,17 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 1. Add portals for existing projects:
 
    ```bash
-   exoctl portal add ~/git/MyProject my-project
+   exactl portal add ~/git/MyProject my-project
    ```
 
 1. Update request commands to use portals:
 
    ```bash
    # Old (still works but not recommended)
-   exoctl request "Analyze code"
+   exactl request "Analyze code"
 
    # New (correct workflow)
-   exoctl request --portal my-project "Analyze code"
+   exactl request --portal my-project "Analyze code"
    ```
 
 1. Review reviews in correct repositories:
@@ -971,9 +971,9 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 ## Future Enhancements
 
-### Phase 36: Command Renaming (`exoctl review` → `exoctl review`)
+### Phase 36: Command Renaming (`exactl review` → `exactl review`)
 
-**Goal:** Rename `exoctl review` to `exoctl review` for semantic clarity
+**Goal:** Rename `exactl review` to `exactl review` for semantic clarity
 
 **Rationale:**
 
@@ -983,10 +983,10 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 **Migration Plan:**
 
-1. Add `exoctl review` as alias to `exoctl review`
-1. Deprecation warning on `exoctl review` usage
-1. Update all documentation to use `exoctl review`
-1. Remove `exoctl review` in next major version
+1. Add `exactl review` as alias to `exactl review`
+1. Deprecation warning on `exactl review` usage
+1. Update all documentation to use `exactl review`
+1. Remove `exactl review` in next major version
 
 **Note:** This section is superseded by Phase 36. See `.copilot/planning/phase-36-changeset-to-review-rename.md` for the canonical CLI naming and migration notes.
 
@@ -1009,7 +1009,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 **Read-Only Agent:**
 
 ```text
-~/ExoFrame/Portals/portal-exoframe -> ~/git/ExoFrame/
+~/Exaix/Portals/portal-exaix -> ~/git/Exaix/
                                        ├── src/       (READ)
                                        ├── tests/     (READ)
                                        └── docs/      (READ)
@@ -1018,7 +1018,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 **Write-Capable Agent:**
 
 ```text
-~/git/ExoFrame/
+~/git/Exaix/
 ├── .git/                 (CREATE BRANCH, COMMIT)
 ├── src/                  (READ, WRITE)
 ├── tests/                (READ, WRITE)
@@ -1033,7 +1033,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 review:
   id: request-f05f6840
   branch: feat/request-f05f6840-f05f6840
-  repository: /home/user/ExoFrame/.git
+  repository: /home/user/Exaix/.git
   files_changed: 320 # All workspace files
   commits: 1
   diff: |
@@ -1048,8 +1048,8 @@ review:
 review:
   id: request-f05f6840
   branch: feat/request-f05f6840-f05f6840
-  repository: /home/user/git/ExoFrame/.git
-  portal: portal-exoframe
+  repository: /home/user/git/Exaix/.git
+  portal: portal-exaix
   files_changed: 5 # Only modified files
   commits: 1
   diff: |
@@ -1083,7 +1083,7 @@ review:
 
 - Source-of-truth implementations: `src/services/workspace_execution_context.ts`, `src/services/agent_executor.ts`, `src/services/request_router.ts`, `src/services/execution_loop.ts`, `src/services/git_service.ts`, `src/services/review_registry.ts`
 - Key tests: `tests/services/workspace_execution_context_test.ts`, `tests/integration/portal_workspace_integration_test.ts`, `tests/services/git_service_portal_test.ts`
-- Docs: `docs/ExoFrame_User_Guide.md` (Portal Workflows + Portal Troubleshooting), `docs/dev/ExoFrame_Technical_Spec.md` (Portal Workspace Integration)
+- Docs: `docs/Exaix_User_Guide.md` (Portal Workflows + Portal Troubleshooting), `docs/dev/Exaix_Technical_Spec.md` (Portal Workspace Integration)
 
 ### Core Implementation
 

@@ -302,7 +302,7 @@ Mock content based on test scenario
 
 \`\`\`bash
 # Create test request using mock agent
-exoctl request "Test request" --agent mock
+exactl request "Test request" --agent mock
 \`\`\`
 
 ## Notes
@@ -332,7 +332,7 @@ export class BlueprintCommands extends BaseCommand {
 
   private blueprintNotFoundError(agentId: string): Error {
     return new Error(
-      `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
+      `Blueprint '${agentId}' not found\nUse 'exactl blueprint list' to see available blueprints`,
     );
   }
 
@@ -552,7 +552,7 @@ export class BlueprintCommands extends BaseCommand {
     const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
     if (await exists(blueprintPath)) {
       throw new Error(
-        `Blueprint '${agentId}' already exists\nUse 'exoctl blueprint edit ${agentId}' to modify`,
+        `Blueprint '${agentId}' already exists\nUse 'exactl blueprint edit ${agentId}' to modify`,
       );
     }
     return blueprintPath;

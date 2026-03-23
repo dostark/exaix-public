@@ -1,4 +1,4 @@
-1. **Validation exists but is unused:** The `getValidatedEnvOverrides()` function in `src/config/env_schema.ts` correctly validates EXO_LLM_* environment variables but is never called.
+1. **Validation exists but is unused:** The `getValidatedEnvOverrides()` function in `src/config/env_schema.ts` correctly validates EXA_LLM_* environment variables but is never called.
 
 1.
 
@@ -12,7 +12,7 @@
 
 ### Environment Variable Handling
 
-- [x] EXO_LLM_* variables are validated correctly
+- [x] EXA_LLM_* variables are validated correctly
 - [x] Variables are inherited by daemon process
 - [x] getValidatedEnvOverrides() function exists but unused
 - [x] ConfigService needs to apply environment overrides after TOML loading

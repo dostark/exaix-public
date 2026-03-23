@@ -2,22 +2,22 @@
 
 ## Problem
 
-When submitting a request via `exoctl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.
+When submitting a request via `exactl request`, the daemon processes it but fails with plan validation errors. The system incorrectly selects the test provider instead of the configured Google provider.
 
 ## Reproduction Steps
 
 ```bash
 # 1. Deploy fresh workspace
-rm -rf ~/ExoFrame
-./scripts/deploy_workspace.sh ~/ExoFrame
-cd ~/ExoFrame
+rm -rf ~/Exaix
+./scripts/deploy_workspace.sh ~/Exaix
+cd ~/Exaix
 
 # 2. Configure and start daemon
-cp exo.config.sample.toml exo.config.toml
-exoctl daemon start
+cp exa.config.sample.toml exa.config.toml
+exactl daemon start
 
 # 3. Create test portal
-cat >> ~/ExoFrame/exo.config.toml << EOF
+cat >> ~/Exaix/exa.config.toml << EOF
 [[portals]]
 alias = "TestApp"
 target_path = "/tmp/test-portal"

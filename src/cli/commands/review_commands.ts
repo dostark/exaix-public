@@ -988,7 +988,7 @@ export class ReviewCommands extends BaseCommand {
           };
         }
 
-        throw new Error(`Review not found: ${branchName}\nRun 'exoctl review list' to see available reviews`);
+        throw new Error(`Review not found: ${branchName}\nRun 'exactl review list' to see available reviews`);
       }
     }
 
@@ -1226,7 +1226,7 @@ export class ReviewCommands extends BaseCommand {
       if (!validation.isValid) {
         throw new Error(
           CommandUtils.formatValidationErrors(validation) +
-            '\nUse: exoctl review reject <id> --reason "your reason"',
+            '\nUse: exactl review reject <id> --reason "your reason"',
         );
       }
 

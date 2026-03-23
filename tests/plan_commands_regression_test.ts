@@ -250,7 +250,7 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
 // ============================================================================
 
 /**
- * Regression test for: "exoctl plan show/list Missing Request and Agent Context"
+ * Regression test for: "exactl plan show/list Missing Request and Agent Context"
  * Root cause: Plan commands only showed basic plan metadata, missing request information
  * Fix: Enhanced PlanCommands to load and display request context (agent, portal, priority, etc.)
  */

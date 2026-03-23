@@ -4,7 +4,7 @@ name: "Default Agent"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["code_generation", "planning", "debugging", "research", "execution", "refactoring"]
 created: "2025-12-09T13:47:00Z"
-created_by: "exoframe-setup"
+created_by: "exaix-setup"
 version: "1.0.0"
 description: "General-purpose coding assistant for planning and implementation"
 default_skills: ["error-handling", "portal-grounding"]

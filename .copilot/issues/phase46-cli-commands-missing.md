@@ -11,16 +11,16 @@ related_issues: []
 
 ## Problem
 
-The new `analyze` and `knowledge` commands for portal management (introduced in Phase 46) are implemented in the `PortalCommands` class but are not wired to the cliffy command tree in `src/cli/exoctl.ts`. This makes them inaccessible to users via the `exoctl portal` interface.
+The new `analyze` and `knowledge` commands for portal management (introduced in Phase 46) are implemented in the `PortalCommands` class but are not wired to the cliffy command tree in `src/cli/exactl.ts`. This makes them inaccessible to users via the `exactl portal` interface.
 
 ## Reproduction Steps
 
 ```bash
 # 1. Attempt to run portal analysis
-exoctl portal analyze portal-exoframe
+exactl portal analyze portal-exaix
 
 # 2. Attempt to view portal knowledge
-exoctl portal knowledge portal-exoframe
+exactl portal knowledge portal-exaix
 ```
 
 ## Observed Behavior
@@ -32,19 +32,19 @@ error: Unknown command "analyze". Did you mean command "add"?
 error: Unknown command "knowledge". Did you mean command "show"?
 ```
 
-Checking `src/cli/exoctl.ts` confirms that the `portal` command group only defines `add`, `list`, `show`, `remove`, `verify`, and `refresh`.
+Checking `src/cli/exactl.ts` confirms that the `portal` command group only defines `add`, `list`, `show`, `remove`, `verify`, and `refresh`.
 
 ## Expected Behavior
 
-- `exoctl portal analyze <alias>` should trigger codebase knowledge gathering.
-- `exoctl portal knowledge <alias>` should display gathered knowledge.
-- Both commands should be visible in `exoctl portal --help`.
+- `exactl portal analyze <alias>` should trigger codebase knowledge gathering.
+- `exactl portal knowledge <alias>` should display gathered knowledge.
+- Both commands should be visible in `exactl portal --help`.
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
-- CLI: exoctl (cliffy)
+- CLI: exactl (cliffy)
 
 ## Root Cause Analysis
 
@@ -55,20 +55,20 @@ The implementation exists in `src/cli/commands/portal_commands.ts`:
 - `PortalCommands.analyze(alias, options)`
 - `PortalCommands.knowledge(alias, options)`
 
-However, `src/cli/exoctl.ts` does not include these subcommands in the `.command("portal", ...)` definition.
+However, `src/cli/exactl.ts` does not include these subcommands in the `.command("portal", ...)` definition.
 
 ## Investigation Areas
 
 ### CLI Wiring
-- [ ] Add `analyze <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
-- [ ] Add `knowledge <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
+- [ ] Add `analyze <alias>` subcommand to `portal` group in `src/cli/exactl.ts`.
+- [ ] Add `knowledge <alias>` subcommand to `portal` group in `src/cli/exactl.ts`.
 - [ ] Ensure options (like `--mode`, `--force`, `--json`) are properly passed to implementation methods.
 
 ## Fix Implementation
 
 **Changes Made:**
 
-1. **Updated `src/cli/exoctl.ts`:**
+1. **Updated `src/cli/exactl.ts`:**
    - Imported `PortalAnalysisMode` from `../shared/enums.ts`.
    - Added `analyze <alias>` subcommand to the `portal` command group, mapping to `portalCommands.analyze()`.
    - Added `knowledge <alias>` subcommand to the `portal` command group, mapping to `portalCommands.knowledge()`.

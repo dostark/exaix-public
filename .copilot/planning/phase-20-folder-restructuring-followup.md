@@ -14,7 +14,7 @@
 
 ## Motivation
 
-Following the completion of Phase 19 planning, several actionable items have been identified to ensure the ExoFrame codebase, scripts, and tests fully align with the new domain-driven folder structure. These actions are critical for eliminating domain confusion, ensuring lifecycle clarity, and supporting maintainability and user experience.
+Following the completion of Phase 19 planning, several actionable items have been identified to ensure the Exaix codebase, scripts, and tests fully align with the new domain-driven folder structure. These actions are critical for eliminating domain confusion, ensuring lifecycle clarity, and supporting maintainability and user experience.
 
 ---
 
@@ -145,7 +145,7 @@ Update planning and user documentation to reflect the actionable changes.
 ## Related Documentation
 
 - [Phase 19: Folder Structure Restructuring](./phase-19-folder-restructuring.md)
-- [ExoFrame Architecture](../../docs/ExoFrame_Architecture.md)
+- [Exaix Architecture](../../docs/Exaix_Architecture.md)
 
 ---
 
@@ -167,7 +167,7 @@ Update planning and user documentation to reflect the actionable changes.
 | Memory/Tasks/                |      ❌      | Remove all references                                  |
 | Memory/ (all content)        |      ✔️      | Copy entire folder with all files/subfolders           |
 | templates/ (folder)          |      ❌      | Do not copy folder                                     |
-| exo.config.sample.toml       |      ✔️      | Copy to root                                           |
+| exa.config.sample.toml       |      ✔️      | Copy to root                                           |
 | README.md                    |      ✔️      | Copy to root                                           |
 | Blueprints/ (all content)    |      ✔️      | Copy all files and subfolders                          |
 | docs/ (top-level files only) |      ✔️      | Copy only files directly in docs/, not from subfolders |

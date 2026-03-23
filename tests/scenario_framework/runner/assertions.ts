@@ -44,7 +44,7 @@ export interface IEvaluateCriterionOptions {
   executionResult?: IScenarioStepExecutionResult;
   env?: { [key: string]: string };
   portalAliases?: string[];
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
 }
 
 export interface IEvaluateStepOutcomeOptions {
@@ -54,7 +54,7 @@ export interface IEvaluateStepOutcomeOptions {
   env?: { [key: string]: string };
   portalAliases?: string[];
   verbose?: boolean;
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
 }
 
 export interface IScenarioStepOutcome {
@@ -159,7 +159,7 @@ export async function evaluateStepOutcome(
     executionResult: options.executionResult,
     env: options.env,
     portalAliases: options.portalAliases,
-    exoctlExecutable: options.exoctlExecutable,
+    exactlExecutable: options.exactlExecutable,
   });
 
   if (hasFailedCriterion(inputResults)) {
@@ -189,7 +189,7 @@ export async function evaluateStepOutcome(
     executionResult: options.executionResult,
     env: options.env,
     portalAliases: options.portalAliases,
-    exoctlExecutable: options.exoctlExecutable,
+    exactlExecutable: options.exactlExecutable,
   });
   const criterionResults = [...inputResults, ...outputResults];
 
@@ -209,7 +209,7 @@ interface IEvaluateCriteriaBatchOptions {
   executionResult?: IScenarioStepExecutionResult;
   env?: { [key: string]: string };
   portalAliases?: string[];
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
 }
 
 async function evaluateCriteriaBatch(
@@ -226,7 +226,7 @@ async function evaluateCriteriaBatch(
         executionResult: options.executionResult,
         env: options.env,
         portalAliases: options.portalAliases,
-        exoctlExecutable: options.exoctlExecutable,
+        exactlExecutable: options.exactlExecutable,
       }),
     );
   }
@@ -528,11 +528,11 @@ async function evaluateJournalEventExistsCriterion(
   if (events === null) {
     return buildFailedResult(options, {
       message:
-        `Failed to query journal via CLI (exoctl not found or errored). ensure ExoFrame daemon is accessible and exoctl is in PATH.`,
+        `Failed to query journal via CLI (exactl not found or errored). ensure Exaix daemon is accessible and exactl is in PATH.`,
     });
   }
 
-  // Modern ExoFrame uses 'action_type' for event identification in the SQLite journal.
+  // Modern Exaix uses 'action_type' for event identification in the SQLite journal.
   const found = events.some((
     e,
   ) => (e.action_type === criterion.event_type || e.event_type === criterion.event_type));
@@ -549,9 +549,9 @@ async function evaluateJournalEventExistsCriterion(
 }
 
 async function loadJournalFromCli(options: IEvaluateCriterionOptions): Promise<IJournalEvent[] | null> {
-  const exoctl = options.exoctlExecutable || "exoctl";
+  const exactl = options.exactlExecutable || "exactl";
   try {
-    const command = new Deno.Command(exoctl, {
+    const command = new Deno.Command(exactl, {
       args: ["journal", "--format", "json", "-n", "200"],
       stdout: "piped",
       stderr: "piped",

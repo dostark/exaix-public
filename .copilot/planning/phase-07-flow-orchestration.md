@@ -6,7 +6,7 @@
 
 ### Overview
 
-Currently, ExoFrame supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.
+Currently, Exaix supports **single-agent execution** via `AgentRunner`. Phase 7 introduces **Flows** — TypeScript-defined orchestrations that coordinate multiple agents working together on complex tasks.
 
 ## Use Cases:
 
@@ -263,7 +263,7 @@ Input:                          Output Waves:
 
 - **Dependencies:** Step 7.4
 - **Rollback:** Remove commands from CLI
-- **Action:** Add `exoctl flow` subcommands for flow management and execution
+- **Action:** Add `exactl flow` subcommands for flow management and execution
 - **Location:** `src/cli/flow_commands.ts`
 
 # File Structure:
@@ -272,7 +272,7 @@ Input:                          Output Waves:
 src/cli/
 ├── flow_commands.ts          # Main flow command definitions
 ├── base.ts                   # Shared CLI utilities
-└── exoctl.ts                 # Main CLI entry point
+└── exactl.ts                 # Main CLI entry point
 ```text
 
 # Integration Points:
@@ -287,16 +287,16 @@ src/cli/
 
 | Command                                    | Description                             | Output Format                           |
 | ------------------------------------------ | --------------------------------------- | --------------------------------------- |
-| `exoctl flow list`                         | List all flows in `/Blueprints/Flows/`  | Table with ID, Name, Steps, Description |
-| `exoctl flow show <id>`                    | Display flow steps and dependency graph | ASCII graph + step details table        |
-| `exoctl flow run <id> --request <req-id>`  | Execute flow for a request              | Execution report with step results      |
-| `exoctl flow plan <id> --request <req-id>` | Dry-run: show execution plan            | Wave-by-wave execution plan             |
-| `exoctl flow history <id>`                 | Show past executions                    | Table of executions with status/timing  |
-| `exoctl flow validate <file>`              | Validate flow definition                | Validation report with errors/warnings  |
+| `exactl flow list`                         | List all flows in `/Blueprints/Flows/`  | Table with ID, Name, Steps, Description |
+| `exactl flow show <id>`                    | Display flow steps and dependency graph | ASCII graph + step details table        |
+| `exactl flow run <id> --request <req-id>`  | Execute flow for a request              | Execution report with step results      |
+| `exactl flow plan <id> --request <req-id>` | Dry-run: show execution plan            | Wave-by-wave execution plan             |
+| `exactl flow history <id>`                 | Show past executions                    | Table of executions with status/timing  |
+| `exactl flow validate <file>`              | Validate flow definition                | Validation report with errors/warnings  |
 
 # Command Details:
 
-# `exoctl flow list`
+# `exactl flow list`
 
 - Scans `/Blueprints/Flows/` directory for `.toml` files
 - Parses flow metadata (id, name, description, version)
@@ -304,7 +304,7 @@ src/cli/
 - Displays in tabular format with sorting options
 - Shows flow status (valid/invalid) based on schema validation
 
-# `exoctl flow show <id>`
+# `exactl flow show <id>`
 
 - Loads flow definition from `/Blueprints/Flows/<id>.toml`
 - Validates flow schema and dependencies
@@ -313,7 +313,7 @@ src/cli/
 - Shows execution waves and parallel groups
 - Includes flow settings (maxParallelism, failFast, output format)
 
-# `exoctl flow run <id> --request <req-id>`
+# `exactl flow run <id> --request <req-id>`
 
 - Validates flow and request existence
 - Creates FlowRunner instance with dependencies
@@ -322,7 +322,7 @@ src/cli/
 - Updates request status and links execution trace
 - Handles execution errors with detailed error reporting
 
-# `exoctl flow plan <id> --request <req-id>`
+# `exactl flow plan <id> --request <req-id>`
 
 - Performs dry-run analysis without executing agents
 - Shows execution waves and step ordering
@@ -331,7 +331,7 @@ src/cli/
 - Reports potential parallelism and bottlenecks
 - Validates request data availability for each step
 
-# `exoctl flow history <id>`
+# `exactl flow history <id>`
 
 - Queries Activity Journal for flow executions
 - Groups executions by flowRunId
@@ -339,7 +339,7 @@ src/cli/
 - Displays recent executions with timestamps
 - Provides filtering options (date range, status, request ID)
 
-# `exoctl flow validate <file>`
+# `exactl flow validate <file>`
 
 - Validates flow TOML against Flow schema
 - Checks step dependencies for cycles and invalid references
@@ -402,12 +402,12 @@ Settings: maxParallelism=3, failFast=true, output=markdown
 
 # Success Criteria:
 
-- [x] `exoctl flow list` displays all available flows with their IDs, names, descriptions, and step counts
-- [x] `exoctl flow show <id>` renders a clear dependency graph showing steps and their relationships
-- [x] `exoctl flow plan <id> --request <req-id>` shows execution waves and step order without executing the flow
-- [x] `exoctl flow run <id> --request <req-id>` executes the flow and generates a comprehensive report
-- [x] `exoctl flow validate <file>` validates flow definitions and reports specific schema errors
-- [x] `exoctl flow history <id>` shows past flow executions with status and timing information
+- [x] `exactl flow list` displays all available flows with their IDs, names, descriptions, and step counts
+- [x] `exactl flow show <id>` renders a clear dependency graph showing steps and their relationships
+- [x] `exactl flow plan <id> --request <req-id>` shows execution waves and step order without executing the flow
+- [x] `exactl flow run <id> --request <req-id>` executes the flow and generates a comprehensive report
+- [x] `exactl flow validate <file>` validates flow definitions and reports specific schema errors
+- [x] `exactl flow history <id>` shows past flow executions with status and timing information
 - [x] All commands provide helpful error messages for invalid inputs or missing flows
 - [x] Commands integrate with existing CLI infrastructure and follow consistent patterns
 - [x] CLI commands handle large flows efficiently without performance degradation
@@ -417,12 +417,12 @@ Settings: maxParallelism=3, failFast=true, output=markdown
 # Planned Tests:
 
 - [x] `tests/cli/flow_commands_test.ts`: CLI integration tests for all flow commands
-- [x] `exoctl flow list` tests: Lists flows correctly, handles empty directory, shows step counts
-- [x] `exoctl flow show` tests: Displays dependency graphs, handles missing flows, formats output correctly
-- [x] `exoctl flow plan` tests: Shows execution waves without running, validates request IDs
-- [x] `exoctl flow run` tests: Executes flows end-to-end, creates reports, handles execution errors
-- [x] `exoctl flow validate` tests: Validates correct flows, rejects invalid flows with specific errors
-- [x] `exoctl flow history` tests: Shows execution history, handles flows with no history
+- [x] `exactl flow list` tests: Lists flows correctly, handles empty directory, shows step counts
+- [x] `exactl flow show` tests: Displays dependency graphs, handles missing flows, formats output correctly
+- [x] `exactl flow plan` tests: Shows execution waves without running, validates request IDs
+- [x] `exactl flow run` tests: Executes flows end-to-end, creates reports, handles execution errors
+- [x] `exactl flow validate` tests: Validates correct flows, rejects invalid flows with specific errors
+- [x] `exactl flow history` tests: Shows execution history, handles flows with no history
 - [x] Error handling tests: Invalid flow IDs, malformed requests, permission issues
 - [x] Integration tests with mock flows and requests
 - [x] Performance tests: Large flow handling, many concurrent executions
@@ -473,7 +473,7 @@ src/services/
    - Validate agent exists in blueprints
    - Use existing AgentRunner path
 1.
-   - Use default agent from `exo.config.toml`
+   - Use default agent from `exa.config.toml`
 
 # Request Frontmatter Examples:
 
@@ -978,7 +978,7 @@ flows/examples/
 
 - [x] End-to-end execution with mock agents for each example flow
 - [x] Flow report generation and content validation
-- [x] CLI command integration (`exoctl flow run`, `exoctl flow validate`)
+- [x] CLI command integration (`exactl flow run`, `exactl flow validate`)
 - [x] File system operations (report generation, temporary files)
 - [x] Database activity logging verification
 

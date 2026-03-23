@@ -2,7 +2,7 @@
 agent: openai
 scope: dev
 title: OpenAI RAG (Retrieval-Augmented Generation) Usage Guide
-short_summary: "How to retrieve and inject .copilot/ context for OpenAI models using ExoFrame embeddings and chunk tooling."
+short_summary: "How to retrieve and inject .copilot/ context for OpenAI models using Exaix embeddings and chunk tooling."
 version: "0.1"
 topics: ["rag", "embeddings", "context-injection", "semantic-search", "provider-adaptations"]
 ---
@@ -18,7 +18,7 @@ Key points
 
 ## Overview
 
-ExoFrame precomputes embeddings for all documentation in `.copilot/` and splits docs into `.copilot/chunks/*.txt` for retrieval. This guide shows a predictable, tool-centric workflow to provide OpenAI models (gpt-4o family) the most relevant ExoFrame context with minimal prompt bloat.
+Exaix precomputes embeddings for all documentation in `.copilot/` and splits docs into `.copilot/chunks/*.txt` for retrieval. This guide shows a predictable, tool-centric workflow to provide OpenAI models (gpt-4o family) the most relevant Exaix context with minimal prompt bloat.
 
 ## RAG Workflow (pit of success)
 

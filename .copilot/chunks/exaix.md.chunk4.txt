@@ -1,6 +1,6 @@
 ### Service Pattern — Dependency Injection & Interfaces
 
-ExoFrame enforces an **Interface-first, Constructor Injection** policy for all services.
+Exaix enforces an **Interface-first, Constructor Injection** policy for all services.
 
 - **Every injectable service exposes an interface.** `class Foo` → `export interface IFoo`. Consumers depend on `IFoo`, never on `Foo`.
 - **Constructor injection only.** Pass `config`, `db`, `provider`, and peer services via constructors. Module-level singletons and static accessors are prohibited.

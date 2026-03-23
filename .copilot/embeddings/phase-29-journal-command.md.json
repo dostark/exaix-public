@@ -1,9 +1,9 @@
 {
   "path": ".copilot/planning/phase-29-journal-command.md",
-  "title": "Phase 29: Implementation of `exoctl journal` Command",
+  "title": "Phase 29: Implementation of `exactl journal` Command",
   "vecs": [
     {
-      "text": "# Phase 29: `exoctl journal` Command\n\n**Goal:** Implement the `exoctl journal` command to allow users to query, filter, and inspect the `journal.db` (Activity Journal) directly from the CLI. This is a critical observability feature for the \"Governance-First\" promise of ExoFrame.\n\n**Status:** ✅ COMPLETE\n**Timebox:** 1-2 days\n**Entry Criteria:** Phase 28 complete (Config reloading working)\n**Exit Criteria:** `exoctl journal` command working with all filters defined in MT-26. (✅ Complete)\n\n## References\n\n- **White Paper:** Section 2 \"Activity Journal: Your AI Bill of Materials\"\n- **Test Scenarios:** Scenario MT-26 \"Activity Journal Queries\"\n\n---\n\n## Step 29.1: Journal Service Enhancements\n\n**Action:** Update `DatabaseService` to support flexible querying.",
+      "text": "# Phase 29: `exactl journal` Command\n\n**Goal:** Implement the `exactl journal` command to allow users to query, filter, and inspect the `journal.db` (Activity Journal) directly from the CLI. This is a critical observability feature for the \"Governance-First\" promise of Exaix.\n\n**Status:** ✅ COMPLETE\n**Timebox:** 1-2 days\n**Entry Criteria:** Phase 28 complete (Config reloading working)\n**Exit Criteria:** `exactl journal` command working with all filters defined in MT-26. (✅ Complete)\n\n## References\n\n- **White Paper:** Section 2 \"Activity Journal: Your AI Bill of Materials\"\n- **Test Scenarios:** Scenario MT-26 \"Activity Journal Queries\"\n\n---\n\n## Step 29.1: Journal Service Enhancements\n\n**Action:** Update `DatabaseService` to support flexible querying.",
       "vector": [
         0.08627450980392157,
         0.8784313725490196,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- **Goal:** Implement the `exoctl journal` command handler using Cliffy.\n- **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`\n- **Actions:**\n  1. Create `JournalCommands` class following the pattern of `PlanCommands`.\n  2. Implement the `journal` command definition with options:\n     - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)\n     - `--tail <number>` (Alias `-n`, default 50)\n     - `--format <json|table>` (Default table)\n     - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.\n  3. Register command in `exoctl.ts`.\n\n**Success Criteria:**",
+      "text": "- **Goal:** Implement the `exactl journal` command handler using Cliffy.\n- **Location:** `src/cli/commands/journal.ts`, `src/cli/exactl.ts`\n- **Actions:**\n  1. Create `JournalCommands` class following the pattern of `PlanCommands`.\n  2. Implement the `journal` command definition with options:\n     - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)\n     - `--tail <number>` (Alias `-n`, default 50)\n     - `--format <json|table>` (Default table)\n     - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.\n  3. Register command in `exactl.ts`.\n\n**Success Criteria:**",
       "vector": [
         0.6588235294117647,
         0.15294117647058825,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "- [x] `exoctl journal --help` shows usage.\n- [x] Arguments parsed correctly (key-value pairs for filters).\n- [x] Command calls `DatabaseService.queryActivity`.\n\n---\n\n## Step 29.3: Smart Output Formatting\n\n- **Goal:** Present journal data in a human-readable table or machine-parsable JSON.\n- **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)\n- **Actions:**\n  1. **Table View:**\n     - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.\n     - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.\n     - Color-code `action_type` (e.g., `error` in red, `success` in green).\n  2. **JSON View:**\n     - Output raw JSON array of `ActivityRecord` objects.\n\n**Success Criteria:**",
+      "text": "- [x] `exactl journal --help` shows usage.\n- [x] Arguments parsed correctly (key-value pairs for filters).\n- [x] Command calls `DatabaseService.queryActivity`.\n\n---\n\n## Step 29.3: Smart Output Formatting\n\n- **Goal:** Present journal data in a human-readable table or machine-parsable JSON.\n- **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)\n- **Actions:**\n  1. **Table View:**\n     - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.\n     - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.\n     - Color-code `action_type` (e.g., `error` in red, `success` in green).\n  2. **JSON View:**\n     - Output raw JSON array of `ActivityRecord` objects.\n\n**Success Criteria:**",
       "vector": [
         0.6588235294117647,
         0.4196078431372549,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "- [x] JSON output is valid and complete.\n- [x] Table output is aligned and readable on standard terminal width.\n\n---\n\n## Step 29.4: Integration & Verification\n\n- **Goal:** Verify the end-to-end flow against test scenarios.\n- **Actions:**\n  1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).\n  2. Execute Scenario MT-26 manually.\n\n**Verification Plan (MT-26 Mapping):**\n\n1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`\n2. **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`\n3. **Export:** `exoctl journal --format json > export.json`\n\n---\n\n## Implementation Checklist",
+      "text": "- [x] JSON output is valid and complete.\n- [x] Table output is aligned and readable on standard terminal width.\n\n---\n\n## Step 29.4: Integration & Verification\n\n- **Goal:** Verify the end-to-end flow against test scenarios.\n- **Actions:**\n  1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).\n  2. Execute Scenario MT-26 manually.\n\n**Verification Plan (MT-26 Mapping):**\n\n1. **Basic Queries:** `exactl journal` (default tail), `exactl journal --filter trace_id=...`\n2. **Combined Filters:** `exactl journal --filter agent_id=mock --filter action_type=request.created`\n3. **Export:** `exactl journal --format json > export.json`\n\n---\n\n## Implementation Checklist",
       "vector": [
         0.2235294117647059,
         0.396078431372549,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- [x] **29.1** `DatabaseService` enhancements\n  - [x] Interface definition\n  - [x] Query builder\n  - [x] Tests\n- [x] **29.2** CLI Command\n  - [x] `JournalCommands` class\n  - [x] Argument parsing logic\n  - [x] Registration in main CLI\n- [x] **29.3** Formatting\n  - [x] Table formatter\n  - [x] JSON formatter\n- [x] **29.4** Final Verification\n  - [x] All MT-26 steps passing\n- [x] **29.5** TUI Upgrade\n  - [x] MonitorView filtering\n  - [x] Filter dialogs\n- [x] **29.6** Service Wiring\n  - [x] DatabaseService injection\n  - [x] LogService adapter\n- [x] **29.7** TUI Verification\n  - [x] Manual verification\n\n---\n\n## Step 29.5: TUI Upgrade (Monitor View)\n\n**Goal:** Enable the TUI \"Monitor\" view to function as a full UI for `exoctl journal`.",
+      "text": "- [x] **29.1** `DatabaseService` enhancements\n  - [x] Interface definition\n  - [x] Query builder\n  - [x] Tests\n- [x] **29.2** CLI Command\n  - [x] `JournalCommands` class\n  - [x] Argument parsing logic\n  - [x] Registration in main CLI\n- [x] **29.3** Formatting\n  - [x] Table formatter\n  - [x] JSON formatter\n- [x] **29.4** Final Verification\n  - [x] All MT-26 steps passing\n- [x] **29.5** TUI Upgrade\n  - [x] MonitorView filtering\n  - [x] Filter dialogs\n- [x] **29.6** Service Wiring\n  - [x] DatabaseService injection\n  - [x] LogService adapter\n- [x] **29.7** TUI Verification\n  - [x] Manual verification\n\n---\n\n## Step 29.5: TUI Upgrade (Monitor View)\n\n**Goal:** Enable the TUI \"Monitor\" view to function as a full UI for `exactl journal`.",
       "vector": [
         0.2980392156862745,
         0.8313725490196079,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "## Step 29.7: TUI Verification\n\n- [x] Manual verification via `exoctl dashboard`.\n- [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.",
+      "text": "## Step 29.7: TUI Verification\n\n- [x] Manual verification via `exactl dashboard`.\n- [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.",
       "vector": [
         0.8745098039215686,
         0.5882352941176471,

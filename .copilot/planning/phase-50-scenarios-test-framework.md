@@ -4,11 +4,11 @@
 
 ## Executive Summary
 
-I consulted `.copilot/docs/documentation.md` for plan structure, `.copilot/cross-reference.md` for task-to-doc routing, `.copilot/source/exoframe.md` for the runtime and request pipeline, and the existing manual validation sources in `docs/dev/Agent_Validation_Requests.md` and `docs/dev/ExoFrame_Manual_Test_Scenarios.md` as the migration baseline.
+I consulted `.copilot/docs/documentation.md` for plan structure, `.copilot/cross-reference.md` for task-to-doc routing, `.copilot/source/exaix.md` for the runtime and request pipeline, and the existing manual validation sources in `docs/dev/Agent_Validation_Requests.md` and `docs/dev/Exaix_Manual_Test_Scenarios.md` as the migration baseline.
 
-This phase defines a reusable scenario test framework that validates ExoFrame behavior through deployed workspaces rather than through internal service calls. The first target is Phases 45–49, but the framework must be generic enough to support future request lifecycle, portal, TUI, provider, and operational scenarios.
+This phase defines a reusable scenario test framework that validates Exaix behavior through deployed workspaces rather than through internal service calls. The first target is Phases 45–49, but the framework must be generic enough to support future request lifecycle, portal, TUI, provider, and operational scenarios.
 
-The framework should live entirely under `tests/`, carry its own fixtures and support files, and be deployable into an arbitrary destination outside both `~/git/ExoFrame` and `~/ExoFrame`. Scenario requests must be stored as editable text files rather than embedded inline in TypeScript or YAML. The runner should execute in `auto`, `step`, and `manual-checkpoint` modes so the same framework supports both fast regression runs and human-in-the-loop validation.
+The framework should live entirely under `tests/`, carry its own fixtures and support files, and be deployable into an arbitrary destination outside both `~/git/Exaix` and `~/Exaix`. Scenario requests must be stored as editable text files rather than embedded inline in TypeScript or YAML. The runner should execute in `auto`, `step`, and `manual-checkpoint` modes so the same framework supports both fast regression runs and human-in-the-loop validation.
 
 ---
 
@@ -16,7 +16,7 @@ The framework should live entirely under `tests/`, carry its own fixtures and su
 
 Current validation for real deployed workspaces is split across long manual guides and ad hoc CLI usage:
 
-1. `docs/dev/ExoFrame_Manual_Test_Scenarios.md` provides broad manual release coverage, but it is slow and expensive to run.
+1. `docs/dev/Exaix_Manual_Test_Scenarios.md` provides broad manual release coverage, but it is slow and expensive to run.
 1. `docs/dev/Agent_Validation_Requests.md` contains realistic request prompts, but they are documented as prose instead of executable assets.
 1. Recent phases 45–49 introduced request-analysis, portal-knowledge, clarification, acceptance-criteria, and quality-hardening behavior that is best validated at the deployed-workspace boundary.
 1. There is no isolated, deployable framework that can be copied elsewhere and run without relying on the repository checkout as its execution home.
@@ -32,7 +32,7 @@ The result is a gap between unit or integration coverage inside the repo and rea
 - [ ] Create a reusable deployed-workspace scenario framework under `tests/`.
 - [ ] Keep all framework code, fixtures, scenario definitions, and support assets inside one dedicated subtree.
 - [ ] Ensure request inputs are stored as plain editable text files and referenced by path, not embedded inline in code or scenario metadata.
-- [ ] Support deployment of the framework into an arbitrary external destination for execution outside `~/git/ExoFrame` and `~/ExoFrame`.
+- [ ] Support deployment of the framework into an arbitrary external destination for execution outside `~/git/Exaix` and `~/Exaix`.
 - [ ] Validate Phases 45–49 as the initial scenario pack.
 - [ ] Design the framework so additional scenario packs can be added for unrelated features later.
 
@@ -42,7 +42,7 @@ The result is a gap between unit or integration coverage inside the repo and rea
 - [ ] Standardize evidence capture so every run produces comparable artifacts.
 - [ ] Provide a migration path from manual scenario documents into executable scenarios.
 - [ ] Support deterministic CI execution using a predefined list of scenarios or scenario tags.
-- [ ] Support validation runs that mount portals pointing to repositories other than ExoFrame.
+- [ ] Support validation runs that mount portals pointing to repositories other than Exaix.
 - [ ] Maintain an internal unit test suite for the framework itself so core runner logic is validated independently from deployed-workspace scenarios.
 
 ### Non-Goals
@@ -60,7 +60,7 @@ The result is a gap between unit or integration coverage inside the repo and rea
 
 The framework will validate behavior through deployed-workspace interfaces:
 
-- `exoctl` commands
+- `exactl` commands
 - workspace files and folders
 - request, plan, review, and journal artifacts
 - portal state and derived knowledge artifacts
@@ -96,7 +96,7 @@ This makes the framework portable, reviewable, and easier to evolve independentl
 
 ### 4. Framework Must Be Deployable Elsewhere
 
-The framework should be copyable or deployable into another destination folder outside both the repository checkout and the main deployed workspace. That external destination becomes the framework's execution home while it targets a chosen ExoFrame workspace under test.
+The framework should be copyable or deployable into another destination folder outside both the repository checkout and the main deployed workspace. That external destination becomes the framework's execution home while it targets a chosen Exaix workspace under test.
 
 This avoids accidental coupling to repo-relative paths and forces the framework to treat the deployed workspace as an external system.
 
@@ -127,9 +127,9 @@ The framework must support non-interactive CI execution using a predefined scena
 
 CI mode should favor deterministic, bounded runs and produce machine-readable summaries suitable for build logs and artifact upload.
 
-### 8. Portal Mounting Must Not Be ExoFrame-Specific
+### 8. Portal Mounting Must Not Be Exaix-Specific
 
-The framework must be able to mount and validate portals that target other repositories, not just the ExoFrame codebase.
+The framework must be able to mount and validate portals that target other repositories, not just the Exaix codebase.
 
 This affects:
 
@@ -216,7 +216,7 @@ This lets the runner distinguish setup failures, execution failures, and validat
 Representative step types:
 
 - `shell`
-- `exoctl`
+- `exactl`
 - `wait-for-file`
 - `wait-for-status`
 - `wait-for-json-field`
@@ -256,11 +256,11 @@ The run summary should include criterion-level failures so a failed run can repo
 The framework must operate with explicit paths rather than assuming repo-relative execution:
 
 - framework home: where the framework was deployed
-- workspace under test: the deployed ExoFrame instance
+- workspace under test: the deployed Exaix instance
 - optional portal roots: repositories or folders mounted into that workspace
 - output directory: where evidence and reports are written
 
-The portal model must support multiple mounted portals, including repositories unrelated to ExoFrame.
+The portal model must support multiple mounted portals, including repositories unrelated to Exaix.
 
 ### CI Model
 
@@ -470,7 +470,7 @@ The framework should enforce four test layers:
 
 - `unit`: pure logic tests for schema, criteria, manifest writing, selection, and config resolution
 - `synthetic-integration`: runner tests using fake steps and synthetic artifacts only
-- `deployed-workspace-scenario`: real workspace validation against `exoctl`, files, and journals
+- `deployed-workspace-scenario`: real workspace validation against `exactl`, files, and journals
 - `provider-live`: optional paid or external-provider scenarios
 
 Layer rules:
@@ -486,7 +486,7 @@ The runner must accept a runtime configuration document with these defined field
 
 Required fields:
 
-- `workspace_path`: absolute path to the deployed ExoFrame instance under test
+- `workspace_path`: absolute path to the deployed Exaix instance under test
 - `output_dir`: absolute path where evidence, manifests, and run artifacts are written
 
 Optional fields with defaults:
@@ -565,7 +565,7 @@ The framework needs stable contracts before implementation begins, otherwise sce
 - [x] A schema exists for scenarios and step definitions.
 - [x] The schema can express external request fixture paths.
 - [x] The schema can express measurable input and output criteria for each step.
-- [x] The schema can express multiple non-ExoFrame portal mounts.
+- [x] The schema can express multiple non-Exaix portal mounts.
 - [x] The directory structure is defined and consistent with deployment needs.
 
 ### Planned Unit Tests
@@ -614,7 +614,7 @@ This addresses the requirement that request text be editable, reviewable, and in
 
 - [x] Implement scenario loading from YAML and schema validation against the Contract 1 types.
 - [x] Implement request fixture path resolution and content loading.
-- [x] Implement step execution for `shell` and `exoctl` step kinds.
+- [x] Implement step execution for `shell` and `exactl` step kinds.
 - [x] Capture stdout, stderr, and exit codes per step.
 - [x] Record basic step results including start time, end time, exit code, and raw output.
 - [x] Integrate runtime configuration loading and validation per Contract 7.
@@ -626,7 +626,7 @@ A clean loader and execution core is the minimum viable runner. Keeping it separ
 ### Success Criteria
 
 - [x] A scenario YAML file is loaded, validated, and its steps are returned in order.
-- [x] `shell` and `exoctl` steps execute and produce captured output.
+- [x] `shell` and `exactl` steps execute and produce captured output.
 - [x] Invalid scenario definitions fail at load time with a structured error.
 - [x] Request fixture paths are resolved correctly relative to framework home.
 - [x] Runtime config schema violations emit a `configuration-failure` before any step executes.
@@ -713,8 +713,8 @@ Without strong evidence capture, the framework becomes another opaque script ins
 - [x] Add a deployment script under `tests/scenario_framework/scripts/`.
 - [x] Support copying the framework into an arbitrary target directory.
 - [x] Rewrite runtime config to use external absolute paths provided at execution time.
-- [x] Verify the deployed framework can target a separate ExoFrame workspace under test.
-- [x] Verify the deployed framework can mount one or more non-ExoFrame portals as part of scenario setup.
+- [x] Verify the deployed framework can target a separate Exaix workspace under test.
+- [x] Verify the deployed framework can mount one or more non-Exaix portals as part of scenario setup.
 
 ### Justification
 
@@ -722,7 +722,7 @@ This forces the framework to behave like an external validation tool and prevent
 
 ### Success Criteria
 
-- [x] The framework can run from a destination outside `~/git/ExoFrame` and `~/ExoFrame`.
+- [x] The framework can run from a destination outside `~/git/Exaix` and `~/Exaix`.
 - [x] No runner path assumptions require execution from the repo root.
 - [x] External portal mounts can target arbitrary repositories provided by scenario config.
 - [x] Deployed runs can still locate fixtures, scenarios, and outputs correctly.
@@ -731,7 +731,7 @@ This forces the framework to behave like an external validation tool and prevent
 
 - [x] Deployment planner rewrites framework paths relative to the external destination correctly.
 - [x] Runtime config resolves explicit workspace, portal, and output paths without repo-root assumptions.
-- [x] Portal mount preparation accepts non-ExoFrame repository paths.
+- [x] Portal mount preparation accepts non-Exaix repository paths.
 - [x] Deployment manifest records copied framework assets deterministically.
 
 **✅ IMPLEMENTED** — `tests/scenario_framework/scripts/deploy_framework.ts`, `tests/scenario_framework/runner/config.ts`, 4/4 Step 6 tests passing
@@ -832,25 +832,25 @@ pack: phase45_49
 tags: [phase49, analysis, smoke]
 request_fixture: fixtures/requests/phase45_49/memory_aware_analysis.md
 portals:
-   - alias: portal-exoframe
-      source_path: /path/to/exoframe-repo
+   - alias: portal-exaix
+      source_path: /path/to/exaix-repo
    - alias: portal-sample-app
       source_path: /path/to/other-repo
 mode_support: [auto, step, manual-checkpoint]
 steps:
    - id: create-request
-      type: exoctl
+      type: exactl
       input_criteria:
          - id: request-fixture-exists
             kind: file-exists
             path: fixtures/requests/phase45_49/memory_aware_analysis.md
          - id: portal-available
             kind: portal-mounted
-            alias: portal-exoframe
+            alias: portal-exaix
       command: request create
       args:
          - --portal
-         - portal-exoframe
+         - portal-exaix
          - --from-file
          - fixtures/requests/phase45_49/memory_aware_analysis.md
       output_criteria:
@@ -909,7 +909,7 @@ Important constraint: the scenario definition references the request fixture pat
 - [ ] Validate the same scenario in `auto` and `step` modes.
 - [ ] Validate one `manual-checkpoint` scenario produces usable evidence for review.
 - [ ] Validate a predefined CI scenario list runs non-interactively and produces a machine-readable manifest.
-- [ ] Validate at least one scenario with an additional portal mounted to a non-ExoFrame repository.
+- [ ] Validate at least one scenario with an additional portal mounted to a non-Exaix repository.
 - [ ] Validate the internal framework unit suite passes without requiring a real deployed workspace.
 
 ### Coverage Verification
@@ -1068,12 +1068,12 @@ Controls:
 - Detection: CI mode reports profile, selection source, and skip reasons in the final manifest.
 - Containment: flaky or slow scenarios move to `ci-extended` or opt-in profiles rather than remaining in the default path.
 
-### Risk: Portal support assumes every scenario targets ExoFrame only
+### Risk: Portal support assumes every scenario targets Exaix only
 
 Controls:
 
-- Prevention: model portals as generic alias-to-source declarations with no ExoFrame-specific assumptions in schema or runner.
-- Detection: unit tests exercise non-ExoFrame repository mounts and alias collision rules.
+- Prevention: model portals as generic alias-to-source declarations with no Exaix-specific assumptions in schema or runner.
+- Detection: unit tests exercise non-Exaix repository mounts and alias collision rules.
 - Containment: framework-owned mounts are tracked and cleaned up separately from user-owned mounts.
 
 ### Risk: Manual-checkpoint mode becomes too vague to be actionable
@@ -1105,8 +1105,8 @@ Controls:
 ## Relevant Files and Inputs
 
 - `docs/dev/Agent_Validation_Requests.md`
-- `docs/dev/ExoFrame_Manual_Test_Scenarios.md`
-- `src/cli/exoctl.ts`
+- `docs/dev/Exaix_Manual_Test_Scenarios.md`
+- `src/cli/exactl.ts`
 - `src/cli/commands/request_commands.ts`
 - `src/cli/commands/plan_commands.ts`
 - `src/cli/commands/journal_commands.ts`
@@ -1131,7 +1131,7 @@ Phase 50 is complete when:
 - [ ] the framework supports `auto`, `step`, and `manual-checkpoint`
 - [ ] the framework supports predefined non-interactive CI scenario execution
 - [ ] each step exposes measurable input and output criteria with criterion-level failure reporting
-- [ ] the framework can mount portals that target repositories other than ExoFrame
+- [ ] the framework can mount portals that target repositories other than Exaix
 - [ ] an initial Phase 45–49 scenario pack runs successfully
 - [ ] the framework is documented so future scenario packs can be added without redesign
 - [ ] the runtime configuration is schema-validated and the resolved config is recorded in every run manifest

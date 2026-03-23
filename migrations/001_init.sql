@@ -1,5 +1,5 @@
 -- up
--- ExoFrame Database Schema - Complete Initialization
+-- Exaix Database Schema - Complete Initialization
 -- Combined migration - all tables created at once
 
 -- ============================================================================

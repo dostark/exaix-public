@@ -55,7 +55,7 @@ Deno.test("User Guide documents Memory Banks", async () => {
 Deno.test("User Guide documents Memory Banks CLI commands", async () => {
   const guide = await readUserGuide();
 
-  assertStringIncludes(guide, "exoctl memory");
+  assertStringIncludes(guide, "exactl memory");
   assertStringIncludes(guide, "memory projects");
   assertStringIncludes(guide, "memory execution");
 });
@@ -101,9 +101,9 @@ Deno.test("User Guide documents structured data features", async () => {
 // CLI Documentation Tests
 // ============================================================================
 
-Deno.test("User Guide documents exoctl command", async () => {
+Deno.test("User Guide documents exactl command", async () => {
   const guide = await readUserGuide();
-  assertStringIncludes(guide, "exoctl");
+  assertStringIncludes(guide, "exactl");
 });
 
 Deno.test("User Guide documents daemon commands", async () => {
@@ -125,7 +125,7 @@ Deno.test("User Guide documents request commands", async () => {
   const lower = guide.toLowerCase();
 
   const hasRequest = lower.includes(FlowInputSource.REQUEST) &&
-    (lower.includes("exoctl") || lower.includes("command"));
+    (lower.includes("exactl") || lower.includes("command"));
 
   assert(hasRequest, "User Guide should document request commands");
 });

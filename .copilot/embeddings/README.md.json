@@ -3,7 +3,7 @@
   "title": "Issues Folder Guidelines",
   "vecs": [
     {
-      "text": "# Issues Folder Guidelines\n\nThis folder contains structured issue reports for ExoFrame bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.\n\n## When to Create an Issue Here\n\nCreate an issue document in `.copilot/issues/` when:\n\n- **Bug Discovery**: You encounter a bug during development or testing\n- **Test Failures**: CI/CD tests fail and need investigation\n- **Technical Debt**: You identify code that needs refactoring or improvement\n- **Feature Requests**: Detailed technical specifications for new features\n- **Investigation Needed**: Complex problems requiring deep analysis\n\n## Issue Document Format\n\nUse the following template for all issues:",
+      "text": "# Issues Folder Guidelines\n\nThis folder contains structured issue reports for Exaix bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.\n\n## When to Create an Issue Here\n\nCreate an issue document in `.copilot/issues/` when:\n\n- **Bug Discovery**: You encounter a bug during development or testing\n- **Test Failures**: CI/CD tests fail and need investigation\n- **Technical Debt**: You identify code that needs refactoring or improvement\n- **Feature Requests**: Detailed technical specifications for new features\n- **Investigation Needed**: Complex problems requiring deep analysis\n\n## Issue Document Format\n\nUse the following template for all issues:",
       "vector": [
         0.5607843137254902,
         0.3058823529411765,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- ExoFrame Version: x.x.x\n- OS: Linux/macOS/Windows\n- Deno Version: x.x.x\n- Relevant Config: exo.config.toml settings\n\n## Investigation Needed\n\n1. **Area 1**: Questions to answer\n   - Specific file or function to check\n   - Hypothesis about root cause\n\n2. **Area 2**: Additional investigation\n   - Related systems to verify\n\n## Related Files\n\n- `path/to/file1.ts` - Description\n- `path/to/file2.ts` - Description\n\n## Workaround\n\nTemporary solution if available, or \"None currently known\"\n\n## Priority Justification\n\nWhy this priority level? Impact on users/system.\n\n## Resolution (when resolved)\n\n- **Root Cause**: What was the actual problem\n- **Fix**: What changes were made\n- **Commit**: Link to commit or PR\n- **Verified**: How the fix was tested\n\n````\n## Naming Convention",
+      "text": "- Exaix Version: x.x.x\n- OS: Linux/macOS/Windows\n- Deno Version: x.x.x\n- Relevant Config: exa.config.toml settings\n\n## Investigation Needed\n\n1. **Area 1**: Questions to answer\n   - Specific file or function to check\n   - Hypothesis about root cause\n\n2. **Area 2**: Additional investigation\n   - Related systems to verify\n\n## Related Files\n\n- `path/to/file1.ts` - Description\n- `path/to/file2.ts` - Description\n\n## Workaround\n\nTemporary solution if available, or \"None currently known\"\n\n## Priority Justification\n\nWhy this priority level? Impact on users/system.\n\n## Resolution (when resolved)\n\n- **Root Cause**: What was the actual problem\n- **Fix**: What changes were made\n- **Commit**: Link to commit or PR\n- **Verified**: How the fix was tested\n\n````\n## Naming Convention",
       "vector": [
         0.22745098039215686,
         0.0196078431372549,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "### Good Issue Title\n✅ `request-processing-fails-with-test-provider-selection.md`\n\n### Bad Issue Title\n❌ `bug.md`\n❌ `fix-this.md`\n❌ `todo.md`\n\n### Good Description\n✅ \"When submitting a request via `exoctl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail.\"\n\n### Bad Description\n❌ \"Requests don't work\"\n❌ \"Something is broken\"\n\n## Integration with Development Workflow",
+      "text": "### Good Issue Title\n✅ `request-processing-fails-with-test-provider-selection.md`\n\n### Bad Issue Title\n❌ `bug.md`\n❌ `fix-this.md`\n❌ `todo.md`\n\n### Good Description\n✅ \"When submitting a request via `exactl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail.\"\n\n### Bad Description\n❌ \"Requests don't work\"\n❌ \"Something is broken\"\n\n## Integration with Development Workflow",
       "vector": [
         0.34509803921568627,
         0.12549019607843137,

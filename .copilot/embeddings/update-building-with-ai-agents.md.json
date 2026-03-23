@@ -624,7 +624,7 @@
       ]
     },
     {
-      "text": "(Missing: What was the pain before? How much better is it after? Concrete metrics?)\n\n**Generic Advice**:\n\n```markdown\nGood documentation is important for project success.\n```\n\n(Missing: ExoFrame-specific examples, personal stories, actual impact)\n\n## Key Patterns to Capture\n\nWhen updating Building_with_AI_Agents.md, look for these patterns in recent work:",
+      "text": "(Missing: What was the pain before? How much better is it after? Concrete metrics?)\n\n**Generic Advice**:\n\n```markdown\nGood documentation is important for project success.\n```\n\n(Missing: Exaix-specific examples, personal stories, actual impact)\n\n## Key Patterns to Capture\n\nWhen updating Building_with_AI_Agents.md, look for these patterns in recent work:",
       "vector": [
         0.36470588235294116,
         0.3686274509803922,

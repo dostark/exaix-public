@@ -1,5 +1,5 @@
-- Plan should read from the configured portal repository (`portal-exoframe`).
-- Plan should reference actual ExoFrame files in `src/cli/` and related modules.
+- Plan should read from the configured portal repository (`portal-exaix`).
+- Plan should reference actual Exaix files in `src/cli/` and related modules.
 - Revision comments should cause the agent to regenerate a plan grounded in the repo.
 
 ## Problem Analysis

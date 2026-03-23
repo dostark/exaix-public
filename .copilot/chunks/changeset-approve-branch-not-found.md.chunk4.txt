@@ -2,6 +2,6 @@
 
 - **Commit**: Changes applied to `src/cli/changeset_commands.ts`
 
-- **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.
+- **Verified**: Manual testing confirmed `exactl changeset approve request-a300d5a5` now works correctly.
 
 ```

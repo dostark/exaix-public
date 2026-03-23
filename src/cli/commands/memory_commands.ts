@@ -318,7 +318,7 @@ export class MemoryCommands extends BaseCommand {
     const globalMem = await this.memoryBank.getGlobalMemory();
 
     if (!globalMem) {
-      return "Global memory not initialized. Run 'exoctl memory global init' first.";
+      return "Global memory not initialized. Run 'exactl memory global init' first.";
     }
 
     return this.formatOutput(
@@ -369,7 +369,7 @@ export class MemoryCommands extends BaseCommand {
     const globalMem = await this.memoryBank.getGlobalMemory();
 
     if (!globalMem) {
-      return "Global memory not initialized. Run 'exoctl memory global init' first.";
+      return "Global memory not initialized. Run 'exactl memory global init' first.";
     }
 
     return this.formatOutput(
@@ -765,8 +765,8 @@ export class MemoryCommands extends BaseCommand {
     skillId: string,
   ) {
     // Determine scope based on portal availability.
-    // In CLI context, we check for EXO_PORTAL environment variable.
-    const activePortal = Deno.env.get("EXO_PORTAL");
+    // In CLI context, we check for EXA_PORTAL environment variable.
+    const activePortal = Deno.env.get("EXA_PORTAL");
     const scope = activePortal ? MemoryScope.PROJECT : MemoryScope.GLOBAL;
 
     return {
@@ -845,7 +845,7 @@ export class MemoryCommands extends BaseCommand {
     // Determine scope based on category and portal availability.
     // Core and Learned (Global) always use GLOBAL scope.
     // User/Project use PROJECT scope if a portal is active, otherwise fall back to GLOBAL.
-    const activePortal = Deno.env.get("EXO_PORTAL");
+    const activePortal = Deno.env.get("EXA_PORTAL");
     const scope = (location === MemoryBankSource.CORE || location === MemoryBankSource.LEARNED)
       ? MemoryScope.GLOBAL
       : (activePortal ? MemoryScope.PROJECT : MemoryScope.GLOBAL);

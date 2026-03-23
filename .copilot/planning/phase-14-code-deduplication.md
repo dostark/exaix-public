@@ -258,7 +258,7 @@ try {
 | tests/mcp/server_prompts_test.ts              | 37.13%      | 45    | Can share with prompts_test.ts            |
 | tests/flows/define_flow_test.ts               | 36.6%       | 84    | Internal test setup                       |
 | tests/helpers/env.ts                          | 35.29%      | 6     | Minor, single pattern                     |
-| tests/cli/exoctl_all_test.ts                  | 66 lines    | -     | 100% duplicate of exoctl_coverage_test.ts |
+| tests/cli/exactl_all_test.ts                  | 66 lines    | -     | 100% duplicate of exactl_coverage_test.ts |
 
 ---
 

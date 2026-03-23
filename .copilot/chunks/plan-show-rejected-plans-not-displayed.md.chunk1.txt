@@ -1,17 +1,17 @@
 ## Observed Behavior
 
-- `exoctl plan show <rejected-plan-id>` returns "Plan not found"
-- `exoctl plan list` correctly shows the rejected plan with status "rejected"
+- `exactl plan show <rejected-plan-id>` returns "Plan not found"
+- `exactl plan list` correctly shows the rejected plan with status "rejected"
 - The rejection operation itself succeeds and logs properly
 
 ## Expected Behavior
 
-- `exoctl plan show <rejected-plan-id>` should display the rejected plan's content, including the rejection reason and timestamp
+- `exactl plan show <rejected-plan-id>` should display the rejected plan's content, including the rejection reason and timestamp
 - Rejected plans should be viewable for audit and review purposes
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (current)
 - Relevant Config: N/A

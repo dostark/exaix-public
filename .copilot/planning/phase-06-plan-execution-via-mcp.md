@@ -62,7 +62,7 @@
 ### Step 6.2: MCP Server Implementation ✅ COMPLETE
 
 - **Dependencies:** Step 5.12 (Plan Detection & Parsing)
-- **Rollback:** Set `mcp.enabled = false` in exo.config.toml
+- **Rollback:** Set `mcp.enabled = false` in exa.config.toml
 - **Action:** Implement Model Context Protocol (MCP) server for agent-tool communication
 - **Location:** `src/mcp/server.ts`, `src/mcp/tools.ts`, `src/mcp/resources.ts`, `src/mcp/prompts.ts`
 - **Status:** ✅ COMPLETE (All 5 Phases complete - 71 tests passing)
@@ -76,19 +76,19 @@
 
 ## Problem Statement:
 
-LLM agents need a standardized, secure interface to interact with ExoFrame and portal repositories. Direct file system access or response parsing approaches are:
+LLM agents need a standardized, secure interface to interact with Exaix and portal repositories. Direct file system access or response parsing approaches are:
 
 - Fragile (parsing markdown responses is unreliable)
-- Insecure (agents could bypass ExoFrame controls)
+- Insecure (agents could bypass Exaix controls)
 - Non-standard (proprietary interfaces)
 
-## The Solution: ExoFrame as MCP Server
+## The Solution: Exaix as MCP Server
 
 Implement an MCP (Model Context Protocol) server that exposes tools, resources, and prompts to LLM agents:
 
 ## Architecture:
 
-│ ExoFrame MCP Server │
+│ Exaix MCP Server │
 ├─────────────────────────────────────────────┤
 │ Tools: 6 tools (read_file, write_file, │
 │ list_directory, git_*) │
@@ -215,7 +215,7 @@ const portalResources = [
 ```typescript
 const EXECUTE_PLAN_PROMPT = {
   name: "execute_plan",
-  description: "Execute an approved ExoFrame plan",
+  description: "Execute an approved Exaix plan",
   arguments: [
     { name: "plan_id", description: "Plan UUID", required: true },
     { name: "portal", description: "Target portal name", required: true },
@@ -237,12 +237,12 @@ const CREATE_CHANGESET_PROMPT = {
 
 ```toml
 
-# exo.config.toml
+# exa.config.toml
 
 [mcp]
 enabled = true
 transport = "stdio"  # or "sse" for HTTP
-server_name = "exoframe"
+server_name = "exaix"
 version = "1.0.0"
 ```text
 
@@ -309,7 +309,7 @@ Implement two security modes for agent execution:
 - Agent has **NO direct file system access**
 - Runs in Deno subprocess: `--allow-read=NONE --allow-write=NONE`
 - All operations go through MCP tools
-- Impossible to bypass ExoFrame
+- Impossible to bypass Exaix
 - Strongest security guarantees
 
 # 2. Hybrid Mode (Performance Optimized):
@@ -548,7 +548,7 @@ The agent orchestration infrastructure is fully implemented and functional with 
 1.
    - 27 tests covering: blueprint loading, permission validation, security modes, changeset validation, activity logging, unauthorized change detection & reversion, MockLLMProvider integration, OllamaProvider integration, execution context passing, completion signal handling, configuration
    - 27/27 passing (100%)
-   - Follows ExoFrame patterns: `initTestDbService()` helper, setup/cleanup pattern
+   - Follows Exaix patterns: `initTestDbService()` helper, setup/cleanup pattern
    - Tests MockProvider and OllamaProvider with valid JSON and error handling for invalid responses
    - Explicit tests for criterion 6 (execution context via prompt), criterion 8 (completion handling), and criterion 16 (OllamaProvider integration)
 
@@ -603,7 +603,7 @@ After agent execution, we need to:
 - Link changesets to trace_id for traceability
 - Track changeset status (pending, approved, rejected)
 - Update plan status to `executed`
-- Enable `exoctl changeset` commands to work with agent-created changesets
+- Enable `exactl changeset` commands to work with agent-created changesets
 
 # The Solution: Changeset Registry Service
 
@@ -709,10 +709,10 @@ interface ChangesetRegistry {
    - Optional: move plan to `Workspace/Archive/`
 
 1.
-   - `exoctl changeset list` shows agent-created changesets
-   - `exoctl changeset show <id>` displays details and diff
-   - `exoctl changeset approve <id>` merges to main
-   - `exoctl changeset reject <id>` marks as rejected
+   - `exactl changeset list` shows agent-created changesets
+   - `exactl changeset show <id>` displays details and diff
+   - `exactl changeset approve <id>` merges to main
+   - `exactl changeset reject <id>` marks as rejected
 
 # Activity Logging Events:
 
@@ -768,7 +768,7 @@ The Changeset Registry provides database-backed persistence for agent-created ch
      - **Status Update Tests (5):** approve, reject, logging for both, error handling
      - **Utility Method Tests (3):** getByTrace, getPendingForPortal, countByStatus
    - 20/20 tests passing (100%)
-   - Follows ExoFrame patterns: `initTestDbService()` helper, setup/cleanup pattern
+   - Follows Exaix patterns: `initTestDbService()` helper, setup/cleanup pattern
    - All methods tested with various scenarios including edge cases
 
 # Key Features:
@@ -815,7 +815,7 @@ The Changeset Registry provides database-backed persistence for agent-created ch
 - ✅ Activity Journal integration complete
 - ⚠️ CLI integration deferred (existing `changeset_commands.ts` works with git branches; database integration is optional enhancement)
 
-**Note:** Criterion 14 (CLI integration) is marked as optional since the existing `exoctl changeset` commands work with git-based changesets. The ChangesetRegistry provides an additional database layer for agent-created changesets that can be integrated later if needed.
+**Note:** Criterion 14 (CLI integration) is marked as optional since the existing `exactl changeset` commands work with git-based changesets. The ChangesetRegistry provides an additional database layer for agent-created changesets that can be integrated later if needed.
 
 ---
 
@@ -936,7 +936,7 @@ EOF
 # 2. Create and approve plan
 
 $ sleep 5
-$ exoctl plan approve <plan-id>
+$ exactl plan approve <plan-id>
 
 # 3. Wait for execution
 
@@ -1046,13 +1046,13 @@ plan.executed
 
 # MCP API for External Tools (Future):
 
-- Expose ExoFrame operations (create request, approve plan, query journal) as MCP tools
-- Enable external AI assistants (Claude Desktop, Cline, IDE agents) to interact with ExoFrame
-- Implement `exoframe_create_request`, `exoframe_list_plans`, `exoframe_approve_plan` tools
+- Expose Exaix operations (create request, approve plan, query journal) as MCP tools
+- Enable external AI assistants (Claude Desktop, Cline, IDE agents) to interact with Exaix
+- Implement `exaix_create_request`, `exaix_list_plans`, `exaix_approve_plan` tools
 - Support stdio/SSE transports for local and remote connections
 - Full documentation for Claude Desktop and IDE integration
 
-**Note:** Phase 6 MCP server is for **agent execution** (agents use MCP tools to modify portals). The MCP API enhancement would enable **external tools** to control ExoFrame itself. Both use MCP protocol but serve different purposes.
+**Note:** Phase 6 MCP server is for **agent execution** (agents use MCP tools to modify portals). The MCP API enhancement would enable **external tools** to control Exaix itself. Both use MCP protocol but serve different purposes.
 
 ---
 
@@ -1459,7 +1459,7 @@ All blueprints now include:
 
 ### Testing
 
-- **Real LLM:** `exoctl request "Implement feature" --agent default`
+- **Real LLM:** `exactl request "Implement feature" --agent default`
 - **Mock LLM:** Automated tests verify JSON output (770/770 passing).
 
 ---

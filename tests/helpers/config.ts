@@ -83,7 +83,7 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
  * Creates a test config file and ConfigService for testing
  */
 export async function createTestConfigService(root: string): Promise<ConfigService> {
-  const configPath = join(root, "exo.config.toml");
+  const configPath = join(root, "exa.config.toml");
 
   const configContent = `[system]
 version = "1.0.0"

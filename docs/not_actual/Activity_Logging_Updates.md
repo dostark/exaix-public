@@ -1,7 +1,7 @@
 # Activity Logging Updates - Implementation Summary
 
 This document summarizes the changes made to implement `agent_id` tracking and decorator-based activity logging across
-the ExoFrame codebase.
+the Exaix codebase.
 
 ## Changes Made
 
@@ -257,7 +257,7 @@ ORDER BY timestamp;
 
 ### For Existing Databases
 
-If you have an existing ExoFrame database, run:
+If you have an existing Exaix database, run:
 
 ```bash
 # Backup current database

@@ -1,7 +1,7 @@
 /**
  * @module CLIConfig
  * @path src/cli/cli.config.ts
- * @description Defines user-tunable constants and default settings for ExoFrame CLI commands, including limits, formatting, and priorities.
+ * @description Defines user-tunable constants and default settings for Exaix CLI commands, including limits, formatting, and priorities.
  * @architectural-layer CLI
  * @dependencies [constants]
  * @related-files [src/cli/main.ts]

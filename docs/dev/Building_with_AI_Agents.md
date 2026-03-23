@@ -1,10 +1,10 @@
-# Building with AI Agents: A Field Guide from the ExoFrame Trenches
+# Building with AI Agents: A Field Guide from the Exaix Trenches
 
 # How I learned to stop worrying and love the TDD loop with an AI pair programmer
 
 ## The Grand Experiment
 
-This document chronicles the real-world experience of building ExoFrame—a meta-framework for AI agents to collaborate on software projects—while using AI agents to build it. Yes, the irony is delicious. Think of it as "eating our own dog food before the kitchen is even built."
+This document chronicles the real-world experience of building Exaix—a meta-framework for AI agents to collaborate on software projects—while using AI agents to build it. Yes, the irony is delicious. Think of it as "eating our own dog food before the kitchen is even built."
 
 What started as a design document review turned into a months-long dance of human intent meeting machine precision, with all the stumbles, surprises, and small victories that entails.
 
@@ -522,7 +522,7 @@ registry.execute("read_file",
 
 **The Philosophy**: Get something end-to-end working first, then add features.
 
-**How This Played Out in ExoFrame**:
+**How This Played Out in Exaix**:
 
 **Phase 1 - The Skeleton** (Week 1):
 
@@ -583,7 +583,7 @@ Benefit: Integration tested from day 1
 - Walking skeleton gives you continuous integration testing
 - Each addition is isolated and testable
 
-**ExoFrame Walking Skeleton Timeline**:
+**Exaix Walking Skeleton Timeline**:
 
 | Week | Skeleton Capability                | Demo-able? |
 | ---- | ---------------------------------- | ---------- |
@@ -814,7 +814,7 @@ For each step, can you answer:
 
 1. **Identify the critical path**:
    ```text
-   For ExoFrame:
+   For Exaix:
    File drop → Parse → Log → Done
    (Skip: intelligence, tools, git, execution)
    ```text
@@ -1022,14 +1022,14 @@ Me: "Why XML? This format wasn't used before at all."
 ```text
 
 **The Surface Reaction**:
-"This seems inconsistent - ExoFrame uses TOML and Markdown everywhere."
+"This seems inconsistent - Exaix uses TOML and Markdown everywhere."
 
 **The Actual Context**:
 
 - LLM providers (Anthropic Claude, etc.) already use XML-like tags for structured outputs
 - `<thinking>` tags are a common pattern in Claude's extended thinking mode
 - Using the same format the LLM naturally produces = less parsing friction
-- ExoFrame _services_ may use different formats internally, but _LLM communication_ follows LLM conventions
+- Exaix _services_ may use different formats internally, but _LLM communication_ follows LLM conventions
 
 **The Lesson**:
 
@@ -1316,11 +1316,11 @@ Refinement isn't a phase—it's a continuous process. Be ready to elaborate:
 
 ## Part X: The Great YAML Migration (November 28, 2025)
 
-> **Historical Note (January 2026):** This section documents ExoFrame's Obsidian integration experiment, which was implemented in Phase 5 and later retired in Phase 12 (v1.1). While Obsidian provided excellent knowledge management features, maintaining compatibility added complexity (~600 LOC in tests, wikilink generation overhead) without sufficient value after the TUI dashboard was implemented. The lessons learned about user interface pragmatism remain valuable.
+> **Historical Note (January 2026):** This section documents Exaix's Obsidian integration experiment, which was implemented in Phase 5 and later retired in Phase 12 (v1.1). While Obsidian provided excellent knowledge management features, maintaining compatibility added complexity (~600 LOC in tests, wikilink generation overhead) without sufficient value after the TUI dashboard was implemented. The lessons learned about user interface pragmatism remain valuable.
 
 ### The Plot Twist Nobody Asked For
 
-**The Setup**: ExoFrame was happily using TOML frontmatter (`+++` delimiters). Everything worked. Tests passed. Life was good.
+**The Setup**: Exaix was happily using TOML frontmatter (`+++` delimiters). Everything worked. Tests passed. Life was good.
 
 **The Problem**: Obsidian's Dataview plugin—the cornerstone of our beautiful Dashboard—silently judged our TOML choices. Every query returned `-` for metadata fields. The Dashboard was technically functional but metaphorically blind.
 
@@ -1448,7 +1448,7 @@ This isn't inconsistency—it's documentation of real engineering decisions:
 
 ### The Week That Changed Everything
 
-**The Context**: ExoFrame had working pieces—file watcher, context loading, git integration, tool registry. But they were islands connected by `console.log` bridges and prayer. This week we connected them with real infrastructure.
+**The Context**: Exaix had working pieces—file watcher, context loading, git integration, tool registry. But they were islands connected by `console.log` bridges and prayer. This week we connected them with real infrastructure.
 
 ### Pattern 18: Agent Instructions as Living Documentation
 
@@ -1459,7 +1459,7 @@ This isn't inconsistency—it's documentation of real engineering decisions:
 **What We Created**:
 
 ```text
-agents/source/exoframe.md     # Source development guidelines
+agents/source/exaix.md     # Source development guidelines
 agents/tests/testing.md       # Test development guidelines
 agents/docs/documentation.md  # Documentation development guidelines
 ```text
@@ -1473,7 +1473,7 @@ agents/docs/documentation.md  # Documentation development guidelines
 
 Before writing any implementation code:
 
-1. Verify a refined step exists in docs/ExoFrame_Implementation_Plan.md
+1. Verify a refined step exists in docs/Exaix_Implementation_Plan.md
 1.
 1.
 1.
@@ -1503,7 +1503,7 @@ Before writing any implementation code:
 
 ```typescript
 // src/main.ts
-console.log("🚀 Starting ExoFrame Daemon...");
+console.log("🚀 Starting Exaix Daemon...");
 console.log(`✅ Configuration loaded (Checksum: ${checksum})`);
 
 // src/services/watcher.ts
@@ -1511,7 +1511,7 @@ console.log(`📁 Watching directory: ${path}`);
 console.error(`❌ Watch directory not found: ${path}`);
 
 // src/cli/daemon_commands.ts
-console.log("Starting ExoFrame daemon...");
+console.log("Starting Exaix daemon...");
 console.log(`✓ Daemon started (PID: ${pid})`);
 ```text
 
@@ -1526,10 +1526,10 @@ console.log(`✓ Daemon started (PID: ${pid})`);
 
 ```typescript
 // Create logger with database connection
-const logger = new EventLogger({ db: dbService, prefix: "[ExoFrame]" });
+const logger = new EventLogger({ db: dbService, prefix: "[Exaix]" });
 
 // Single call → console output + database record
-logger.info("daemon.started", "exoframe", {
+logger.info("daemon.started", "exaix", {
   pid: process.pid,
   provider: "ollama",
   model: "codellama:13b",
@@ -1657,8 +1657,8 @@ const { db, tempDir, cleanup } = await initTestDbService();
 
 ```typescript
 // Provider resolution order:
-// 1. EXO_LLM_PROVIDER environment variable
-// 2. config.ai.provider from exo.config.toml
+// 1. EXA_LLM_PROVIDER environment variable
+// 2. config.ai.provider from exa.config.toml
 // 3. Default: "mock" (safe for development)
 
 const provider = ProviderFactory.create(config);
@@ -1668,10 +1668,10 @@ const provider = ProviderFactory.create(config);
 
 | Variable             | Purpose                                         |
 | -------------------- | ----------------------------------------------- |
-| `EXO_LLM_PROVIDER`   | Provider type (mock, ollama, anthropic, openai) |
-| `EXO_LLM_MODEL`      | Model name override                             |
-| `EXO_LLM_BASE_URL`   | API endpoint override                           |
-| `EXO_LLM_TIMEOUT_MS` | Request timeout override                        |
+| `EXA_LLM_PROVIDER`   | Provider type (mock, ollama, anthropic, openai) |
+| `EXA_LLM_MODEL`      | Model name override                             |
+| `EXA_LLM_BASE_URL`   | API endpoint override                           |
+| `EXA_LLM_TIMEOUT_MS` | Request timeout override                        |
 
 **The MockLLMProvider for Testing**:
 
@@ -1753,7 +1753,7 @@ const env = await TestEnvironment.create();
 // - Initialized git repo
 // - Database with activity table
 // - Mock LLM provider
-// - Full ExoFrame config
+// - Full Exaix config
 
 // After test
 await env.cleanup();
@@ -1877,7 +1877,7 @@ Don't make the LLM format for humans _and_ machines simultaneously. Ask for mach
 
 ### The Paradigm Shift Nobody Saw Coming
 
-**The Context**: ExoFrame was designed around agents parsing LLM responses for structured data. We'd write complex regex patterns, handle edge cases, pray the LLM formatted code blocks correctly. Then reality arrived.
+**The Context**: Exaix was designed around agents parsing LLM responses for structured data. We'd write complex regex patterns, handle edge cases, pray the LLM formatted code blocks correctly. Then reality arrived.
 
 ### Pattern 24: Agent-Driven Architecture via MCP
 
@@ -1909,7 +1909,7 @@ const files = extractFilePaths(codeBlocks); // Hope LLM followed format!
 **The New Way (MCP Server)**:
 
 ```typescript
-// ExoFrame runs MCP server exposing tools
+// Exaix runs MCP server exposing tools
 const mcpServer = new MCPServer({
   tools: [
     new ReadFileTool(config, db, permissions),
@@ -1964,7 +1964,7 @@ mode = "sandboxed"  # Agent subprocess has NO file access
 
 - Agent runs: `deno run --allow-read=NONE --allow-write=NONE`
 - All operations MUST go through MCP tools
-- Impossible to bypass ExoFrame security
+- Impossible to bypass Exaix security
 - Default mode (safest)
 
 **2. Hybrid Mode (Performance Optimized)**:
@@ -2095,7 +2095,7 @@ grep -r "Step 6\.[23]" src/ tests/ | # Find all occurrences
   sed -i 's/Step 6\.[0-9]: //' files
 
 # Keep phase tracking in Implementation Plan only
-docs/ExoFrame_Implementation_Plan.md # Single source of truth
+docs/Exaix_Implementation_Plan.md # Single source of truth
 ```text
 
 **Commit Message Pattern**:
@@ -2106,7 +2106,7 @@ docs: Remove implementation phase markers from code comments
 - Removed "Step 6.2" and "Step 6.3" markers from src/mcp/*.ts
 - Removed phase markers from tests/mcp/*_test.ts
 - Preserved section structure and descriptive headers
-- Phase tracking remains in docs/ExoFrame_Implementation_Plan.md
+- Phase tracking remains in docs/Exaix_Implementation_Plan.md
 
 All 721 tests passing. No functional changes.
 ```text
@@ -2455,7 +2455,7 @@ Result: 73.4% branch coverage on FlowRunner, all routing tests passing
 
 ---
 
-# Written from the trenches of the ExoFrame project, where the builders were also the users, and the documentation wrote itself (with a little help from the AI we were building the framework for).
+# Written from the trenches of the Exaix project, where the builders were also the users, and the documentation wrote itself (with a little help from the AI we were building the framework for).
 
 ## Part XV: The Testing Discipline
 
@@ -2473,7 +2473,7 @@ Agent: [runs coverage report]
 Agent: "Branch coverage: 84.2%"
 ```text
 
-**Real Results from ExoFrame**:
+**Real Results from Exaix**:
 
 | Feature         | Tests | Branch Coverage |
 | --------------- | ----- | --------------- |
@@ -2576,7 +2576,7 @@ tests/
 **The Audit Trigger**:
 
 ```text
-You: "Verify that every exoctl CLI command call correctly traced in activity log"
+You: "Verify that every exactl CLI command call correctly traced in activity log"
 Agent: [creates comprehensive audit report]
 ```text
 
@@ -2648,7 +2648,7 @@ it("should log daemon.started to activity journal", async () => {
 ### Pattern 15: Format Standardization Migration (TOML Migration)
 
 **The Context**:
-ExoFrame originally used mixed formats—YAML frontmatter in requests/plans (`---` delimiters), different syntax across components. This created inconsistency and higher token usage when files were included in LLM context.
+Exaix originally used mixed formats—YAML frontmatter in requests/plans (`---` delimiters), different syntax across components. This created inconsistency and higher token usage when files were included in LLM context.
 
 **The Decision**:
 
@@ -2721,7 +2721,7 @@ tags = ["feature", "api"]
 - **Explicit strings**: No type coercion surprises (`yes` != boolean)
 - **Simpler syntax**: No indentation sensitivity
 - **Token efficiency**: ~22% savings in LLM context windows
-- **Consistency**: Already using TOML for `exo.config.toml`
+- **Consistency**: Already using TOML for `exa.config.toml`
 - **Cleaner arrays**: `tags = ["a", "b"]` vs multi-line YAML
 
 **The Migration Pattern**:
@@ -2891,7 +2891,7 @@ Every feature needs tests for:
 
 ### The Scaling Challenge
 
-As ExoFrame moved from a prototype to a multi-provider system, we hit a new level of complexity. We weren't just talking to one model anymore; we were talking to three different clouds (Anthropic, OpenAI, Google) and local models (Ollama). This required a shift from "hardcoded models" to "named abstractions."
+As Exaix moved from a prototype to a multi-provider system, we hit a new level of complexity. We weren't just talking to one model anymore; we were talking to three different clouds (Anthropic, OpenAI, Google) and local models (Ollama). This required a shift from "hardcoded models" to "named abstractions."
 
 ### Pattern 29: Named Model Abstraction
 
@@ -2902,7 +2902,7 @@ Hardcoding `provider: "openai"` and `model: "gpt-4"` in every request or config 
 Introduce a layer of indirection. Define named models in the config (e.g., `default`, `fast`, `local`) and reference them by name.
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [models.default]
 provider = "anthropic"
 model = "claude-3-5-sonnet-20241022"
@@ -2915,7 +2915,7 @@ model = "gpt-4o-mini"
 **The Implementation**:
 
 - `ProviderFactory.createByName(name)` resolves the configuration.
-- `exoctl request --model fast` allows per-request overrides.
+- `exactl request --model fast` allows per-request overrides.
 - Request frontmatter can specify `model: local` to force local execution.
 
 **The Lesson**: Decouple the _intent_ (e.g., "I want a fast response") from the _implementation_ (e.g., "Use GPT-4o-mini"). This makes the system resilient to model deprecations and provider outages.
@@ -2954,19 +2954,19 @@ const markdown = formatAsDataviewTable(logs);
 await Deno.writeTextFile(".exo/activity_export.md", markdown);
 ```text
 
-**The Lesson**: You don't always need a custom Web UI. If your users already use a tool, export your data into their format. It's faster to build and provides a better user experience. (Note: ExoFrame v1.1+ uses a real-time TUI dashboard instead of this export approach.)
+**The Lesson**: You don't always need a custom Web UI. If your users already use a tool, export your data into their format. It's faster to build and provides a better user experience. (Note: Exaix v1.1+ uses a real-time TUI dashboard instead of this export approach.)
 
 ### Pattern 32: User-Defined Portals & Security
 
 **The Problem**:
-ExoFrame started with fixed portals (@blueprints, @inbox). But users needed to define their own project boundaries (e.g., `@MyProject`). This opened a massive security hole: how do we prevent an agent from using a user-defined portal to escape the sandbox?
+Exaix started with fixed portals (@blueprints, @inbox). But users needed to define their own project boundaries (e.g., `@MyProject`). This opened a massive security hole: how do we prevent an agent from using a user-defined portal to escape the sandbox?
 
 **The Pattern**:
 "Security-First Extension." When adding a feature that extends system boundaries, the security tests must be implemented _before_ the feature is exposed.
 
 **The Implementation**:
 
-- `PathResolver` was updated to resolve user-defined aliases from `exo.config.toml`.
+- `PathResolver` was updated to resolve user-defined aliases from `exa.config.toml`.
 - **Mandatory Security Tests**:
   - Path traversal: `@MyProject/../../etc/passwd` → Blocked.
   - Symlink escape: `@MyProject/link_to_outside` → Blocked.
@@ -2974,13 +2974,13 @@ ExoFrame started with fixed portals (@blueprints, @inbox). But users needed to d
 
 **The Lesson**: Flexibility (user-defined portals) must never come at the cost of security. If you can't prove it's safe with a test, don't ship the feature.
 
-### Pattern 33: Positioning: ExoFrame vs IDE Agents
+### Pattern 33: Positioning: Exaix vs IDE Agents
 
 **The Finding**:
-During the implementation of Phase 9, we realized that ExoFrame isn't a competitor to "IDE Agents" (like Cursor or GitHub Copilot). It's an **orchestrator**.
+During the implementation of Phase 9, we realized that Exaix isn't a competitor to "IDE Agents" (like Cursor or GitHub Copilot). It's an **orchestrator**.
 
 - **IDE Agents**: Great for interactive, line-by-line coding.
-- **ExoFrame**: Great for batch processing, multi-project coordination, and maintaining a permanent audit trail of _why_ decisions were made.
+- **Exaix**: Great for batch processing, multi-project coordination, and maintaining a permanent audit trail of _why_ decisions were made.
 
 **The Pattern**: "Complementary Positioning." Don't try to build a better version of an existing tool. Build the tool that handles what the existing ones can't (e.g., long-running background tasks, cross-repository refactoring, and structured activity logging).
 
@@ -3058,7 +3058,7 @@ During the implementation of Phase 9, we realized that ExoFrame isn't a competit
 
 ### What We Built
 
-**ExoFrame**: A meta-framework where AI agents collaborate on codebases using:
+**Exaix**: A meta-framework where AI agents collaborate on codebases using:
 
 - Activity Journal (audit trail)
 - Tool Registry (safe function calling)
@@ -3097,7 +3097,7 @@ Building a system for AI agents _with_ AI agents revealed exactly what agents ne
 ### The Future
 
 **For Developers**:
-This playbook isn't ExoFrame-specific. Apply it to:
+This playbook isn't Exaix-specific. Apply it to:
 
 - Web applications
 - CLI tools
@@ -3145,7 +3145,7 @@ That's not just irony—it's validation.
 | **Named Model Abstraction**    | "Use model: fast in request frontmatter"               | Decouple intent from implementation            |
 | **Multi-Provider Resilience**  | Shared `withRetry` in `common.ts`                      | Robust error handling across all clouds        |
 | **Activity Export**            | `deno task export-activity` (historical)               | Bridge SQLite to dashboard UI (v1.0 only)      |
-| **User-Defined Portals**       | Define `@Alias` in `exo.config.toml`                   | Secure, flexible project boundaries            |
+| **User-Defined Portals**       | Define `@Alias` in `exa.config.toml`                   | Secure, flexible project boundaries            |
 | **Full Verification**          | "Run all tests"                                        | Verify nothing broke                           |
 | **Agent Instructions**         | Create `agents/` files in key directories              | AI helpers follow same patterns                |
 | **Unified Logging**            | "Migrate console.log to EventLogger"                   | Audit trail + consistent output                |
@@ -3207,7 +3207,7 @@ That's not just irony—it's validation.
 
 - "Add new prompt examples for updating docs/Building_with_AI_Agents.md following proper numbering, style (entertaining), and formatting. Recall all chat history and read detailed commit messages since last update. Follow instructions in agents/ folder for docs/"
 - "Create agents/prompts/ with example prompts for [task type]. Include template, example usage, and expected response pattern. Follow agents/README.md schema."
-- "Update agents/providers/claude.md with task-type system prompt for [task]. Include thinking protocol, ExoFrame-specific requirements, and few-shot example."
+- "Update agents/providers/claude.md with task-type system prompt for [task]. Include thinking protocol, Exaix-specific requirements, and few-shot example."
 - "After updating agents/ docs: rebuild chunks, regenerate embeddings, validate schema. Commands: build_agents_index.ts, build_agents_embeddings.ts --mode mock, validate_agents_docs.ts"
 - "If you discover an instruction gap mid-task: use agents/prompts/self-improvement-loop.md to run an Instruction Adequacy Check, patch agents/ minimally, rebuild/validate, then resume."
 
@@ -3281,7 +3281,7 @@ We implemented a comprehensive enhancement that transformed agents/ from "passiv
 - **Few-shot examples**: Complete examples like "ConfigLoader error handling with `initTestDbService()`"
 - **Thinking protocol**: 5-step framework (Analyze → Plan → Execute → Synthesize → Verify)
 - **Token budget strategies**: Guidance on using Claude's 200k context (4-6 chunks recommended)
-- **Common pitfalls**: 8 ExoFrame-specific anti-patterns with ❌ Bad / ✅ Good code examples
+- **Common pitfalls**: 8 Exaix-specific anti-patterns with ❌ Bad / ✅ Good code examples
 
 **The Pattern**:
 Instead of making me (or the AI) guess at the "right" way to phrase requests, we documented the prompts that _actually work_:
@@ -3303,7 +3303,7 @@ You are implementing a new feature using Test-Driven Development.
 1.
 1.
 
-**ExoFrame-Specific Requirements**:
+**Exaix-Specific Requirements**:
 
 - Use initTestDbService() for tests needing database
 - Always include cleanup() in try/finally
@@ -3422,10 +3422,10 @@ These prompts _demonstrate_ the agents/ system by _using_ the agents/ system. Ea
 
 | Task Type              | Primary Doc                                                    | Secondary Docs                                                         |
 | ---------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Write unit tests       | [tests/testing.md](../agents/tests/testing.md)                 | [source/exoframe.md](../agents/source/exoframe.md)                     |
-| Refactor code          | [source/exoframe.md](../agents/source/exoframe.md)             | [tests/testing.md](../agents/tests/testing.md)                         |
-| Fix TypeScript errors  | [source/exoframe.md](../agents/source/exoframe.md)             | [copilot/exoframe.md](../agents/copilot/exoframe.md)                   |
-| Security audit         | [tests/testing.md](../agents/tests/testing.md) #Security Tests | [source/exoframe.md](../agents/source/exoframe.md) #System Constraints |
+| Write unit tests       | [tests/testing.md](../agents/tests/testing.md)                 | [source/exaix.md](../agents/source/exaix.md)                     |
+| Refactor code          | [source/exaix.md](../agents/source/exaix.md)             | [tests/testing.md](../agents/tests/testing.md)                         |
+| Fix TypeScript errors  | [source/exaix.md](../agents/source/exaix.md)             | [copilot/exaix.md](../agents/copilot/exaix.md)                   |
+| Security audit         | [tests/testing.md](../agents/tests/testing.md) #Security Tests | [source/exaix.md](../agents/source/exaix.md) #System Constraints |
 | Use Claude effectively | [providers/claude.md](../agents/providers/claude.md)           | [providers/claude-rag.md](../agents/providers/claude-rag.md)           |
 
 Plus workflow examples:
@@ -3693,7 +3693,7 @@ Deno.test("compiled exo binary is executable", async () => {
   const { code, stdout } = await process.output();
 
   assertEquals(code, 0, "Binary should execute successfully");
-  assert(stdout.includes("ExoFrame"), "Should report version");
+  assert(stdout.includes("Exaix"), "Should report version");
 });
 ```text
 
@@ -3723,7 +3723,7 @@ We didn't just build CI—we **documented** it in the Implementation Plan.
 
 # Step 10.4: GitHub Actions Enablement Guide
 
-Added to [ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md):
+Added to [Exaix_Implementation_Plan.md](../docs/Exaix_Implementation_Plan.md):
 
 - How to set up GitHub Actions
 - How to configure secrets
@@ -3842,7 +3842,7 @@ It's like writing a book about writing books, and forgetting to include the chap
 
 Here's what made this particularly delicious:
 
-1. **The Document** (Building_with_AI_Agents.md) chronicles patterns from building ExoFrame
+1. **The Document** (Building_with_AI_Agents.md) chronicles patterns from building Exaix
 1.
 1.
 1.
@@ -4017,12 +4017,12 @@ The agents/prompts/ folder isn't just a collection of files—it's a **library o
 We now have:
 
 1. **The Document** (Building_with_AI_Agents.md)
-   - Chronicles patterns from building ExoFrame
+   - Chronicles patterns from building Exaix
    - 3900+ lines of hard-won lessons
    - Parts I–XIX covering 14 months of work
 
 1.
-   - Rules for writing ExoFrame docs
+   - Rules for writing Exaix docs
    - TDD coordination, version syncing, terminology
 
 1.
@@ -4249,7 +4249,7 @@ The process is intentionally boring (which is the highest compliment in infrastr
 
 **Instruction Adequacy Check**:
 
-- Do we have ExoFrame-specific guidance for what to do?
+- Do we have Exaix-specific guidance for what to do?
 - Do we know what invariants to preserve?
 - Do we know what verification to run?
 
@@ -4445,14 +4445,14 @@ Agent: "No - I only explore it when tasks explicitly mention it,
 **What Goes in CLAUDE.md**:
 
 ```markdown
-# CLAUDE.md — ExoFrame AI Assistant Guidelines
+# CLAUDE.md — Exaix AI Assistant Guidelines
 
 ## Quick Reference
 
 | Need               | Location                  |
 | ------------------ | ------------------------- |
 | Task → Doc mapping | agents/cross-reference.md |
-| Source patterns    | agents/source/exoframe.md |
+| Source patterns    | agents/source/exaix.md |
 | Testing patterns   | agents/tests/testing.md   |
 | Planning docs      | agents/planning/          |
 
@@ -4696,7 +4696,7 @@ sort((a, b) => new Date(a.created).getTime() - new Date(b.created).getTime());
 
 ### The Problem of Tribal Knowledge
 
-By Phase 10, the "physics" of ExoFrame had become complex. We had rules for:
+By Phase 10, the "physics" of Exaix had become complex. We had rules for:
 
 - TUI-first design (no web apps)
 - Archival approvals (no deletions)
@@ -4728,7 +4728,7 @@ This shift—from "training the model" to "curating the context"—is how we sca
 
 ## Part X: The Future
 
-The patterns above represent the "physics" of ExoFrame. As we move to multi-agent flows and hybrid cloud execution, these physics will keep the system grounded.
+The patterns above represent the "physics" of Exaix. As we move to multi-agent flows and hybrid cloud execution, these physics will keep the system grounded.
 
 ## Part XV: Framework Decisions - The Case for Native Flows
 
@@ -4737,7 +4737,7 @@ The patterns above represent the "physics" of ExoFrame. As we move to multi-agen
 In **Step 7 (Flow Orchestration)**, we faced a critical decision: adopt LangChain/LangGraph, or build a native execution engine?
 
 - **LangChain Promise**: "Don't reinvent the wheel. We have 5,000 integrations."
-- **ExoFrame Reality**: "We don't need 5,000 integrations. We need 1 solid filesystem abstraction and 3 secure providers."
+- **Exaix Reality**: "We don't need 5,000 integrations. We need 1 solid filesystem abstraction and 3 secure providers."
 
 ### The Decision: Native Flows
 
@@ -4745,11 +4745,11 @@ We chose to build `src/flows/` as a lightweight, type-safe DAG engine (<700 LOC)
 
 # Why?
 
-1. **Safety**: ExoFrame's "Safe-by-Design" promise relies on Deno's kernel-level permissions. LangChain's "magic" abstractions often hide whether a tool is reading a file or sending data to a server. Native flows make every I/O operation explicit and auditable.
+1. **Safety**: Exaix's "Safe-by-Design" promise relies on Deno's kernel-level permissions. LangChain's "magic" abstractions often hide whether a tool is reading a file or sending data to a server. Native flows make every I/O operation explicit and auditable.
 1.
 1.
 
-For a detailed analysis, see: [ExoFrame_LangChain_Comparison.md](./not_actual/ExoFrame_LangChain_Comparison.md).
+For a detailed analysis, see: [Exaix_LangChain_Comparison.md](./not_actual/Exaix_LangChain_Comparison.md).
 
 ---
 

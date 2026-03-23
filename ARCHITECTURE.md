@@ -1,9 +1,9 @@
-# ExoFrame Architecture
+# Exaix Architecture
 
 **Version:** 2.0.0\
 **Date:** January 16, 2026
 
-This document provides a comprehensive architectural overview of ExoFrame components using Mermaid diagrams. ExoFrame is available in **three editions** (Solo, Team, Enterprise) with components differentiated by availability.
+This document provides a comprehensive architectural overview of Exaix components using Mermaid diagrams. Exaix is available in **three editions** (Solo, Team, Enterprise) with components differentiated by availability.
 
 > **Edition Legend:** Components marked with 🟢 are available in all editions. Components marked with 🔵 require **Team+** edition. Components marked with 🟣 require **Enterprise** edition.
 
@@ -19,7 +19,7 @@ graph TB
     end
 
     subgraph CLI["🖥️ CLI Layer"]
-        Exoctl[exoctl CLI Entry]
+        Exactl[exactl CLI Entry]
         ReqCmd[Request Commands]
         PlanCmd[Plan Commands]
         ChangeCmd[Review Commands]
@@ -76,7 +76,7 @@ graph TB
 
     subgraph Storage["💾 Storage"]
         DB[(SQLite DB<br/>.exo/journal.db)]
-        FS[/File System<br/>~/ExoFrame/]
+        FS[/File System<br/>~/Exaix/]
         Workspace[Workspace/<br/>Requests & Plans/]
         Blueprint[Blueprints/<br/>Agents & Flows/]
         Memory[Memory/<br/>Memory Banks/]
@@ -96,19 +96,19 @@ graph TB
     end
 
     %% User interactions
-    User -->|CLI Commands| Exoctl
+    User -->|CLI Commands| Exactl
     User -->|Drop .md files| Requests
     Agent -->|Read/Write| Portals
 
     %% CLI routing
-    Exoctl --> ReqCmd
-    Exoctl --> PlanCmd
-    Exoctl --> ChangeCmd
-    Exoctl --> GitCmd
-    Exoctl --> DaemonCmd
-    Exoctl --> PortalCmd
-    Exoctl --> BlueprintCmd
-    Exoctl --> DashCmd
+    Exactl --> ReqCmd
+    Exactl --> PlanCmd
+    Exactl --> ChangeCmd
+    Exactl --> GitCmd
+    Exactl --> DaemonCmd
+    Exactl --> PortalCmd
+    Exactl --> BlueprintCmd
+    Exactl --> DashCmd
 
     %% CLI to Services
     ReqCmd --> Requests
@@ -197,7 +197,7 @@ graph TB
     classDef ai fill:#fce4ec,stroke:#880e4f,stroke-width:2px
 
     class User,Agent actor
-    class Exoctl,ReqCmd,PlanCmd,ChangeCmd,GitCmd,DaemonCmd,PortalCmd,BlueprintCmd,DashCmd cli
+    class Exactl,ReqCmd,PlanCmd,ChangeCmd,GitCmd,DaemonCmd,PortalCmd,BlueprintCmd,DashCmd cli
     class Main,ReqWatch,PlanWatch,ReqProc,ReqAn,ReqRouter,PlanExec,AgentRun,FlowEng,FlowRun,ExecLoop core
     class ConfigSvc,DBSvc,GitSvc,EventLog,ContextLoad,PlanWriter,MissionRpt,PathRes,ToolReg,CtxCard,OutputVal,RetryPol,ReflexAgt,ConfScore,SessMem,ToolRefl service
     class DB,FS,Workspace,Blueprint,Memory,Portals,System storage
@@ -210,7 +210,7 @@ graph TB
 
 ## Edition Model Overview
 
-ExoFrame follows a **three-tier edition model** to serve different organizational needs:
+Exaix follows a **three-tier edition model** to serve different organizational needs:
 
 | Edition | Target Audience | Key Differentiation |
 | -------------- | --------------------------------------- | --------------------------------------------------------------------- |
@@ -249,7 +249,7 @@ The `RequestAnalyzer` performs intent extraction before routing, identifying goa
 - **Hybrid**: First runs heuristic; escalates to LLM only if actionability score falls below a configured threshold (default: 80).
 
 ### Data Flow
-1. **Trigger**: `exoctl request` (via CLI option) or `RequestProcessor` (daemon) detect a new/updated request.
+1. **Trigger**: `exactl request` (via CLI option) or `RequestProcessor` (daemon) detect a new/updated request.
 2. **Preparation**: `RequestProcessor` validates frontmatter, materializes structured request context, and loads relevant session memory before analysis.
 3. **Execution**: `RequestAnalyzer.analyze()` runs according to the configured mode, using memory context when available.
 4. **Persistence**: Results are saved to a sibling `*_analysis.json` file.
@@ -262,7 +262,7 @@ The `RequestAnalyzer` performs intent extraction before routing, identifying goa
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant CLI as exoctl CLI
+    participant CLI as exactl CLI
     participant I as Workspace/Requests
     participant W as File Watcher
     participant RP as Request Processor
@@ -277,7 +277,7 @@ sequenceDiagram
     participant P as Workspace/Plans
     participant DB as Activity Journal
 
-    U->>CLI: exoctl request "Fix bug"
+    U->>CLI: exactl request "Fix bug"
     CLI->>I: Create request-{uuid}.md
     CLI->>DB: Log request.created
     CLI-->>U: Request created ✓
@@ -285,7 +285,7 @@ sequenceDiagram
     W->>I: Detect new file
     W->>RP: Trigger processing
     RP->>I: Read request.md
-    RP->>RA: Analyze intent (exoctl flag or daemon config)
+    RP->>RA: Analyze intent (exactl flag or daemon config)
     RA->>I: Save request_analysis.json
     RP->>RR: Route request (flow vs agent)
 
@@ -318,11 +318,11 @@ sequenceDiagram
         RP->>DB: Log plan.validation_failed
     end
 
-    U->>CLI: exoctl plan list
+    U->>CLI: exactl plan list
     CLI->>P: Read plans
     CLI-->>U: Show pending plans
 
-    U->>CLI: exoctl plan approve {uuid}
+    U->>CLI: exactl plan approve {uuid}
     CLI->>P: Update plan status
     CLI->>DB: Log plan.approved
     CLI-->>U: Approved ✓
@@ -437,7 +437,7 @@ Before routing to FlowRunner, the Request Router validates:
 
 ## Parsing & Schema Layer
 
-ExoFrame centralizes file-format parsing and validation into two layers:
+Exaix centralizes file-format parsing and validation into two layers:
 
 - **Parsers** (`src/parsers/`): extract structure from Markdown files (YAML frontmatter + body).
 - **Schemas** (`src/schemas/`): validate structured objects using Zod (requests, plans, flows, portals, MCP).
@@ -532,14 +532,14 @@ graph TB
 
     subgraph Orchestration[Agent Orchestration via MCP]
         O1[Validate portal permissions]
-        O2[Start ExoFrame MCP Server]
+        O2[Start Exaix MCP Server]
         O3[Register MCP tools & resources]
         O4[Connect agent via MCP]
         O5[Monitor agent MCP tool calls]
         O6[Receive review details]
     end
 
-    subgraph MCPServer["ExoFrame MCP Server"]
+    subgraph MCPServer["Exaix MCP Server"]
         M1[MCP Protocol Handler]
         M2[Tool Registry]
         M3[Resource Registry]
@@ -618,7 +618,7 @@ The MCP server lives under `src/mcp/` and supports both **stdio** (JSON-RPC 2.0)
   - Logs lifecycle events (e.g., `mcp.server.started`) to the Activity Journal.
 - `src/mcp/tools.ts` & `src/mcp/domain_tools.ts`
   - **Foundation Tools:** `read_file`, `write_file`, `list_directory`, `git_*`
-  - **Domain Tools:** `exoframe_create_request`, `exoframe_list_plans`, `exoframe_approve_plan`, `exoframe_query_journal`
+  - **Domain Tools:** `exaix_create_request`, `exaix_list_plans`, `exaix_approve_plan`, `exaix_query_journal`
   - Validates tool input using `src/schemas/mcp.ts` and enforces portal access via `PortalPermissionsService`.
 - `src/mcp/resources.ts`
   - Implements `portal://<PortalAlias>/<path>` resource discovery and reading.
@@ -692,7 +692,7 @@ graph TB
 ```mermaid
 graph LR
     subgraph Entry["Entry Point"]
-        Exoctl[exoctl.ts<br/>Main CLI]
+        Exactl[exactl.ts<br/>Main CLI]
     end
 
     subgraph Commands["Command Groups"]
@@ -711,14 +711,14 @@ graph LR
         Ctx[CommandContext<br/>config + db]
     end
 
-    Exoctl --> Req
-    Exoctl --> Plan
-    Exoctl --> Change
-    Exoctl --> Git
-    Exoctl --> Daemon
-    Exoctl --> Portal
-    Exoctl --> Blueprint
-    Exoctl --> Dashboard
+    Exactl --> Req
+    Exactl --> Plan
+    Exactl --> Change
+    Exactl --> Git
+    Exactl --> Daemon
+    Exactl --> Portal
+    Exactl --> Blueprint
+    Exactl --> Dashboard
 
     Req -.extends.-> Base
     Plan -.extends.-> Base
@@ -735,7 +735,7 @@ graph LR
     classDef cmd fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
     classDef ctx fill:#fff9c4,stroke:#f57f17,stroke-width:2px
 
-    class Exoctl entry
+    class Exactl entry
     class Base,Req,Plan,Change,Git,Daemon,Portal,Blueprint,Dashboard cmd
     class Ctx ctx
 ```
@@ -744,11 +744,11 @@ graph LR
 
 ## TUI Dashboard Architecture
 
-The dashboard is an interactive terminal UI launched from the CLI, providing a unified cockpit for ExoFrame operations.
+The dashboard is an interactive terminal UI launched from the CLI, providing a unified cockpit for Exaix operations.
 
 ### Overview
 
-- **Entry point:** `exoctl dashboard` → `src/cli/dashboard_commands.ts` → `src/tui/tui_dashboard.ts`
+- **Entry point:** `exactl dashboard` → `src/cli/dashboard_commands.ts` → `src/tui/tui_dashboard.ts`
 - **Multi-pane support:** Split views with independent focus management
 - **7 integrated views:** Portal Manager, Plan Reviewer, Monitor, Daemon Control, Agent Status, Request Manager, Memory View
 - **Test stability:** Mock services enable comprehensive testing (see `src/tui/tui_dashboard_mocks.ts`)
@@ -758,7 +758,7 @@ The dashboard is an interactive terminal UI launched from the CLI, providing a u
 ```mermaid
 graph TB
     subgraph CLI[CLI Layer]
-        Exoctl[exoctl.ts]
+        Exactl[exactl.ts]
         DashCmd[DashboardCommands.show]
     end
 
@@ -797,7 +797,7 @@ graph TB
         AutoExpire[Auto-expire timers]
     end
 
-    Exoctl --> DashCmd --> Launch
+    Exactl --> DashCmd --> Launch
     Launch --> State
     Launch --> Theme
     Launch --> PaneList
@@ -858,7 +858,7 @@ Dashboard uses a declarative key binding system:
 
 ### Layout Persistence
 
-Layouts are saved to `~/.exoframe/tui_layout.json`:
+Layouts are saved to `~/.exaix/tui_layout.json`:
 
 ```json
 {
@@ -904,7 +904,7 @@ For keyboard shortcuts, see [TUI Keyboard Reference](./TUI_Keyboard_Reference.md
 
 ## AI Provider Architecture
 
-ExoFrame supports multiple LLM providers with **edition-based availability**:
+Exaix supports multiple LLM providers with **edition-based availability**:
 
 | Provider Category      | Solo 🟢                      | Team 🔵 | Enterprise 🟣                            |
 | ---------------------- | ---------------------------- | ------- | ---------------------------------------- |
@@ -921,7 +921,7 @@ graph TB
     end
 
     subgraph Config["Configuration"]
-        Cfg[exo.config.toml<br/>ai.provider<br/>ai.model]
+        Cfg[exa.config.toml<br/>ai.provider<br/>ai.model]
     end
 
     subgraph BasicProviders["🟢 Basic Providers (All Editions)"]
@@ -979,7 +979,7 @@ graph TB
 
 ## Storage & Data Flow
 
-ExoFrame uses a **tiered database architecture** aligned with edition requirements:
+Exaix uses a **tiered database architecture** aligned with edition requirements:
 
 | Edition           | Audit Database           | Compliance Level                               |
 | ----------------- | ------------------------ | ---------------------------------------------- |
@@ -989,7 +989,7 @@ ExoFrame uses a **tiered database architecture** aligned with edition requiremen
 
 ```mermaid
 graph TB
-    subgraph FileSystem["File System (~/ExoFrame)"]
+    subgraph FileSystem["File System (~/Exaix)"]
         Workspace["Workspace/<br/>Requests & Plans"]
         Blueprint["Blueprints<br/>Agents & Flows"]
         Memory["Memory<br/>Memory Banks"]
@@ -1120,7 +1120,7 @@ sequenceDiagram
         MB->>P: Write proposal.md
         MB-->>U: "Memory update pending"
 
-        U->>MB: exoctl memory pending approve
+        U->>MB: exactl memory pending approve
         MB->>G: mergeLearning(learning)
         MB->>P: archiveProposal()
     end
@@ -1129,7 +1129,7 @@ sequenceDiagram
 ### CLI Command Tree
 
 ```text
-exoctl memory
+exactl memory
 ├── list                    # List all memory banks
 ├── search <query>          # Search across memory
 ├── project list|show       # Project memory ops
@@ -1179,17 +1179,17 @@ graph TB
     end
 
     subgraph Config["Configuration"]
-        TOML[exo.config.toml<br/>portals array]
+        TOML[exa.config.toml<br/>portals array]
         Deno[deno.json<br/>permissions]
     end
 
     subgraph CLI["Portal Management"]
-        Add[exoctl portal add]
-        List[exoctl portal list]
-        Show[exoctl portal show]
-        Remove[exoctl portal remove]
-        Verify[exoctl portal verify]
-        Refresh[exoctl portal refresh]
+        Add[exactl portal add]
+        List[exactl portal list]
+        Show[exactl portal show]
+        Remove[exactl portal remove]
+        Verify[exactl portal verify]
+        Refresh[exactl portal refresh]
     end
 
     Proj1 -.symlink.-> Link1
@@ -1308,26 +1308,26 @@ ignore_patterns       = ["node_modules", ".git", "dist", "build", ".next"]
 **CLI commands:**
 
 ```text
-exoctl portal analyze <alias> [--mode quick|standard|deep] [--force]
-exoctl portal knowledge <alias> [--json]
+exactl portal analyze <alias> [--mode quick|standard|deep] [--force]
+exactl portal knowledge <alias> [--json]
 ```
 
 ### Portal review cleanup semantics
 
 Portal execution supports two related concepts that affect how reviews are created and later approved:
 
-- **Target/base branch selection:** ExoFrame resolves the base branch for portal work by preferring `target_branch` from request/plan frontmatter (set via `exoctl request --target-branch ...`), then portal `default_branch` from `exo.config.toml`, and finally repository default branch auto-detection.
+- **Target/base branch selection:** Exaix resolves the base branch for portal work by preferring `target_branch` from request/plan frontmatter (set via `exactl request --target-branch ...`), then portal `default_branch` from `exa.config.toml`, and finally repository default branch auto-detection.
 - **Execution strategy:** The portal config may set `execution_strategy` to `branch` (default: execute in the portal repo checkout on a feature branch) or `worktree` (execute in an isolated worktree checkout, record `worktree_path`, and write a discoverability pointer at `Memory/Execution/{trace-id}/worktree`).
 
-When portal execution creates a code review, ExoFrame records `base_branch` (merge target) and (for worktree runs) `worktree_path` on the review. Approval merges the feature branch into the recorded `base_branch`.
+When portal execution creates a code review, Exaix records `base_branch` (merge target) and (for worktree runs) `worktree_path` on the review. Approval merges the feature branch into the recorded `base_branch`.
 
-The review record is durable (audit/history), but ExoFrame applies cleanup to avoid accumulating working directories and stale branches:
+The review record is durable (audit/history), but Exaix applies cleanup to avoid accumulating working directories and stale branches:
 
 - **Reject:** Deletes the feature branch (with best-effort handling if the branch is checked out in a worktree).
-- **Approve:** Merges the feature branch into the review’s recorded base branch. If the review was executed in an **isolated worktree** (review has `worktree_path`), ExoFrame removes the worktree checkout, removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, and deletes the feature branch. If the review was executed on a normal branch checkout, ExoFrame merges but keeps the feature branch.
-- **Merge conflict (worktree reviews):** ExoFrame attempts to abort the merge and removes the worktree checkout + pointer, but keeps the feature branch for human conflict resolution.
+- **Approve:** Merges the feature branch into the review’s recorded base branch. If the review was executed in an **isolated worktree** (review has `worktree_path`), Exaix removes the worktree checkout, removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, and deletes the feature branch. If the review was executed on a normal branch checkout, Exaix merges but keeps the feature branch.
+- **Merge conflict (worktree reviews):** Exaix attempts to abort the merge and removes the worktree checkout + pointer, but keeps the feature branch for human conflict resolution.
 
-Operational note: if you need to inspect or clean up worktrees manually, use `exoctl git worktrees list --portal <alias>` and `exoctl git worktrees prune --portal <alias>`.
+Operational note: if you need to inspect or clean up worktrees manually, use `exactl git worktrees list --portal <alias>` and `exactl git worktrees prune --portal <alias>`.
 
 ---
 
@@ -1388,7 +1388,7 @@ When a request enters the Q&A loop (`NEEDS_CLARIFICATION`):
 2. Round 1 questions are generated by the LLM planning agent (up to `max_clarification_rounds`)
 3. Session state is saved to `{request-id}_clarification.json` alongside the request file
 4. Status is set to `refining` in the request frontmatter
-5. User submits answers via `exoctl request clarify --answers <json>`
+5. User submits answers via `exactl request clarify --answers <json>`
 6. `ClarificationEngine.processAnswers()` incorporates answers and re-assesses quality
 7. If `satisfied: true`, session status → `user-confirmed`; re-processing is triggered
 8. If max rounds reached, session status → `max-rounds`; best effort spec used
@@ -1453,10 +1453,10 @@ proceed    = 70   # 0–100; at or above → proceed immediately
 ### CLI Commands
 
 ```text
-exoctl request clarify <id>                     # Show current Q&A questions
-exoctl request clarify <id> --answers <json>    # Submit answers to current round
-exoctl request clarify <id> --proceed           # Accept current state and re-queue
-exoctl request clarify <id> --cancel            # Cancel Q&A, restore PENDING status
+exactl request clarify <id>                     # Show current Q&A questions
+exactl request clarify <id> --answers <json>    # Submit answers to current round
+exactl request clarify <id> --proceed           # Accept current state and re-queue
+exactl request clarify <id> --cancel            # Cancel Q&A, restore PENDING status
 ```
 
 ---
@@ -1616,16 +1616,16 @@ graph TB
     end
 
     subgraph CLI["Blueprint Commands"]
-        Create[exoctl blueprint create]
-        List[exoctl blueprint list]
-        Show[exoctl blueprint show]
-        Validate[exoctl blueprint validate]
-        Edit[exoctl blueprint edit]
-        Remove[exoctl blueprint remove]
+        Create[exactl blueprint create]
+        List[exactl blueprint list]
+        Show[exactl blueprint show]
+        Validate[exactl blueprint validate]
+        Edit[exactl blueprint edit]
+        Remove[exactl blueprint remove]
     end
 
     subgraph Usage["Runtime Usage"]
-        Request[exoctl request --agent]
+        Request[exactl request --agent]
         Processor[Request Processor]
         Runner[Agent Runner]
     end
@@ -1670,12 +1670,12 @@ graph TB
 stateDiagram-v2
     [*] --> Stopped: Initial state
 
-    Stopped --> Starting: exoctl daemon start
+    Stopped --> Starting: exactl daemon start
     Starting --> Running: PID written, watcher active
     Starting --> Failed: Startup error
 
-    Running --> Stopping: exoctl daemon stop
-    Running --> Restarting: exoctl daemon restart
+    Running --> Stopping: exactl daemon stop
+    Running --> Restarting: exactl daemon restart
     Running --> Crashed: Process died
 
     Stopping --> Stopped: SIGTERM successful
@@ -1732,7 +1732,7 @@ graph LR
     end
 
     subgraph Query["Retrieval"]
-        CLI[exoctl log tail]
+        CLI[exactl log tail]
         Trace[Filter by trace_id]
         Audit[Compliance audit]
     end
@@ -1779,7 +1779,7 @@ graph LR
 
 ### 2. **Separation of Concerns**
 
-- **CLI Layer**: Human interface (exoctl)
+- **CLI Layer**: Human interface (exactl)
 - **Core Layer**: Daemon orchestration (main.ts, watcher)
 - **Service Layer**: Business logic (processors, runners)
 - **Storage Layer**: Edition-tiered databases + file system
@@ -1833,7 +1833,7 @@ graph LR
 | **Agent Runner**         | Execute agent logic with LLM                      | `src/services/agent_runner.ts`                      | 🟢 All   |
 | **Flow Runner**          | Execute multi-agent flows                         | `src/flows/flow_runner.ts`                          | 🟢 All   |
 | **Event Logger**         | Write to Activity Journal                         | `src/services/event_logger.ts`                      | 🟢 All   |
-| **Config Service**       | Load and validate exo.config.toml                 | `src/config/service.ts`                             | 🟢 All   |
+| **Config Service**       | Load and validate exa.config.toml                 | `src/config/service.ts`                             | 🟢 All   |
 | **Workspace Execution**  | Agent environment and path resolution             | `src/services/workspace_execution_context.ts`       | 🟢 All   |
 | **Database Service**     | Edition-tiered journal operations                 | `src/services/db.ts`                                | 🟢 All   |
 | **Git Service**          | Git operations with trace metadata                | `src/services/git_service.ts`                       | 🟢 All   |
@@ -1948,7 +1948,7 @@ graph TB
 
 ### Configuration
 
-Agent orchestration is configured in `exo.config.toml`:
+Agent orchestration is configured in `exa.config.toml`:
 
 ```toml
 [agents]
@@ -2082,11 +2082,11 @@ step:
 
 ## Developer Tooling Architecture
 
-ExoFrame includes repository tooling under `scripts/` to keep development workflows deterministic.
+Exaix includes repository tooling under `scripts/` to keep development workflows deterministic.
 
 ### .copilot/ Knowledge Base Index & Embeddings
 
-ExoFrame includes a developer-facing knowledge base under `.copilot/` used to keep AI assistants consistent and repository-aware.
+Exaix includes a developer-facing knowledge base under `.copilot/` used to keep AI assistants consistent and repository-aware.
 
 Artifacts:
 
@@ -2104,7 +2104,7 @@ Build/validation scripts:
 ### CI, Scaffolding, and Database Tooling
 
 - `scripts/ci.ts`: orchestrates repository checks and tests in CI-like environments
-- `scripts/scaffold.sh`: scaffolds a new ExoFrame workspace folder structure and templates
+- `scripts/scaffold.sh`: scaffolds a new Exaix workspace folder structure and templates
 - `scripts/setup_db.ts`: initializes `journal.db` schema
 - `scripts/migrate_db.ts` + `migrations/*.sql`: applies incremental database migrations
 
@@ -2168,8 +2168,8 @@ This section provides explicit grounding for core infrastructure modules and hel
 
 ## Related Documentation
 
-- **[Implementation Plan](ExoFrame_Implementation_Plan.md)** - Detailed development roadmap
-- **[User Guide](ExoFrame_User_Guide.md)** - End-user documentation
-- **[Technical Spec](ExoFrame_Technical_Spec.md)** - Deep technical details
-- **[White Paper](ExoFrame_White_paper.md)** - Vision and philosophy
+- **[Implementation Plan](Exaix_Implementation_Plan.md)** - Detailed development roadmap
+- **[User Guide](Exaix_User_Guide.md)** - End-user documentation
+- **[Technical Spec](Exaix_Technical_Spec.md)** - Deep technical details
+- **[White Paper](Exaix_White_paper.md)** - Vision and philosophy
 - **[Building with AI Agents](Building_with_AI_Agents.md)** - Development patterns

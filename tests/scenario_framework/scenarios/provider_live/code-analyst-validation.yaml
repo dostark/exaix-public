@@ -6,17 +6,17 @@ tags: ["provider-live", "analysis", "code-analyst"]
 request_fixture: "fixtures/requests/provider_live/code_analyst_cli_structure.md"
 mode_support: ["auto", "step"]
 portals:
-  - alias: "portal-exoframe"
-    source_path: "/home/dkasymov/git/ExoFrame"
+  - alias: "portal-exaix"
+    source_path: "/home/dkasymov/git/Exaix"
 steps:
   - id: "create-analysis-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args:
       - "--agent"
       - "code-analyst"
       - "--portal"
-      - "portal-exoframe"
+      - "portal-exaix"
       - "--analyze"
       - "--file"
       - "$REQUEST_FIXTURE"

@@ -1,8 +1,8 @@
 > [!NOTE]
 > **Status: ✅ Complete (Tasks 1-3 implemented, Task 4 in progress)**
-> This phase improves semantic clarity by renaming `exoctl changeset` commands to `exoctl review`, accurately reflecting the unified review workflow for both git changesets (code changes) and file artifacts (analysis outputs).
+> This phase improves semantic clarity by renaming `exactl changeset` commands to `exactl review`, accurately reflecting the unified review workflow for both git changesets (code changes) and file artifacts (analysis outputs).
 >
-> **Context:** Phase 35 introduced artifact storage in `Memory/Execution/` for read-only agents, creating a unified approval workflow via `exoctl changeset` commands. However, "changeset" is git-specific terminology that confuses users when reviewing non-code artifacts.
+> **Context:** Phase 35 introduced artifact storage in `Memory/Execution/` for read-only agents, creating a unified approval workflow via `exactl changeset` commands. However, "changeset" is git-specific terminology that confuses users when reviewing non-code artifacts.
 >
 > **Implementation Summary:**
 >

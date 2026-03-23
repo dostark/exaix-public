@@ -30,7 +30,7 @@
 
 ## Executive Summary
 
-ExoFrame's folder structure has evolved organically across 18 phases, resulting in
+Exaix's folder structure has evolved organically across 18 phases, resulting in
 inconsistencies that confuse users and complicate maintenance. This phase introduces
 a **domain-driven folder hierarchy** that clearly separates:
 
@@ -66,7 +66,7 @@ a **domain-driven folder hierarchy** that clearly separates:
 ### Top-Level Folder Inventory
 
 ```text
-ExoFrame/
+Exaix/
 ├── agents/              # ⚠️ CONFUSING: AI dev knowledge base (not agent definitions!)
 │   ├── chunks/          # Chunked docs for retrieval
 │   ├── embeddings/      # Vector embeddings
@@ -154,7 +154,7 @@ templates/
 ├── Knowledge_Dashboard.md
 ├── README.md
 ├── README.template.md
-└── exo.config.sample.toml
+└── exa.config.sample.toml
 ```text
 
 **Issues:**
@@ -170,7 +170,7 @@ templates/
 ### Target Folder Hierarchy
 
 ```text
-ExoFrame/
+Exaix/
 ├── .exo/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
 │   ├── daemon.log
@@ -398,7 +398,7 @@ Current (Redundant):
 
 **Why SQLite is Better:**
 
-ExoFrame **already has** all the infrastructure needed:
+Exaix **already has** all the infrastructure needed:
 
 ✅ `journal.db` database with ACID transactions
 ✅ `DatabaseService` with query methods
@@ -646,7 +646,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 > **Details:** Target folder hierarchy drafted, rationale documented, structure ready for migration planning.
 
 ```text
-ExoFrame/
+Exaix/
 ├── .exo/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
 │   ├── daemon.log
@@ -794,7 +794,7 @@ Workspace/Archive/
 - `scripts/build_agents_embeddings.ts` → Path references
 - `scripts/verify_manifest_fresh.ts` → Path references
 - `scripts/validate_agents_docs.ts` → Path references
-- `docs/ExoFrame_Architecture.md` → Documentation
+- `docs/Exaix_Architecture.md` → Documentation
 - `CLAUDE.md` → AI context references
 - `.copilot/planning/phase-*.md` → Internal links and references
 - `.copilot/README.md` → Internal links
@@ -834,7 +834,7 @@ Workspace/Archive/
 
 **Deliverables:**
 
-1. Move `templates/exo.config.sample.toml` → root (sample config)
+1. Move `templates/exa.config.sample.toml` → root (sample config)
 
 1.
 1.
@@ -844,7 +844,7 @@ Workspace/Archive/
 
 | Old Path                           | New Path                       | Rationale          |
 | ---------------------------------- | ------------------------------ | ------------------ |
-| `templates/exo.config.sample.toml` | `exo.config.sample.toml`       | Root config sample |
+| `templates/exa.config.sample.toml` | `exa.config.sample.toml`       | Root config sample |
 | `templates/README.template.md`     | `Blueprints/Agents/templates/` | Agent template     |
 | `templates/Knowledge_Dashboard.md` | `docs/templates/`              | Doc template       |
 
@@ -892,7 +892,7 @@ Workspace/Archive/
 
 ```gitignore
 # ============================================
-# ExoFrame .gitignore
+# Exaix .gitignore
 # ============================================
 
 # --------------------------------------------
@@ -967,7 +967,7 @@ Portals/
 # --------------------------------------------
 # Build Artifacts
 # --------------------------------------------
-exoframe
+exaix
 /.ci-bin/
 ```text
 
@@ -1022,7 +1022,7 @@ exoframe
 **New Path Configuration:**
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [paths]
 workspace = "Workspace"      # Lifecycle folder
 runtime = ".exo"             # Runtime artifacts
@@ -1071,10 +1071,10 @@ blueprints = "Blueprints"    # Definitions
 **New Commands:**
 
 ```bash
-exoctl archive list              # List archived plans
-exoctl archive show <trace-id>   # Show archived plan details
-exoctl archive search <query>    # Search archive
-exoctl archive stats             # Archive statistics
+exactl archive list              # List archived plans
+exactl archive show <trace-id>   # Show archived plan details
+exactl archive search <query>    # Search archive
+exactl archive stats             # Archive statistics
 ```text
 
 **Success Criteria:**
@@ -1102,7 +1102,7 @@ exoctl archive stats             # Archive statistics
 
 **Deliverables:**
 
-1. Update `docs/ExoFrame_Architecture.md` diagrams
+1. Update `docs/Exaix_Architecture.md` diagrams
 
 1.
 1.
@@ -1110,8 +1110,8 @@ exoctl archive stats             # Archive statistics
 
 **Files to Modify:**
 
-- `docs/ExoFrame_Architecture.md`
-- `docs/ExoFrame_User_Guide.md`
+- `docs/Exaix_Architecture.md`
+- `docs/Exaix_User_Guide.md`
 - `README.md`
 - `CLAUDE.md`
 - `docs/Migration_Guide_v19.md` (new)
@@ -1700,9 +1700,9 @@ agents/ → .copilot/           # Symlink
 ### Migration Command
 
 ```bash
-exoctl migrate folders --dry-run    # Preview changes
-exoctl migrate folders              # Execute migration
-exoctl migrate folders --rollback   # Restore if needed
+exactl migrate folders --dry-run    # Preview changes
+exactl migrate folders              # Execute migration
+exactl migrate folders --rollback   # Restore if needed
 ```text
 
 ---
@@ -1750,7 +1750,7 @@ exoctl migrate folders --rollback   # Restore if needed
 
 ## Related Documentation
 
-- [ExoFrame Architecture](../../docs/ExoFrame_Architecture.md)
+- [Exaix Architecture](../../docs/Exaix_Architecture.md)
 - [Phase 17: Skills Architecture](./phase-17-skills-architecture.md)
 - [Phase 18: Blueprint Modernization](./phase-18-blueprint-modernization.md)
 

@@ -1,8 +1,8 @@
 ---
 agent: copilot
 scope: dev
-title: ExoFrame Test Development Guidelines
-short_summary: "Testing patterns and unified test context for ExoFrame (initTestDbService, createCliTestContext, withEnv, etc.)."
+title: Exaix Test Development Guidelines
+short_summary: "Testing patterns and unified test context for Exaix (initTestDbService, createCliTestContext, withEnv, etc.)."
 version: "0.1"
 topics: ["tests", "tdd", "helpers"]
 ---
@@ -19,7 +19,7 @@ Key points
 - Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`
 
 Canonical prompt (short):
-"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
+"You are a test-writing assistant for Exaix. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
 
 Examples
 
@@ -84,17 +84,17 @@ Use `TestEnvironment.create()` for full integration tests that require workspace
 
 ### Test Environment Variables (Phase 28)
 
-All test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:
+All test-related environment variables use the `EXA_TEST_*` prefix for clarity and separation from production env vars:
 
 **Standard Test Variables:**
 
-- `EXO_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)
-- `EXO_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXOCTL_TEST_MODE`)
-- `EXO_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)
-- `EXO_TEST_ENABLE_OLLAMA` — Enable Ollama integration tests (0 or 1)
-- `EXO_TEST_ENABLE_LLAMA` — Enable Llama provider tests (true or false)
-- `EXO_TEST_LLM_MODEL` — Override model for tests
-- `EXO_TEST_OPENAI_API_KEY` — OpenAI API key for integration tests
+- `EXA_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)
+- `EXA_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXACTL_TEST_MODE`)
+- `EXA_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)
+- `EXA_TEST_ENABLE_OLLAMA` — Enable Ollama integration tests (0 or 1)
+- `EXA_TEST_ENABLE_LLAMA` — Enable Llama provider tests (true or false)
+- `EXA_TEST_LLM_MODEL` — Override model for tests
+- `EXA_TEST_OPENAI_API_KEY` — OpenAI API key for integration tests
 
 **Helper Functions:**
 
@@ -110,7 +110,7 @@ if (isTestMode()) {
 }
 
 // Check if in CI environment
-if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+if (isCIMode() && !Deno.env.get("EXA_TEST_ENABLE_PAID_LLM")) {
   // Skip paid API tests in CI
   test.ignore = true;
 }
@@ -118,21 +118,21 @@ if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
 
 **Best Practices:**
 
-- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
-- ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
-- ✅ Use `EXO_TEST_*` prefix for any new test-related env vars
-- ❌ Never use legacy env vars (`DENO_TEST`, `EXOCTL_TEST_MODE`) in new code
+- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXA_TEST_MODE` directly
+- ✅ Always use `isCIMode()` instead of checking `CI` or `EXA_CI_MODE` directly
+- ✅ Use `EXA_TEST_*` prefix for any new test-related env vars
+- ❌ Never use legacy env vars (`DENO_TEST`, `EXACTL_TEST_MODE`) in new code
 
 ### CI (GitHub Actions) — Common Pitfalls
 
 - Treat `CI` as a truthy flag (`CI=true` on GitHub Actions), not strictly `"1"`.
   - **Prefer** the shared helpers in `src/config/env_schema.ts` (`isCIMode()`, `isTestMode()`).
 - When CI guard is active, paid LLM providers are intentionally disabled unless explicitly opted in.
-  - Expect mock behavior unless `EXO_TEST_ENABLE_PAID_LLM=1` is set.
+  - Expect mock behavior unless `EXA_TEST_ENABLE_PAID_LLM=1` is set.
   - Tests that assert provider selection should include a CI-guard branch (e.g., accept `mock-provider` or `CI-protected ...`).
 - Avoid requiring compiled binaries in tests.
   - If you need to run the CLI from a temp workspace, prefer:
-    - `new Deno.Command(Deno.execPath(), { args: ["run", "--allow-all", "--config", <repo>/deno.json, <repo>/src/cli/exoctl.ts, ...] })`
+    - `new Deno.Command(Deno.execPath(), { args: ["run", "--allow-all", "--config", <repo>/deno.json, <repo>/src/cli/exactl.ts, ...] })`
   - This keeps behavior consistent between local runs and CI without extra build steps.
 
 ---

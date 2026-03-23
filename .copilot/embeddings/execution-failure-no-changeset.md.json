@@ -3,7 +3,7 @@
   "title": "execution-failure-no-changeset.md",
   "vecs": [
     {
-      "text": "# Issue: No Changeset Created After Plan Execution\n\n## Description\n\nUser reports that after approving a plan, `exoctl changeset list` returns 0 changesets, even though the journal indicates `execution.completed` and `report.generated`.\n\n## Symptoms\n\n- `exoctl plan approve` succeeds.\n- Journal logs show:\n  - `execution.started`\n  - `tool.create_directory`\n  - `tool.write_file`\n  - `execution.completed`\n  - `report.generated` (by `mission_reporter`)\n- `exoctl changeset list` returns empty.\n- `Memory/Execution` seems empty (except `.gitkeep`).\n\n## Potential Causes",
+      "text": "# Issue: No Changeset Created After Plan Execution\n\n## Description\n\nUser reports that after approving a plan, `exactl changeset list` returns 0 changesets, even though the journal indicates `execution.completed` and `report.generated`.\n\n## Symptoms\n\n- `exactl plan approve` succeeds.\n- Journal logs show:\n  - `execution.started`\n  - `tool.create_directory`\n  - `tool.write_file`\n  - `execution.completed`\n  - `report.generated` (by `mission_reporter`)\n- `exactl changeset list` returns empty.\n- `Memory/Execution` seems empty (except `.gitkeep`).\n\n## Potential Causes",
       "vector": [
         0.4549019607843137,
         0.2627450980392157,

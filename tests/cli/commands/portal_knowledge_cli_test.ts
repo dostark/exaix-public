@@ -275,7 +275,7 @@ Deno.test("[portal knowledge] handles unanalyzed portal gracefully", async () =>
     const output = await commands.knowledge(alias);
 
     assertStringIncludes(output, "No knowledge");
-    assertStringIncludes(output, "exoctl portal analyze");
+    assertStringIncludes(output, "exactl portal analyze");
   } finally {
     await cleanup();
   }

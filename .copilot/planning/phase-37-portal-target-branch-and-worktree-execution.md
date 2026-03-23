@@ -30,14 +30,14 @@ topics: ["portals", "git", "worktree", "branches", "reviews", "cli", "execution"
 
 - Write-capable portal execution creates a `feat/...` branch and commits in the portal repository.
 - This typically requires checking out branches in the _same working directory_ as the user’s portal repo checkout.
-- `exoctl review approve` merges into a detected “default branch” (heuristic) and currently **requires** the repo to be checked out on that branch.
+- `exactl review approve` merges into a detected “default branch” (heuristic) and currently **requires** the repo to be checked out on that branch.
 
 In practice, a portal repo may have multiple concurrently active bases (`release/*`, `develop`, etc.), and “default branch” may not be the intended target for a given request.
 
 ### Desired behavior
 
 - The request can say: “apply this change to portal `X` on base branch `release_1.2`”.
-- ExoFrame executes changes without disrupting the user’s working tree.
+- Exaix executes changes without disrupting the user’s working tree.
 - Review approval merges into `release_1.2` (or whichever was specified), not always `main`.
 
 ---
@@ -57,7 +57,7 @@ Your argument is directionally correct (multi-branch portals are real; avoiding 
    - Some environments (Windows, restricted filesystems) can make worktree management trickier.
 
 1. **Approval semantics become “merge into target branch”, which can be risky if automated.**
-   - If `exoctl review approve` auto-checkouts and merges into arbitrary branches, it may surprise users.
+   - If `exactl review approve` auto-checkouts and merges into arbitrary branches, it may surprise users.
    - Safer: require explicit target branch and enforce “must be on target branch” (or provide a guarded `--checkout-target` flag).
 
 1. **Portal “default branch” isn’t the key problem — “target branch per request” is.**
@@ -77,14 +77,14 @@ Conclusion: agree in general with the need; implement **request-scoped target br
 ### 1) New user-facing concept: target/base branch
 
 - Add a request flag (CLI):
-  - `exoctl request --portal <alias> --target-branch <branch> ...`
+  - `exactl request --portal <alias> --target-branch <branch> ...`
 
 - Persist into request frontmatter:
-  - `portal: "portal-exoframe"`
+  - `portal: "portal-exaix"`
   - `target_branch: "release_1.2"` (optional)
 
 - Propagate to plan frontmatter:
-  - `portal: "portal-exoframe"`
+  - `portal: "portal-exaix"`
   - `target_branch: "release_1.2"`
 
 ### 2) Portal config: optional per-portal default branch + execution strategy
@@ -96,11 +96,11 @@ Add to portal config entries:
 
 CLI support (to be added)
 
-- Extend `exoctl portal add <target-path> <alias>` with options:
+- Extend `exactl portal add <target-path> <alias>` with options:
   - `--default-branch <branch>`
   - `--execution-strategy <branch|worktree>`
 
-This matches the intent of “exoctl add portal … with worktree option” while keeping the actual command name consistent with the current CLI (`exoctl portal add`).
+This matches the intent of “exactl add portal … with worktree option” while keeping the actual command name consistent with the current CLI (`exactl portal add`).
 
 Notes:
 
@@ -154,7 +154,7 @@ This keeps the current simple workflow and is appropriate for single-user or low
 
 ### 4) Review approval: merge into base branch, not “default branch”
 
-Change `exoctl review approve <id>` behavior for code reviews:
+Change `exactl review approve <id>` behavior for code reviews:
 
 - Determine `repoPath` via existing portal discovery (`Portals/<alias>` symlinks + workspace).
 - Determine `targetBranch`:
@@ -175,8 +175,8 @@ Change `exoctl review approve <id>` behavior for code reviews:
   - remove worktree if it exists
 
 - Add a maintenance CLI:
-  - `exoctl git worktrees list`
-  - `exoctl git worktrees prune` (remove dead worktrees)
+  - `exactl git worktrees list`
+  - `exactl git worktrees prune` (remove dead worktrees)
 
 ---
 
@@ -184,10 +184,10 @@ Change `exoctl review approve <id>` behavior for code reviews:
 
 This phase is intentionally incremental: add `target_branch` first, then make merging target-aware, then add optional worktree execution.
 
-### Step 37.1: Add `--target-branch` to `exoctl request`
+### Step 37.1: Add `--target-branch` to `exactl request`
 
 - **Dependencies:** Existing request command + request frontmatter writer
-- **Action:** Add CLI option `exoctl request --target-branch <branch>` and persist it to request frontmatter as `target_branch: "..."`.
+- **Action:** Add CLI option `exactl request --target-branch <branch>` and persist it to request frontmatter as `target_branch: "..."`.
 
 Success criteria
 
@@ -200,17 +200,17 @@ Projected tests
 - [x] Integration: extend existing CLI integration tests to assert frontmatter contains `target_branch` when provided.
 - [x] Regression: `[regression] request stores target_branch frontmatter`.
 
-### Step 37.2: Extend `exoctl portal add` with execution strategy + default branch
+### Step 37.2: Extend `exactl portal add` with execution strategy + default branch
 
 - **Dependencies:** Config schema + config service portal add
-- **Action:** Extend `exoctl portal add <target-path> <alias>` with:
+- **Action:** Extend `exactl portal add <target-path> <alias>` with:
   - `--default-branch <branch>` → writes portal config `default_branch`
   - `--execution-strategy <branch|worktree>` → writes portal config `execution_strategy`
 
 Success criteria
 
-- [x] `exoctl portal add ... --execution-strategy worktree` persists `execution_strategy = "worktree"` for that portal.
-- [x] `exoctl portal show <alias>` displays configured `default_branch` and `execution_strategy`.
+- [x] `exactl portal add ... --execution-strategy worktree` persists `execution_strategy = "worktree"` for that portal.
+- [x] `exactl portal show <alias>` displays configured `default_branch` and `execution_strategy`.
 - [x] Omitting both options keeps behavior unchanged (strategy defaults to `branch`).
 
 Projected tests
@@ -238,7 +238,7 @@ Projected tests
 - **Action:**
   - Add `base_branch` (string, nullable) to review records.
   - When creating a code review, store the resolved base branch as `base_branch`.
-  - Update `exoctl review approve` to prefer merging into `review.base_branch` when present.
+  - Update `exactl review approve` to prefer merging into `review.base_branch` when present.
 
 Success criteria
 
@@ -342,17 +342,17 @@ Documentation updates (projected)
 
 - [x] [docs/Memory_Banks.md](../../docs/Memory_Banks.md)
   - [x] Mention worktree discoverability pointer at `Memory/Execution/<trace_id>/worktree` (symlink or `PATH.txt`).
-- [x] [docs/ExoFrame_User_Guide.md](../../docs/ExoFrame_User_Guide.md)
-  - [x] Add examples: `exoctl request --portal <alias> --target-branch <branch>` and expected frontmatter.
+- [x] [docs/Exaix_User_Guide.md](../../docs/Exaix_User_Guide.md)
+  - [x] Add examples: `exactl request --portal <alias> --target-branch <branch>` and expected frontmatter.
   - [x] Describe portal execution strategies (`branch` default, `worktree` optional) at a user level.
-- [x] [docs/dev/ExoFrame_Architecture.md](../../docs/dev/ExoFrame_Architecture.md)
+- [x] [docs/dev/Exaix_Architecture.md](../../docs/dev/Exaix_Architecture.md)
   - [x] Update portal execution flow to include target branch resolution and worktree execution path.
-- [x] [docs/dev/ExoFrame_Manual_Test_Scenarios.md](../../docs/dev/ExoFrame_Manual_Test_Scenarios.md)
+- [x] [docs/dev/Exaix_Manual_Test_Scenarios.md](../../docs/dev/Exaix_Manual_Test_Scenarios.md)
   - [x] Add/extend portal + git workflow scenario to cover `target_branch` and `execution_strategy=worktree`.
-- [x] [docs/dev/ExoFrame_Technical_Spec.md](../../docs/dev/ExoFrame_Technical_Spec.md)
+- [x] [docs/dev/Exaix_Technical_Spec.md](../../docs/dev/Exaix_Technical_Spec.md)
   - [x] Document `target_branch` semantics and the two portal execution strategies.
   - [x] Call out review approval requirement: merge into the recorded base branch.
-- [x] [docs/dev/ExoFrame_Testing_and_CI_Strategy.md](../../docs/dev/ExoFrame_Testing_and_CI_Strategy.md)
+- [x] [docs/dev/Exaix_Testing_and_CI_Strategy.md](../../docs/dev/Exaix_Testing_and_CI_Strategy.md)
   - [x] Note that portal E2E suite covers strategy matrix + negative cases for review/merge.
 
 ---
@@ -407,7 +407,7 @@ Add integration tests mirroring the new workflow:
 
 ### CLI / UX
 
-- [x] Add `exoctl request --target-branch <branch>`
+- [x] Add `exactl request --target-branch <branch>`
 - [x] Persist `target_branch` into request frontmatter
 - [x] Propagate `target_branch` to generated plan frontmatter
 
@@ -434,7 +434,7 @@ Add integration tests mirroring the new workflow:
 
 ### Maintenance
 
-- [x] Add `exoctl git worktrees prune` (optional but recommended)
+- [x] Add `exactl git worktrees prune` (optional but recommended)
 
 ### Tests
 

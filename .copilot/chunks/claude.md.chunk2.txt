@@ -1,5 +1,3 @@
-Tests needed:
-
 1. Missing file returns default config
 
 1.

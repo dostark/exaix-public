@@ -38,4 +38,8 @@ First, consult `.copilot/cross-reference.md` for the workflow:
 
 1.
 
-Read the errors, understand the patterns from `source/exoframe.md`, then fix following:
+Read the errors, understand the patterns from `source/exaix.md`, then fix following:
+
+- Service Pattern if it's a service
+- Proper error handling
+- Type safety throughout

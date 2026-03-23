@@ -22,14 +22,14 @@ export class ConfigService {
   private checksum: string = "";
 
   constructor(configPath?: string) {
-    const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
+    const envConfigPath = Deno.env.get("EXA_CONFIG_PATH");
 
     if (configPath) {
       this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
     } else if (envConfigPath) {
       this.configPath = isAbsolute(envConfigPath) ? envConfigPath : join(Deno.cwd(), envConfigPath);
     } else {
-      this.configPath = join(Deno.cwd(), "exo.config.toml");
+      this.configPath = join(Deno.cwd(), "exa.config.toml");
     }
     // Never mutate configPath in test mode; always use the explicit path
     this.config = this.load();
@@ -53,7 +53,7 @@ export class ConfigService {
       const result = ConfigSchema.safeParse(rawConfig);
 
       if (!result.success) {
-        let errorMessage = "❌ Invalid configuration in exo.config.toml:\n";
+        let errorMessage = "❌ Invalid configuration in exa.config.toml:\n";
         for (const issue of result.error.issues) {
           errorMessage += `  - ${issue.path.join(".")}: ${issue.message}\n`;
         }

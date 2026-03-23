@@ -15,7 +15,7 @@ I want to work on [feature/fix].
 Implementation Plan workflow:
 
 1. READ PLAN:
-   - Open docs/ExoFrame_Implementation_Plan.md
+   - Open docs/Exaix_Implementation_Plan.md
    - Find relevant Phase and Step
    - If no step exists, create one following existing format
 
@@ -56,7 +56,7 @@ I want to work on Flow parameter validation (Phase 8, Step 8.3).
 Implementation Plan workflow:
 
 1. READ PLAN:
-   - Open docs/ExoFrame_Implementation_Plan.md
+   - Open docs/Exaix_Implementation_Plan.md
    - Find Phase 8, Step 8.3
    - Read the full step definition
 
@@ -101,7 +101,7 @@ I want to add a new feature: Export activity logs to JSON.
 Implementation Plan workflow:
 
 1. READ PLAN:
-   - Open docs/ExoFrame_Implementation_Plan.md
+   - Open docs/Exaix_Implementation_Plan.md
    - Find appropriate Phase (Phase 7: Activity Logging)
    - No existing step for export feature
 

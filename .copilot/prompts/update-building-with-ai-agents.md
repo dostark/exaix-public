@@ -236,7 +236,7 @@ The agents/ system now has cross-reference navigation.
 Good documentation is important for project success.
 ```
 
-(Missing: ExoFrame-specific examples, personal stories, actual impact)
+(Missing: Exaix-specific examples, personal stories, actual impact)
 
 ## Key Patterns to Capture
 

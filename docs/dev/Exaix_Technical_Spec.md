@@ -1,14 +1,14 @@
-# Project ExoFrame: Technical Specification & Architecture
+# Project Exaix: Technical Specification & Architecture
 
 - **Version:** 2.0.0
 - **Release Date:** 2026-01-16
 - **Status:** Engineering Specification
-- **Reference:** [ExoFrame White Paper](./ExoFrame_White_Paper.md)
-- **Architecture:** [ExoFrame Architecture Diagrams](./ExoFrame_Architecture.md)
-- **Roadmap:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+- **Reference:** [Exaix White Paper](./Exaix_White_Paper.md)
+- **Architecture:** [Exaix Architecture Diagrams](./Exaix_Architecture.md)
+- **Roadmap:** [Exaix 2.0 Roadmap](./Exaix_2.0_Roadmap.md)
 - **Philosophy:** Local-First, Type-Safe, Secure-by-Design, Governance-First
 
-> **Edition Model:** ExoFrame is available in three editions: **Solo** (🟢 open-source), **Team** (🔵 source-available), and **Enterprise** (🟣 proprietary). Components are marked with edition badges throughout this document.
+> **Edition Model:** Exaix is available in three editions: **Solo** (🟢 open-source), **Team** (🔵 source-available), and **Enterprise** (🟣 proprietary). Components are marked with edition badges throughout this document.
 
 ---
 
@@ -31,7 +31,7 @@
 - **Request Analyzer:** Service for extracting intent, goals, and constraints from requests (Phase 45)
 - **Request Router:** Service that routes requests to appropriate execution engine (agent vs flow)
 - **MCP Client:** 🟢 Connect to external MCP servers (all editions)
-- **MCP Server:** 🔵 Expose ExoFrame as MCP server (Team+ editions)
+- **MCP Server:** 🔵 Expose Exaix as MCP server (Team+ editions)
 - **Web UI:** 🔵 Browser-based approval interface (Team+ editions)
 - **Governance Dashboard:** 🟣 Compliance monitoring and risk scoring (Enterprise)
 
@@ -39,10 +39,10 @@
 
 ## 1. System Overview
 
-ExoFrame is a secure, daemon-based orchestration platform. It operates on the **"Files as API"** principle, utilizing a
+Exaix is a secure, daemon-based orchestration platform. It operates on the **"Files as API"** principle, utilizing a
 watched folder structure to trigger typed workflows.
 
-ExoFrame deliberately supports **four agent execution modes**:
+Exaix deliberately supports **four agent execution modes**:
 
 1. **Local/Sovereign Agents** — run entirely on the user’s hardware (e.g., Ollama, deterministic scripts). They have
    unrestricted access to on-disk context within the allowed portals and do not require token-budget enforcement.
@@ -73,9 +73,9 @@ permission governance across CLI, daemon, and agents.
 | **Interface**    | **TUI**, **CLI**             | 🟢 All   | TUI dashboard for real-time cockpit; CLI for operations.          |
 | **Interface**    | **Web UI**                   | 🔵 Team+ | Browser-based plan approval and team collaboration.               |
 
-## 2.2. TUI Dashboard Architecture (`exoctl dashboard`)
+## 2.2. TUI Dashboard Architecture (`exactl dashboard`)
 
-The TUI dashboard, launched via `exoctl dashboard`, is a terminal-based cockpit for ExoFrame. It is implemented using a Deno-compatible TUI library (e.g., `cliffy` or `deno-tui`) and integrates directly with ExoFrame's file/database APIs.
+The TUI dashboard, launched via `exactl dashboard`, is a terminal-based cockpit for Exaix. It is implemented using a Deno-compatible TUI library (e.g., `cliffy` or `deno-tui`) and integrates directly with Exaix's file/database APIs.
 
 **Key Features:**
 
@@ -98,11 +98,11 @@ The TUI dashboard, launched via `exoctl dashboard`, is a terminal-based cockpit 
 - Modular widget/view system for future dashboard panels
 - Hooks for remote monitoring or web dashboard integration (future)
 
-See the [Implementation Plan](./ExoFrame_Implementation_Plan.md#step-95-tui-cockpit-implementation-plan) for implementation steps and test criteria.
+See the [Implementation Plan](./Exaix_Implementation_Plan.md#step-95-tui-cockpit-implementation-plan) for implementation steps and test criteria.
 
 ### 2.0.1 Supported LLM Providers
 
-ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interface. All providers implement the same contract, enabling seamless switching between local and cloud models.
+Exaix uses a provider-agnostic architecture via the `IModelProvider` interface. All providers implement the same contract, enabling seamless switching between local and cloud models.
 
 | Provider Category      | Solo 🟢                      | Team 🔵                     | Enterprise 🟣                            |
 | ---------------------- | ---------------------------- | --------------------------- | ---------------------------------------- |
@@ -162,7 +162,7 @@ ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interfac
 | **AWS Bedrock**   | `bedrock.amazonaws.com`   | AWS-native, VPC integration                  |
 | **GCP Vertex AI** | `vertex.googleapis.com`   | Google Cloud integration, Gemini access      |
 
-**Provider Selection (exo.config.toml):**
+**Provider Selection (exa.config.toml):**
 
 ```toml
 [models.default]
@@ -178,9 +178,9 @@ provider = "ollama"
 model = "llama3.2"
 ```
 
-**Intelligent Provider Strategy (exo.config.toml):**
+**Intelligent Provider Strategy (exa.config.toml):**
 
-ExoFrame supports intelligent, configuration-driven provider selection based on cost, performance, health, and task requirements. See the [Provider Strategy Guide](../Provider_Strategy_Guide.md) for detailed configuration options.
+Exaix supports intelligent, configuration-driven provider selection based on cost, performance, health, and task requirements. See the [Provider Strategy Guide](../Provider_Strategy_Guide.md) for detailed configuration options.
 
 ```toml
 [provider_strategy]
@@ -217,26 +217,26 @@ production = ["anthropic-claude-opus", "openai-gpt-5-pro", "ollama"]
 
 **Runtime Configuration Overrides (Phase 28):**
 
-ExoFrame supports 4 environment variables for runtime configuration overrides via CLI/TUI:
+Exaix supports 4 environment variables for runtime configuration overrides via CLI/TUI:
 
 | Variable             | Purpose                    | Validation             | Example                                          |
 | -------------------- | -------------------------- | ---------------------- | ------------------------------------------------ |
-| `EXO_LLM_PROVIDER`   | Override AI provider       | ProviderType enum      | `export EXO_LLM_PROVIDER=ollama`                 |
-| `EXO_LLM_MODEL`      | Override model name        | Non-empty string       | `export EXO_LLM_MODEL=llama3.2`                  |
-| `EXO_LLM_BASE_URL`   | Override provider endpoint | Valid URL              | `export EXO_LLM_BASE_URL=http://localhost:11434` |
-| `EXO_LLM_TIMEOUT_MS` | Override request timeout   | Number (1000-300000ms) | `export EXO_LLM_TIMEOUT_MS=60000`                |
+| `EXA_LLM_PROVIDER`   | Override AI provider       | ProviderType enum      | `export EXA_LLM_PROVIDER=ollama`                 |
+| `EXA_LLM_MODEL`      | Override model name        | Non-empty string       | `export EXA_LLM_MODEL=llama3.2`                  |
+| `EXA_LLM_BASE_URL`   | Override provider endpoint | Valid URL              | `export EXA_LLM_BASE_URL=http://localhost:11434` |
+| `EXA_LLM_TIMEOUT_MS` | Override request timeout   | Number (1000-300000ms) | `export EXA_LLM_TIMEOUT_MS=60000`                |
 
-**Validation:** All `EXO_LLM_*` environment variables are validated via Zod schema in `src/config/env_schema.ts`. Invalid values are rejected with clear warnings. See `templates/exo.config.sample.toml` for detailed usage examples.
+**Validation:** All `EXA_LLM_*` environment variables are validated via Zod schema in `src/config/env_schema.ts`. Invalid values are rejected with clear warnings. See `templates/exa.config.sample.toml` for detailed usage examples.
 
 **Test Environment Variables:**
 
-All test-related environment variables use the `EXO_TEST_*` prefix:
+All test-related environment variables use the `EXA_TEST_*` prefix:
 
-- `EXO_TEST_MODE` - Indicates test environment
-- `EXO_TEST_CLI_MODE` - Indicates CLI test mode
-- `EXO_TEST_ENABLE_PAID_LLM` - Opt-in for paid API tests in CI
-- `EXO_TEST_ENABLE_OLLAMA` - Enable Ollama integration tests
-- `EXO_TEST_ENABLE_LLAMA` - Enable Llama provider tests
+- `EXA_TEST_MODE` - Indicates test environment
+- `EXA_TEST_CLI_MODE` - Indicates CLI test mode
+- `EXA_TEST_ENABLE_PAID_LLM` - Opt-in for paid API tests in CI
+- `EXA_TEST_ENABLE_OLLAMA` - Enable Ollama integration tests
+- `EXA_TEST_ENABLE_LLAMA` - Enable Llama provider tests
 
 Use helper functions `isTestMode()` and `isCIMode()` from `src/config/env_schema.ts` instead of direct env var access.
 
@@ -309,7 +309,7 @@ execution = ["anthropic-claude-sonnet"]
 
 ## 2.1. File Format Inventory
 
-ExoFrame uses a **hybrid format strategy** optimized for different use cases:
+Exaix uses a **hybrid format strategy** optimized for different use cases:
 
 - **TOML** for system configuration and agent blueprints (token-efficient, robust)
 - **YAML** for markdown frontmatter
@@ -327,7 +327,7 @@ ExoFrame uses a **hybrid format strategy** optimized for different use cases:
 
 | Category             | Format                      | Extension      | Location                                 | Purpose                                    |
 | -------------------- | --------------------------- | -------------- | ---------------------------------------- | ------------------------------------------ |
-| **System Config**    | TOML                        | `.toml`        | `exo.config.toml`                        | Main configuration                         |
+| **System Config**    | TOML                        | `.toml`        | `exa.config.toml`                        | Main configuration                         |
 | **Deno Config**      | JSON                        | `.json`        | `deno.json`                              | Runtime, imports, tasks (Deno requirement) |
 | **Agent Blueprints** | TOML                        | `.toml`        | `Blueprints/Agents/`                     | Agent definitions                          |
 | **Flow Definitions** | TypeScript                  | `.ts`          | `Blueprints/Flows/`                      | Orchestration logic                        |
@@ -382,9 +382,9 @@ Implement user authentication for the API...
 System configuration and agent blueprints use **TOML** for robustness and token efficiency:
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [system]
-root = "/home/user/ExoFrame"
+root = "/home/user/Exaix"
 log_level = "info"
 
 [watcher]
@@ -420,10 +420,10 @@ The File System is the Single Source of Truth. Every path shown above is provisi
 folders are treated as fatal errors during daemon startup so that watchers do not run in partially-initialized states.
 
 ```text
-/ExoFrame
+/Exaix
 ├── deno.json                   <-- Project Config (Import Maps, Tasks)
 ├── lock.json                   <-- Dependency Integrity Hash
-├── exo.config.toml             <-- System Physics (Paths, Models)
+├── exa.config.toml             <-- System Physics (Paths, Models)
 ├── /.exo
 │   ├── journal.db              <-- SQLite: Activity Log & Locks
 ├── /Blueprints                 <-- "Source Code" of the Swarm
@@ -459,10 +459,10 @@ boundaries at the OS process level.
 
 ```bash
 deno run \
-  --allow-read="./ExoFrame" \
-  --allow-write="./ExoFrame" \
+  --allow-read="./Exaix" \
+  --allow-write="./Exaix" \
   --allow-net="api.anthropic.com,api.openai.com,localhost:11434" \
-  --allow-env="EXO_*" \
+  --allow-env="EXA_*" \
   --allow-run="git" \
   src/main.ts
 ```
@@ -502,21 +502,21 @@ The `HumanActionTracker` service provides a safe, validated interface for human 
 
 ```bash
 # Approve a plan
-exoctl plan approve implement-auth
+exactl plan approve implement-auth
 
 # Reject a plan with reason
-exoctl plan reject implement-auth --reason "Approach too risky"
+exactl plan reject implement-auth --reason "Approach too risky"
 
 # Request revisions with comments
-exoctl plan revise implement-auth --comment "Add error handling" --comment "Include tests"
+exactl plan revise implement-auth --comment "Add error handling" --comment "Include tests"
 
 # List pending plans
-exoctl plan list --status=review
+exactl plan list --status=review
 ```
 
 ### Option 2: TUI Dashboard Integration
 
-- ExoFrame TUI dashboard provides interactive plan review with real-time updates
+- Exaix TUI dashboard provides interactive plan review with real-time updates
 - Commands available via keyboard shortcuts: "Approve Plan", "Reject Plan", etc.
 - Dashboard communicates with daemon via direct file operations
 
@@ -530,18 +530,18 @@ exoctl plan list --status=review
 
 | Human Action        | CLI Command                               | Activity Log Entry                         |
 | :------------------ | :---------------------------------------- | :----------------------------------------- |
-| **Approve Plan**    | `exoctl plan approve <id>`                | `plan.approved` (actor: 'human')           |
-| **Reject Plan**     | `exoctl plan reject <id> --reason "..."`  | `plan.rejected` (actor: 'human')           |
-| **Request Changes** | `exoctl plan revise <id> --comment "..."` | `plan.revision_requested` (actor: 'human') |
-| **View Plan**       | `exoctl plan show <id>`                   | No log (read-only)                         |
-| **List Plans**      | `exoctl plan list`                        | No log (read-only)                         |
+| **Approve Plan**    | `exactl plan approve <id>`                | `plan.approved` (actor: 'human')           |
+| **Reject Plan**     | `exactl plan reject <id> --reason "..."`  | `plan.rejected` (actor: 'human')           |
+| **Request Changes** | `exactl plan revise <id> --comment "..."` | `plan.revision_requested` (actor: 'human') |
+| **View Plan**       | `exactl plan show <id>`                   | No log (read-only)                         |
+| **List Plans**      | `exactl plan list`                        | No log (read-only)                         |
 
 ### 5.4. Implementation Strategy
 
 **CLI Interface:**
 
 ```typescript
-// src/cli/exoctl.ts
+// src/cli/exactl.ts
 
 import { Command } from "@cliffy/command";
 
@@ -703,7 +703,7 @@ export class PlanReviewer {
 
 ### 5.8.1. Overview
 
-The Plan Execution Engine automatically executes approved plans moved to `Workspace/Active/`. It uses an **agent-driven architecture via MCP (Model Context Protocol) server** where LLM agents connect to ExoFrame's MCP server and use standardized tools for portal operations. This eliminates fragile response parsing, provides strong security boundaries, and supports configurable security modes (sandboxed or hybrid). It consists of six sub-steps, with Detection (5.12.1) and Parsing (5.12.2) currently implemented.
+The Plan Execution Engine automatically executes approved plans moved to `Workspace/Active/`. It uses an **agent-driven architecture via MCP (Model Context Protocol) server** where LLM agents connect to Exaix's MCP server and use standardized tools for portal operations. This eliminates fragile response parsing, provides strong security boundaries, and supports configurable security modes (sandboxed or hybrid). It consists of six sub-steps, with Detection (5.12.1) and Parsing (5.12.2) currently implemented.
 
 **Implementation Status:**
 
@@ -1264,7 +1264,7 @@ Create REST API routes.
 
 **Future (Steps 5.12.3-5.12.6):**
 
-- **MCP Server:** Start ExoFrame MCP server with portal scope, register 6 tools (read_file, write_file, list_directory, git_create_branch, git_commit, git_status)
+- **MCP Server:** Start Exaix MCP server with portal scope, register 6 tools (read_file, write_file, list_directory, git_create_branch, git_commit, git_status)
 - **Agent Orchestration:** Invoke LLM agent via MCP (stdio or SSE transport) with validated portal permissions
 - **Security Modes:** Sandboxed (no file access, all via MCP) or Hybrid (read-only + audit)
 - **Agent Execution:** Agent uses MCP tools to create feature branch and commit changes
@@ -1302,12 +1302,12 @@ Create REST API routes.
 
 ### 5.8.8. MCP Server Architecture
 
-**Purpose:** ExoFrame exposes a Model Context Protocol (MCP) server that LLM agents connect to for portal operations. This provides a standardized, secure interface with configurable security modes.
+**Purpose:** Exaix exposes a Model Context Protocol (MCP) server that LLM agents connect to for portal operations. This provides a standardized, secure interface with configurable security modes.
 
 **MCP Components:**
 
 ┌─────────────────────────────────────────────┐
-│ ExoFrame MCP Server │
+│ Exaix MCP Server │
 ├─────────────────────────────────────────────┤
 │ Tools: 6 tools (read_file, write_file, │
 │ list_directory, git_*) │
@@ -1339,7 +1339,7 @@ Create REST API routes.
 
 **MCP Prompts:**
 
-- `execute_plan`: Execute an approved ExoFrame plan
+- `execute_plan`: Execute an approved Exaix plan
 - `create_review`: Create a review for code changes
 
 **Security Modes:**
@@ -1349,7 +1349,7 @@ Create REST API routes.
 - Agent has NO file system access
 - Runs with `--allow-read=NONE --allow-write=NONE`
 - All operations through MCP tools
-- Impossible to bypass ExoFrame
+- Impossible to bypass Exaix
 
 **Hybrid (Performance):**
 
@@ -1362,12 +1362,12 @@ Create REST API routes.
 **Configuration:**
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 
 [mcp]
 enabled = true
 transport = "stdio"  # or "sse"
-server_name = "exoframe"
+server_name = "exaix"
 
 [[portals]]
 alias = "MyApp"
@@ -1408,17 +1408,17 @@ execution_strategy = "branch"      # optional: branch|worktree (default: branch)
 
 1. **Mounting:** User runs `deno task mount <target> <alias>`.
 1. **Linking:** Deno creates the symlink using `Deno.symlink`.
-1. **Permissioning:** _Crucial Step_ — `exoctl portal add` patches `exo.config.toml`, regenerates `deno.json` permission
+1. **Permissioning:** _Crucial Step_ — `exactl portal add` patches `exa.config.toml`, regenerates `deno.json` permission
    lists, and runs `deno task config validate`. Only if validation succeeds do we restart the daemon (or hot-reload
    permissions on supported OSes). If any sub-step fails, the symlink is deleted and configuration rollback is performed
    automatically.
-1. **Verification:** After restart, `exoctl portal list --json` is executed and compared with the expected allow-list;
+1. **Verification:** After restart, `exactl portal list --json` is executed and compared with the expected allow-list;
    mismatches block agent access and surface an actionable error.
 
 ```bash
-# exoctl portal add ~/Dev/MyProject MyProject
+# exactl portal add ~/Dev/MyProject MyProject
 # 1. Creates symlink
-# 2. Updates exo.config.toml to add path
+# 2. Updates exa.config.toml to add path
 # 3. Regenerates deno.json with new permissions
 # 4. Restarts daemon automatically
 ```
@@ -1427,36 +1427,36 @@ execution_strategy = "branch"      # optional: branch|worktree (default: branch)
 
 ```bash
 # Add a new portal (creates symlink, generates context card, updates config)
-exoctl portal add <target-path> <alias> [--default-branch <branch>] [--execution-strategy <branch|worktree>]
-exoctl portal add ~/Dev/MyProject MyProject
-exoctl portal add ~/Dev/MyProject MyProject --default-branch main --execution-strategy worktree
+exactl portal add <target-path> <alias> [--default-branch <branch>] [--execution-strategy <branch|worktree>]
+exactl portal add ~/Dev/MyProject MyProject
+exactl portal add ~/Dev/MyProject MyProject --default-branch main --execution-strategy worktree
 
 # List all configured portals with their status
-exoctl portal list
-exoctl portal list --json                 # Machine-readable output
+exactl portal list
+exactl portal list --json                 # Machine-readable output
 
 # Show detailed information about a specific portal
-exoctl portal show <alias>
-exoctl portal show MyProject              # Shows path, status, context card location
+exactl portal show <alias>
+exactl portal show MyProject              # Shows path, status, context card location
 
 # Remove a portal (deletes symlink, removes from config, archives context card)
-exoctl portal remove <alias>
-exoctl portal remove MyProject
-exoctl portal remove <alias> --keep-context  # Keep project memory in Memory/Projects
+exactl portal remove <alias>
+exactl portal remove MyProject
+exactl portal remove <alias> --keep-context  # Keep project memory in Memory/Projects
 
 # Verify portal integrity (checks symlink, target existence, permissions)
-exoctl portal verify
-exoctl portal verify <alias>              # Verify specific portal
+exactl portal verify
+exactl portal verify <alias>              # Verify specific portal
 
 # Regenerate context card for a portal
-exoctl portal refresh <alias>
-exoctl portal refresh MyProject           # Re-scans project and updates context card
+exactl portal refresh <alias>
+exactl portal refresh MyProject           # Re-scans project and updates context card
 ```
 
 **Target branch and execution strategy semantics:**
 
-- A request/plan may specify `target_branch` (set via `exoctl request --target-branch ...`) to control the base branch for portal execution.
-- If `target_branch` is absent, the portal may specify `default_branch` as a fallback. Otherwise, ExoFrame auto-detects the repository default branch.
+- A request/plan may specify `target_branch` (set via `exactl request --target-branch ...`) to control the base branch for portal execution.
+- If `target_branch` is absent, the portal may specify `default_branch` as a fallback. Otherwise, Exaix auto-detects the repository default branch.
 - Portal execution uses the portal's `execution_strategy`:
   - `branch`: create a feature branch in the portal repo checkout.
   - `worktree`: create an isolated worktree checkout per trace and record `worktree_path` on the review.
@@ -1466,15 +1466,15 @@ exoctl portal refresh MyProject           # Re-scans project and updates context
 
 ```bash
 # List worktrees for a repository
-exoctl git worktrees list [--portal <alias>] [--repo <path>]
+exactl git worktrees list [--portal <alias>] [--repo <path>]
 
 # Prune stale worktree metadata (after manual deletion/crashes)
-exoctl git worktrees prune [--portal <alias>] [--repo <path>] [--dry-run] [--verbose] [--expire <time>]
+exactl git worktrees prune [--portal <alias>] [--repo <path>] [--dry-run] [--verbose] [--expire <time>]
 ```
 
 **Portal Command Behavior:**
 
-- **add:** Creates symlink at `/Portals/<alias>`, generates project memory at `/Memory/Projects/<alias>/`, updates `exo.config.toml` with portal path, validates config, restarts daemon if running
+- **add:** Creates symlink at `/Portals/<alias>`, generates project memory at `/Memory/Projects/<alias>/`, updates `exa.config.toml` with portal path, validates config, restarts daemon if running
 - **list:** Shows all portals from config with status (active, broken, missing)
 - **show:** Displays portal details including target path, symlink status, context card location, file permissions
 - **remove:** Safely removes portal by deleting symlink, removing from config, archiving project memory to `/Memory/Projects/_archived/`
@@ -1509,7 +1509,7 @@ All portal operations are logged to Activity Journal:
 
 ### 6.3. OS-Specific Notes
 
-- **Windows:** Symlink creation requires Developer Mode or elevated PowerShell. When unavailable, `exoctl` falls back to
+- **Windows:** Symlink creation requires Developer Mode or elevated PowerShell. When unavailable, `exactl` falls back to
   NTFS junctions and records the deviation in Activity Journal.
 - **macOS:** First-time portal creation triggers System Settings > Privacy prompt; instructions are logged to
   `/Memory/README.md`.
@@ -1544,7 +1544,7 @@ allow = ["git", "npm"]  # Mapped to --allow-run
    filters, command allowlist).
 1. **Runtime Guardrails:** Even when Deno permits an API, the Tool Registry double-checks that the caller’s capability
    bit is set before dispatching commands.
-1. **Audit:** Granted permissions are recorded in the Activity Journal’s payload, and `exoctl log query --trace` shows
+1. **Audit:** Granted permissions are recorded in the Activity Journal’s payload, and `exactl log query --trace` shows
    what the agent actually received.
 1. **Violation Handling:** Attempts to exceed declared capabilities raise a `CapabilityViolationError`, halt the agent,
    and trigger Mission Reporter warnings.
@@ -1864,18 +1864,18 @@ Portal Workspace Integration enables agents to execute in external project repos
 
 #### Execution Context Architecture
 
-ExoFrame uses an execution context model to determine where agents run and where git operations occur:
+Exaix uses an execution context model to determine where agents run and where git operations occur:
 
 **Portal Execution (Recommended):**
 
-- **Working Directory**: Portal target path (e.g., `~/git/ExoFrame`)
+- **Working Directory**: Portal target path (e.g., `~/git/Exaix`)
 - **Git Repository**: Portal's `.git/` directory
 - **Reviews**: Track changes in portal repository
 - **Use Case**: All code modification workflows
 
 **Workspace Execution (Legacy):**
 
-- **Working Directory**: Deployed workspace (e.g., `~/ExoFrame`)
+- **Working Directory**: Deployed workspace (e.g., `~/Exaix`)
 - **Git Repository**: Workspace `.git/` directory
 - **Reviews**: Track workspace changes
 - **Use Case**: Internal workspace management only
@@ -1902,7 +1902,7 @@ interface WorkspaceExecutionContext {
 - No git review tracking
 - Results stored as artifacts in `Memory/Execution/`
 - Artifacts include YAML frontmatter with status field (pending/approved/rejected)
-- Review via unified `exoctl review` command
+- Review via unified `exactl review` command
 
 **Write-Capable Agents** (development, refactoring):
 
@@ -1916,9 +1916,9 @@ interface WorkspaceExecutionContext {
 
 - **Reject:** Deletes the feature branch (best-effort handling if the branch is checked out in a worktree).
 - **Approve:** Merges into the review’s recorded base branch.
-  - If the review was executed in an **isolated worktree**, ExoFrame also removes the worktree checkout and removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, then deletes the feature branch.
-  - Otherwise, ExoFrame merges but keeps the feature branch.
-- **Merge conflict on approve (worktree reviews):** ExoFrame attempts `git merge --abort` and removes the worktree checkout + pointer to avoid orphaned worktrees, but keeps the feature branch for manual conflict resolution.
+  - If the review was executed in an **isolated worktree**, Exaix also removes the worktree checkout and removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, then deletes the feature branch.
+  - Otherwise, Exaix merges but keeps the feature branch.
+- **Merge conflict on approve (worktree reviews):** Exaix attempts `git merge --abort` and removes the worktree checkout + pointer to avoid orphaned worktrees, but keeps the feature branch for manual conflict resolution.
 
 **Capability Detection:**
 
@@ -2023,7 +2023,7 @@ request_id: request-abc123
 
 **Unified Review:**
 
-- Same `exoctl review` command for both artifacts and git reviews
+- Same `exactl review` command for both artifacts and git reviews
 - Auto-detection based on ID prefix (`artifact-` vs review ID)
 - Approval updates frontmatter status (artifacts) or merges branch (reviews)
 
@@ -2072,11 +2072,11 @@ coordinate tasks using JSON-RPC 2.0 over HTTP(S).
 - **Platform-Agnostic**: Works across frameworks and vendors
 - **Complementary to MCP**: While MCP handles tool/context sharing, A2A handles agent-to-agent coordination
 
-### 11.2. Why ExoFrame Doesn't Use A2A Currently
+### 11.2. Why Exaix Doesn't Use A2A Currently
 
 **Design Philosophy Mismatch:**
 
-ExoFrame's core architecture is **file-based and local-first**:
+Exaix's core architecture is **file-based and local-first**:
 
 - Agents communicate via markdown files in watched directories
 - No network infrastructure required for local agents
@@ -2091,7 +2091,7 @@ A2A is **network-based and distributed**:
 
 **Current Coverage:**
 
-ExoFrame already supports multi-agent scenarios through its file-based protocol:
+Exaix already supports multi-agent scenarios through its file-based protocol:
 
 - **Local Agents**: Coordinate via shared filesystem (no network)
 - **Federated Agents**: Call out to third-party APIs when needed
@@ -2099,15 +2099,15 @@ ExoFrame already supports multi-agent scenarios through its file-based protocol:
 
 ### 11.3. Future Bridge Architecture (If Needed)
 
-If ExoFrame needs to interoperate with external agent systems, we can implement an **A2A Adapter Layer** without
+If Exaix needs to interoperate with external agent systems, we can implement an **A2A Adapter Layer** without
 changing the core architecture:
 
 ```typescript
 // src/adapters/a2a_adapter.ts
 
 /**
- * Bridges ExoFrame's file-based protocol to Agent2Agent HTTP protocol
- * Enables external agents to invoke ExoFrame agents via A2A
+ * Bridges Exaix's file-based protocol to Agent2Agent HTTP protocol
+ * Enables external agents to invoke Exaix agents via A2A
  */
 class A2AAdapter {
   constructor(
@@ -2126,11 +2126,11 @@ class A2AAdapter {
   }
 
   /**
-   * Translate A2A task to ExoFrame request file
+   * Translate A2A task to Exaix request file
    */
   private async ingestA2ATask(task: A2ATask): Promise<string> {
     const requestPath = `${this.exoRoot}/Workspace/Requests/${task.id}.md`;
-    const markdown = this.toExoFrameMarkdown(task);
+    const markdown = this.toExaixMarkdown(task);
     await Deno.writeTextFile(requestPath, markdown);
     return task.id;
   }
@@ -2148,14 +2148,14 @@ class A2AAdapter {
 
 **Integration Points:**
 
-1. **Inbound (External → ExoFrame)**:
+1. **Inbound (External → Exaix)**:
    - External agent calls A2A endpoint
    - Adapter creates request file in `/Workspace/Requests`
-   - ExoFrame agent processes normally
+   - Exaix agent processes normally
    - Adapter watches `/Workspace/Plans`, translates to A2A response
 
-1. **Outbound (ExoFrame → External)**:
-   - ExoFrame agent specifies A2A-compatible remote in blueprint
+1. **Outbound (Exaix → External)**:
+   - Exaix agent specifies A2A-compatible remote in blueprint
    - Adapter translates request file to A2A task
    - Posts to external agent's A2A endpoint
    - Receives response, creates plan file
@@ -2163,7 +2163,7 @@ class A2AAdapter {
 **Security Considerations:**
 
 - A2A adapter runs as **separate Deno process** with `--allow-net` permission
-- Core ExoFrame daemon remains network-isolated for local agents
+- Core Exaix daemon remains network-isolated for local agents
 - Adapter uses Unix socket or named pipe to communicate with main daemon
 - All A2A traffic logged to Activity Journal with external agent metadata
 
@@ -2171,10 +2171,10 @@ class A2AAdapter {
 
 ```bash
 # Core daemon (no network)
-deno run --allow-read=./ExoFrame --allow-write=./ExoFrame src/main.ts
+deno run --allow-read=./Exaix --allow-write=./Exaix src/main.ts
 
 # Optional A2A adapter (when external integration needed)
-deno run --allow-read=./ExoFrame --allow-write=./ExoFrame \
+deno run --allow-read=./Exaix --allow-write=./Exaix \
   --allow-net=0.0.0.0:8080 src/adapters/a2a_adapter.ts
 ```
 
@@ -2183,8 +2183,8 @@ deno run --allow-read=./ExoFrame --allow-write=./ExoFrame \
 Implement A2A bridge only if one or more of these requirements emerge:
 
 1. **External System Integration**: Need to invoke agents in other frameworks (LangChain, AutoGen, etc.)
-1. **Multi-Instance Coordination**: Multiple ExoFrame deployments need to collaborate across machines
-1. **Agent Marketplace**: ExoFrame agents need to be discoverable/invokable by third-party systems
+1. **Multi-Instance Coordination**: Multiple Exaix deployments need to collaborate across machines
+1. **Agent Marketplace**: Exaix agents need to be discoverable/invokable by third-party systems
 1. **Enterprise Requirements**: Organization requires standardized agent protocols
 
 **Current Recommendation**: Defer A2A implementation. File-based protocol is simpler, more secure, and sufficient for
@@ -2196,14 +2196,14 @@ current use cases.
 
 #### MCP Edition Availability
 
-| Component      | Edition  | Description                                     |
-| -------------- | -------- | ----------------------------------------------- |
-| **MCP Client** | 🟢 All   | Connect to external MCP servers                 |
-| **MCP Server** | 🔵 Team+ | Expose ExoFrame as MCP server for AI assistants |
+| Component      | Edition  | Description                                  |
+| -------------- | -------- | -------------------------------------------- |
+| **MCP Client** | 🟢 All   | Connect to external MCP servers              |
+| **MCP Server** | 🔵 Team+ | Expose Exaix as MCP server for AI assistants |
 
-**Why MCP Fits ExoFrame:**
+**Why MCP Fits Exaix:**
 
-Unlike A2A (which targets agent-to-agent coordination), MCP is designed for **assistant-to-tool integration** - precisely ExoFrame's use case:
+Unlike A2A (which targets agent-to-agent coordination), MCP is designed for **assistant-to-tool integration** - precisely Exaix's use case:
 
 - **Local-First:** MCP servers run locally via stdio transport (no network required)
 - **Tool Calling:** Standardized interface for operations (`createRequest`, `approvePlan`, `queryJournal`)
@@ -2214,15 +2214,15 @@ Unlike A2A (which targets agent-to-agent coordination), MCP is designed for **as
 
 ```typescript
 // src/mcp/server.ts (Team+ editions)
-export class ExoFrameMCPServer {
-  // Expose ExoFrame operations as MCP tools
+export class ExaixMCPServer {
+  // Expose Exaix operations as MCP tools
   tools = [
-    "exoframe_create_request", // Create request files
-    "exoframe_list_plans", // Query pending plans
-    "exoframe_approve_plan", // Approve plans
-    "exoframe_query_journal", // Query Activity Journal
-    "exoframe_list_portals", // List available portals
-    "exoframe_get_blueprint", // Retrieve blueprint details
+    "exaix_create_request", // Create request files
+    "exaix_list_plans", // Query pending plans
+    "exaix_approve_plan", // Approve plans
+    "exaix_query_journal", // Query Activity Journal
+    "exaix_list_portals", // List available portals
+    "exaix_get_blueprint", // Retrieve blueprint details
   ];
 
   async start() {
@@ -2239,8 +2239,8 @@ export class ExoFrameMCPServer {
 // Claude Desktop config (requires Team+ edition)
 {
   "mcpServers": {
-    "exoframe": {
-      "command": "exoctl",
+    "exaix": {
+      "command": "exactl",
       "args": ["mcp", "start"]
     }
   }

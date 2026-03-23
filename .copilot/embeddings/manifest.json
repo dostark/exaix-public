@@ -3,7 +3,7 @@
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
-      "title": "ExoFrame Documentation Development Guidelines",
+      "title": "Exaix Documentation Development Guidelines",
       "embeddingFile": ".copilot/embeddings/documentation.md.json"
     },
     {
@@ -57,7 +57,7 @@
     },
     {
       "path": ".copilot/prompts/README.md",
-      "title": "ExoFrame Agent Prompt Templates Library",
+      "title": "Exaix Agent Prompt Templates Library",
       "embeddingFile": ".copilot/embeddings/README.md.json"
     },
     {
@@ -161,9 +161,9 @@
       "embeddingFile": ".copilot/embeddings/agent-thought-standardization.md.json"
     },
     {
-      "path": ".copilot/source/exoframe.md",
-      "title": "ExoFrame Source Development Guidelines",
-      "embeddingFile": ".copilot/embeddings/exoframe.md.json"
+      "path": ".copilot/source/exaix.md",
+      "title": "Exaix Source Development Guidelines",
+      "embeddingFile": ".copilot/embeddings/exaix.md.json"
     },
     {
       "path": ".copilot/source/agent-content-schema.md",
@@ -197,7 +197,7 @@
     },
     {
       "path": ".copilot/planning/phase-30-cli-flow-request.md",
-      "title": "Phase 30: Add Flow Support to `exoctl request` Command",
+      "title": "Phase 30: Add Flow Support to `exactl request` Command",
       "embeddingFile": ".copilot/embeddings/phase-30-cli-flow-request.md.json"
     },
     {
@@ -260,7 +260,7 @@
     },
     {
       "path": ".copilot/planning/phase-29-journal-command.md",
-      "title": "Phase 29: Implementation of `exoctl journal` Command",
+      "title": "Phase 29: Implementation of `exactl journal` Command",
       "embeddingFile": ".copilot/embeddings/phase-29-journal-command.md.json"
     },
     {
@@ -333,13 +333,13 @@
       "embeddingFile": ".copilot/embeddings/cross-reference.md.json"
     },
     {
-      "path": ".copilot/copilot/exoframe.md",
-      "title": "ExoFrame quick reference for Copilot",
-      "embeddingFile": ".copilot/embeddings/exoframe.md.json"
+      "path": ".copilot/copilot/exaix.md",
+      "title": "Exaix quick reference for Copilot",
+      "embeddingFile": ".copilot/embeddings/exaix.md.json"
     },
     {
       "path": ".copilot/copilot/summary.md",
-      "title": "ExoFrame Quick Summary",
+      "title": "Exaix Quick Summary",
       "embeddingFile": ".copilot/embeddings/summary.md.json"
     },
     {
@@ -384,7 +384,7 @@
     },
     {
       "path": ".copilot/tests/testing.md",
-      "title": "ExoFrame Test Development Guidelines",
+      "title": "Exaix Test Development Guidelines",
       "embeddingFile": ".copilot/embeddings/testing.md.json"
     },
     {
@@ -408,7 +408,7 @@
     },
     {
       "path": ".copilot/issues/plan-show-missing-request-context.md",
-      "title": "exoctl plan show/list Missing Request and Agent Context",
+      "title": "exactl plan show/list Missing Request and Agent Context",
       "embeddingFile": ".copilot/embeddings/plan-show-missing-request-context.md.json"
     },
     {

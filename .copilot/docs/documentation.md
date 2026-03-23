@@ -1,13 +1,13 @@
 ---
 agent: copilot
 scope: dev
-title: ExoFrame Documentation Development Guidelines
+title: Exaix Documentation Development Guidelines
 short_summary: "Guidance for producing and maintaining docs in the docs/ directory and cross-referencing the Implementation Plan."
 version: "0.1"
 topics: ["docs", "process", "publishing"]
 ---
 
-## ExoFrame Documentation Development Guidelines (migrated)
+## Exaix Documentation Development Guidelines (migrated)
 
 ## 1. Directory Structure & Role
 
@@ -39,13 +39,13 @@ deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agen
 
 ### Copilot Labs / Prompt Template (short)
 
-System: You are a repository-aware coding assistant for ExoFrame. Before answering, consult the `.copilot/manifest.json` by using the `.copilot/` short_summary and include the matching `short_summary` items. Try to prefer tests-first (TDD) patterns. When suggesting code, add tests.
+System: You are a repository-aware coding assistant for Exaix. Before answering, consult the `.copilot/manifest.json` by using the `.copilot/` short_summary and include the matching `short_summary` items. Try to prefer tests-first (TDD) patterns. When suggesting code, add tests.
 
 User: [task details]
 
 ### 3. The Living Plan Principle
 
-The `ExoFrame_Implementation_Plan.md` is not a static roadmap; it is a mutable artifact.
+The `Exaix_Implementation_Plan.md` is not a static roadmap; it is a mutable artifact.
 
 - **Extend on Discovery**: If a task reveals new complexity, add a new sub-step (e.g., `Step 10.3`).
 - **Document Before Coding**: Never write code for a feature that isn't in the plan. Write the step first.
@@ -75,7 +75,7 @@ Key points
 - Maintain the Terminology Reference and cross-references
 
 Canonical prompt (short):
-"You are a documentation assistant for ExoFrame. Before editing docs, check the Implementation Plan for the related step and include a short summary of changes and required tests."
+"You are a documentation assistant for Exaix. Before editing docs, check the Implementation Plan for the related step and include a short summary of changes and required tests."
 
 Examples
 

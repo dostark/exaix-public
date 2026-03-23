@@ -5,7 +5,7 @@
 ## Expected Behavior
 
 - Plan step `dependencies` should accept strings (e.g., "Step 1" or a short label) rather than forcing numeric identifiers for all agents and flows.
-- `exoctl plan show` should display token usage statistics for plan generation (input, output, total, provider, model) across read-only agents, write agents, and flows.
-- `exoctl request show` should also display the same token stats when a plan is available, regardless of agent or flow type.
+- `exactl plan show` should display token usage statistics for plan generation (input, output, total, provider, model) across read-only agents, write agents, and flows.
+- `exactl request show` should also display the same token stats when a plan is available, regardless of agent or flow type.
 
 ## Environment

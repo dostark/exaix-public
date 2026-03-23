@@ -6,7 +6,7 @@ Based on the commit `a5f3190` - "config: centralize magic numbers and make runti
 > [!NOTE]
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
-> See `docs/ExoFrame_User_Guide.md` for current configuration info.
+> See `docs/Exaix_User_Guide.md` for current configuration info.
 
 ## Document Information
 
@@ -111,7 +111,7 @@ export const DEFAULT_ANTHROPIC_MAX_TOKENS = 4096;
 ```typescript
 export const DEFAULT_MCP_ENABLED = true;
 export const DEFAULT_MCP_TRANSPORT = "stdio";
-export const DEFAULT_MCP_SERVER_NAME = "exoframe";
+export const DEFAULT_MCP_SERVER_NAME = "exaix";
 export const DEFAULT_MCP_VERSION = "1.0.0";
 export const DEFAULT_MCP_AGENT_ID = "system";
 ```
@@ -347,7 +347,7 @@ constructor(options?: ToolRegistryConfig) {
 
 ### ✅ 6. Enhanced Sample Configuration
 
-**File**: `templates/exo.config.sample.toml` (+92, -6 lines)
+**File**: `templates/exa.config.sample.toml` (+92, -6 lines)
 
 Enriched sample configuration with:
 
@@ -455,6 +455,6 @@ Existing installations that rely on hard-coded behavior continue to work because
 
 ### To Customize Behavior
 
-Users can now add new configuration keys to `exo.config.toml` or use environment overrides (where applicable) without modifying code.
+Users can now add new configuration keys to `exa.config.toml` or use environment overrides (where applicable) without modifying code.
 
 ---

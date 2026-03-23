@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "1. Start the daemon: `exoctl daemon start`\n2. Submit a request with a \"no changes\" constraint but asking for a document:\n   ```bash\n   exoctl request --agent security-expert --portal <portal> \"Perform a security audit... Do not make any changes... Your goal is to create only readable audit document...\"\n   ```\n3. Approve the generated plan: `exoctl plan approve <plan_id>`\n4. Inspect the resulting changeset: `exoctl changeset show <changeset_id>`\n\n## Observed Behavior\n\nThe changeset is created but contains only a placeholder file (e.g., `test-execution.txt`). The requested audit document is missing.\n\n## Expected Behavior\n\nThe agent should generate the requested artifacts (e.g., the audit report) and include them in the changeset.\n\n## Possible Causes",
+      "text": "1. Start the daemon: `exactl daemon start`\n2. Submit a request with a \"no changes\" constraint but asking for a document:\n   ```bash\n   exactl request --agent security-expert --portal <portal> \"Perform a security audit... Do not make any changes... Your goal is to create only readable audit document...\"\n   ```\n3. Approve the generated plan: `exactl plan approve <plan_id>`\n4. Inspect the resulting changeset: `exactl changeset show <changeset_id>`\n\n## Observed Behavior\n\nThe changeset is created but contains only a placeholder file (e.g., `test-execution.txt`). The requested audit document is missing.\n\n## Expected Behavior\n\nThe agent should generate the requested artifacts (e.g., the audit report) and include them in the changeset.\n\n## Possible Causes",
       "vector": [
         0.9529411764705882,
         0.8196078431372549,

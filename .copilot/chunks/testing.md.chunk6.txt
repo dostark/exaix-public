@@ -5,7 +5,7 @@ if (isTestMode()) {
 }
 
 // Check if in CI environment
-if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+if (isCIMode() && !Deno.env.get("EXA_TEST_ENABLE_PAID_LLM")) {
   // Skip paid API tests in CI
   test.ignore = true;
 }
@@ -13,9 +13,9 @@ if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
 
 **Best Practices:**
 
-- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
-- ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
-- ✅ Use `EXO_TEST_*` prefix for any new test-related env vars
-- ❌ Never use legacy env vars (`DENO_TEST`, `EXOCTL_TEST_MODE`) in new code
+- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXA_TEST_MODE` directly
+- ✅ Always use `isCIMode()` instead of checking `CI` or `EXA_CI_MODE` directly
+- ✅ Use `EXA_TEST_*` prefix for any new test-related env vars
+- ❌ Never use legacy env vars (`DENO_TEST`, `EXACTL_TEST_MODE`) in new code
 
 ### CI (GitHub Actions) — Common Pitfalls

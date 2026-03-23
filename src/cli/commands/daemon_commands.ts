@@ -1,7 +1,7 @@
 /**
  * @module DaemonCommands
  * @path src/cli/commands/daemon_commands.ts
- * @description Provides CLI commands for controlling the ExoFrame daemon lifecycle, including start, stop, restart, status, and log tailing.
+ * @description Provides CLI commands for controlling the Exaix daemon lifecycle, including start, stop, restart, status, and log tailing.
  * @architectural-layer CLI
  * @dependencies [path, fs, base_command, cli_config, config_service, error_strategy, constants, process_utils]
  * @related-files [src/main.ts, src/cli/main.ts]
@@ -34,7 +34,7 @@ export class DaemonCommands extends BaseCommand {
   }
 
   /**
-   * Start the ExoFrame daemon
+   * Start the Exaix daemon
    */
   async start(): Promise<void> {
     try {
@@ -43,7 +43,7 @@ export class DaemonCommands extends BaseCommand {
 
       // Find daemon script relative to this command file
       const currentFile = fromFileUrl(import.meta.url);
-      const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "..", "main.ts");
+      const mainScript = Deno.env.get("EXA_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "..", "main.ts");
 
       const status = await this.status();
       if (status.running) {
@@ -57,7 +57,7 @@ export class DaemonCommands extends BaseCommand {
       // Check if main.ts exists
       if (!await exists(mainScript)) {
         throw new Error(
-          `Daemon script not found: ${mainScript}\nEnsure ExoFrame is properly installed in this workspace`,
+          `Daemon script not found: ${mainScript}\nEnsure Exaix is properly installed in this workspace`,
         );
       }
 
@@ -71,11 +71,11 @@ export class DaemonCommands extends BaseCommand {
 
       // Explicitly pass config path if available
       if (this.context.config) {
-        env.EXO_CONFIG_PATH = this.context.config.getConfigPath();
+        env.EXA_CONFIG_PATH = this.context.config.getConfigPath();
       }
 
       const exoEnvVars = Object.entries(env)
-        .filter(([k]) => k.startsWith("EXO_"))
+        .filter(([k]) => k.startsWith("EXA_"))
         .map(([k, v]) => `${k}=${v}`)
         .join(" ");
       const envPrefix = exoEnvVars ? `${exoEnvVars} ` : "";
@@ -129,7 +129,7 @@ export class DaemonCommands extends BaseCommand {
   }
 
   /**
-   * Stop the ExoFrame daemon
+   * Stop the Exaix daemon
    */
   async stop(): Promise<void> {
     try {
@@ -192,7 +192,7 @@ export class DaemonCommands extends BaseCommand {
   }
 
   /**
-   * Restart the ExoFrame daemon
+   * Restart the Exaix daemon
    */
   async restart(): Promise<void> {
     try {
@@ -299,10 +299,10 @@ export class DaemonCommands extends BaseCommand {
       exitCode = 1;
       message = bsv.major > dsv.major
         ? `❌ Major migration required — manual upgrade needed (binary: ${binaryWsv}, workspace: ${onDiskWsv})`
-        : `⚠️  Workspace migration required — run 'exoctl migrate' (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
+        : `⚠️  Workspace migration required — run 'exactl migrate' (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
     } else if (dsv.major > bsv.major || (dsv.major === bsv.major && dsv.minor > bsv.minor)) {
       exitCode = 2;
-      message = `❌ Binary is older than workspace — update exoctl (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
+      message = `❌ Binary is older than workspace — update exactl (binary: ${binaryWsv}, workspace: ${onDiskWsv})`;
     }
 
     if (options.json) {

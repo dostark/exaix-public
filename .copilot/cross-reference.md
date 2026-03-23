@@ -13,18 +13,18 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 | Task Type                                     | Primary Doc                                                                                | Secondary Docs                                                                                                                    |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Write unit tests                              | [tests/testing.md](tests/testing.md)                                                       | [source/exoframe.md](source/exoframe.md)                                                                                          |
-| Refactor code                                 | [source/exoframe.md](source/exoframe.md)                                                   | [tests/testing.md](tests/testing.md)                                                                                              |
+| Write unit tests                              | [tests/testing.md](tests/testing.md)                                                       | [source/exaix.md](source/exaix.md)                                                                                          |
+| Refactor code                                 | [source/exaix.md](source/exaix.md)                                                   | [tests/testing.md](tests/testing.md)                                                                                              |
 | Update documentation                          | [docs/documentation.md](docs/documentation.md)                                             | -                                                                                                                                 |
-| Fix TypeScript errors                         | [source/exoframe.md](source/exoframe.md)                                                   | [copilot/exoframe.md](copilot/exoframe.md)                                                                                        |
-| Add new feature                               | [source/exoframe.md](source/exoframe.md) + [tests/testing.md](tests/testing.md)            | [docs/documentation.md](docs/documentation.md)                                                                                    |
+| Fix TypeScript errors                         | [source/exaix.md](source/exaix.md)                                                   | [copilot/exaix.md](copilot/exaix.md)                                                                                        |
+| Add new feature                               | [source/exaix.md](source/exaix.md) + [tests/testing.md](tests/testing.md)            | [docs/documentation.md](docs/documentation.md)                                                                                    |
 | Compose commit message                        | [prompts/commit-message.md](prompts/commit-message.md)                                     | [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md)                                      |
-| Debug test failures                           | [tests/testing.md](tests/testing.md)                                                       | [source/exoframe.md](source/exoframe.md)                                                                                          |
-| Fix CI failures                               | [tests/testing.md](tests/testing.md) (#CI)                                                 | [source/exoframe.md](source/exoframe.md)                                                                                          |
-| Security audit                                | [.copilot/tests/testing.md](tests/testing.md) (#Security Tests)                            | [.copilot/source/exoframe.md](source/exoframe.md) (#System Constraints)                                                           |
+| Debug test failures                           | [tests/testing.md](tests/testing.md)                                                       | [source/exaix.md](source/exaix.md)                                                                                          |
+| Fix CI failures                               | [tests/testing.md](tests/testing.md) (#CI)                                                 | [source/exaix.md](source/exaix.md)                                                                                          |
+| Security audit                                | [.copilot/tests/testing.md](tests/testing.md) (#Security Tests)                            | [.copilot/source/exaix.md](source/exaix.md) (#System Constraints)                                                           |
 | Claude-specific guidance                      | [providers/claude.md](providers/claude.md)                                                 | [README.md](README.md)                                                                                                            |
 | RAG/embeddings usage                          | [providers/claude-rag.md](providers/claude-rag.md)                                         | [README.md](README.md) (#Building embeddings)                                                                                     |
-| VS Code Copilot setup                         | [copilot/exoframe.md](copilot/exoframe.md)                                                 | [README.md](README.md)                                                                                                            |
+| VS Code Copilot setup                         | [copilot/exaix.md](copilot/exaix.md)                                                 | [README.md](README.md)                                                                                                            |
 | OpenAI integration                            | [providers/openai.md](providers/openai.md)                                                 | [README.md](README.md)                                                                                                            |
 | OpenAI RAG/embeddings usage                   | [providers/openai-rag.md](providers/openai-rag.md)                                         | [providers/openai.md](providers/openai.md)                                                                                        |
 | Google integration                            | [providers/google.md](providers/google.md)                                                 | [README.md](README.md)                                                                                                            |
@@ -32,51 +32,51 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 | Instruction gaps / self-improvement           | [process/self-improvement.md](process/self-improvement.md)                                 | [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md)                                                              |
 | Architecture review / improvement             | [process/review-research-improvement.md](process/review-research-improvement.md)           | [planning/](planning/)                                                                                                            |
 | SDD / request quality methodology             | [process/specification-driven-development.md](process/specification-driven-development.md) | [planning/phase-45](planning/phase-45-request-intent-analysis.md), [planning/phase-47](planning/phase-47-request-quality-gate.md) |
-| Request quality gate / clarification          | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)                                            |
-| Acceptance criteria / goal-aligned evaluation | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)                      |
-| Quality hardening / pipeline improvements     | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-49-quality-pipeline-hardening.md](planning/phase-49-quality-pipeline-hardening.md)                                |
-| Portal knowledge / codebase analysis          | [source/exoframe.md](source/exoframe.md)                                                   | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)                                |
+| Request quality gate / clarification          | [source/exaix.md](source/exaix.md)                                                   | [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)                                            |
+| Acceptance criteria / goal-aligned evaluation | [source/exaix.md](source/exaix.md)                                                   | [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)                      |
+| Quality hardening / pipeline improvements     | [source/exaix.md](source/exaix.md)                                                   | [planning/phase-49-quality-pipeline-hardening.md](planning/phase-49-quality-pipeline-hardening.md)                                |
+| Portal knowledge / codebase analysis          | [source/exaix.md](source/exaix.md)                                                   | [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)                                |
 
 ## Search by Topic
 
-- **`tdd`** → [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
+- **`tdd`** → [source/exaix.md](source/exaix.md), [tests/testing.md](tests/testing.md)
 - **`security`** → [tests/testing.md](tests/testing.md) (Security Tests as First-Class Citizens)
 - **`database`** → [tests/testing.md](tests/testing.md) (Database Initialization, initTestDbService)
 - **`docs`** → [docs/documentation.md](docs/documentation.md)
-- **`patterns`** → [source/exoframe.md](source/exoframe.md) (Service Pattern, Module Documentation)
+- **`patterns`** → [source/exaix.md](source/exaix.md) (Service Pattern, Module Documentation)
 - **`helpers`** → [tests/testing.md](tests/testing.md) (Test Organization, Helpers)
 - **`embeddings`** → [providers/claude-rag.md](providers/claude-rag.md), [README.md](README.md)
 - **`rag`** → [providers/claude-rag.md](providers/claude-rag.md)
 - **`openai`** → [providers/openai.md](providers/openai.md), [providers/openai-rag.md](providers/openai-rag.md)
 - **`prompts`** → [providers/claude.md](providers/claude.md), [providers/openai.md](providers/openai.md)
 - **`commit`** → [prompts/commit-message.md](prompts/commit-message.md), [../Blueprints/Skills/commit-message.skill.md](../Blueprints/Skills/commit-message.skill.md)
-- **`refactoring`** → [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
+- **`refactoring`** → [source/exaix.md](source/exaix.md), [providers/claude.md](providers/claude.md)
 - **`debugging`** → [providers/claude.md](providers/claude.md)
 - **`coverage`** → [tests/testing.md](tests/testing.md)
 - **`sdd`** → [process/specification-driven-development.md](process/specification-driven-development.md)
 - **`specification`** → [process/specification-driven-development.md](process/specification-driven-development.md)
 - **`quality-pipeline`** → [process/specification-driven-development.md](process/specification-driven-development.md), [planning/](planning/)
-- **`quality-gate`** → [source/exoframe.md](source/exoframe.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
-- **`clarification`** → [source/exoframe.md](source/exoframe.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
+- **`quality-gate`** → [source/exaix.md](source/exaix.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
+- **`clarification`** → [source/exaix.md](source/exaix.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
 - **`request-specification`** → [process/specification-driven-development.md](process/specification-driven-development.md), [planning/phase-47-request-quality-gate.md](planning/phase-47-request-quality-gate.md)
 - **`gemini`** → [providers/google.md](providers/google.md), [providers/google-long-context.md](providers/google-long-context.md)
 - **`long-context`** → [providers/google-long-context.md](providers/google-long-context.md)
 - **`self-improvement`** → [process/self-improvement.md](process/self-improvement.md), [prompts/self-improvement-loop.md](prompts/self-improvement-loop.md)
 - **`architecture`** → [process/review-research-improvement.md](process/review-research-improvement.md)
 - **`improvement-planning`** → [process/review-research-improvement.md](process/review-research-improvement.md), [planning/](planning/)
-- **`portal-knowledge`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
-- **`acceptance-criteria`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
-- **`goal-alignment`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
-- **`dynamic-criteria`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
-- **`criteria-generator`** → [source/exoframe.md](source/exoframe.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
-- **`codebase-analysis`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
-- **`architecture-inference`** → [source/exoframe.md](source/exoframe.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`portal-knowledge`** → [source/exaix.md](source/exaix.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`acceptance-criteria`** → [source/exaix.md](source/exaix.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`goal-alignment`** → [source/exaix.md](source/exaix.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`dynamic-criteria`** → [source/exaix.md](source/exaix.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`criteria-generator`** → [source/exaix.md](source/exaix.md), [planning/phase-48-acceptance-criteria-propagation.md](planning/phase-48-acceptance-criteria-propagation.md)
+- **`codebase-analysis`** → [source/exaix.md](source/exaix.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
+- **`architecture-inference`** → [source/exaix.md](source/exaix.md), [planning/phase-46-portal-knowledge-gathering.md](planning/phase-46-portal-knowledge-gathering.md)
 
 ## Workflow Examples
 
 ### "I want to add a new feature"
 
-1. Read [docs/ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) to find or create Implementation Plan step
+1. Read [docs/Exaix_Implementation_Plan.md](../docs/Exaix_Implementation_Plan.md) to find or create Implementation Plan step
 
 1.
 1.
@@ -126,7 +126,7 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 ### VS Code Copilot
 
-- **Main guide**: [copilot/exoframe.md](copilot/exoframe.md)
+- **Main guide**: [copilot/exaix.md](copilot/exaix.md)
 - **Quick summary**: [copilot/summary.md](copilot/summary.md)
 - **Pattern**: Consult `.copilot/manifest.json` first
 
@@ -147,13 +147,13 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 ### Test-Driven Development (TDD)
 
-1. **Docs**: [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
+1. **Docs**: [source/exaix.md](source/exaix.md), [tests/testing.md](tests/testing.md)
 
 1.
 
 ### Code Refactoring
 
-1. **Docs**: [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
+1. **Docs**: [source/exaix.md](source/exaix.md), [providers/claude.md](providers/claude.md)
 
 1.
 
@@ -171,10 +171,10 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 ## Canonical Prompt (Short)
 
-"You are a developer working on ExoFrame. Before starting work, consult this cross-reference map to find the most relevant agent documentation. Use the task-to-doc mapping table to quickly locate guidance for your specific task type."
+"You are a developer working on Exaix. Before starting work, consult this cross-reference map to find the most relevant agent documentation. Use the task-to-doc mapping table to quickly locate guidance for your specific task type."
 
 ## Examples
 
-- Example prompt: "I need to add a security feature. Which docs should I read?" → Answer: Start with [.copilot/tests/testing.md](tests/testing.md) security section and [.copilot/source/exoframe.md](source/exoframe.md) system constraints.
+- Example prompt: "I need to add a security feature. Which docs should I read?" → Answer: Start with [.copilot/tests/testing.md](tests/testing.md) security section and [.copilot/source/exaix.md](source/exaix.md) system constraints.
 - Example prompt: "How do I set up Claude with RAG?" → Answer: Read [providers/claude-rag.md](providers/claude-rag.md) for the complete workflow.
-- Example prompt: "What's the TDD workflow?" → Answer: See [source/exoframe.md](source/exoframe.md) and [tests/testing.md](tests/testing.md) for patterns and helpers.
+- Example prompt: "What's the TDD workflow?" → Answer: See [source/exaix.md](source/exaix.md) and [tests/testing.md](tests/testing.md) for patterns and helpers.

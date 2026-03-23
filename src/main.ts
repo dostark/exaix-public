@@ -1,7 +1,7 @@
 /**
  * @module Daemon
  * @path src/main.ts
- * @description Entry point for the ExoFrame daemon. Orchestrates system startup, service initialization,
+ * @description Entry point for the Exaix daemon. Orchestrates system startup, service initialization,
  * and component lifecycle management. Handles configuration loading, database connection,
  * and signal handling for graceful shutdown.
  * @architectural-layer Core System
@@ -34,15 +34,15 @@ import { LogMetadata, toSafeJson } from "./shared/types/json.ts";
 if (import.meta.main) {
   // Simple argument handling for the compiled binary
   if (Deno.args.includes("--version") || Deno.args.includes("-v")) {
-    console.log("ExoFrame Daemon v0.1.0");
+    console.log("Exaix Daemon v0.1.0");
     Deno.exit(0);
   }
 
   try {
-    // Always use EXO_CONFIG_PATH if set, and fail fast in test mode
-    const configPath = Deno.env.get("EXO_CONFIG_PATH");
-    if (!configPath && (Deno.env.get("EXO_TEST_CLI_MODE") === "1" || Deno.env.get("EXO_TEST_MODE") === "1")) {
-      throw new Error("❌ Test mode: Configuration file not found. Set EXO_CONFIG_PATH to the ephemeral config.");
+    // Always use EXA_CONFIG_PATH if set, and fail fast in test mode
+    const configPath = Deno.env.get("EXA_CONFIG_PATH");
+    if (!configPath && (Deno.env.get("EXA_TEST_CLI_MODE") === "1" || Deno.env.get("EXA_TEST_MODE") === "1")) {
+      throw new Error("❌ Test mode: Configuration file not found. Set EXA_CONFIG_PATH to the ephemeral config.");
     }
     const configService = new ConfigService(configPath);
     const config = configService.get();
@@ -73,7 +73,7 @@ if (import.meta.main) {
       minLevel: config.system.log_level as LogLevel,
       outputs: structuredOutputs,
       enablePerformanceTracking: true,
-      serviceName: "exoframe-daemon",
+      serviceName: "exaix-daemon",
       version: config.system.version,
     });
 
@@ -82,7 +82,7 @@ if (import.meta.main) {
 
     await logger.log({
       action: "daemon.starting",
-      target: "exoframe",
+      target: "exaix",
       payload: {
         config_checksum: checksum.slice(0, 8),
         root: config.system.root,
@@ -93,19 +93,19 @@ if (import.meta.main) {
 
     // Log daemon startup as audit event
     logInfo(
-      "ExoFrame daemon starting",
+      "Exaix daemon starting",
       toSafeJson({
         audit_event: true,
         event_type: "daemon_startup",
         config_checksum: checksum.slice(0, 8),
         root: config.system.root,
         log_level: config.system.log_level,
-        service: "exoframe-daemon",
+        service: "exaix-daemon",
         version: config.system.version,
       }) as LogMetadata,
     );
 
-    await logger.info("config.loaded", "exo.config.toml", {
+    await logger.info("config.loaded", "exa.config.toml", {
       checksum: checksum.slice(0, 8),
       root: config.system.root,
       log_level: config.system.log_level,
@@ -232,7 +232,7 @@ if (import.meta.main) {
     );
 
     // Dynamic Config Reloading (Task: Investigate missing portal logs)
-    // Watch for changes to exo.config.toml to reload config and log changes
+    // Watch for changes to exa.config.toml to reload config and log changes
     const configWatcher = new FileWatcher(
       config,
       createConfigReloadHandler(configService, logger),
@@ -269,7 +269,7 @@ if (import.meta.main) {
 
     await logger.log({
       action: "daemon.started",
-      target: "exoframe",
+      target: "exaix",
       payload: {
         provider: providerInfo.id,
         model: providerInfo.model,

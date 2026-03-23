@@ -2,7 +2,7 @@
 /**
  * @module CheckVersion
  * @path scripts/check_version.ts
- * @description Version observer and commit gatekeeper for ExoFrame.
+ * @description Version observer and commit gatekeeper for Exaix.
  *
  * Decision logic:
  *   - If any Minor Bump Trigger file is staged/changed → bump WORKSPACE_SCHEMA_VERSION MINOR.

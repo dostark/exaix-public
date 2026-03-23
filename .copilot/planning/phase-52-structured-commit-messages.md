@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-This phase introduces a mandatory structured format for git commit messages in the ExoFrame repository. By enforcing a consistent structure, we aim to improve "knowledge soliciting" for LLM agents, providing them with a rich, machine-readable (and human-readable) history of what was changed, why it was changed, how it was tested, and who (or which agent) performed the action.
+This phase introduces a mandatory structured format for git commit messages in the Exaix repository. By enforcing a consistent structure, we aim to improve "knowledge soliciting" for LLM agents, providing them with a rich, machine-readable (and human-readable) history of what was changed, why it was changed, how it was tested, and who (or which agent) performed the action.
 
 Enforcement will be handled via a git `commit-msg` hook that validates the message against the defined schema before allowing the commit to proceed.
 
@@ -12,7 +12,7 @@ Enforcement will be handled via a git `commit-msg` hook that validates the messa
 
 ## Problem Statement
 
-Currently, commit messages in ExoFrame are largely unstructured. While some commits include details, many are sparse or inconsistent. This lack of structure:
+Currently, commit messages in Exaix are largely unstructured. While some commits include details, many are sparse or inconsistent. This lack of structure:
 1.  **Reduces Agent Context**: LLM agents often rely on git logs to understand the evolution of the codebase. Unstructured messages make it harder to extract intent, rationale, and testing evidence.
 2.  **Hinders Auditability**: It is difficult to quickly ascertain why a specific change was made or how it was validated without deep manual inspection.
 3.  **Lacks Attribution**: While git tracks the "author", it doesn't easily distinguish between different LLM agents or specific prompts that triggered a change.

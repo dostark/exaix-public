@@ -29,7 +29,7 @@ async function tableColumns(dbPath: string, table: string) {
 
 Deno.test("setup_db.ts initializes journal.db with expected tables", async () => {
   // Create an isolated temporary workspace and run the setup script inside it
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-test-" });
   try {
     const scriptPath = join(REPO_ROOT, "scripts", "setup_db.ts");
 

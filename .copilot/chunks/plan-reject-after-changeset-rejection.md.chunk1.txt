@@ -1,5 +1,5 @@
 - Changeset rejection succeeds and changeset disappears from list
-- Plan remains in `exoctl plan list` with status: completed
+- Plan remains in `exactl plan list` with status: completed
 - Plan rejection command fails with "Plan not found: request-08a998d4_plan"
 - Error persists even after multiple attempts
 
@@ -11,10 +11,10 @@
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (unknown)
-- Relevant Config: Default exo.config.toml
+- Relevant Config: Default exa.config.toml
 
 ## Investigation Needed
 

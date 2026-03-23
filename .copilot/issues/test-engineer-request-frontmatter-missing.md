@@ -8,35 +8,35 @@ labels: [bug, execution, plan, cli]
 
 ## Problem
 
-The `test-engineer` validation request fails and produces a plan file without frontmatter. This breaks `exoctl plan list` with a "No frontmatter found" error and blocks plan review/execution.
+The `test-engineer` validation request fails and produces a plan file without frontmatter. This breaks `exactl plan list` with a "No frontmatter found" error and blocks plan review/execution.
 
 ## Reproduction Steps
 
 ```bash
-exoctl request --portal portal-exoframe --agent test-engineer "Implement comprehensive tests for ExoFrame's review registry system. Create: - Unit tests for review tracking and validation in src/services/review_registry.ts - Integration tests for git review operations and workspace synchronization - End-to-end tests for complete review lifecycle (creation, approval, execution) - Mock data and test fixtures for different review scenarios - Test automation setup for CI/CD validation of review integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
-exoctl request list
-exoctl plan list
+exactl request --portal portal-exaix --agent test-engineer "Implement comprehensive tests for Exaix's review registry system. Create: - Unit tests for review tracking and validation in src/services/review_registry.ts - Integration tests for git review operations and workspace synchronization - End-to-end tests for complete review lifecycle (creation, approval, execution) - Mock data and test fixtures for different review scenarios - Test automation setup for CI/CD validation of review integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
+exactl request list
+exactl plan list
 ```
 
 ## Observed Behavior
 
-- Request is created, but `exoctl request list` shows `status: failed` for the new request.
-- `exoctl plan list` logs a warning:
+- Request is created, but `exactl request list` shows `status: failed` for the new request.
+- `exactl plan list` logs a warning:
   - `Warning: Could not parse plan request-5033c240_failed: Error: No frontmatter found`
 - The failed plan file appears without YAML frontmatter, so the CLI cannot parse it.
 
 ## Expected Behavior
 
 - The request should produce a plan with valid frontmatter.
-- `exoctl plan list` should parse all plan files without warnings.
+- `exactl plan list` should parse all plan files without warnings.
 - The request should move into review or approved state rather than failed.
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Deno Version: 1.x.x
-- Portal: portal-exoframe
+- Portal: portal-exaix
 
 ## Investigation Needed
 
@@ -59,7 +59,7 @@ exoctl plan list
 
 ## Workaround
 
-None currently known. The failed plan file must be manually removed or repaired to allow `exoctl plan list` to run without warnings.
+None currently known. The failed plan file must be manually removed or repaired to allow `exactl plan list` to run without warnings.
 
 ## Priority Justification
 
@@ -69,7 +69,7 @@ High: breaks the validation pipeline for the `test-engineer` agent and prevents 
 
 - When the agent output fails PlanSchema validation, `RequestProcessor.handleError()` writes the raw LLM content to `Workspace/Rejected/<requestId>_failed.md`.
 - The saved `_failed.md` file contains no YAML frontmatter because it is raw model output, not a plan document.
-- `exoctl plan list` scans `Workspace/Rejected` for any `.md` file and attempts to parse frontmatter for every file.
+- `exactl plan list` scans `Workspace/Rejected` for any `.md` file and attempts to parse frontmatter for every file.
 - This causes a warning (`No frontmatter found`) and a malformed plan entry, since `_failed.md` does not conform to plan format.
 
 ## Fix Plan
@@ -83,7 +83,7 @@ High: breaks the validation pipeline for the `test-engineer` agent and prevents 
 
 1. **Align naming with CLI expectations**
    - Write rejected plans with the `_rejected.md` suffix (instead of `_failed.md`) so the CLI treats them as rejected plans.
-   - Ensure `exoctl plan list` and `exoctl plan show` can parse and display them without warnings.
+   - Ensure `exactl plan list` and `exactl plan show` can parse and display them without warnings.
 
 1. **Regression coverage**
    - Add a test that simulates `PlanValidationError` and asserts the rejected file contains frontmatter and is parseable by `PlanCommands.list()`.

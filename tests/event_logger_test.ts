@@ -51,7 +51,7 @@ Deno.test("EventLogger: should print formatted message to console", async () => 
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });
 
-    await logger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
+    await logger.info("config.loaded", "exa.config.toml", { checksum: "abc123" });
 
     // Restore console.log
     console.log = originalLog;
@@ -373,7 +373,7 @@ Deno.test("EventLogger: should allow custom icons in log events", async () => {
 
     await logger.log({
       action: "config.loaded",
-      target: "exo.config.toml",
+      target: "exa.config.toml",
       payload: {},
       icon: "🚀",
       level: LogLevel.INFO,
@@ -405,7 +405,7 @@ Deno.test("EventLogger: full integration with database and console", async () =>
 
   try {
     const traceId = crypto.randomUUID();
-    const logger = new EventLogger({ db, prefix: "[ExoFrame]" });
+    const logger = new EventLogger({ db, prefix: "[Exaix]" });
 
     // Create child logger for a service
     const serviceLogger = logger.child({
@@ -415,7 +415,7 @@ Deno.test("EventLogger: full integration with database and console", async () =>
 
     // Log multiple events
     await serviceLogger.info("daemon.starting", "main", { mode: "development" });
-    await serviceLogger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
+    await serviceLogger.info("config.loaded", "exa.config.toml", { checksum: "abc123" });
     await serviceLogger.warn("context.truncated", "loader", { files_skipped: 3 });
     await serviceLogger.error("provider.failed", "anthropic", { error: "rate_limited" });
 

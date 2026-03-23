@@ -1,24 +1,24 @@
 ---
 agent: claude
 scope: dev
-title: "Phase 30: Add Flow Support to `exoctl request` Command"
-short_summary: "Implement `--flow` option for `exoctl request` command to enable creating requests with defined multi-agent flows."
+title: "Phase 30: Add Flow Support to `exactl request` Command"
+short_summary: "Implement `--flow` option for `exactl request` command to enable creating requests with defined multi-agent flows."
 version: "0.1"
-topics: ["exoctl", "request", "flow", "cli", "routing"]
+topics: ["exactl", "request", "flow", "cli", "routing"]
 ---
 
-**Goal:** Extend the `exoctl request` command to support the `--flow` option, enabling users to create requests that will be routed to multi-agent flows instead of single agents. This addresses the gap where flow-aware request processing exists but cannot be triggered from the CLI.
+**Goal:** Extend the `exactl request` command to support the `--flow` option, enabling users to create requests that will be routed to multi-agent flows instead of single agents. This addresses the gap where flow-aware request processing exists but cannot be triggered from the CLI.
 
 **Status:** ✅ COMPLETED - All steps implemented and tested, test infrastructure enhanced with timeout protection
 **Timebox:** 2-3 days
 **Entry Criteria:** Phase 7 (Flow Orchestration) complete, request command working
-**Exit Criteria:** `exoctl request --flow <flow-id>` creates requests that are properly routed to flows
+**Exit Criteria:** `exactl request --flow <flow-id>` creates requests that are properly routed to flows
 
 ## References
 
 - **Technical Spec:** Section 5.8.2.1 "Flow-Aware Request Processing"
 - **Test Scenarios:** MT-26 "Request Routing Validation"
-- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exoctl.ts`
+- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exactl.ts`
 
 ---
 
@@ -56,7 +56,7 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 ## Step 30.3: Add CLI Option ✅ COMPLETED
 
-**Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
+**Action:** Extend the `exactl request` command definition in `src/cli/exactl.ts`:
 
 1. Add `--flow <flow:string>` option
 
@@ -64,7 +64,7 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 **Success Criteria:**
 
-- [x] `exoctl request --help` shows `--flow` option
+- [x] `exactl request --help` shows `--flow` option
 - [x] Option accepts flow ID string
 - [x] Flow parameter passed to request creation
 - [x] CLI integration test verifies `--flow` option works correctly
@@ -117,7 +117,7 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 **Success Criteria:**
 
-- [x] `exoctl request --help` shows flow examples
+- [x] `exactl request --help` shows flow examples
 - [x] Command description mentions multi-agent flows
 - [x] Usage examples include `--flow` option
 
@@ -125,7 +125,7 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 **Files Modified:**
 
-- `src/cli/exoctl.ts`: Updated command description, enhanced --flow option help text, added usage examples
+- `src/cli/exactl.ts`: Updated command description, enhanced --flow option help text, added usage examples
 
 ---
 
@@ -149,8 +149,8 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 **Files Modified:**
 
-- `tests/cli/exoctl_coverage_test.ts`: Added comprehensive end-to-end test for flow request workflow
-- `src/cli/exoctl.ts`: Updated printRequestResult, list display, and show display to properly show flow information
+- `tests/cli/exactl_coverage_test.ts`: Added comprehensive end-to-end test for flow request workflow
+- `src/cli/exactl.ts`: Updated printRequestResult, list display, and show display to properly show flow information
 - `src/cli/request_commands.ts`: Updated list() and show() methods to include flow field in returned data
 
 ---
@@ -220,7 +220,7 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 - Added 10-second timeout to `captureConsoleOutput()`, `captureAllOutputs()`, and `expectExitWithLogs()` functions
 - Used `AbortController` and `Promise.race()` to implement timeout mechanism
-- Updated both `tests/cli/exoctl_coverage_test.ts` and `tests/cli/exoctl_all_test.ts`
+- Updated both `tests/cli/exactl_coverage_test.ts` and `tests/cli/exactl_all_test.ts`
 - Tests now fail fast with clear timeout messages instead of hanging indefinitely
 
 **Success Criteria:**
@@ -232,10 +232,10 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 ---
 
-- ✅ `exoctl request --flow code-review "test description"` creates valid request
+- ✅ `exactl request --flow code-review "test description"` creates valid request
 - ✅ Request frontmatter contains `flow: code-review`
 - ✅ Request routing works (verified via activity logs)
-- ✅ No regression in existing `exoctl request` functionality
+- ✅ No regression in existing `exactl request` functionality
 - ✅ Help text clearly explains flow option
 - ✅ All tests pass including new flow-specific tests
 
@@ -245,16 +245,16 @@ topics: ["exoctl", "request", "flow", "cli", "routing"]
 
 ```bash
 # Create request for code review flow
-exoctl request --flow code-review "Review the authentication module for security issues"
+exactl request --flow code-review "Review the authentication module for security issues"
 
 # Create high-priority request for feature development
-exoctl request --flow feature-development --priority high "Implement user profile management"
+exactl request --flow feature-development --priority high "Implement user profile management"
 
 # List requests (shows flow information)
-exoctl request list
+exactl request list
 
 # Show request details (includes flow in metadata)
-exoctl request show abc123
+exactl request show abc123
 ```
 
 ---
@@ -262,8 +262,8 @@ exoctl request show abc123
 ## Files Modified
 
 - `src/cli/request_commands.ts` - Core request creation logic, flow validation, activity logging
-- `src/cli/exoctl.ts` - CLI command definition
+- `src/cli/exactl.ts` - CLI command definition
 - `tests/cli/request_commands_test.ts` - Unit tests (new flow tests added)
-- `tests/cli/exoctl_coverage_test.ts` - Integration tests (new CLI flow option test added, timeout protection added)
-- `tests/cli/exoctl_all_test.ts` - Additional CLI tests (timeout protection added)
+- `tests/cli/exactl_coverage_test.ts` - Integration tests (new CLI flow option test added, timeout protection added)
+- `tests/cli/exactl_all_test.ts` - Additional CLI tests (timeout protection added)
 - `.copilot/planning/phase-30-cli-flow-request.md` - Planning document updates</content>

@@ -10,17 +10,17 @@ import { DaemonStatus } from "../enums.ts";
 
 export interface IDaemonService {
   /**
-   * Start the ExoFrame daemon.
+   * Start the Exaix daemon.
    */
   start(): Promise<void>;
 
   /**
-   * Stop the ExoFrame daemon.
+   * Stop the Exaix daemon.
    */
   stop(): Promise<void>;
 
   /**
-   * Restart the ExoFrame daemon.
+   * Restart the Exaix daemon.
    */
   restart(): Promise<void>;
 

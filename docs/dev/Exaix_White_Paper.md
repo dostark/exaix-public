@@ -1,4 +1,4 @@
-# ExoFrame: The Governance-First AI Agent Operating System
+# Exaix: The Governance-First AI Agent Operating System
 
 ## White Paper - Three-Tier Edition**
 
@@ -38,9 +38,9 @@ According to Gartner, **over 40% of agentic AI projects will be canceled by the 
 
 Traditional AI coding assistants (GitHub Copilot, Cursor, Windsurf) excel at real-time developer productivity but provide **no audit trail, no approval gates, and no compliance framework**. They were built for individual productivity, not enterprise governance.
 
-### ExoFrame: Built for the Governance Era
+### Exaix: Built for the Governance Era
 
-**ExoFrame is the governance-first AI agent operating system** — purpose-built for teams and organizations that need autonomous AI with accountability, traceability, and control.
+**Exaix is the governance-first AI agent operating system** — purpose-built for teams and organizations that need autonomous AI with accountability, traceability, and control.
 
 ## Core Value Proposition
 
@@ -58,7 +58,7 @@ Traditional AI coding assistants (GitHub Copilot, Cursor, Windsurf) excel at rea
 
 ### Three-Tier Edition Model
 
-ExoFrame is available in three editions to serve different organizational needs:
+Exaix is available in three editions to serve different organizational needs:
 
 | Edition        | Target Audience                                 | License                      | Key Differentiation                                                 |
 | -------------- | ----------------------------------------------- | ---------------------------- | ------------------------------------------------------------------- |
@@ -74,17 +74,17 @@ Team Edition:        Solo + Web UI + MCP Server + Collaboration
 Enterprise Edition:  Team + Governance + Compliance + Advanced Analytics
 ```
 
-### When to Use ExoFrame
+### When to Use Exaix
 
 | Scenario                                   | Recommended Tool                |
 | ------------------------------------------ | ------------------------------- |
 | Quick code fix while coding                | Use IDE agent (Cursor, Copilot) |
 | Interactive feature development            | Use IDE agent                   |
-| **Overnight batch processing**             | **ExoFrame**                    |
-| **Compliance/audit requirements**          | **ExoFrame**                    |
-| **Multi-project refactoring**              | **ExoFrame**                    |
-| **Regulated industry development**         | **ExoFrame (Enterprise)**       |
-| **Team collaboration with approval gates** | **ExoFrame (Team/Enterprise)**  |
+| **Overnight batch processing**             | **Exaix**                       |
+| **Compliance/audit requirements**          | **Exaix**                       |
+| **Multi-project refactoring**              | **Exaix**                       |
+| **Regulated industry development**         | **Exaix (Enterprise)**          |
+| **Team collaboration with approval gates** | **Exaix (Team/Enterprise)**     |
 
 ---
 
@@ -120,15 +120,15 @@ Enterprises face a impossible choice:
 - **Option B:** Build custom governance layer → Expensive, slow, reinventing the wheel
 - **Option C:** Don't use AI agents → Fall behind competitors
 
-**ExoFrame is Option D:** Governance built-in from day one.
+**Exaix is Option D:** Governance built-in from day one.
 
 ---
 
-## 2. ExoFrame: The Governance-First AI Agent OS
+## 2. Exaix: The Governance-First AI Agent OS
 
 ### Core Philosophy: Trust Through Transparency
 
-ExoFrame rejects the false dichotomy between automation and control. Our philosophy:
+Exaix rejects the false dichotomy between automation and control. Our philosophy:
 
 > **"Every AI agent action must be traceable, explainable, and reversible."**
 
@@ -178,10 +178,10 @@ Agents operate under a **three-phase approval workflow:**
 Built on the **Model Context Protocol (MCP)**, the emerging standard for AI agent tool integration:
 
 - **MCP Client (Solo+):** Connect to external MCP servers (Google Drive, GitHub, databases)
-- **MCP Server (Team+):** Expose ExoFrame to external AI assistants (Claude Desktop, Cline, Cursor)
+- **MCP Server (Team+):** Expose Exaix to external AI assistants (Claude Desktop, Cline, Cursor)
 - **MCP Tools:** Standardized interfaces for `create*request`, `approve*plan`, `query_journal`
 
-**Result:** ExoFrame integrates seamlessly with the emerging AI agent ecosystem.
+**Result:** Exaix integrates seamlessly with the emerging AI agent ecosystem.
 
 #### 4. Deno Security Model: Defense in Depth
 
@@ -189,8 +189,8 @@ Leveraging **Deno's OS-level permission system**:
 
 ```bash
 deno run \
-  --allow-read="/ExoFrame,/portals" \
-  --allow-write="/ExoFrame,/portals" \
+  --allow-read="/Exaix,/portals" \
+  --allow-write="/Exaix,/portals" \
   --allow-net="api.anthropic.com" \
   src/main.ts
 ```
@@ -208,7 +208,7 @@ deno run \
 
 ### The AI Agent Landscape (2026)
 
-ExoFrame competes in three distinct segments:
+Exaix competes in three distinct segments:
 
 #### Segment 1: IDE-Integrated Coding Agents
 
@@ -216,7 +216,7 @@ ExoFrame competes in three distinct segments:
 **Strength:** Real-time coding assistance, zero friction
 **Weakness:** No audit trail, no approval gates, single-workspace only
 
-| Capability                      | IDE Agents            | ExoFrame                      |
+| Capability                      | IDE Agents            | Exaix                         |
 | ------------------------------- | --------------------- | ----------------------------- |
 | Real-time code completion       | ✅ Excellent          | ❌ Not a focus                |
 | Interactive chat                | ✅ Native             | ❌ File-based                 |
@@ -226,7 +226,7 @@ ExoFrame competes in three distinct segments:
 | **Human approval gates**        | ⚠️ Implicit           | ✅ Explicit workflow          |
 | **Compliance-ready**            | ❌ No logging         | ✅ Activity Journal + reports |
 
-**Positioning:** ExoFrame **complements** IDE agents—use both tools for different scenarios.
+**Positioning:** Exaix **complements** IDE agents—use both tools for different scenarios.
 
 #### Segment 2: Developer Orchestration Tools
 
@@ -234,14 +234,14 @@ ExoFrame competes in three distinct segments:
 **Strength:** Flexible agent orchestration, extensive documentation
 **Weakness:** No built-in governance, developers must implement audit trails
 
-## ExoFrame Differentiators
+## Exaix Differentiators
 
 - **Governance built-in** vs. "bring your own governance"
 - **Opinionated workflow** (request → plan → approve → execute) vs. flexible but complex
 - **File-based simplicity** vs. code-heavy orchestration
 - **Audit-native** vs. logging as afterthought
 
-**Positioning:** ExoFrame is **more opinionated, compliance-focused, and simpler** for teams needing governance out-of-the-box.
+**Positioning:** Exaix is **more opinionated, compliance-focused, and simpler** for teams needing governance out-of-the-box.
 
 ### Segment 3: Enterprise AI Platforms
 
@@ -249,16 +249,16 @@ ExoFrame competes in three distinct segments:
 **Strength:** Full enterprise features, white-glove support
 **Weakness:** Complex, expensive, long deployment cycles
 
-## ExoFrame Differentiators
+## Exaix Differentiators
 
 - **Developer-first** vs. enterprise-heavy
 - **Faster deployment** (days vs. months)
 - **Open core model** (Solo edition free) vs. closed/expensive
 - **MCP-native** (standards-based) vs. proprietary
 
-**Positioning:** ExoFrame is **simpler and faster than enterprise platforms** while providing governance features they lack.
+**Positioning:** Exaix is **simpler and faster than enterprise platforms** while providing governance features they lack.
 
-### The ExoFrame Positioning Map
+### The Exaix Positioning Map
 
 ```text
 Enterprise Features
@@ -267,7 +267,7 @@ Enterprise Features
         │     FluxForce
         │
         │    ┌─────────────┐
-        │    │  ExoFrame   │ ← SWEET SPOT
+        │    │  Exaix   │ ← SWEET SPOT
         │    │ (Enterprise)│
         │    └─────────────┘
         │
@@ -281,17 +281,17 @@ Low     │              Copilot
      Low          Governance/Compliance          High
 ```
 
-**Key Insight:** ExoFrame occupies the "governance-conscious SMB" quadrant—teams that need more than IDE agents but less complexity than enterprise platforms.
+**Key Insight:** Exaix occupies the "governance-conscious SMB" quadrant—teams that need more than IDE agents but less complexity than enterprise platforms.
 
 ### Competitive Defensibility
 
 VCs and enterprise customers ask: **"What prevents competitors from copying your features?"**
 
-ExoFrame's competitive moats are **structural, not feature-based**:
+Exaix's competitive moats are **structural, not feature-based**:
 
 #### 1. Cumulative Intelligence Advantage
 
-As organizations use ExoFrame, they accumulate **institutional intelligence** that becomes increasingly valuable:
+As organizations use Exaix, they accumulate **institutional intelligence** that becomes increasingly valuable:
 
 - **Memory Banks:** Context accumulates over time—past decisions, code patterns, organizational knowledge
 - **Blueprint Library:** Curated agent configurations improve with usage
@@ -301,7 +301,7 @@ As organizations use ExoFrame, they accumulate **institutional intelligence** th
 
 #### 2. Compliance Continuity Lock-In
 
-Once an organization establishes ExoFrame as their **audit trail of record**, switching creates regulatory risk:
+Once an organization establishes Exaix as their **audit trail of record**, switching creates regulatory risk:
 
 - **Historical Audit Data:** 7 years of SOX logs can't be easily migrated
 - **Regulatory Continuity:** Auditors expect consistent systems across audit periods
@@ -311,7 +311,7 @@ Once an organization establishes ExoFrame as their **audit trail of record**, sw
 
 #### 3. Workflow Integration Depth
 
-ExoFrame integrates deeply into development workflows:
+Exaix integrates deeply into development workflows:
 
 - **Git Hooks:** Trace IDs embedded in every commit
 - **File System Watchers:** Request/plan workflows become muscle memory
@@ -322,7 +322,7 @@ ExoFrame integrates deeply into development workflows:
 
 #### 4. Community Blueprint Network Effects
 
-As the user base grows, ExoFrame's value increases:
+As the user base grows, Exaix's value increases:
 
 - **Shared Blueprints:** Community-contributed agent configurations
 - **Verified Templates:** Security-audited blueprints for common tasks
@@ -333,7 +333,7 @@ As the user base grows, ExoFrame's value increases:
 
 ### Industry Vertical Specialization
 
-While ExoFrame is a horizontal platform, **vertical-specific configurations** add differentiated value:
+While Exaix is a horizontal platform, **vertical-specific configurations** add differentiated value:
 
 #### Healthcare & Life Sciences (Enterprise)
 
@@ -370,7 +370,7 @@ While ExoFrame is a horizontal platform, **vertical-specific configurations** ad
 
 ### Inference Economics & LLM Cost Management
 
-**The Hidden Cost of AI Agents:** LLM inference can silently drain budgets. ExoFrame provides comprehensive cost controls.
+**The Hidden Cost of AI Agents:** LLM inference can silently drain budgets. Exaix provides comprehensive cost controls.
 
 #### Token Optimization Strategies
 
@@ -429,7 +429,7 @@ fallback = ["gpt-4-turbo", "ollama/deepseek"]
 | Feature Category            | Solo (Free)                          | Team (Usage-Based)              | Enterprise (AELA)                        |
 | --------------------------- | ------------------------------------ | ------------------------------- | ---------------------------------------- |
 | **Interface**               |                                      |                                 |                                          |
-| CLI (`exoctl`)              | ✅ Full                              | ✅ Full                         | ✅ Full                                  |
+| CLI (`exactl`)              | ✅ Full                              | ✅ Full                         | ✅ Full                                  |
 | TUI Dashboard               | ✅ 7 views                           | ✅ 7 views                      | ✅ Enhanced 9 views                      |
 | Web UI                      | ❌ No                                | ✅ Plan review, approval, logs  | ✅ Full (visual workflows, admin)        |
 | **Database & Audit**        |                                      |                                 |                                          |
@@ -443,7 +443,7 @@ fallback = ["gpt-4-turbo", "ollama/deepseek"]
 | Git Integration             | ✅ Trace IDs in commits              | ✅ + team workflows             | ✅ + advanced branch policies            |
 | **MCP Support**             |                                      |                                 |                                          |
 | MCP Client                  | ✅ Connect to MCP servers            | ✅ Full                         | ✅ Full                                  |
-| MCP Server                  | ❌ No                                | ✅ Expose ExoFrame APIs         | ✅ + custom tool development             |
+| MCP Server                  | ❌ No                                | ✅ Expose Exaix APIs            | ✅ + custom tool development             |
 | **LLM Providers**           |                                      |                                 |                                          |
 | Basic Providers             | ✅ Ollama, OpenAI, Anthropic, Google | ✅ All                          | ✅ All                                   |
 | OpenRouter                  | ❌ No                                | ✅ 100+ models, unified billing | ✅ Full                                  |
@@ -518,7 +518,7 @@ fallback = ["gpt-4-turbo", "ollama/deepseek"]
 
 ### High-Level System Architecture
 
-ExoFrame operates as a **secure daemon** on the host machine (or shared server for Team/Enterprise).
+Exaix operates as a **secure daemon** on the host machine (or shared server for Team/Enterprise).
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
@@ -527,7 +527,7 @@ ExoFrame operates as a **secure daemon** on the host machine (or shared server f
             │                        │
      ┌──────▼──────┐          ┌──────▼──────┐
      │  CLI        │          │  Web UI     │
-     │  (exoctl)   │          │ (Team/Ent)  │
+     │  (exactl)   │          │ (Team/Ent)  │
      └──────┬──────┘          └──────┬──────┘
             │                        │
             └────────┬───────────────┘
@@ -538,7 +538,7 @@ ExoFrame operates as a **secure daemon** on the host machine (or shared server f
             └────────┬─────────┘
                      │
        ┌─────────────▼──────────────┐
-       │    ExoFrame Daemon Core     │
+       │    Exaix Daemon Core     │
        │  ┌──────────────────────┐  │
        │  │  Request Processor   │  │
        │  │  Request Router      │  │
@@ -577,7 +577,7 @@ ExoFrame operates as a **secure daemon** on the host machine (or shared server f
 Everything is a file—requests, plans, blueprints, reports:
 
 ```text
-~/ExoFrame/
+~/Exaix/
 ├── Workspace/
 │   ├── Requests/         ← Drop .md files here
 │   ├── Plans/            ← Agent-generated plans
@@ -604,22 +604,22 @@ Everything is a file—requests, plans, blueprints, reports:
 
 ### 2. Daemon-Based Asynchronous Execution
 
-Unlike IDE agents requiring constant attention, ExoFrame runs as background daemon:
+Unlike IDE agents requiring constant attention, Exaix runs as background daemon:
 
 ```text
 Morning:  Drop request → "Refactor authentication module"
           ↓
 Daemon:   Detects new request, generates plan, waits for approval
           ↓
-Review:   exoctl plan show auth-refactor → Looks good
+Review:   exactl plan show auth-refactor → Looks good
           ↓
-Approve:  exoctl plan approve auth-refactor
+Approve:  exactl plan approve auth-refactor
           ↓
 Execute:  Agent creates branch, refactors code, commits with trace_id
           ↓
-Evening:  exoctl review show auth-refactor → Review diff
+Evening:  exactl review show auth-refactor → Review diff
           ↓
-Merge:    exoctl review approve auth-refactor → Done
+Merge:    exactl review approve auth-refactor → Done
 ```
 
 **Workflow is impossible with IDE agents** (requires continuous human presence).
@@ -642,17 +642,17 @@ Report (trace_id: 550e8400...)
 Activity Journal (all events tagged with 550e8400...)
 ```
 
-**Result:** Complete forensic trail. Answer "why did this file change?" with `exoctl journal --trace 550e8400`.
+**Result:** Complete forensic trail. Answer "why did this file change?" with `exactl journal --trace 550e8400`.
 
 #### 4. Security Through Isolation
 
 ## Runtime Security Model
 
-ExoFrame leverages **OS-level permission enforcement** for defense-in-depth security. The security guarantees—sandboxing, network restrictions, file system isolation—are the value, regardless of runtime implementation.
+Exaix leverages **OS-level permission enforcement** for defense-in-depth security. The security guarantees—sandboxing, network restrictions, file system isolation—are the value, regardless of runtime implementation.
 
 ## Current Implementation (Deno)
 
-ExoFrame currently runs on Deno, chosen for its **secure-by-default** permission model:
+Exaix currently runs on Deno, chosen for its **secure-by-default** permission model:
 
 - Agents run with **explicitly granted permissions** only
 - Portal access limited via `--allow-read` and `--allow-write` flags
@@ -666,7 +666,7 @@ ExoFrame currently runs on Deno, chosen for its **secure-by-default** permission
 - Modern runtime with reduced attack surface
 - Used by Slack, Netlify, Supabase in production
 
-**Enterprise Consideration:** While Deno has smaller market share than Node.js, the security model—not the runtime—is the critical factor. ExoFrame's architecture could theoretically support other runtimes with equivalent security primitives.
+**Enterprise Consideration:** While Deno has smaller market share than Node.js, the security model—not the runtime—is the critical factor. Exaix's architecture could theoretically support other runtimes with equivalent security primitives.
 
 ## Portal Isolation
 
@@ -691,7 +691,7 @@ Enterprise Edition includes **turnkey compliance profiles** for major regulatory
 - Documentation of AI decision-making processes
 - Risk assessment and mitigation
 
-## ExoFrame Implementation
+## Exaix Implementation
 
 - ✅ **Transparency:** Activity Journal logs all agent actions with reasoning
 - ✅ **Human Oversight:** Explicit approval gates (plan approval, review review)
@@ -701,7 +701,7 @@ Enterprise Edition includes **turnkey compliance profiles** for major regulatory
 ## Compliance Export
 
 ```bash
-exoctl compliance export --framework eu-ai-act \
+exactl compliance export --framework eu-ai-act \
   --period "2026-01-01 to 2026-01-31" \
   --output eu-ai-act-january-2026.pdf
 ```
@@ -721,7 +721,7 @@ Generates PDF report with:
 - Access controls and user authentication
 - Encryption of PHI in transit and at rest
 
-## ExoFrame Implementation
+## Exaix Implementation
 
 - ✅ **Audit Trails:** Activity Journal logs every file accessed by agents
 - ✅ **Access Controls:** RBAC ensures only authorized users approve plans
@@ -731,7 +731,7 @@ Generates PDF report with:
 ## Compliance Export
 
 ```bash
-exoctl compliance export --framework hipaa \
+exactl compliance export --framework hipaa \
   --portal "patient-records" \
   --output hipaa-phi-access-q1-2026.pdf
 ```
@@ -744,7 +744,7 @@ exoctl compliance export --framework hipaa \
 - Audit trails for code changes
 - Segregation of duties
 
-## ExoFrame Implementation
+## Exaix Implementation
 
 - ✅ **Change Controls:** No code changes without plan approval + review review
 - ✅ **Audit Trails:** Git commits linked to trace_id, Activity Journal immutable
@@ -753,7 +753,7 @@ exoctl compliance export --framework hipaa \
 ## Compliance Export
 
 ```bash
-exoctl compliance export --framework sox \
+exactl compliance export --framework sox \
   --portal "financial-reporting-api" \
   --output sox-controls-audit-2026.pdf
 ```
@@ -766,7 +766,7 @@ exoctl compliance export --framework sox \
 - Risk assessment and treatment
 - Access control and audit logging
 
-## ExoFrame Implementation
+## Exaix Implementation
 
 - ✅ **Risk Assessment:** Governance dashboard identifies high-risk agent actions
 - ✅ **Access Control:** Deno permissions + Portal isolation + RBAC
@@ -812,11 +812,11 @@ Real-time compliance monitoring interface:
 
 # Afternoon: Review plan
 
-exoctl plan approve deprecated-api-fix
+exactl plan approve deprecated-api-fix
 
 # Evening: Review review
 
-exoctl review approve deprecated-api-fix
+exactl review approve deprecated-api-fix
 
 # Result: 50 files refactored, all changes traced to single request
 
@@ -844,7 +844,7 @@ exoctl review approve deprecated-api-fix
 
 - Team workspace with shared blueprints
 - Web UI for non-technical CEO to approve high-risk changes
-- MCP server exposes ExoFrame to Claude Desktop for rapid prototyping
+- MCP server exposes Exaix to Claude Desktop for rapid prototyping
 
 # Workflow:
 
@@ -967,7 +967,7 @@ exoctl review approve deprecated-api-fix
 
 ### Security Principles
 
-ExoFrame implements **defense in depth** with multiple security layers:
+Exaix implements **defense in depth** with multiple security layers:
 
 1. **OS-Level Permissions** (Deno)
 
@@ -977,7 +977,7 @@ ExoFrame implements **defense in depth** with multiple security layers:
 
 ### Threat Matrix
 
-| Threat                         | Likelihood | Deno Mitigation          | ExoFrame Control                    | Residual Risk |
+| Threat                         | Likelihood | Deno Mitigation          | Exaix Control                       | Residual Risk |
 | ------------------------------ | ---------- | ------------------------ | ----------------------------------- | ------------- |
 | **Buggy Agent**                | High       | None                     | Git feature branches + Plan review  | Low           |
 | **Malicious Dependency**       | Medium     | ✅ Permission system     | Supply chain review                 | Very Low      |
@@ -1043,9 +1043,9 @@ Deno.writeFile("../../.ssh/id_rsa")
 ```bash
 # Install Deno (if not already installed)
 
-# Clone ExoFrame
+# Clone Exaix
 
-cd exoframe
+cd exaix
 
 # Initialize workspace
 
@@ -1068,9 +1068,9 @@ cd exoframe
 
 # Pull model
 
-# Configure ExoFrame
+# Configure Exaix
 
-exoctl config set llm.model deepseek-coder:33b
+exactl config set llm.model deepseek-coder:33b
 ```
 
 ### Team Edition Deployment
@@ -1082,19 +1082,19 @@ exoctl config set llm.model deepseek-coder:33b
 
 # Install as systemd service
 
-  https://exoframe.io/install/team/exoframe.service
+  https://exaix.io/install/team/exaix.service
 
-sudo systemctl enable exoframe
-sudo systemctl start exoframe
+sudo systemctl enable exaix
+sudo systemctl start exaix
 
 # Configure web UI
 
-exoctl config set webui.port 3000
-exoctl config set webui.bind "0.0.0.0"
+exactl config set webui.port 3000
+exactl config set webui.bind "0.0.0.0"
 
 # Add team members
 
-exoctl user add bob@example.com --role approver
+exactl user add bob@example.com --role approver
 ```
 
 ## Requirements
@@ -1112,18 +1112,18 @@ exoctl user add bob@example.com --role approver
 
 # Configure SSO (example: Okta)
 
-exoctl config set auth.okta.domain "yourcompany.okta.com"
-exoctl config set auth.okta.client_id "xxx"
-exoctl config set auth.okta.client_secret "yyy"
+exactl config set auth.okta.domain "yourcompany.okta.com"
+exactl config set auth.okta.client_id "xxx"
+exactl config set auth.okta.client_secret "yyy"
 
 # Enable compliance frameworks
 
-exoctl compliance enable sox
-exoctl compliance enable iso27001
+exactl compliance enable sox
+exactl compliance enable iso27001
 
 # Configure air-gapped deployment (no internet)
 
-exoctl config set llm.azure.endpoint "https://your-private-endpoint.azure.com"
+exactl config set llm.azure.endpoint "https://your-private-endpoint.azure.com"
 ```
 
 ## Requirements
@@ -1164,20 +1164,20 @@ exoctl config set llm.azure.endpoint "https://your-private-endpoint.azure.com"
 ## Q4 2026
 
 - Agent specialization framework (domain-specific agents)
-- Cross-workspace collaboration (multiple ExoFrame instances)
+- Cross-workspace collaboration (multiple Exaix instances)
 - Advanced security: anomaly detection in agent behavior
 - Compliance framework expansion (GDPR, CCPA, more)
 
 ### Open Core Philosophy
 
-ExoFrame follows **transparent open-core licensing**. Developers deserve clarity on what's open and what's commercial.
+Exaix follows **transparent open-core licensing**. Developers deserve clarity on what's open and what's commercial.
 
 #### What's Open Source (MIT/Apache 2.0)
 
 | Component            | Description                     | Why Open                           |
 | -------------------- | ------------------------------- | ---------------------------------- |
-| **ExoFrame Daemon**  | Core orchestration engine       | Security auditing, community trust |
-| **CLI (`exoctl`)**   | Command-line interface          | Developer tools should be free     |
+| **Exaix Daemon**     | Core orchestration engine       | Security auditing, community trust |
+| **CLI (`exactl`)**   | Command-line interface          | Developer tools should be free     |
 | **TUI Dashboard**    | Terminal UI (7 views)           | Core UX, community can extend      |
 | **File Formats**     | Request, plan, blueprint specs  | Interoperability, no lock-in       |
 | **MCP Client**       | Connect to external MCP servers | Standard protocol support          |
@@ -1238,13 +1238,13 @@ Enterprise customers require third-party security validation. Our certification 
 ### Quick Start: Solo Edition
 
 ```bash
-# 1. Install ExoFrame
+# 1. Install Exaix
 
 # 2. Initialize workspace
 
 # 3. Configure LLM provider
 
-exoctl config set llm.model mistral
+exactl config set llm.model mistral
 
 # 4. Create your first portal
 
@@ -1256,7 +1256,7 @@ exoctl config set llm.model mistral
 
 # 8. Approve and watch execution
 
-exoctl journal tail
+exactl journal tail
 
 # 9. Review review
 
@@ -1270,7 +1270,7 @@ exoctl journal tail
 ```bash
 # 1. Deploy to shared server
 
-curl -fsSL https://exoframe.io/install-team.sh | sh
+curl -fsSL https://exaix.io/install-team.sh | sh
 
 # 2. Access web UI
 
@@ -1305,7 +1305,7 @@ curl -fsSL https://exoframe.io/install-team.sh | sh
 
 ### Pricing Philosophy
 
-Traditional seat-based pricing is **obsolete for AI agent platforms** in 2026. When AI agents perform work previously done by humans, charging per-user makes no sense. ExoFrame uses **value-aligned pricing** that scales with the work performed, not the number of people watching.
+Traditional seat-based pricing is **obsolete for AI agent platforms** in 2026. When AI agents perform work previously done by humans, charging per-user makes no sense. Exaix uses **value-aligned pricing** that scales with the work performed, not the number of people watching.
 
 ## Our Principles
 
@@ -1427,25 +1427,25 @@ Traditional seat-based pricing is **obsolete for AI agent platforms** in 2026. W
 
 ---
 
-### ROI: Why ExoFrame Pays for Itself
+### ROI: Why Exaix Pays for Itself
 
 ## Developer Productivity Gains
 
-| Metric                     | Without ExoFrame | With ExoFrame | Annual Savings      |
-| -------------------------- | ---------------- | ------------- | ------------------- |
-| Routine refactoring time   | 20 hrs/week      | 8 hrs/week    | 624 developer hours |
-| Multi-project coordination | 15 hrs/week      | 5 hrs/week    | 520 developer hours |
-| Code review overhead       | 10 hrs/week      | 6 hrs/week    | 208 developer hours |
+| Metric                     | Without Exaix | With Exaix | Annual Savings      |
+| -------------------------- | ------------- | ---------- | ------------------- |
+| Routine refactoring time   | 20 hrs/week   | 8 hrs/week | 624 developer hours |
+| Multi-project coordination | 15 hrs/week   | 5 hrs/week | 520 developer hours |
+| Code review overhead       | 10 hrs/week   | 6 hrs/week | 208 developer hours |
 
 ## At $100/hour fully-loaded developer cost: ~$135,000/year in recovered productivity
 
 ## Compliance Cost Reduction
 
-| Metric                  | Manual Process | With ExoFrame | Annual Savings |
-| ----------------------- | -------------- | ------------- | -------------- |
-| Audit trail maintenance | $150,000/year  | $30,000/year  | $120,000       |
-| Audit preparation time  | 3 weeks        | 2 days        | $50,000        |
-| Compliance officer FTE  | 1.0 FTE        | 0.3 FTE       | $100,000       |
+| Metric                  | Manual Process | With Exaix   | Annual Savings |
+| ----------------------- | -------------- | ------------ | -------------- |
+| Audit trail maintenance | $150,000/year  | $30,000/year | $120,000       |
+| Audit preparation time  | 3 weeks        | 2 days       | $50,000        |
+| Compliance officer FTE  | 1.0 FTE        | 0.3 FTE      | $100,000       |
 
 ## Enterprise ROI: 5-10x return on investment within first year
 
@@ -1461,9 +1461,9 @@ As AI agents become more autonomous and pervasive, organizations face a critical
 
 **Build custom governance layer** → Expensive, slow, reinventing the wheel
 
-**Use ExoFrame** → Governance built-in, compliance-ready, production-proven
+**Use Exaix** → Governance built-in, compliance-ready, production-proven
 
-### ExoFrame's Promise
+### Exaix's Promise
 
 > **"Every AI agent action is traceable, explainable, and reversible."**
 
@@ -1478,13 +1478,13 @@ This isn't just a slogan—it's an architectural guarantee enforced by:
 
 The 40% project failure rate isn't a technology problem—it's a **trust problem**. Organizations can't afford to deploy AI agents they can't explain, control, or audit.
 
-ExoFrame solves this by making governance **automatic, not optional**.
+Exaix solves this by making governance **automatic, not optional**.
 
 ### Start Today
 
-**Solo Edition:** [Download](https://exoframe.io/download) and be running in 5 minutes
-**Team Edition:** [Start free trial](https://exoframe.io/trial) (no credit card required)
-**Enterprise Edition:** [Contact sales](https://exoframe.io/enterprise) for demo and pricing
+**Solo Edition:** [Download](https://exaix.io/download) and be running in 5 minutes
+**Team Edition:** [Start free trial](https://exaix.io/trial) (no credit card required)
+**Enterprise Edition:** [Contact sales](https://exaix.io/enterprise) for demo and pricing
 
 ### Early Access Program
 
@@ -1505,7 +1505,7 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 - 📊 Case study co-development (with permission)
 - 💰 Founding customer pricing (locked for 3 years)
 
-## [Apply for Early Access →](https://exoframe.io/early-access)
+## [Apply for Early Access →](https://exaix.io/early-access)
 
 ---
 
@@ -1535,25 +1535,25 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 
 ### EU AI Act
 
-| Requirement     | ExoFrame Implementation             | Evidence Location                                |
+| Requirement     | Exaix Implementation                | Evidence Location                                |
 | --------------- | ----------------------------------- | ------------------------------------------------ |
 | Transparency    | Activity Journal logs all decisions | `journal.db`                                     |
 | Human Oversight | Explicit plan & review approval     | Approval timestamps in Activity Journal          |
 | Risk Assessment | Governance dashboard risk scoring   | Web UI → Governance → Risk Matrix                |
-| Documentation   | Auto-generated compliance reports   | `exoctl compliance export --framework eu-ai-act` |
+| Documentation   | Auto-generated compliance reports   | `exactl compliance export --framework eu-ai-act` |
 
 ### HIPAA
 
-| Requirement    | ExoFrame Implementation            | Evidence Location                    |
+| Requirement    | Exaix Implementation               | Evidence Location                    |
 | -------------- | ---------------------------------- | ------------------------------------ |
-| Access Control | RBAC + portal permissions          | `exoctl user list`, portal configs   |
+| Access Control | RBAC + portal permissions          | `exactl user list`, portal configs   |
 | Audit Trails   | Activity Journal + PHI access logs | `journal.db` with PHI flags          |
 | Encryption     | SQLite encryption at rest          | Database file encrypted (Enterprise) |
 | Authentication | SSO/SAML integration               | Auth provider logs                   |
 
 ### SOX (Sarbanes-Oxley)
 
-| Requirement           | ExoFrame Implementation       | Evidence Location                     |
+| Requirement           | Exaix Implementation          | Evidence Location                     |
 | --------------------- | ----------------------------- | ------------------------------------- |
 | Change Controls       | Plan approval + review review | Activity Journal approval events      |
 | Segregation of Duties | RBAC (developers ≠ approvers) | User roles configuration              |
@@ -1566,31 +1566,31 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 
 ### MCP Server Tools (Team/Enterprise)
 
-## `exoframe*create*request`
+## `exaix*create*request`
 
 - **Description:** Create new request from external AI assistant
 - **Parameters:** `{ "title": string, "description": string, "agent": string, "portal": string }`
 - **Returns:** `{ "request*id": string, "trace*id": string }`
 
-## `exoframe*list*plans`
+## `exaix*list*plans`
 
 - **Description:** List pending plans for review
 - **Parameters:** `{ "status": "review" | "approved" | "rejected" }`
 - **Returns:** Array of plan objects
 
-## `exoframe*approve*plan`
+## `exaix*approve*plan`
 
 - **Description:** Approve plan for execution
 - **Parameters:** `{ "plan_id": string, "approver": string }`
 - **Returns:** `{ "success": boolean, "execution_started": boolean }`
 
-## `exoframe*query*journal`
+## `exaix*query*journal`
 
 - **Description:** Query Activity Journal for audit trail
 - **Parameters:** `{ "trace*id": string, "action*type": string, "start*date": ISO8601, "end*date": ISO8601 }`
 - **Returns:** Array of activity events
 
-## `exoframe*get*review`
+## `exaix*get*review`
 
 - **Description:** Retrieve review diff for review
 - **Parameters:** `{ "review_id": string }`

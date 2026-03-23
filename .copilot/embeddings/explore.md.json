@@ -3,7 +3,7 @@
   "title": "Codebase Exploration Template (#explore)",
   "vecs": [
     {
-      "text": "**Purpose:** Systematically explore the ExoFrame codebase to answer questions or map architecture.\n\n---\n\n## Instructions for Agent\n\n- Restate exploration goal and scope.\n- Identify relevant files, modules, and dependencies.\n- Document findings and architecture.\n- Suggest improvements or areas for further exploration.\n\n---\n\n## Template\n\n**Exploration Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Findings:**\n\n- ...\n\n**Suggestions:**\n\n- ...\n\n**Notes:**\n\n- Reference related modules/files.",
+      "text": "**Purpose:** Systematically explore the Exaix codebase to answer questions or map architecture.\n\n---\n\n## Instructions for Agent\n\n- Restate exploration goal and scope.\n- Identify relevant files, modules, and dependencies.\n- Document findings and architecture.\n- Suggest improvements or areas for further exploration.\n\n---\n\n## Template\n\n**Exploration Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Findings:**\n\n- ...\n\n**Suggestions:**\n\n- ...\n\n**Notes:**\n\n- Reference related modules/files.",
       "vector": [
         0.8784313725490196,
         0.24313725490196078,

@@ -107,8 +107,8 @@ Deno.test("AgentRunner injects portal context when provided", async () => {
 
   const runner = new AgentRunner(mockProvider);
   const portalContext = buildPortalContextBlock({
-    portalAlias: "portal-exoframe",
-    portalRoot: "/tmp/portal-exoframe",
+    portalAlias: "portal-exaix",
+    portalRoot: "/tmp/portal-exaix",
   });
 
   await runner.run(sampleBlueprint, {

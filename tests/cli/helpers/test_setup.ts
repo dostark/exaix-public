@@ -213,7 +213,7 @@ export function getPortalCardPath(tempRoot: string, alias: string): string {
  */
 export async function createCliTestContext(options?: { createDirs?: string[] }) {
   // Set test mode for CLI operations to suppress warnings
-  Deno.env.set("EXO_TEST_CLI_MODE", "1");
+  Deno.env.set("EXA_TEST_CLI_MODE", "1");
 
   const { db, tempDir, config, cleanup } = await initTestDbService();
 
@@ -238,7 +238,7 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
     }
   }
 
-  const configPath = join(tempDir, "exo.config.toml");
+  const configPath = join(tempDir, "exa.config.toml");
   const configService = new ConfigService(configPath);
   const contextCards = new ContextCardAdapter(new ContextCardGenerator(config));
   const display = createStubDisplay(db);
@@ -323,7 +323,7 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
   };
 
   const cleanupAll = async () => {
-    Deno.env.delete("EXO_TEST_CLI_MODE");
+    Deno.env.delete("EXA_TEST_CLI_MODE");
     await cleanup();
   };
 

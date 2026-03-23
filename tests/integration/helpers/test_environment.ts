@@ -10,7 +10,7 @@ import type { IRecordedResponse } from "../../../src/ai/providers/mock_llm_provi
  * Test Environment Helper for Integration Tests
  *
  * Provides isolated, reproducible test workspace for end-to-end testing.
- * Creates temporary directory with complete ExoFrame workspace structure.
+ * Creates temporary directory with complete Exaix workspace structure.
  */
 
 import { dirname, fromFileUrl, join } from "@std/path";
@@ -172,7 +172,7 @@ export class TestEnvironment {
     }
 
     // Write config to file so CLI commands can find it
-    const configPath = join(tempDir, "exo.config.toml");
+    const configPath = join(tempDir, "exa.config.toml");
 
     Deno.writeTextFileSync(
       configPath,
@@ -229,7 +229,7 @@ timeout_ms = 30000
 [mcp]
 enabled = true
 transport = "stdio"
-server_name = "exoframe"
+server_name = "exaix"
 version = "1.0.0"
 
 [ai_retry]
@@ -631,7 +631,7 @@ This plan will accomplish the requested task.
   }
 
   /**
-   * List git branches with ExoFrame naming convention
+   * List git branches with Exaix naming convention
    */
   async getGitBranches(): Promise<string[]> {
     const cmd = new Deno.Command(PortalOperation.GIT, {

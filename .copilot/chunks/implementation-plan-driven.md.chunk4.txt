@@ -1,6 +1,3 @@
-3. INJECT CONTEXT:
-   deno run --allow-read scripts/inject_agent_context.ts claude "activity logging export JSON EventLogger" 6
-
 4. IMPLEMENT:
    - Write tests for export functionality
    - Add export() method to EventLogger
@@ -29,3 +26,8 @@ Feature: Activity log export
 I want to add comprehensive security testing for Portal permissions.
 
 Implementation Plan workflow:
+
+1. READ PLAN:
+   - Find Phase 6 (Portal)
+   - Look for security testing step
+   - Found Step 6.7: Portal Security Testing

@@ -2,7 +2,7 @@
 
 ## Overview
 
-ExoFrame's Provider Strategy system enables intelligent, configuration-driven selection of LLM providers based on cost, performance, health, and task requirements. This guide explains how to configure and optimize provider selection for different use cases.
+Exaix's Provider Strategy system enables intelligent, configuration-driven selection of LLM providers based on cost, performance, health, and task requirements. This guide explains how to configure and optimize provider selection for different use cases.
 
 ## Core Concepts
 

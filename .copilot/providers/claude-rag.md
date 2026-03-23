@@ -9,7 +9,7 @@ topics: ["rag", "embeddings", "context-injection", "semantic-search"]
 
 ## Overview
 
-ExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.
+Exaix pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.
 
 ## RAG Workflow
 
@@ -38,7 +38,7 @@ Top 5 matches for "test database setup":
 
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)
 1. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
-1. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
+1. .copilot/chunks/exaix.md.chunk3.txt (similarity: 0.76)
 1. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
 1. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
 
@@ -75,9 +75,9 @@ deno run --allow-read scripts/inject_agent_context.ts --query "write security te
 {
   "found": true,
   "path": ".copilot/tests/testing.md",
-  "title": "ExoFrame Test Development Guidelines",
+  "title": "Exaix Test Development Guidelines",
   "short_summary": "Testing patterns and unified test context...",
-  "snippet": "# ExoFrame Test Development Guidelines\n\nKey points\n- Use `initTestDbService()`..."
+  "snippet": "# Exaix Test Development Guidelines\n\nKey points\n- Use `initTestDbService()`..."
 }
 ```
 
@@ -105,7 +105,7 @@ deno run --allow-read scripts/inject_agent_context.ts --query "write security te
 ✅ **Good:** Include chunk summaries in system prompt, full chunks in user message
 
 ```text
-System: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]
+System: You are working on Exaix. Relevant docs: [testing.md: TDD patterns, exaix.md: service patterns]
 User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
 ```
 
@@ -146,10 +146,10 @@ Use pre-generated embeddings from external sources:
 ```json
 {
   "path": ".copilot/tests/testing.md",
-  "title": "ExoFrame Test Development Guidelines",
+  "title": "Exaix Test Development Guidelines",
   "vecs": [
     {
-      "text": "# ExoFrame Test Development Guidelines\n\nKey points...",
+      "text": "# Exaix Test Development Guidelines\n\nKey points...",
       "vector": [0.123, -0.456, 0.789, ...]
     }
   ]
@@ -182,7 +182,7 @@ const context = await inject("claude", query, 6);
 
 ```typescript
 const systemPrompt = `
-You are a security-focused test developer for ExoFrame.
+You are a security-focused test developer for Exaix.
 
 Relevant context from documentation:
 ${context.short_summary}
@@ -219,7 +219,7 @@ const response = await anthropic.messages.create({
 - `initTestDbService()` or `createCliTestContext()` usage
 - Explicit assertions for attack vectors
 - Try/finally cleanup blocks
-- References to ExoFrame security patterns (Portal permissions, PathResolver validation)
+- References to Exaix security patterns (Portal permissions, PathResolver validation)
 
 ## Best Practices
 
@@ -248,7 +248,7 @@ const testingChunks = [
 // Better: Mix relevant chunks from different docs
 const mixedChunks = [
   ".copilot/chunks/testing.md.chunk1.txt", // initTestDbService pattern
-  ".copilot/chunks/exoframe.md.chunk2.txt", // Service patterns
+  ".copilot/chunks/exaix.md.chunk2.txt", // Service patterns
   ".copilot/chunks/testing.md.chunk3.txt", // Security tests
 ];
 ```
@@ -360,7 +360,7 @@ bin/agent-context "write security tests"
 
 ## Canonical Prompt (Short)
 
-"You are a Claude-based assistant working on ExoFrame with RAG-enhanced context. Before responding, semantic search will inject the 4-6 most relevant documentation chunks. Use this context to provide accurate, project-specific guidance following ExoFrame patterns."
+"You are a Claude-based assistant working on Exaix with RAG-enhanced context. Before responding, semantic search will inject the 4-6 most relevant documentation chunks. Use this context to provide accurate, project-specific guidance following Exaix patterns."
 
 ## Examples
 

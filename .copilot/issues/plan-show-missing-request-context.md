@@ -1,5 +1,5 @@
 ---
-title: "exoctl plan show/list Missing Request and Agent Context"
+title: "exactl plan show/list Missing Request and Agent Context"
 status: resolved
 priority: medium
 created: 2026-01-25
@@ -11,24 +11,24 @@ related_issues: []
 
 ## Problem
 
-The `exoctl plan show` and `exoctl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.
+The `exactl plan show` and `exactl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.
 
 ## Reproduction Steps
 
 ```bash
 # Create a request
-exoctl request "Test request"
+exactl request "Test request"
 
 # Check plan list - missing request and agent info
-exoctl plan list
+exactl plan list
 
 # Check plan show - missing request and agent info
-exoctl plan show <plan-id>
+exactl plan show <plan-id>
 ```text
 
 ## Observed Behavior
 
-**Current `exoctl plan list` output:**
+**Current `exactl plan list` output:**
 
 ```text
 ✅ plan.list: plans
@@ -38,7 +38,7 @@ exoctl plan show <plan-id>
    trace: f493fe2a...
 ```text
 
-**Current `exoctl plan show` output:**
+**Current `exactl plan show` output:**
 
 ```text
 ✅ plan.show: request-f493fe2a_plan
@@ -50,7 +50,7 @@ exoctl plan show <plan-id>
 
 ## Expected Behavior
 
-**Enhanced `exoctl plan list` should show:**
+**Enhanced `exactl plan list` should show:**
 
 - Original request ID/title
 - Agent that created the plan
@@ -58,7 +58,7 @@ exoctl plan show <plan-id>
 - Creation timestamp
 - Request priority
 
-**Enhanced `exoctl plan show` should show:**
+**Enhanced `exactl plan show` should show:**
 
 - Link to original request (`request_id`)
 - Agent information
@@ -71,7 +71,7 @@ exoctl plan show <plan-id>
 ```text
 ✅ plan.list: plans
    count: 1
-✅ 🔍 request-f493fe2a_plan: "Comprehensive Review of ExoFrame Test Suite"
+✅ 🔍 request-f493fe2a_plan: "Comprehensive Review of Exaix Test Suite"
    status: review
    agent: default
    portal: original-repo
@@ -84,7 +84,7 @@ exoctl plan show <plan-id>
 ✅ plan.show: request-f493fe2a_plan
    status: review
    trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
-   request: request-f493fe2a ("Comprehensive Review of ExoFrame Test Suite")
+   request: request-f493fe2a ("Comprehensive Review of Exaix Test Suite")
    agent: default
    portal: original-repo
    created: 2026-01-25T16:46:24Z
@@ -118,7 +118,7 @@ exoctl plan show <plan-id>
 
 ## Priority Justification
 
-Medium priority - this is a UX improvement that would significantly help users navigate and understand the ExoFrame workflow, but doesn't break existing functionality.
+Medium priority - this is a UX improvement that would significantly help users navigate and understand the Exaix workflow, but doesn't break existing functionality.
 
 ## Resolution
 
@@ -135,8 +135,8 @@ Medium priority - this is a UX improvement that would significantly help users n
 **Files Modified:**
 
 - `src/cli/plan_commands.ts`: Enhanced metadata extraction and request loading
-- `src/cli/exoctl.ts`: Updated CLI display formatting
-- `exo.config.toml`: Fixed workspace path configuration
+- `src/cli/exactl.ts`: Updated CLI display formatting
+- `exa.config.toml`: Fixed workspace path configuration
 - `tests/plan_commands_regression_test.ts`: Added regression test
 
 **Testing:** Added comprehensive regression test that verifies plan list and show commands include complete request context information.

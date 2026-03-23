@@ -76,7 +76,7 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 │                                                                 │
 │  MEDIUM PRIORITY (Weeks 5-6)                                   │
 │  ├─ agent_status_view.ts: 194 complexity - Status management  │
-│  ├─ exoctl.ts: 183 complexity - CLI command routing           │
+│  ├─ exactl.ts: 183 complexity - CLI command routing           │
 │  └─ monitor_view.ts: 183 complexity - Monitor display         │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -191,7 +191,7 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 
 - `src/tui/request_manager_view.ts` (203 complexity)
 - `src/tui/agent_status_view.ts` (194 complexity)
-- `src/cli/exoctl.ts` (183 complexity)
+- `src/cli/exactl.ts` (183 complexity)
 
 **Architecture improvements:**
 
@@ -213,7 +213,7 @@ topics: ["refactoring", "complexity", "architecture", "design-patterns", "mainta
 
 **Files affected:**
 
-- `src/cli/exoctl.ts`
+- `src/cli/exactl.ts`
 
 **Refactoring approach:**
 

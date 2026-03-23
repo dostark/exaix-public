@@ -416,7 +416,7 @@ Following JSON migration, standardize the `<thought>` section structure across a
 
 ### Phase 31.6: Output Formatting Improvements - ✅ **READY TO BEGIN**
 
-Following JSON migration and thought standardization, enhance the `exoctl plan show` command with beautified formatting for improved readability and user experience.
+Following JSON migration and thought standardization, enhance the `exactl plan show` command with beautified formatting for improved readability and user experience.
 
 **Rationale**: Raw text output of `<thought>` and JSON `<content>` sections is difficult to read. Structured formatting will improve developer experience when reviewing agent outputs.
 

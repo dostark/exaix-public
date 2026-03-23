@@ -1,4 +1,4 @@
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
 - Deno Version: (current)
 - Git Version: (current)
@@ -23,3 +23,5 @@
 - `src/cli/changeset_commands.ts` - `reject()` method that calls `git branch -D`
 - Portal worktree management code
 - Git worktree handling utilities
+
+## Workaround

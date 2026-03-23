@@ -3,7 +3,7 @@
   "title": "Feature Planning Template (#plan)",
   "vecs": [
     {
-      "text": "```text\nKey points\n- Break down features into actionable steps with success criteria\n- Include TDD approach: tests first, then implementation\n- Identify dependencies, edge cases, and acceptance criteria\n- Plan unit, integration, and regression tests for each step\n\nCanonical prompt (short):\n\"Plan a new feature for ExoFrame. Break it into steps with success criteria, tests, and dependencies. Ensure TDD approach and reviewable plan.\"\n\nExamples\n- Example prompt: \"Plan OAuth2 login support with user registration and session management.\"\n- Example prompt: \"Design a new API endpoint for file uploads with validation.\"",
+      "text": "```text\nKey points\n- Break down features into actionable steps with success criteria\n- Include TDD approach: tests first, then implementation\n- Identify dependencies, edge cases, and acceptance criteria\n- Plan unit, integration, and regression tests for each step\n\nCanonical prompt (short):\n\"Plan a new feature for Exaix. Break it into steps with success criteria, tests, and dependencies. Ensure TDD approach and reviewable plan.\"\n\nExamples\n- Example prompt: \"Plan OAuth2 login support with user registration and session management.\"\n- Example prompt: \"Design a new API endpoint for file uploads with validation.\"",
       "vector": [
         0.5372549019607843,
         0.4392156862745098,

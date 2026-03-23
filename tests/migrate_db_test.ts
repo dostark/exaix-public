@@ -69,7 +69,7 @@ async function queryDb(dbPath: string, sql: string): Promise<string> {
 
 // Setup a temporary workspace with migrations
 async function setupTestWorkspace(): Promise<string> {
-  const tmp = await Deno.makeTempDir({ prefix: "exoframe-migrate-test-" });
+  const tmp = await Deno.makeTempDir({ prefix: "exaix-migrate-test-" });
 
   // Create migrations directory
   await Deno.mkdir(join(tmp, "migrations"), { recursive: true });

@@ -1,7 +1,3 @@
-6. MARK COMPLETE:
-   - Update Implementation Plan step checkboxes
-   - Note any deviations or learnings
-
 Phase: [number]
 Step: [number]
 Feature: [description]
@@ -17,7 +13,7 @@ I want to work on Flow parameter validation (Phase 8, Step 8.3).
 Implementation Plan workflow:
 
 1. READ PLAN:
-   - Open docs/ExoFrame_Implementation_Plan.md
+   - Open docs/Exaix_Implementation_Plan.md
    - Find Phase 8, Step 8.3
    - Read the full step definition
 
@@ -28,3 +24,6 @@ Implementation Plan workflow:
    - [ ] Schema validates parameter types
    - [ ] Tests cover invalid parameter cases
    - [ ] Error messages are user-friendly
+
+3. INJECT CONTEXT:
+   deno run --allow-read scripts/inject_agent_context.ts claude "Zod schema validation Flow parameters" 6

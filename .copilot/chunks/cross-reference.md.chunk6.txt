@@ -6,13 +6,13 @@
 
 ### Test-Driven Development (TDD)
 
-1. **Docs**: [source/exoframe.md](source/exoframe.md), [tests/testing.md](tests/testing.md)
+1. **Docs**: [source/exaix.md](source/exaix.md), [tests/testing.md](tests/testing.md)
 
 1.
 
 ### Code Refactoring
 
-1. **Docs**: [source/exoframe.md](source/exoframe.md), [providers/claude.md](providers/claude.md)
+1. **Docs**: [source/exaix.md](source/exaix.md), [providers/claude.md](providers/claude.md)
 
 1.
 

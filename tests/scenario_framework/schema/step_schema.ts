@@ -22,7 +22,7 @@ export enum ScenarioExecutionMode {
 
 export enum ScenarioStepType {
   SHELL = "shell",
-  EXOCTL = "exoctl",
+  EXACTL = "exactl",
   WAIT_FOR_FILE = "wait-for-file",
   WAIT_FOR_STATUS = "wait-for-status",
   WAIT_FOR_JSON_FIELD = "wait-for-json-field",
@@ -256,10 +256,10 @@ export const ScenarioStepSchema = z.object({
     });
   }
 
-  if (step.type === ScenarioStepType.EXOCTL && !step.command) {
+  if (step.type === ScenarioStepType.EXACTL && !step.command) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "exoctl steps require a command",
+      message: "exactl steps require a command",
       path: ["command"],
     });
   }

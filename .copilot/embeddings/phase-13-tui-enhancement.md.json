@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "This document outlines the enhancement of ExoFrame's TUI components to achieve feature parity with the recently implemented Memory View (Phase 12.12-12.14). The Memory View established new standards for:\n\n- **Async loading states** with spinner animations\n- **Rich markdown rendering** in detail panels\n- **Color-coded visual indicators** for status and categories\n- **Hierarchical tree navigation** with expand/collapse\n- **Dialog-based confirmations** for destructive actions\n- **Comprehensive keyboard shortcuts** with discoverable help\n- **Refresh mechanisms** (manual and auto-stale detection)\n\nThese patterns should be propagated to all TUI views for a consistent, polished user experience.\n\n### Key Deliverables",
+      "text": "This document outlines the enhancement of Exaix's TUI components to achieve feature parity with the recently implemented Memory View (Phase 12.12-12.14). The Memory View established new standards for:\n\n- **Async loading states** with spinner animations\n- **Rich markdown rendering** in detail panels\n- **Color-coded visual indicators** for status and categories\n- **Hierarchical tree navigation** with expand/collapse\n- **Dialog-based confirmations** for destructive actions\n- **Comprehensive keyboard shortcuts** with discoverable help\n- **Refresh mechanisms** (manual and auto-stale detection)\n\nThese patterns should be propagated to all TUI views for a consistent, polished user experience.\n\n### Key Deliverables",
       "vector": [
         0.9686274509803922,
         0.6705882352941176,
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "text": "The current split view in `tui_dashboard.ts` provides:\n\n- Basic vertical (`v`) and horizontal (`h`) splitting\n- Tab/Shift+Tab pane switching\n- Close pane (`c`)\n- Basic resize with `resizePane()`\n- Layout save/restore to `~/.exoframe/tui_layout.json`\n\n### 4.2 Enhanced Split View Features\n\n#### 4.2.1 Layout Presets",
+      "text": "The current split view in `tui_dashboard.ts` provides:\n\n- Basic vertical (`v`) and horizontal (`h`) splitting\n- Tab/Shift+Tab pane switching\n- Close pane (`c`)\n- Basic resize with `resizePane()`\n- Layout save/restore to `~/.exaix/tui_layout.json`\n\n### 4.2 Enhanced Split View Features\n\n#### 4.2.1 Layout Presets",
       "vector": [
         0.8196078431372549,
         0.9333333333333333,

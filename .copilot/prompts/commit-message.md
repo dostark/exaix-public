@@ -11,7 +11,7 @@ topics: ["git", "commit", "documentation", "best-practices", "structured-logging
 Key points
 - Review changes with `git status` and `git diff` before committing.
 - Use conventional commit format for the subject line: `<type>(<scope>): <summary>`.
-- ALL commits (non-auto) MUST follow the ExoFrame structured format in the body.
+- ALL commits (non-auto) MUST follow the Exaix structured format in the body.
 - Wrap all body text at 72 chars.
 
 Mandatory Schema:

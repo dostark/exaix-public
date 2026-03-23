@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "1. [x] `deno task start` runs `main.ts` and prints \"ExoFrame Daemon Active\"\n2. [x] Process fails with PermissionDenied when required permissions removed from `deno.json`\n3. [x] `deno.lock` file generated and committed to version control\n\n**Code Quality:**\n4. [x] `deno task fmt:check` passes with no formatting issues\n5. [x] `deno task lint` passes with no linting errors\n6. [x] CI pipeline runs both checks automatically\n\n7. [x] Complete Deno configuration created with security sandbox and task definitions\n\n**Implementation:** See `deno.json` in project root for complete configuration with:",
+      "text": "1. [x] `deno task start` runs `main.ts` and prints \"Exaix Daemon Active\"\n2. [x] Process fails with PermissionDenied when required permissions removed from `deno.json`\n3. [x] `deno.lock` file generated and committed to version control\n\n**Code Quality:**\n4. [x] `deno task fmt:check` passes with no formatting issues\n5. [x] `deno task lint` passes with no linting errors\n6. [x] CI pipeline runs both checks automatically\n\n7. [x] Complete Deno configuration created with security sandbox and task definitions\n\n**Implementation:** See `deno.json` in project root for complete configuration with:",
       "vector": [
         0.8509803921568627,
         0.7254901960784313,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "### Step 1.3: Configuration Loader (TOML + Zod) ✅ COMPLETED\n\n- **Dependencies:** Step 1.2 — **Rollback:** revert config schema, restore previous TOML.\n- **Action:** Create `ConfigService`. Define Zod schemas for `exo.config.toml`. Include config checksum in Activity\n  Journal for auditability.\n- **Justification:** Hardcoding paths is technical debt. We need a single source of truth for system physics.\n\n**Success Criteria:**\n\n**Core Functionality:**\n\n1. [x] ConfigService loads `exo.config.toml` on system startup\n2. [x] Zod schema validates all required configuration fields\n3. [x] Readable error messages for malformed TOML or missing keys\n4. [x] Config checksum logged to Activity Journal for auditability",
+      "text": "### Step 1.3: Configuration Loader (TOML + Zod) ✅ COMPLETED\n\n- **Dependencies:** Step 1.2 — **Rollback:** revert config schema, restore previous TOML.\n- **Action:** Create `ConfigService`. Define Zod schemas for `exa.config.toml`. Include config checksum in Activity\n  Journal for auditability.\n- **Justification:** Hardcoding paths is technical debt. We need a single source of truth for system physics.\n\n**Success Criteria:**\n\n**Core Functionality:**\n\n1. [x] ConfigService loads `exa.config.toml` on system startup\n2. [x] Zod schema validates all required configuration fields\n3. [x] Readable error messages for malformed TOML or missing keys\n4. [x] Config checksum logged to Activity Journal for auditability",
       "vector": [
         0.7450980392156863,
         0.9019607843137255,

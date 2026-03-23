@@ -2,7 +2,7 @@
 
 ## Status: COMPLETED ✅
 
-Decouple the TUI implementation from the ExoFrame core by enforcing a strict interface-driven boundary. This is a prerequisite for moving the TUI into a separate Git repository (Phase 44).
+Decouple the TUI implementation from the Exaix core by enforcing a strict interface-driven boundary. This is a prerequisite for moving the TUI into a separate Git repository (Phase 44).
 
 ## Executive Summary
 
@@ -445,7 +445,7 @@ export interface ITuiApplicationContext {
 
 ### Step 6: Update TUI Entry Point and Launch Logic
 
-**Objective**: Ensure `exoctl tui` constructs the `TuiApplicationContext` with real adapter instances and passes it to the TUI entry point.
+**Objective**: Ensure `exactl tui` constructs the `TuiApplicationContext` with real adapter instances and passes it to the TUI entry point.
 
 **Files to modify:**
 
@@ -454,13 +454,13 @@ export interface ITuiApplicationContext {
 
 **Success Criteria:**
 
-- `exoctl tui` launches with no errors.
+- `exactl tui` launches with no errors.
 - All TUI functionality works identically to before.
 - TUI Dashboard constructor signature uses `ITuiApplicationContext` only.
 
 **Planned Tests:**
 
-- Manual: `exoctl tui` → navigate all views → verify no regressions.
+- Manual: `exactl tui` → navigate all views → verify no regressions.
 - `deno test tests/tui/tui_dashboard*` — Dashboard tests pass.
 
 ---
@@ -649,6 +649,6 @@ The TUI is now fully decoupled and ready for extraction into a separate reposito
 
 ### Manual Verification
 
-Run `exoctl tui` and navigate through all views: Request Manager, Plan Reviewer, Portal Manager, Memory View, Agent Status, Monitor, Daemon Control, Structured Logs, Skills Manager.
+Run `exactl tui` and navigate through all views: Request Manager, Plan Reviewer, Portal Manager, Memory View, Agent Status, Monitor, Daemon Control, Structured Logs, Skills Manager.
 
 ```

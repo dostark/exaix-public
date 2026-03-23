@@ -11,22 +11,22 @@ labels: [bug, cli, changeset]
 
 ## Problem
 
-The `exoctl changeset approve` command fails with "Branch not found" error even when the changeset is visible in `exoctl changeset list`. This occurs because the approve command only searches the workspace root repository for branches, but changesets can be created in portal repositories.
+The `exactl changeset approve` command fails with "Branch not found" error even when the changeset is visible in `exactl changeset list`. This occurs because the approve command only searches the workspace root repository for branches, but changesets can be created in portal repositories.
 
 ## Reproduction Steps
 
 ```bash
 # Create a request that generates a changeset in a portal repo
-exoctl request create "some request"
+exactl request create "some request"
 
 # Wait for agent to create plan and changeset
-exoctl plan approve <plan-id>
+exactl plan approve <plan-id>
 
 # List changesets - shows the changeset
-exoctl changeset list
+exactl changeset list
 
 # Try to approve - fails
-exoctl changeset approve request-a300d5a5
+exactl changeset approve request-a300d5a5
 ```text
 
 ## Observed Behavior
@@ -36,7 +36,7 @@ exoctl changeset approve request-a300d5a5
    message: Branch not found: feat/request-a300d5a5-a300d5a5
 ```text
 
-But `exoctl changeset list` shows:
+But `exactl changeset list` shows:
 
 ```text
 ✅ changeset.list: changesets
@@ -53,7 +53,7 @@ The approve command should find the branch in the correct repository (portal or 
 
 ## Environment
 
-- ExoFrame Version: current development
+- Exaix Version: current development
 - OS: Linux
 - Deno Version: 1.x.x
 - Relevant Config: Portal repositories configured
@@ -92,6 +92,6 @@ High priority because changeset approval is core functionality for the agent wor
 
 - **Commit**: Changes applied to `src/cli/changeset_commands.ts`
 
-- **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.
+- **Verified**: Manual testing confirmed `exactl changeset approve request-a300d5a5` now works correctly.
 
 ```

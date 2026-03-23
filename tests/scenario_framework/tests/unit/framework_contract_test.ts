@@ -33,8 +33,8 @@ Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () =>
     mode_support: ["auto", "step", "manual-checkpoint"],
     portals: [
       {
-        alias: "portal-exoframe",
-        source_path: "/tmp/exoframe",
+        alias: "portal-exaix",
+        source_path: "/tmp/exaix",
       },
       {
         alias: "portal-sample-app",
@@ -44,7 +44,7 @@ Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () =>
     steps: [
       {
         id: "create-request",
-        type: "exoctl",
+        type: "exactl",
         command: "request",
         args: ["--file", "fixtures/requests/agent_flows/memory_aware_analysis.md"],
         input_criteria: [
@@ -56,7 +56,7 @@ Deno.test("[ScenarioFrameworkContract] accepts a valid scenario document", () =>
           {
             id: "portal-available",
             kind: "portal-mounted",
-            alias: "portal-exoframe",
+            alias: "portal-exaix",
           },
         ],
         output_criteria: [

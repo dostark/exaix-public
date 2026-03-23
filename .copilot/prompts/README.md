@@ -1,19 +1,19 @@
 ---
 agent: general
 scope: dev
-title: "ExoFrame Agent Prompt Templates Library"
-short_summary: "Comprehensive library of prompt templates for systematic coding agent workflows in ExoFrame."
+title: "Exaix Agent Prompt Templates Library"
+short_summary: "Comprehensive library of prompt templates for systematic coding agent workflows in Exaix."
 version: "0.1"
 topics: ["prompts", "templates", "agents", "workflows", "best-practices"]
 ---
 
-Welcome to the ExoFrame prompt template library for coding agents. This collection enables agents to systematically wrap raw user prompts with advanced, context-rich instructions, ensuring clarity, completeness, and best practices for all coding tasks in the ExoFrame codebase.
+Welcome to the Exaix prompt template library for coding agents. This collection enables agents to systematically wrap raw user prompts with advanced, context-rich instructions, ensuring clarity, completeness, and best practices for all coding tasks in the Exaix codebase.
 
 ## How It Works
 
 - **Template Selection:** For each raw user prompt, the agent selects the most suitable template (see aliases below).
 - **Prompt Embedding:** The agent embeds the raw prompt into the body of the chosen template, following all instructions and requirements.
-- **Best Practices:** Each template enforces ExoFrame standards: TDD, regression tests, linting, success criteria, and more.
+- **Best Practices:** Each template enforces Exaix standards: TDD, regression tests, linting, success criteria, and more.
 - **Aliases:** Use the alias (e.g. `#plan`, `@fix`, `#step`) in your prompt to suggest a template, or let the agent auto-select.
 
 ## Why Use Templates?
@@ -48,7 +48,7 @@ The agent will wrap your raw prompt with the `plan` template, ensuring all plann
 
 ---
 
-**Agents:** Always use these templates to maximize success and reliability. If the user prompt lacks details, fill gaps using ExoFrame standards and your own expertise.
+**Agents:** Always use these templates to maximize success and reliability. If the user prompt lacks details, fill gaps using Exaix standards and your own expertise.
 
 ---
 
@@ -62,7 +62,7 @@ This folder contains example prompts demonstrating how to effectively utilize th
 
 ### Development Workflows
 
-1. **[tdd-workflow.md](tdd-workflow.md)** — Test-driven development following ExoFrame patterns
+1. **[tdd-workflow.md](tdd-workflow.md)** — Test-driven development following Exaix patterns
    - When to use: Adding features, fixing bugs with tests
    - Key pattern: Write failing test → implement → refactor
    - Context injection: TDD patterns, testing helpers

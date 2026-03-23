@@ -1,4 +1,4 @@
-Implement comprehensive tests for ExoFrame's review registry system. Create:
+Implement comprehensive tests for Exaix's review registry system. Create:
 
 - Unit tests for review tracking and validation in src/services/review_registry.ts
 - Integration tests for git review operations and workspace synchronization

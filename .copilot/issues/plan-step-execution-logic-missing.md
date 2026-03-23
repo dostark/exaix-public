@@ -19,15 +19,15 @@ Approved plans are marked as "completed" but the actual step execution logic is 
 
 ```bash
 # Create and approve a plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>
 
 # Check plan status - shows completed
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan list
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan list
 
 # Check execution results - no actual work done
-cd ~/ExoFrame && git branch -a  # May show unexpected commits
-cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
+cd ~/Exaix && git branch -a  # May show unexpected commits
+cd ~/Exaix && ls -la Memory/Execution/  # May be missing expected results
 ```
 
 ## Observed Behavior
@@ -47,7 +47,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Deno Version: 1.x.x
 - Plan Schema: JSON validation working
@@ -100,7 +100,7 @@ This issue did not cover the read-only execution artifact gap. After structured 
 
 - Executing read-only structured plans while disabling git mutations.
 - Generating an analysis report from tool outputs and writing it to `Memory/Execution/<trace>/analysis.md`.
-- Embedding the analysis report into the review artifact for `exoctl review show`.
+- Embedding the analysis report into the review artifact for `exactl review show`.
 
 ## Examples
 
@@ -116,15 +116,15 @@ Approved plans are marked as "completed" but the actual step execution logic is 
 
 ```bash
 # Create and approve a plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>
 
 # Check plan status - shows completed
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan list
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan list
 
 # Check execution results - no actual work done
-cd ~/ExoFrame && git branch -a  # May show unexpected commits
-cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
+cd ~/Exaix && git branch -a  # May show unexpected commits
+cd ~/Exaix && ls -la Memory/Execution/  # May be missing expected results
 ```
 
 ## Observed Behavior
@@ -144,7 +144,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Deno Version: 1.x.x
 - Plan Schema: JSON validation working

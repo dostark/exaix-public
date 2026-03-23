@@ -3,7 +3,7 @@
   "title": "Database changeset table not created during migration",
   "vecs": [
     {
-      "text": "## Problem\n\nThe `changesets` table is not being created during database migration, causing execution failures with \"no such table: changesets\" error when trying to track plan execution changesets.\n\n## Reproduction Steps\n\n```bash\n# Run database migration\ndeno run --allow-all scripts/migrate_db.ts up\n\n# Create a request and approve plan\ncd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request \"Analyze test suite\" --agent default --model google:gemini-2.0-flash-exp --priority normal\ncd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>\n\n# Check execution - fails with database error\ncd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts daemon logs --lines 20\n```\n\n## Observed Behavior",
+      "text": "## Problem\n\nThe `changesets` table is not being created during database migration, causing execution failures with \"no such table: changesets\" error when trying to track plan execution changesets.\n\n## Reproduction Steps\n\n```bash\n# Run database migration\ndeno run --allow-all scripts/migrate_db.ts up\n\n# Create a request and approve plan\ncd ~/Exaix && deno run --allow-all src/cli/exactl.ts request \"Analyze test suite\" --agent default --model google:gemini-2.0-flash-exp --priority normal\ncd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>\n\n# Check execution - fails with database error\ncd ~/Exaix && deno run --allow-all src/cli/exactl.ts daemon logs --lines 20\n```\n\n## Observed Behavior",
       "vector": [
         0.47058823529411764,
         0.5568627450980392,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "- Database migration reports \"up to date\"\n- Plan approval succeeds\n- Execution fails with: `ExecutionError: no such table: changesets`\n- SQLite database file exists at `./.exo/journal.db`\n\n## Expected Behavior\n\n- Changesets table should be created during migration\n- Plan execution should proceed without database errors\n- Changesets should be properly tracked for execution history\n\n## Environment\n\n- ExoFrame Version: Current development\n- OS: Linux\n- Deno Version: 1.x.x\n- Database: SQLite (journal.db)\n\n## Investigation Needed\n\n1. **Migration Scripts**: Check `scripts/migrate_db.ts` and migration files\n   - Verify changeset table creation SQL is present\n   - Check if migration is properly registered",
+      "text": "- Database migration reports \"up to date\"\n- Plan approval succeeds\n- Execution fails with: `ExecutionError: no such table: changesets`\n- SQLite database file exists at `./.exo/journal.db`\n\n## Expected Behavior\n\n- Changesets table should be created during migration\n- Plan execution should proceed without database errors\n- Changesets should be properly tracked for execution history\n\n## Environment\n\n- Exaix Version: Current development\n- OS: Linux\n- Deno Version: 1.x.x\n- Database: SQLite (journal.db)\n\n## Investigation Needed\n\n1. **Migration Scripts**: Check `scripts/migrate_db.ts` and migration files\n   - Verify changeset table creation SQL is present\n   - Check if migration is properly registered",
       "vector": [
         0.8705882352941177,
         0.5019607843137255,

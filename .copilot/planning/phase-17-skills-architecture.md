@@ -26,7 +26,7 @@
 ## Executive Summary
 
 This plan introduces **Skills** as a specialized type of **Procedural Memory** within
-ExoFrame's Memory Bank system. Skills encode domain expertise, procedures, and best
+Exaix's Memory Bank system. Skills encode domain expertise, procedures, and best
 practices as reusable instruction modules that agents can apply automatically.
 
 **Key Insight from Anthropic's Approach:**
@@ -45,7 +45,7 @@ with the Memory Bank system provides:
 | **Semantic Search**      | Leverage existing Memory Bank search infrastructure          |
 | **Learning Integration** | Skills can evolve from execution learnings                   |
 | **Approval Workflow**    | Reuse pending → approved pattern from learnings              |
-| **CLI Integration**      | `exoctl memory skill` commands fit existing UX               |
+| **CLI Integration**      | `exactl memory skill` commands fit existing UX               |
 
 ### Memory Type Hierarchy
 
@@ -117,7 +117,7 @@ A **Skill** is a specialized Memory entry containing procedural knowledge:
 │  + Skills (How) ─────────────────────────────────────────────────── │
 │    ├── tdd-methodology: "Always write tests first..."               │
 │    ├── security-audit: "Check OWASP Top 10..."                      │
-│    └── exoframe-conventions: "Use initTestDbService()..."           │
+│    └── exaix-conventions: "Use initTestDbService()..."           │
 │                                                                      │
 │  + Task (What) ──────────────────────────────────────────────────── │
 │    └── User Request: "Review this authentication PR"                │
@@ -152,7 +152,7 @@ The Memory Bank already has:
 - ✅ Semantic search (`searchByKeyword`, `searchByTags`)
 - ✅ Approval workflow (`pending` → `approved`)
 - ✅ Scoping (`global` vs `project`)
-- ✅ CLI interface (`exoctl memory`)
+- ✅ CLI interface (`exactl memory`)
 - ✅ Activity logging integration
 
 Skills can reuse all of this infrastructure!
@@ -236,7 +236,7 @@ Memory/
 │   └── index.json
 └── Skills/                    # NEW
     ├── index.json             # Skill registry with triggers
-    ├── core/                  # Built-in skills (shipped with ExoFrame)
+    ├── core/                  # Built-in skills (shipped with Exaix)
     │   ├── tdd-methodology.skill.md
     │   ├── security-first.skill.md
     │   └── code-review.skill.md
@@ -479,7 +479,7 @@ const codeReviewFlow = defineFlow({
     },
     {
       agent: "reviewer",
-      skills: ["code-review-checklist", "exoframe-conventions"],
+      skills: ["code-review-checklist", "exaix-conventions"],
       task: "Review code quality",
     },
     {
@@ -684,7 +684,7 @@ Confidence = (KeywordScore * 0.4) + (TaskTypeScore * 0.3)
 | `documentation-driven` | Documentation-Driven Dev   | Methodology | ✅     |
 | `commit-message`       | Conventional Commits       | Workflow    | ✅     |
 | `typescript-patterns`  | TypeScript Best Practices  | Patterns    | ✅     |
-| `exoframe-conventions` | ExoFrame Conventions       | Domain      | ✅     |
+| `exaix-conventions` | Exaix Conventions       | Domain      | ✅     |
 
 **Files:** `Memory/Skills/core/*.skill.md`
 
@@ -823,23 +823,23 @@ defaultSkills: z.array(z.string()).optional(),
 
 ### Step 17.9: CLI Commands ✅ COMPLETE
 
-**Goal:** Add skill management to `exoctl memory` command tree.
+**Goal:** Add skill management to `exactl memory` command tree.
 
 **Deliverables:**
 
 ```bash
-exoctl memory skill list                     # List all skills
-exoctl memory skill list --status=active     # Filter by status
-exoctl memory skill show <skill-id>          # Show skill details
-exoctl memory skill create <skill-id>        # Create new skill
-exoctl memory skill match "<request>"        # Test trigger matching
-exoctl memory skill derive <learning-ids>    # Derive from learnings
+exactl memory skill list                     # List all skills
+exactl memory skill list --status=active     # Filter by status
+exactl memory skill show <skill-id>          # Show skill details
+exactl memory skill create <skill-id>        # Create new skill
+exactl memory skill match "<request>"        # Test trigger matching
+exactl memory skill derive <learning-ids>    # Derive from learnings
 ```text
 
 **Files Modified:**
 
 - `src/cli/memory_commands.ts` - Added 5 skill commands with formatting helpers
-- `src/cli/exoctl.ts` - Registered `memory skill` subcommand group
+- `src/cli/exactl.ts` - Registered `memory skill` subcommand group
 
 **Commands Implemented:**
 
@@ -1204,7 +1204,7 @@ export interface AgentStatus {
 │   ├─ 📝 documentation-driven        │ Source: core                  │
 │   ├─ ⚡ performance-aware           │ Version: 1.0.0                │
 │   ├─ 🔍 code-review                 │                               │
-│   ├─ 🏗️  exoframe-conventions       │ Triggers:                     │
+│   ├─ 🏗️  exaix-conventions       │ Triggers:                     │
 │   ├─ 🌐 api-first                   │   Keywords: tdd, test-first   │
 │   └─ ♻️  clean-code                  │   Task Types: testing, impl   │
 │                                     │                               │
@@ -1365,7 +1365,7 @@ export interface SkillsViewService {
 ### Configuration
 
 ```toml
-# exo.config.toml
+# exa.config.toml
 [skills]
 enabled = true
 auto_match = true
@@ -1442,7 +1442,7 @@ skill_context_budget = 2000  # tokens
 
 ```bash
 # 1. User notices pattern in learnings
-$ exoctl memory learning list --tags=testing
+$ exactl memory learning list --tags=testing
 ID         Title                           Category
 ─────────────────────────────────────────────────────
 abc-123    TDD reduced bugs in auth module  pattern
@@ -1450,7 +1450,7 @@ def-456    Test-first caught edge case      insight
 ghi-789    Refactoring safe with tests      insight
 
 # 2. Derive skill from learnings
-$ exoctl memory skill derive abc-123 def-456 ghi-789 \
+$ exactl memory skill derive abc-123 def-456 ghi-789 \
     --name "TDD Methodology" \
     --triggers.keywords "implement,feature,add"
 
@@ -1458,8 +1458,8 @@ Created draft skill: tdd-methodology (status: draft)
 Source learnings: abc-123, def-456, ghi-789
 
 # 3. Review and activate
-$ exoctl memory skill show tdd-methodology
-$ exoctl memory skill activate tdd-methodology
+$ exactl memory skill show tdd-methodology
+$ exactl memory skill activate tdd-methodology
 
 Skill activated: tdd-methodology
 ```text
@@ -1518,19 +1518,19 @@ quality_criteria:
     weight: 30
 ```text
 
-### exoframe-conventions.skill.yaml
+### exaix-conventions.skill.yaml
 
 ```yaml
-skill_id: "exoframe-conventions"
-name: "ExoFrame Project Conventions"
+skill_id: "exaix-conventions"
+name: "Exaix Project Conventions"
 version: "1.0.0"
 
 triggers:
-  - keywords: ["exoframe", "test", "service", "helper"]
+  - keywords: ["exaix", "test", "service", "helper"]
   - file_patterns: ["src/**", "tests/**"]
 
 instructions: |
-  ## ExoFrame Conventions
+  ## Exaix Conventions
 
   ### Test Helpers
   - Use `initTestDbService()` for database tests

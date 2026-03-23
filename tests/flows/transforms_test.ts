@@ -239,12 +239,12 @@ Deno.test("Transform Functions - templateFill", async (t) => {
 
 ## Status: {{status}}`;
     const context = {
-      project: "ExoFrame",
+      project: "Exaix",
       summary: "Implementation is progressing well.",
       status: "On Track",
     };
     const result = templateFill(template, context);
-    const expected = `# Report for ExoFrame
+    const expected = `# Report for Exaix
 
 ## Summary
 Implementation is progressing well.

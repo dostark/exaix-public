@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This plan addresses weaknesses in ExoFrame's single-agent orchestration patterns.
+This plan addresses weaknesses in Exaix's single-agent orchestration patterns.
 While Flows handle multi-agent pipelines, the direct agent execution model
 (Blueprints/Agents) lacks modern patterns that improve agent reliability,
 self-correction, and output quality.
@@ -393,9 +393,9 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 | File                                   | Updates Required                                     |
 | -------------------------------------- | ---------------------------------------------------- |
-| `docs/ExoFrame_User_Guide.md`          | Agent section: reflexion, confidence, session memory |
+| `docs/Exaix_User_Guide.md`          | Agent section: reflexion, confidence, session memory |
 | `docs/Building_with_AI_Agents.md`      | New agent patterns, template guide                   |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase 16 completion status                           |
+| `docs/Exaix_Implementation_Plan.md` | Phase 16 completion status                           |
 | `Blueprints/Agents/README.md`          | New templates, configuration options                 |
 
 # Tasks:
@@ -447,7 +447,7 @@ return { systemPrompt: content, agentId }; // Entire file becomes prompt!
 
 - [Phase 15: Flow Orchestration Improvements](./phase-15-flow-orchestration-improvements.md)
 - [Building with AI Agents](../../docs/Building_with_AI_Agents.md)
-- [ExoFrame Implementation Plan](../../docs/ExoFrame_Implementation_Plan.md)
+- [Exaix Implementation Plan](../../docs/Exaix_Implementation_Plan.md)
 
 ---
 
@@ -466,7 +466,7 @@ PlanExecutor but without result reflection.
 
 ### Chain-of-Thought (Wei et al., 2022)
 
-Explicit reasoning steps before answer. ExoFrame uses `<thought>` tags
+Explicit reasoning steps before answer. Exaix uses `<thought>` tags
 but doesn't enforce or validate the reasoning quality.
 
 ### Constitutional AI (Anthropic)
@@ -477,7 +477,7 @@ and revises. Could be used for security/safety validation.
 ### Tool-Use Reflection (OpenAI)
 
 After tool calls, evaluate: "Did I get what I needed? Should I try again
-with different parameters?" Currently missing in ExoFrame.
+with different parameters?" Currently missing in Exaix.
 
 ---
 

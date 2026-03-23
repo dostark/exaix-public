@@ -4,7 +4,7 @@
  * @description Provides the abstract base class for all CLI command handlers, offering shared utilities for configuration, database access, user identity, and YAML frontmatter processing.
  * @architectural-layer CLI
  * @dependencies [config_schema, db_schema, event_logger]
- * @related-files [src/cli/exoctl.ts]
+ * @related-files [src/cli/exactl.ts]
  */
 
 import type {
@@ -286,7 +286,7 @@ export abstract class BaseCommand {
 
   /**
    * Get the command line as a single string for logging
-   * @returns Command line string like "exoctl daemon start --force"
+   * @returns Command line string like "exactl daemon start --force"
    */
   /**
    * Get the system configuration
@@ -297,6 +297,6 @@ export abstract class BaseCommand {
   }
 
   protected getCommandLineString(): string {
-    return `exoctl ${Deno.args.join(" ")}`;
+    return `exactl ${Deno.args.join(" ")}`;
   }
 }

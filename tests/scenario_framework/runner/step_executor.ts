@@ -3,7 +3,7 @@
  * @path tests/scenario_framework/runner/step_executor.ts
  * @description Executes individual scenario steps for the initial Step 3
  * execution core, capturing stdout, stderr, exit code, timestamps, and
- * combined output for shell and exoctl step kinds.
+ * combined output for shell and exactl step kinds.
  * Supports wait-for-file steps with polling and timeout.
  * @architectural-layer Test
  * @dependencies [step_schema]
@@ -15,7 +15,7 @@ import { globToRegExp, resolve } from "@std/path";
 
 export interface IExecuteScenarioStepOptions {
   step: IScenarioStep;
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
   cwd?: string;
   env?: { [key: string]: string };
   verbose?: boolean;
@@ -201,13 +201,13 @@ function buildCommandSpec(options: IExecuteScenarioStepOptions): ICommandSpec {
     };
   }
 
-  if (options.step.type === ScenarioStepType.EXOCTL) {
+  if (options.step.type === ScenarioStepType.EXACTL) {
     if (!options.step.command) {
-      throw new Error(`exoctl step requires a command: ${options.step.id}`);
+      throw new Error(`exactl step requires a command: ${options.step.id}`);
     }
 
     return {
-      executable: options.exoctlExecutable ?? "exoctl",
+      executable: options.exactlExecutable ?? "exactl",
       args: [...tokenizeCommand(options.step.command), ...(options.step.args ?? [])],
     };
   }

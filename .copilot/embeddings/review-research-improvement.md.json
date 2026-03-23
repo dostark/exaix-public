@@ -3,7 +3,7 @@
   "title": "Review-Research-Improvement Pattern",
   "vecs": [
     {
-      "text": "# Review-Research-Improvement Pattern\n\nA structured methodology for evaluating ExoFrame subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.\n\n## When to Use\n\n- Evaluating a concept/subsystem for quality and completeness\n- Planning major architectural improvements\n- Preparing for multi-phase refactoring work\n- Identifying technical debt and prioritizing fixes\n- Creating new templates/patterns based on state-of-the-art research\n\n## Pattern Overview",
+      "text": "# Review-Research-Improvement Pattern\n\nA structured methodology for evaluating Exaix subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.\n\n## When to Use\n\n- Evaluating a concept/subsystem for quality and completeness\n- Planning major architectural improvements\n- Preparing for multi-phase refactoring work\n- Identifying technical debt and prioritizing fixes\n- Creating new templates/patterns based on state-of-the-art research\n\n## Pattern Overview",
       "vector": [
         0.6196078431372549,
         0.9254901960784314,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "| Document                               | Purpose                                   |\n| -------------------------------------- | ----------------------------------------- |\n| `docs/ExoFrame_User_Guide.md`          | User-facing feature documentation         |\n| `docs/Building_with_AI_Agents.md`      | Patterns and best practices               |\n| `docs/ExoFrame_Implementation_Plan.md` | Phase completion status                   |\n| Subsystem README                       | Template catalog, configuration reference |\n\n**Documentation Phase Template:**\n\n```markdown\n### Phase N.X: Documentation Update (1 day)\n\n**Goal:** Update user-facing documentation to reflect new capabilities.\n\n**Files to Update:**",
+      "text": "| Document                               | Purpose                                   |\n| -------------------------------------- | ----------------------------------------- |\n| `docs/Exaix_User_Guide.md`          | User-facing feature documentation         |\n| `docs/Building_with_AI_Agents.md`      | Patterns and best practices               |\n| `docs/Exaix_Implementation_Plan.md` | Phase completion status                   |\n| Subsystem README                       | Template catalog, configuration reference |\n\n**Documentation Phase Template:**\n\n```markdown\n### Phase N.X: Documentation Update (1 day)\n\n**Goal:** Update user-facing documentation to reflect new capabilities.\n\n**Files to Update:**",
       "vector": [
         0.8,
         0.11372549019607843,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "| File                            | Updates Required      |\n| ------------------------------- | --------------------- |\n| docs/ExoFrame_User_Guide.md     | [Section]: [features] |\n| docs/Building_with_AI_Agents.md | [patterns, examples]  |\n| [Subsystem]/README.md           | [templates, config]   |\n\n**Tasks:**\n\n1. Document new features with examples\n2. Update CLI reference\n3. Add troubleshooting section\n4. Update configuration reference\n\n**Success Criteria:**\n\n- [ ] User guide complete\n- [ ] Each feature has example\n- [ ] CLI documented\n```\n\n### 3.4 Prioritization Matrix",
+      "text": "| File                            | Updates Required      |\n| ------------------------------- | --------------------- |\n| docs/Exaix_User_Guide.md     | [Section]: [features] |\n| docs/Building_with_AI_Agents.md | [patterns, examples]  |\n| [Subsystem]/README.md           | [templates, config]   |\n\n**Tasks:**\n\n1. Document new features with examples\n2. Update CLI reference\n3. Add troubleshooting section\n4. Update configuration reference\n\n**Success Criteria:**\n\n- [ ] User guide complete\n- [ ] Each feature has example\n- [ ] CLI documented\n```\n\n### 3.4 Prioritization Matrix",
       "vector": [
         0.9803921568627451,
         0.24313725490196078,

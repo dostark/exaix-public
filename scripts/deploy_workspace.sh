@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/deploy_workspace.sh
-# Create a deployable ExoFrame workspace from the repo for users (not devs).
+# Create a deployable Exaix workspace from the repo for users (not devs).
 # Usage: ./scripts/deploy_workspace.sh [DEST_PATH]
 
 # Refactored deploy script: reuse scaffold.sh and add --no-run flag
@@ -23,9 +23,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-DEST=${DEST:-$HOME/ExoFrame}
+DEST=${DEST:-$HOME/Exaix}
 
-echo "Deploying ExoFrame workspace to: $DEST"
+echo "Deploying Exaix workspace to: $DEST"
 
 # Ensure target exists
 mkdir -p "$DEST"
@@ -41,7 +41,7 @@ fi
 
 # Copy runtime artifacts needed for an installed workspace (configs, tasks)
 rsync -a --exclude='node_modules' --exclude='.git' --exclude='*.log' \
-  "$REPO_ROOT/deno.json" "$REPO_ROOT/templates/exo.config.sample.toml" "$DEST/" || true
+  "$REPO_ROOT/deno.json" "$REPO_ROOT/templates/exa.config.sample.toml" "$DEST/" || true
 
 # Copy entire Memory/ folder (preserve subfolders and files)
 if [ -d "$REPO_ROOT/Memory" ]; then
@@ -89,27 +89,27 @@ if [ "$NORUN" -eq 0 ]; then
   ( cd "$DEST" && deno task cache || true )
   ( cd "$DEST" && deno task setup || true )
 
-  # Install exoctl CLI
-  if [ -n "${EXO_BIN_PATH:-}" ]; then
-    EXOCTL_BIN="$EXO_BIN_PATH/exoctl"
-    echo "Writing exoctl shim to $EXOCTL_BIN..."
-    mkdir -p "$EXO_BIN_PATH"
+  # Install exactl CLI
+  if [ -n "${EXA_BIN_PATH:-}" ]; then
+    EXACTL_BIN="$EXA_BIN_PATH/exactl"
+    echo "Writing exactl shim to $EXACTL_BIN..."
+    mkdir -p "$EXA_BIN_PATH"
 
-    cat <<EOF > "$EXOCTL_BIN"
+    cat <<EOF > "$EXACTL_BIN"
 #!/bin/sh
-export EXO_CONFIG_PATH="\${EXO_CONFIG_PATH:-$DEST/exo.config.toml}"
-exec deno run --allow-all --config "$DEST/deno.json" "$DEST/src/cli/exoctl.ts" "\$@"
+export EXA_CONFIG_PATH="\${EXA_CONFIG_PATH:-$DEST/exa.config.toml}"
+exec deno run --allow-all --config "$DEST/deno.json" "$DEST/src/cli/exactl.ts" "\$@"
 EOF
-    chmod +x "$EXOCTL_BIN"
+    chmod +x "$EXACTL_BIN"
   else
-    echo "Installing exoctl CLI globally..."
-    ( cd "$DEST" && deno install --global --allow-all --force --config deno.json -n exoctl src/cli/exoctl.ts 2>/dev/null || true )
+    echo "Installing exactl CLI globally..."
+    ( cd "$DEST" && deno install --global --allow-all --force --config deno.json -n exactl src/cli/exactl.ts 2>/dev/null || true )
   fi
 
   # Check if ~/.deno/bin is in PATH
   if [[ ":$PATH:" != *":$HOME/.deno/bin:"* ]]; then
     echo ""
-    echo "⚠️  Add ~/.deno/bin to your PATH to use exoctl:"
+    echo "⚠️  Add ~/.deno/bin to your PATH to use exactl:"
     echo "   echo 'export PATH=\"\$HOME/.deno/bin:\$PATH\"' >> ~/.bashrc"
     echo "   source ~/.bashrc"
   fi
@@ -124,18 +124,18 @@ echo "Next steps:"
 echo "  1. Navigate to workspace:"
 echo "     cd $DEST"
 echo ""
-echo "  2. Configure ExoFrame:"
-echo "     cp exo.config.sample.toml exo.config.toml"
-echo "     # Edit exo.config.toml to customize settings"
+echo "  2. Configure Exaix:"
+echo "     cp exa.config.sample.toml exa.config.toml"
+echo "     # Edit exa.config.toml to customize settings"
 echo ""
 echo "  3. Verify installation:"
-echo "     exoctl --version"
+echo "     exactl --version"
 echo ""
 echo "  4. Start the daemon:"
-echo "     exoctl daemon start"
+echo "     exactl daemon start"
 echo ""
 echo "  5. Check status:"
-echo "     exoctl daemon status"
+echo "     exactl daemon status"
 echo ""
 echo "For more information, see: $DEST/README.md"
 

@@ -80,19 +80,19 @@ export async function setupPortalGitRepos(): Promise<IPortalGitRepoSetup> {
 }
 
 /**
- * Helper to run exoctl CLI command
+ * Helper to run exactl CLI command
  */
-export async function runExoctl(args: string[], cwd: string) {
+export async function runExactl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
-  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
+  const exactlPath = join(repoRoot, "src", "cli", "exactl.ts");
 
   const env = Deno.env.toObject();
-  delete env.EXO_TEST_MODE;
-  delete env.EXO_TEST_CLI_MODE;
-  env.EXO_CONFIG_PATH = join(cwd, "exo.config.toml");
+  delete env.EXA_TEST_MODE;
+  delete env.EXA_TEST_CLI_MODE;
+  env.EXA_CONFIG_PATH = join(cwd, "exa.config.toml");
 
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", exoctlPath, ...args],
+    args: ["run", "--allow-all", exactlPath, ...args],
     cwd,
     stdout: "piped",
     stderr: "piped",

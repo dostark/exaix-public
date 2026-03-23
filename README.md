@@ -1,8 +1,8 @@
-# ExoFrame — Auditable Agent Orchestration Platform
+# Exaix — Auditable Agent Orchestration Platform
 
 [![Deno](https://img.shields.io/badge/runtime-Deno-green.svg)](https://deno.land/) [![SQLite](https://img.shields.io/badge/storage-SQLite-blue.svg)](https://www.sqlite.org/) [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](./LICENSE)
 
-ExoFrame is a secure, auditable platform for running autonomous agent workflows with human supervision. It focuses on reproducibility, security, and a permanent audit trail so teams can run complex, long-running agent tasks with confidence.
+Exaix is a secure, auditable platform for running autonomous agent workflows with human supervision. It focuses on reproducibility, security, and a permanent audit trail so teams can run complex, long-running agent tasks with confidence.
 
 Core ideas
 
@@ -12,17 +12,17 @@ Core ideas
 
 Where to find more detail
 
-- User Guide: [./docs/ExoFrame_User_Guide.md](./docs/ExoFrame_User_Guide.md)
-- Technical Spec: [./docs/dev/ExoFrame_Technical_Spec.md](./docs/dev/ExoFrame_Technical_Spec.md)
-- White Paper: [./docs/dev/ExoFrame_White_Paper.md](./docs/dev/ExoFrame_White_Paper.md)
+- User Guide: [./docs/Exaix_User_Guide.md](./docs/Exaix_User_Guide.md)
+- Technical Spec: [./docs/dev/Exaix_Technical_Spec.md](./docs/dev/Exaix_Technical_Spec.md)
+- White Paper: [./docs/dev/Exaix_White_Paper.md](./docs/dev/Exaix_White_Paper.md)
 - Development & TDD: [./docs/dev/Building_with_AI_Agents.md](./docs/dev/Building_with_AI_Agents.md)
 
 Quick start
 
 ```bash
 # Clone
-git clone https://github.com/dostark/exoframe.git
-cd exoframe
+git clone https://github.com/dostark/exaix.git
+cd exaix
 
 # Deploy a runtime workspace (copies Memory/, Blueprints/, top-level docs; does not copy templates/)
 ./scripts/deploy_workspace.sh ~/MyExoWorkspace
@@ -42,17 +42,17 @@ Core components & runtime layout
 
 Operator features
 
-- TUI Dashboard (`exoctl dashboard`) — review Plans, monitor agents, and approve changes.
+- TUI Dashboard (`exactl dashboard`) — review Plans, monitor agents, and approve changes.
 - Least-privilege execution — Deno's permission model reduces blast radius for agent actions.
 - Local-first operation — optional integrations to cloud LLMs, but data remains local by default.
 
 ## AI/LLM Configuration
 
-ExoFrame supports multiple LLM providers with intelligent selection based on cost, performance, and task requirements.
+Exaix supports multiple LLM providers with intelligent selection based on cost, performance, and task requirements.
 
 ### Quick Setup
 
-Create `exo.config.toml` in your workspace:
+Create `exa.config.toml` in your workspace:
 
 ```toml
 [ai]
@@ -102,16 +102,16 @@ export OPENAI_API_KEY="your-openai-key"
 export GOOGLE_API_KEY="your-google-key"
 ```
 
-**Runtime Overrides** (optional): ExoFrame supports 4 environment variables for temporary configuration overrides:
+**Runtime Overrides** (optional): Exaix supports 4 environment variables for temporary configuration overrides:
 
 ```bash
 # Override provider/model for a single command
-EXO_LLM_PROVIDER=ollama EXO_LLM_MODEL=llama3.2 exoctl request "..."
+EXA_LLM_PROVIDER=ollama EXA_LLM_MODEL=llama3.2 exactl request "..."
 
-# Available overrides: EXO_LLM_PROVIDER, EXO_LLM_MODEL, EXO_LLM_BASE_URL, EXO_LLM_TIMEOUT_MS
+# Available overrides: EXA_LLM_PROVIDER, EXA_LLM_MODEL, EXA_LLM_BASE_URL, EXA_LLM_TIMEOUT_MS
 ```
 
-> **Note:** All `EXO_LLM_*` variables are validated via Zod schema. Use `exo.config.toml` for persistent configuration.
+> **Note:** All `EXA_LLM_*` variables are validated via Zod schema. Use `exa.config.toml` for persistent configuration.
 
 See the [Provider Strategy Guide](./docs/Provider_Strategy_Guide.md) for advanced configuration options.
 
@@ -123,7 +123,7 @@ Testing & contributing
 
 License
 
-- Proprietary © ExoFrame Development Team
+- Proprietary © Exaix Development Team
 
-# **End ExoFrame overview**
+# **End Exaix overview**
 

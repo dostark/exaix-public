@@ -1,16 +1,16 @@
-Checking `src/cli/exoctl.ts` confirms that the `portal` command group only defines `add`, `list`, `show`, `remove`, `verify`, and `refresh`.
+Checking `src/cli/exactl.ts` confirms that the `portal` command group only defines `add`, `list`, `show`, `remove`, `verify`, and `refresh`.
 
 ## Expected Behavior
 
-- `exoctl portal analyze <alias>` should trigger codebase knowledge gathering.
-- `exoctl portal knowledge <alias>` should display gathered knowledge.
-- Both commands should be visible in `exoctl portal --help`.
+- `exactl portal analyze <alias>` should trigger codebase knowledge gathering.
+- `exactl portal knowledge <alias>` should display gathered knowledge.
+- Both commands should be visible in `exactl portal --help`.
 
 ## Environment
 
-- ExoFrame Version: 1.0.0
+- Exaix Version: 1.0.0
 - OS: Linux
-- CLI: exoctl (cliffy)
+- CLI: exactl (cliffy)
 
 ## Root Cause Analysis
 

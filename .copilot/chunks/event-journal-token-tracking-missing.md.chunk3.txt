@@ -1,4 +1,4 @@
-High priority because token usage and cost tracking is a core declared feature of ExoFrame for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.
+High priority because token usage and cost tracking is a core declared feature of Exaix for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.
 
 ## Resolution
 

@@ -1,11 +1,11 @@
-# ExoFrame Repository Build
+# Exaix Repository Build
 
 - **Version:** 1.7.0
 - **Release Date:** 2025-12-02
 
 ### Create repository from scratch (no GitHub repo yet)
 
-If you (the project creator) are starting ExoFrame development from scratch and there is no repository yet, follow these
+If you (the project creator) are starting Exaix development from scratch and there is no repository yet, follow these
 optional bootstrap steps to create a local repository and publish it to GitHub. The commands below use the GitHub CLI
 (`gh`) where possible for automation; you can also create the repository via the GitHub web UI.
 
@@ -21,7 +21,7 @@ optional bootstrap steps to create a local repository and publish it to GitHub. 
 
 ```bash
 # Create project folder
-mkdir -p ~/ExoFrame && cd ~/ExoFrame
+mkdir -p ~/Exaix && cd ~/Exaix
 
 # Create initial files (scaffold only — database and runtime setup handled by tasks below)
 cat > .gitignore <<'EOF'
@@ -84,24 +84,24 @@ Authenticate and create repo:
 gh auth login
 
 # Create a new repo under your user or org (replace <org> or use --public/--private flags)
-gh repo create <org>/exoframe --public --source=. --remote=origin --push
+gh repo create <org>/exaix --public --source=. --remote=origin --push
 ```
 
 If you prefer the web UI, create a new repository at https://github.com/new, then add the remote and push:
 
 ```bash
-git remote add origin git@github.com:<org>/exoframe.git
+git remote add origin git@github.com:<org>/exaix.git
 git push -u origin main
 ```
 
-**Note:** The above steps create the _development repository_ for ExoFrame (the source code, tests, and developer
+**Note:** The above steps create the _development repository_ for Exaix (the source code, tests, and developer
 tooling). A deployed _user workspace_ is a separate directory where end-users run the daemon and store their Knowledge
 vault. See the "Deploying a user workspace" section below for how to bootstrap a runtime workspace from this repository.
 
 #### B. Create required Deno config files and folder tree (must-do for Deno)
 
 Before running any `deno task` commands, you must have a `deno.json` (or `deno.jsonc`) file in your project root. You
-should also create a minimal `exo.config.toml` and the required folder structure. See the Implementation Plan for full
+should also create a minimal `exa.config.toml` and the required folder structure. See the Implementation Plan for full
 details, but the following is the minimal working set:
 
 1. Create `deno.json` (minimal example):
@@ -109,12 +109,12 @@ details, but the following is the minimal working set:
 ```bash
 cat > deno.json <<'EOF'
 {
-  "name": "@dostark/exoframe",
+  "name": "@dostark/exaix",
   "version": "0.1.0",
   "lock": true,
   "exports": "./src/main.ts",
   "tasks": {
-    "start": "deno run --allow-read=. --allow-write=. --allow-net=api.anthropic.com,api.openai.com,localhost:11434 --allow-env=EXO_,HOME,USER --allow-run=git src/main.ts",
+    "start": "deno run --allow-read=. --allow-write=. --allow-net=api.anthropic.com,api.openai.com,localhost:11434 --allow-env=EXA_,HOME,USER --allow-run=git src/main.ts",
     "dev": "deno run --watch --allow-all src/main.ts",
     "stop": "deno run --allow-run=pkill scripts/stop.ts",
     "status": "deno run --allow-run=ps scripts/status.ts",
@@ -128,7 +128,7 @@ cat > deno.json <<'EOF'
     "fmt": "deno fmt src/ tests/",
     "fmt:check": "deno fmt --check src/ tests/",
     "cache": "deno cache src/main.ts",
-    "compile": "deno compile --allow-all --output exoframe src/main.ts"
+    "compile": "deno compile --allow-all --output exaix src/main.ts"
   },
   "imports": {
     "@std/fs": "jsr:@std/fs@^0.221.0",
@@ -137,7 +137,7 @@ cat > deno.json <<'EOF'
     "@db/sqlite": "jsr:@db/sqlite@^0.11.0",
     "zod": "https://deno.land/x/zod@v3.22.4/mod.ts"
   },
-  "exclude": ["cov_profile", "exoframe", "dist"],
+  "exclude": ["cov_profile", "exaix", "dist"],
   "lint": {
     "rules": {
       "tags": ["recommended"],
@@ -168,7 +168,7 @@ EOF
 1.
 
 ```bash
-cat > exo.config.toml <<'EOF'
+cat > exa.config.toml <<'EOF'
 [system]
 version = "1.0.0"
 log_level = "info"
@@ -192,7 +192,7 @@ touch tests/.gitkeep migrations/.gitkeep Blueprints/Agents/.gitkeep Blueprints/F
 ```bash
 mkdir -p src
 cat > src/main.ts <<'EOF'
-console.log("ExoFrame Daemon Active");
+console.log("Exaix Daemon Active");
 EOF
 ```
 
@@ -218,14 +218,14 @@ sqlite3 .exo/journal.db "SELECT COUNT(*) FROM activity;"
 
 For full configuration, see:
 
-- Implementation Plan: `ExoFrame_Implementation_Plan.md` — section **Bootstrap: Developer Workspace Setup**
-- Technical Spec: `ExoFrame_Technical_Spec.md` — section **3. Directory Structure**
+- Implementation Plan: `Exaix_Implementation_Plan.md` — section **Bootstrap: Developer Workspace Setup**
+- Technical Spec: `Exaix_Technical_Spec.md` — section **3. Directory Structure**
 
 ---
 
 ## Deploying a user workspace
 
-See [ExoFrame User Guide](./ExoFrame_User_Guide.md) for instructions on how to deploy and manage a user workspace.
+See [Exaix User Guide](./Exaix_User_Guide.md) for instructions on how to deploy and manage a user workspace.
 
 #### C. Recommended repository settings (first-run)
 
@@ -238,7 +238,7 @@ See [ExoFrame User Guide](./ExoFrame_User_Guide.md) for instructions on how to d
 Example: enable a minimal branch protection rule via `gh` (requires repo admin privileges):
 
 ```bash
-gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}'
+gh api --method POST /repos/<org>/exaix/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}'
 ```
 
 #### D. First PR & branch strategy
@@ -254,7 +254,7 @@ gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_
 
 # Notes:
 
-- Do not commit secrets (API keys) to the repository. Use `exoctl secret set` and exclude key files via `.gitignore`.
+- Do not commit secrets (API keys) to the repository. Use `exactl secret set` and exclude key files via `.gitignore`.
 - If you want automated repo creation as part of `scripts/bootstrap`, add an interactive flag so creators can choose web
   UI or `gh` automation.
 
@@ -266,15 +266,15 @@ This document covers _only_ the minimal actions required to create the repositor
 developer workspace bootstrap (installing Deno, initializing the Activity Journal, scaffolding the Knowledge vault,
 running tests, and starting the daemon), see the Implementation Plan and Technical Specification:
 
-- Implementation Plan: `ExoFrame_Implementation_Plan.md` — see section **Bootstrap: Developer Workspace Setup**
-- Technical Spec: `ExoFrame_Technical_Spec.md` — see section **11.4 Bootstrap (Reference Implementation)**
+- Implementation Plan: `Exaix_Implementation_Plan.md` — see section **Bootstrap: Developer Workspace Setup**
+- Technical Spec: `Exaix_Technical_Spec.md` — see section **11.4 Bootstrap (Reference Implementation)**
 
 Minimal next steps after repository creation (creator-only, do these once):
 
 1. Copy the system sample config into the repo (if present) and set basic values:
 
 ```bash
-cp exo.config.sample.toml exo.config.toml 2>/dev/null || true
+cp exa.config.sample.toml exa.config.toml 2>/dev/null || true
 ```
 
 1. commands:
@@ -284,7 +284,7 @@ cp exo.config.sample.toml exo.config.toml 2>/dev/null || true
 git push -u origin main
 
 # If using GitHub and gh is installed, enable a simple branch protection rule (requires admin):
-gh api --method POST /repos/<org>/exoframe/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}' || true
+gh api --method POST /repos/<org>/exaix/branches/main/protection -f required_status_checks='{"strict":true,"contexts":[]}' -f enforce_admins=true -f required_pull_request_reviews='{"required_approving_review_count":1}' || true
 ```
 
 1. See the Implementation Plan for secure developer guidance.

@@ -3,7 +3,7 @@
   "title": "Infrastructure/Config Template (#infra)",
   "vecs": [
     {
-      "text": "**Purpose:** Plan and implement infrastructure or configuration changes for ExoFrame.\n\n---\n\n## Instructions for Agent\n\n- Restate the infrastructure/config goal and scope.\n- Identify affected systems, files, and dependencies.\n- Plan changes with rollback and validation steps.\n- Add tests for config changes if possible.\n- Validate changes with linting and tests.\n\n---\n\n## Template\n\n**Infra/Config Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Affected Systems/Files:**\n\n- ...\n\n**Plan:**\n\n- ...\n\n**Validation:**\n\n- Tests pass\n- Linting clean\n- Rollback plan ready",
+      "text": "**Purpose:** Plan and implement infrastructure or configuration changes for Exaix.\n\n---\n\n## Instructions for Agent\n\n- Restate the infrastructure/config goal and scope.\n- Identify affected systems, files, and dependencies.\n- Plan changes with rollback and validation steps.\n- Add tests for config changes if possible.\n- Validate changes with linting and tests.\n\n---\n\n## Template\n\n**Infra/Config Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Affected Systems/Files:**\n\n- ...\n\n**Plan:**\n\n- ...\n\n**Validation:**\n\n- Tests pass\n- Linting clean\n- Rollback plan ready",
       "vector": [
         0.2196078431372549,
         0.5647058823529412,

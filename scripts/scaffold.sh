@@ -34,9 +34,9 @@ touch "$TARGET/Portals/.gitkeep" || true
 touch "$TARGET/.exo/.gitkeep" || true
 
 
-if [ -f "$ROOT_DIR/templates/exo.config.sample.toml" ] && [ ! -f "$TARGET/exo.config.sample.toml" ]; then
-  cp "$ROOT_DIR/templates/exo.config.sample.toml" "$TARGET/exo.config.sample.toml"
-  echo "Copied exo.config.sample.toml"
+if [ -f "$ROOT_DIR/templates/exa.config.sample.toml" ] && [ ! -f "$TARGET/exa.config.sample.toml" ]; then
+  cp "$ROOT_DIR/templates/exa.config.sample.toml" "$TARGET/exa.config.sample.toml"
+  echo "Copied exa.config.sample.toml"
 fi
 
 if [ -f "$ROOT_DIR/templates/README.md" ] && [ ! -f "$TARGET/README.md" ]; then

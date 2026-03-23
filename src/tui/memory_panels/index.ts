@@ -175,7 +175,7 @@ export function renderGlobalPanel(
   if (!memory) {
     lines.push("Global memory not initialized.");
     lines.push("");
-    lines.push("Run: exoctl memory init --global");
+    lines.push("Run: exactl memory init --global");
     return lines.join("\n");
   }
 

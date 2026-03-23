@@ -2,7 +2,7 @@
 agent: copilot
 scope: dev
 title: jscpd Code Duplication Detection Guide
-short_summary: "Using jscpd to detect and track code duplication in ExoFrame codebase"
+short_summary: "Using jscpd to detect and track code duplication in Exaix codebase"
 version: "0.1"
 topics: ["refactoring", "quality", "tools", "jscpd"]
 ---
@@ -174,7 +174,7 @@ npx jscpd src/ tests/ --threshold 5
 npx jscpd src/ai/ --threshold 3
 ```text
 
-## ExoFrame-Specific Patterns
+## Exaix-Specific Patterns
 
 ### Test Helper Locations
 

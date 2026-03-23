@@ -25,7 +25,7 @@ import { RequestKind } from "../shared/enums.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine
- * Implements Step 7.6 of the ExoFrame Implementation Plan
+ * Implements Step 7.6 of the Exaix Implementation Plan
  *
  * Routing Priority:
  * 1. flow: <id> → FlowRunner (multi-agent)

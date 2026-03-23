@@ -8,7 +8,7 @@ mode_support: ["manual-checkpoint"]
 portals: []
 steps:
   - id: "create-request"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args: ["--file", "$FRAMEWORK_HOME/fixtures/requests/agent_flows/quality_gate_clarification.md"]
     input_criteria:

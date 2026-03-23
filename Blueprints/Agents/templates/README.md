@@ -158,7 +158,7 @@ Fragments are located in `Blueprints/Fragments/`.
    - **Refine Capabilities:** Add/remove tools as needed.
 1.
    ```bash
-   exoctl blueprint validate my-reviewer
+   exactl blueprint validate my-reviewer
    ```
 
 ## Frontmatter Reference
@@ -195,7 +195,7 @@ default_skills: ["code-review", "security-first"] # Applied to all requests
 | `documentation-driven` | Technical writers, documenters |
 | `typescript-patterns`  | TypeScript developers          |
 | `commit-message`       | Git-aware agents               |
-| `exoframe-conventions` | ExoFrame-specific development  |
+| `exaix-conventions` | Exaix-specific development  |
 
 **Skill Resolution Priority:**
 

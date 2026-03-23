@@ -1,6 +1,6 @@
 ## Problem
 
-The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates ExoFrame's declared functionality for cost tracking and monitoring.
+The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates Exaix's declared functionality for cost tracking and monitoring.
 
 ## Reproduction Steps
 

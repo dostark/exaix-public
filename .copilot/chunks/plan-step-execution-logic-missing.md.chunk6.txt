@@ -10,5 +10,5 @@ Approved plans are marked as "completed" but the actual step execution logic is 
 
 ```bash
 # Create and approve a plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/Exaix && deno run --allow-all src/cli/exactl.ts plan approve <plan-id>

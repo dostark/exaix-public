@@ -18,24 +18,24 @@ import { getTestModel } from "../ai/helpers/test_model.ts";
 import { getWorkspaceDir, getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
 import { DEFAULT_OPENAI_BASE_URL } from "../../src/shared/constants.ts";
 
-const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
+const _enabled = Deno.env.get("EXA_TEST_ENABLE_PAID_LLM");
 Deno.test(
   { name: "LLM provider integration (manual) - end-to-end RequestProcessor", ignore: _enabled !== "1" },
   async (_t) => {
     // Manual integration test - opt-in only
     // Requires:
-    //  - EXO_TEST_ENABLE_PAID_LLM=1 (explicit opt-in)
-    //  - EXO_TEST_OPENAI_API_KEY set
-    const enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
-    const apiKey = Deno.env.get("EXO_TEST_OPENAI_API_KEY");
+    //  - EXA_TEST_ENABLE_PAID_LLM=1 (explicit opt-in)
+    //  - EXA_TEST_OPENAI_API_KEY set
+    const enabled = Deno.env.get("EXA_TEST_ENABLE_PAID_LLM");
+    const apiKey = Deno.env.get("EXA_TEST_OPENAI_API_KEY");
 
     if (enabled !== "1") {
-      console.warn("Skipping manual integration test: EXO_TEST_ENABLE_PAID_LLM is not set to '1' (opt-in required)");
+      console.warn("Skipping manual integration test: EXA_TEST_ENABLE_PAID_LLM is not set to '1' (opt-in required)");
       return;
     }
 
     if (!apiKey) {
-      console.warn("Skipping manual integration test: EXO_TEST_OPENAI_API_KEY not set");
+      console.warn("Skipping manual integration test: EXA_TEST_OPENAI_API_KEY not set");
       return;
     }
 
@@ -100,14 +100,14 @@ Always respond with:
 
         // Skip on unauthorized (401)
         if (errMsg.includes("401") || errMsg.includes("unauthorized") || errMsg.includes("invalid api key")) {
-          console.warn("Skipping manual integration test: unauthorized (401). Check EXO_TEST_OPENAI_API_KEY");
+          console.warn("Skipping manual integration test: unauthorized (401). Check EXA_TEST_OPENAI_API_KEY");
           return;
         }
 
         // Skip on model not found (404)
         if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("model")) {
           console.warn(
-            "Skipping manual integration test: model not found (404). Check EXO_TEST_LLM_MODEL and API access.",
+            "Skipping manual integration test: model not found (404). Check EXA_TEST_LLM_MODEL and API access.",
           );
           return;
         }

@@ -1,6 +1,3 @@
-3. INJECT CONTEXT:
-   deno run --allow-read scripts/inject_agent_context.ts claude "Zod schema validation Flow parameters" 6
-
 4. IMPLEMENT:
    - Write failing tests first (invalid parameters should fail)
    - Create Zod schema in src/schemas/flow.ts
@@ -29,3 +26,8 @@ Feature: Flow parameter validation
 I want to add a new feature: Export activity logs to JSON.
 
 Implementation Plan workflow:
+
+1. READ PLAN:
+   - Open docs/Exaix_Implementation_Plan.md
+   - Find appropriate Phase (Phase 7: Activity Logging)
+   - No existing step for export feature

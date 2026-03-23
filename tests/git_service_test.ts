@@ -66,8 +66,8 @@ Deno.test("GitService: auto-configures identity if missing", async () => {
     const userName = await helper.getUserName();
     assertExists(userName);
     assert(
-      userName.includes("ExoFrame") || userName.includes("bot"),
-      `Expected username to contain ExoFrame or bot, got: ${userName}`,
+      userName.includes("Exaix") || userName.includes("bot"),
+      `Expected username to contain Exaix or bot, got: ${userName}`,
     );
   } finally {
     await cleanup();

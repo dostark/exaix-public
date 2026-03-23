@@ -11,7 +11,7 @@ import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
 import { getProviderForModel } from "./helpers/test_config.ts";
 
 // Check if LlamaProvider tests should run
-const shouldRunLlamaTests = Deno.env.get("EXO_TEST_ENABLE_LLAMA") === "true";
+const shouldRunLlamaTests = Deno.env.get("EXA_TEST_ENABLE_LLAMA") === "true";
 
 // Helper function to conditionally run tests
 function llamaTest(name: string, fn: () => void | Promise<void>) {

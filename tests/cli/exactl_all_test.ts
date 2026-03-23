@@ -1,7 +1,7 @@
 /**
- * @module ExoCtlAllTest
- * @path tests/cli/exoctl_all_test.ts
- * @description Comprehensive orchestration tests for the exoctl CLI, verifying the integration
+ * @module ExaCtlAllTest
+ * @path tests/cli/exactl_all_test.ts
+ * @description Comprehensive orchestration tests for the exactl CLI, verifying the integration
  * between global command routing, test-mode context injection, and primary subcommands (plan, review, daemon).
  */
 
@@ -43,7 +43,7 @@ import type { BlueprintCreateOptions, BlueprintRemoveOptions } from "../../src/c
 */
 
 // ---- Basic module export sanity tests ----
-Deno.test("exoctl exposes test context when EXO_TEST_MODE=1", async () => {
+Deno.test("exactl exposes test context when EXA_TEST_MODE=1", async () => {
   await withTestMod((mod, _ctx) => {
     assertExists(mod.__test_getContext);
     const c = mod.__test_getContext();
@@ -522,21 +522,21 @@ Deno.test("dashboard show calls dashboardCommands.show", async () => {
   });
 });
 
-if (Deno.env.get("RUN_EXOCTL_TEST")) {
-  Deno.test("exoctl: --version prints version and exits", async () => {
+if (Deno.env.get("RUN_EXACTL_TEST")) {
+  Deno.test("exactl: --version prints version and exits", async () => {
     const cmd = new Deno.Command(Deno.execPath(), {
-      args: ["run", "--no-check", "--quiet", "src/cli/exoctl.ts", "--version"],
+      args: ["run", "--no-check", "--quiet", "src/cli/exactl.ts", "--version"],
       stdout: "piped",
       stderr: "piped",
     });
     const { stdout, stderr } = await cmd.output();
     const out = new TextDecoder().decode(stdout);
     const err = new TextDecoder().decode(stderr);
-    if (!out && err) throw new Error(`exoctl did not produce stdout. stderr: ${err}`);
+    if (!out && err) throw new Error(`exactl did not produce stdout. stderr: ${err}`);
     assertStringIncludes(out + err, "1.0.0");
   });
 } else {
-  Deno.test({ name: "exoctl: --version prints version and exits (skipped)", ignore: true, fn: () => {} });
+  Deno.test({ name: "exactl: --version prints version and exits (skipped)", ignore: true, fn: () => {} });
 }
 
 Deno.test("request without description exits with error", async () => {
@@ -727,9 +727,9 @@ Deno.test("blueprint create successful prints created message", async () => {
   });
 });
 
-// ---- Additional focused tests to improve coverage for src/cli/exoctl.ts ----
+// ---- Additional focused tests to improve coverage for src/cli/exactl.ts ----
 
-Deno.test("exoctl: --version prints version and exits (in-process)", async () => {
+Deno.test("exactl: --version prints version and exits (in-process)", async () => {
   await withTestMod(async (mod, _ctx) => {
     const origExit = Deno.exit;
     const origLog = console.log;

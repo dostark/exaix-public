@@ -23,7 +23,7 @@ import {
   gitStdout,
   listBranches,
   pathExists,
-  runExoctl,
+  runExactl,
 } from "../helpers/portal_test_utils.ts";
 import { setupGitRepo } from "../helpers/git_test_helper.ts";
 
@@ -132,13 +132,13 @@ Return an analysis-only plan.
     assertEquals(workspaceBranchesAfter, workspaceBranchesBefore);
 
     // Validate unified CLI review surface works for portal artifacts.
-    const show = await runExoctl(["review", "show", artifacts[0].id, "--diff"], env.tempDir);
+    const show = await runExactl(["review", "show", artifacts[0].id, "--diff"], env.tempDir);
     assertEquals(show.code, 0);
     assertStringIncludes(show.stdout, "Execution Artifact");
     assertStringIncludes(show.stdout, requestId);
     assertStringIncludes(show.stdout, traceId);
 
-    const approve = await runExoctl(["review", "approve", artifacts[0].id], env.tempDir);
+    const approve = await runExactl(["review", "approve", artifacts[0].id], env.tempDir);
     assertEquals(approve.code, 0);
 
     const updated = await env.db.preparedGet<{ status: string }>(
@@ -310,7 +310,7 @@ Deno.test("[e2e] Portal target_branch review approve merges into that branch", a
       stderr: "piped",
     }).output();
 
-    const approve = await runExoctl(["review", "approve", createdPortalBranch], env.tempDir);
+    const approve = await runExactl(["review", "approve", createdPortalBranch], env.tempDir);
     assertEquals(approve.code, 0, approve.stderr);
 
     // After merge: file should exist on the target branch but not on main.
@@ -392,7 +392,7 @@ Deno.test("[e2e][negative] Portal CLI review approve fails if not on review base
       stderr: "piped",
     }).output();
 
-    const cliApprove = await runExoctl(["review", "approve", createdPortalBranch], env.tempDir);
+    const cliApprove = await runExactl(["review", "approve", createdPortalBranch], env.tempDir);
     assert(cliApprove.code !== 0, "Expected review approve to fail off the review base_branch");
     assertStringIncludes(cliApprove.stdout, `Must be on '${targetBranch}' branch`);
     assertStringIncludes(cliApprove.stdout, `Run: git checkout ${targetBranch}`);
@@ -432,7 +432,7 @@ Deno.test("[e2e][negative] Portal CLI review show fails without portal symlink",
     const createdPortalBranch = await assertPortalBranchExists(portalTargetPath, `feat/${requestId}-`);
 
     // NOTE: no `Portals/<alias>` symlink created on purpose.
-    const cliShow = await runExoctl(["review", "show", createdPortalBranch, "--diff"], env.tempDir);
+    const cliShow = await runExactl(["review", "show", createdPortalBranch, "--diff"], env.tempDir);
     assert(cliShow.code !== 0, "Expected review show to fail without portal discovery symlink");
     assertStringIncludes(cliShow.stdout, "Branch not found");
   } finally {
@@ -531,7 +531,7 @@ Deno.test(
       // Precondition: checkout target branch before approval.
       await gitStdout(portalTargetPath, ["checkout", targetBranch]);
 
-      const approve = await runExoctl(["review", "approve", createdPortalBranch], env.tempDir);
+      const approve = await runExactl(["review", "approve", createdPortalBranch], env.tempDir);
       assertEquals(approve.code, 0, approve.stderr);
 
       // Worktree + pointer should be cleaned up, and feature branch deleted.

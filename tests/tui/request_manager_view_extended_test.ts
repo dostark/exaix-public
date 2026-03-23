@@ -950,7 +950,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
     config: {
       get: () => dummyConfig,
       getAll: () => dummyConfig,
-      getConfigPath: () => "exo.config.toml",
+      getConfigPath: () => "exa.config.toml",
       reload: () => dummyConfig,
       addPortal: () => Promise.resolve(),
       removePortal: () => Promise.resolve(),

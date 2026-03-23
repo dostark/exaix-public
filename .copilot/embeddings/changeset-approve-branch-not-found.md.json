@@ -3,7 +3,7 @@
   "title": "Changeset approve fails to find branches in portal repositories",
   "vecs": [
     {
-      "text": "# Changeset approve fails to find branches in portal repositories\n\n## Problem\n\nThe `exoctl changeset approve` command fails with \"Branch not found\" error even when the changeset is visible in `exoctl changeset list`. This occurs because the approve command only searches the workspace root repository for branches, but changesets can be created in portal repositories.\n\n## Reproduction Steps\n\n```bash\n# Create a request that generates a changeset in a portal repo\nexoctl request create \"some request\"\n\n# Wait for agent to create plan and changeset\nexoctl plan approve <plan-id>\n\n# List changesets - shows the changeset\nexoctl changeset list\n\n# Try to approve - fails\nexoctl changeset approve request-a300d5a5\n```\n\n## Observed Behavior",
+      "text": "# Changeset approve fails to find branches in portal repositories\n\n## Problem\n\nThe `exactl changeset approve` command fails with \"Branch not found\" error even when the changeset is visible in `exactl changeset list`. This occurs because the approve command only searches the workspace root repository for branches, but changesets can be created in portal repositories.\n\n## Reproduction Steps\n\n```bash\n# Create a request that generates a changeset in a portal repo\nexactl request create \"some request\"\n\n# Wait for agent to create plan and changeset\nexactl plan approve <plan-id>\n\n# List changesets - shows the changeset\nexactl changeset list\n\n# Try to approve - fails\nexactl changeset approve request-a300d5a5\n```\n\n## Observed Behavior",
       "vector": [
         0.14901960784313725,
         0.2784313725490196,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "```\n❌ cli.error: changeset approve\n   message: Branch not found: feat/request-a300d5a5-a300d5a5\n```\n\nBut `exoctl changeset list` shows:\n\n```\n✅ changeset.list: changesets\n   count: 1\n✅ 📌 request-a300d5a5: feat/request-a300d5a5-a300d5a5\n   files: 0\n   created: 1/22/2026, 8:14:56 PM\n   trace: a300d5a5...\n```\n\n## Expected Behavior\n\nThe approve command should find the branch in the correct repository (portal or workspace) and successfully merge it.\n\n## Environment\n\n- ExoFrame Version: current development\n- OS: Linux\n- Deno Version: 1.x.x\n- Relevant Config: Portal repositories configured\n\n## Investigation Needed",
+      "text": "```\n❌ cli.error: changeset approve\n   message: Branch not found: feat/request-a300d5a5-a300d5a5\n```\n\nBut `exactl changeset list` shows:\n\n```\n✅ changeset.list: changesets\n   count: 1\n✅ 📌 request-a300d5a5: feat/request-a300d5a5-a300d5a5\n   files: 0\n   created: 1/22/2026, 8:14:56 PM\n   trace: a300d5a5...\n```\n\n## Expected Behavior\n\nThe approve command should find the branch in the correct repository (portal or workspace) and successfully merge it.\n\n## Environment\n\n- Exaix Version: current development\n- OS: Linux\n- Deno Version: 1.x.x\n- Relevant Config: Portal repositories configured\n\n## Investigation Needed",
       "vector": [
         0.3764705882352941,
         0.47843137254901963,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "- **Additional Fix**: Updated regex in `show` method from `request-\\d+` to `request-[\\w]+` to support alphanumeric request IDs like `request-a300d5a5`.\n\n- **Commit**: Changes applied to `src/cli/changeset_commands.ts`\n\n- **Verified**: Manual testing confirmed `exoctl changeset approve request-a300d5a5` now works correctly.",
+      "text": "- **Additional Fix**: Updated regex in `show` method from `request-\\d+` to `request-[\\w]+` to support alphanumeric request IDs like `request-a300d5a5`.\n\n- **Commit**: Changes applied to `src/cli/changeset_commands.ts`\n\n- **Verified**: Manual testing confirmed `exactl changeset approve request-a300d5a5` now works correctly.",
       "vector": [
         0.058823529411764705,
         0.396078431372549,

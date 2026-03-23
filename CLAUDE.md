@@ -17,7 +17,7 @@
 
 **Example acknowledgment format:**
 
-> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exoframe.md` for service architecture before implementing this feature."
+> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exaix.md` for service architecture before implementing this feature."
 
 **Failure to consult `.copilot/` documentation is considered a violation of project standards.**
 
@@ -28,7 +28,7 @@
 | Need                 | Location                                                                 |
 | -------------------- | ------------------------------------------------------------------------ |
 | Task → Doc mapping   | [.copilot/cross-reference.md](.copilot/cross-reference.md)               |
-| Source patterns      | [.copilot/source/exoframe.md](.copilot/source/exoframe.md)               |
+| Source patterns      | [.copilot/source/exaix.md](.copilot/source/exaix.md)               |
 | Testing patterns     | [.copilot/tests/testing.md](.copilot/tests/testing.md)                   |
 | Documentation guide  | [.copilot/docs/documentation.md](.copilot/docs/documentation.md)         |
 | Commit message guide | [.copilot/prompts/commit-message.md](.copilot/prompts/commit-message.md) |
@@ -37,7 +37,7 @@
 
 ## Project Overview
 
-**ExoFrame** is an AI agent orchestration framework built with **Deno** and **TypeScript**.
+**Exaix** is an AI agent orchestration framework built with **Deno** and **TypeScript**.
 
 ### Runtime & Tooling
 
@@ -175,7 +175,7 @@ A task is only complete when:
 ```text
 src/
 ├── ai/          # LLM provider implementations
-├── cli/         # CLI commands (exoctl)
+├── cli/         # CLI commands (exactl)
 ├── config/      # Configuration schemas
 ├── parsers/     # File parsers (frontmatter)
 ├── schemas/     # Zod validation schemas
@@ -216,8 +216,8 @@ The `.copilot/` folder contains **machine-readable guidance** for AI assistants:
 | Task                  | Consult                                                     |
 | --------------------- | ----------------------------------------------------------- |
 | Writing tests         | `.copilot/tests/testing.md`                                 |
-| Adding features       | `.copilot/source/exoframe.md` + `.copilot/tests/testing.md` |
-| Refactoring           | `.copilot/source/exoframe.md`                               |
+| Adding features       | `.copilot/source/exaix.md` + `.copilot/tests/testing.md` |
+| Refactoring           | `.copilot/source/exaix.md`                               |
 | Documentation         | `.copilot/docs/documentation.md`                            |
 | Planning/roadmap      | `.copilot/planning/*.md`                                    |
 | Finding the right doc | `.copilot/cross-reference.md`                               |

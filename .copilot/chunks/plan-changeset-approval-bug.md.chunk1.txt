@@ -1,5 +1,5 @@
-- `exoctl plan list` returns no plans after approval.
-- `exoctl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
+- `exactl plan list` returns no plans after approval.
+- `exactl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
 
 ## Additional Context
 
@@ -13,7 +13,7 @@
 
 ## Attachments
 
-- See detailed CLI session and scenario in `docs/dev/ExoFrame_Manual_Test_Scenarios.md` (lines 830+)
+- See detailed CLI session and scenario in `docs/dev/Exaix_Manual_Test_Scenarios.md` (lines 830+)
 
 ## Suggested Investigation
 

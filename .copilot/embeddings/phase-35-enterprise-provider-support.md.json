@@ -3,7 +3,7 @@
   "title": "phase-35-enterprise-provider-support.md",
   "vecs": [
     {
-      "text": "# Phase 35: Enterprise LLM Provider Support (Vertex AI + OpenRouter)\n\n> [!NOTE]\n> **Status: Planning**\n> This phase extends ExoFrame's LLM provider ecosystem with enterprise-grade authentication and aggregation services, prioritizing Google Vertex AI for quota/billing management and OpenRouter for multi-model access.\n>\n> **Business Context:** Free-tier Google AI API hits rate limits despite user having Google AI Pro subscription. Root cause: Simple API key auth doesn't access enterprise quotas.\n\n## Executive Summary\n\nFollowing Phase 26's provider flexibility improvements and Phase 28's environment variable validation, ExoFrame needs enterprise authentication mechanisms to unlock premium tier quotas and leverage LLM aggregation platforms.\n\n### **Problem Statement**\n\n**Current Limitation:**",
+      "text": "# Phase 35: Enterprise LLM Provider Support (Vertex AI + OpenRouter)\n\n> [!NOTE]\n> **Status: Planning**\n> This phase extends Exaix's LLM provider ecosystem with enterprise-grade authentication and aggregation services, prioritizing Google Vertex AI for quota/billing management and OpenRouter for multi-model access.\n>\n> **Business Context:** Free-tier Google AI API hits rate limits despite user having Google AI Pro subscription. Root cause: Simple API key auth doesn't access enterprise quotas.\n\n## Executive Summary\n\nFollowing Phase 26's provider flexibility improvements and Phase 28's environment variable validation, Exaix needs enterprise authentication mechanisms to unlock premium tier quotas and leverage LLM aggregation platforms.\n\n### **Problem Statement**\n\n**Current Limitation:**",
       "vector": [
         0.6901960784313725,
         0.48627450980392156,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "// Vertex AI Endpoints\nexport const VERTEX_AI_DEFAULT_REGION = \"us-central1\";\nexport const VERTEX_AI_ENDPOINT_PATTERN = \"https://{region}-aiplatform.googleapis.com/v1\";\nexport const VERTEX_AI_TIMEOUT_MS = 30000; // 30 seconds for Vertex AI requests\nexport const VERTEX_AI_RATE_LIMIT_RPM = 60; // 60 requests per minute\n\n// OpenRouter\nexport const OPENROUTER_BASE_URL = \"https://openrouter.ai/api/v1\";\nexport const OPENROUTER_TIMEOUT_MS = 60000; // 60 seconds for OpenRouter\nexport const OPENROUTER_RATE_LIMIT_RPM = 200; // 200 requests per minute\nexport const OPENROUTER_DEFAULT_SITE_NAME = \"ExoFrame\";\nexport const OPENROUTER_DEFAULT_SITE_URL = \"https://exoframe.dev\";",
+      "text": "// Vertex AI Endpoints\nexport const VERTEX_AI_DEFAULT_REGION = \"us-central1\";\nexport const VERTEX_AI_ENDPOINT_PATTERN = \"https://{region}-aiplatform.googleapis.com/v1\";\nexport const VERTEX_AI_TIMEOUT_MS = 30000; // 30 seconds for Vertex AI requests\nexport const VERTEX_AI_RATE_LIMIT_RPM = 60; // 60 requests per minute\n\n// OpenRouter\nexport const OPENROUTER_BASE_URL = \"https://openrouter.ai/api/v1\";\nexport const OPENROUTER_TIMEOUT_MS = 60000; // 60 seconds for OpenRouter\nexport const OPENROUTER_RATE_LIMIT_RPM = 200; // 200 requests per minute\nexport const OPENROUTER_DEFAULT_SITE_NAME = \"Exaix\";\nexport const OPENROUTER_DEFAULT_SITE_URL = \"https://exaix.dev\";",
       "vector": [
         0.45098039215686275,
         0.2823529411764706,
@@ -762,7 +762,7 @@
       ]
     },
     {
-      "text": "**Reference:** See [Phase 27 Planning](./phase-27-magic-number-and-word-externaliztion.md) for detailed examples and rationale.\n\n---\n\n## Implementation Plan\n\n### Phase 1: Vertex AI Authentication Infrastructure\n\n**Goal:** Implement service account authentication for Google Vertex AI\n\n**Files to Create:**\n\n- `src/ai/providers/vertex_ai_provider.ts` (NEW)\n- `src/ai/auth/google_auth.ts` (NEW)\n- `src/config/vertex_config.ts` (NEW)\n\n**Files to Modify:**\n\n- `src/ai/provider_registry.ts` (register Vertex AI)\n- `src/ai/provider_factory.ts` (add Vertex AI creation logic)\n- `src/config/schema.ts` (add Vertex AI config schema)\n- `templates/exo.config.sample.toml` (add Vertex AI examples)\n\n#### Step 1.1: Google Auth Helper\n\n**Create `src/ai/auth/google_auth.ts`:**",
+      "text": "**Reference:** See [Phase 27 Planning](./phase-27-magic-number-and-word-externaliztion.md) for detailed examples and rationale.\n\n---\n\n## Implementation Plan\n\n### Phase 1: Vertex AI Authentication Infrastructure\n\n**Goal:** Implement service account authentication for Google Vertex AI\n\n**Files to Create:**\n\n- `src/ai/providers/vertex_ai_provider.ts` (NEW)\n- `src/ai/auth/google_auth.ts` (NEW)\n- `src/config/vertex_config.ts` (NEW)\n\n**Files to Modify:**\n\n- `src/ai/provider_registry.ts` (register Vertex AI)\n- `src/ai/provider_factory.ts` (add Vertex AI creation logic)\n- `src/config/schema.ts` (add Vertex AI config schema)\n- `templates/exa.config.sample.toml` (add Vertex AI examples)\n\n#### Step 1.1: Google Auth Helper\n\n**Create `src/ai/auth/google_auth.ts`:**",
       "vector": [
         0.5411764705882353,
         0.34509803921568627,

@@ -15,7 +15,7 @@ Key points
 - Ensures **assertions** are exhaustive and grounded in repository physical laws.
 
 Canonical prompt (short):
-"You are a TDD specialist for ExoFrame. Analyze all existing test helpers. Propose 5+ failing test cases for [FEATURE] with detailed assertions. Implement only once tests are approved."
+"You are a TDD specialist for Exaix. Analyze all existing test helpers. Propose 5+ failing test cases for [FEATURE] with detailed assertions. Implement only once tests are approved."
 
 Examples
 

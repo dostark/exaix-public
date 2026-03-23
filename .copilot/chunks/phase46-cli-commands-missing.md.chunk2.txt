@@ -1,10 +1,10 @@
-However, `src/cli/exoctl.ts` does not include these subcommands in the `.command("portal", ...)` definition.
+However, `src/cli/exactl.ts` does not include these subcommands in the `.command("portal", ...)` definition.
 
 ## Investigation Areas
 
 ### CLI Wiring
-- [ ] Add `analyze <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
-- [ ] Add `knowledge <alias>` subcommand to `portal` group in `src/cli/exoctl.ts`.
+- [ ] Add `analyze <alias>` subcommand to `portal` group in `src/cli/exactl.ts`.
+- [ ] Add `knowledge <alias>` subcommand to `portal` group in `src/cli/exactl.ts`.
 - [ ] Ensure options (like `--mode`, `--force`, `--json`) are properly passed to implementation methods.
 
 ## Fix Implementation

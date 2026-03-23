@@ -9,7 +9,7 @@ version: "2.0.0"
 
 # Agent Validation Scenario Framework
 
-This document provides an index of agent validation scenarios for the ExoFrame system. Each scenario tests an agent blueprint's core functionality using realistic prompts validated against real LLM providers.
+This document provides an index of agent validation scenarios for the Exaix system. Each scenario tests an agent blueprint's core functionality using realistic prompts validated against real LLM providers.
 
 ## Automated Validation
 
@@ -23,7 +23,7 @@ Each scenario:
 
 1. Spins up an isolated workspace
 2. Provisions the request prompt fixture
-3. Executes the agent using `exoctl request`
+3. Executes the agent using `exactl request`
 4. Waits for artifact generation (`*_analysis.json` or `*_plan.yaml`)
 5. Asserts structural JSON schema output
 
@@ -39,7 +39,7 @@ Each scenario:
 **Request Prompt**:
 
 ```text
-Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand:
+Analyze the CLI command structure in Exaix. Examine src/cli/ and src/cli/commands/ to understand:
 
 - Command hierarchy and organization
 - Common patterns across command implementations
@@ -58,7 +58,7 @@ Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/comm
 **Request Prompt**:
 
 ```text
-Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify:
+Analyze the performance characteristics of Exaix's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify:
 
 - Connection pool sizing and utilization patterns
 - Query execution bottlenecks in the request processing pipeline
@@ -95,7 +95,7 @@ We need to implement a real-time agent monitoring dashboard in the TUI. As a pro
 **Request Prompt**:
 
 ```text
-Create a comprehensive testing strategy for ExoFrame's portal permission system. Include:
+Create a comprehensive testing strategy for Exaix's portal permission system. Include:
 
 - Unit test cases for portal access validation in src/services/portal_permissions.ts
 - Integration tests for cross-portal file operations and security boundaries
@@ -114,7 +114,7 @@ Create a comprehensive testing strategy for ExoFrame's portal permission system.
 **Request Prompt**:
 
 ```text
-Evaluate the quality of the security implementation in ExoFrame's context loader. Assess:
+Evaluate the quality of the security implementation in Exaix's context loader. Assess:
 
 - Code correctness in src/services/context_loader.ts for portal access validation
 - Security boundary enforcement between workspace and portals
@@ -133,7 +133,7 @@ Evaluate the quality of the security implementation in ExoFrame's context loader
 **Request Prompt**:
 
 ```text
-Perform a security audit of ExoFrame's AI provider API key management system. Identify:
+Perform a security audit of Exaix's AI provider API key management system. Identify:
 
 - Key storage security in src/ai/provider_api_key.ts and configuration files
 - Encryption practices for sensitive provider credentials
@@ -152,7 +152,7 @@ Perform a security audit of ExoFrame's AI provider API key management system. Id
 **Request Prompt**:
 
 ```text
-Implement a new CLI command for memory bank management in ExoFrame. Plan the implementation including:
+Implement a new CLI command for memory bank management in Exaix. Plan the implementation including:
 
 - New command structure in src/cli/commands/memory_commands.ts for listing, searching, and managing memory banks
 - Integration with existing memory services (src/services/memory_bank.ts, memory_embedding.ts)
@@ -171,12 +171,12 @@ Implement a new CLI command for memory bank management in ExoFrame. Plan the imp
 **Request Prompt**:
 
 ```text
-Design the architecture for MCP (Model Context Protocol) server support in ExoFrame. Consider:
+Design the architecture for MCP (Model Context Protocol) server support in Exaix. Consider:
 
-- Server implementation structure in src/mcp/ for exposing ExoFrame as MCP server
+- Server implementation structure in src/mcp/ for exposing Exaix as MCP server
 - Integration with existing agent execution pipeline and tool registry
 - Authentication and authorization for external MCP clients
-- Resource and tool discovery mechanisms for ExoFrame capabilities
+- Resource and tool discovery mechanisms for Exaix capabilities
 - Performance and security requirements for the Team+ edition MCP server
 ```
 
@@ -190,7 +190,7 @@ Design the architecture for MCP (Model Context Protocol) server support in ExoFr
 **Request Prompt**:
 
 ```text
-Create comprehensive API documentation for ExoFrame's flow engine. Include:
+Create comprehensive API documentation for Exaix's flow engine. Include:
 
 - Complete API reference for flow definition, execution, and management in src/flows/
 - Request/response formats with examples for flow_runner.ts and flow_loader.ts
@@ -210,7 +210,7 @@ Create comprehensive API documentation for ExoFrame's flow engine. Include:
 **Request Prompt**:
 
 ```text
-Implement comprehensive tests for ExoFrame's review registry system. Create:
+Implement comprehensive tests for Exaix's review registry system. Create:
 
 - Unit tests for review tracking and validation in src/services/review_registry.ts
 - Integration tests for git review operations and workspace synchronization
@@ -229,7 +229,7 @@ Implement comprehensive tests for ExoFrame's review registry system. Create:
 **Request Prompt**:
 
 ```text
-Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document:
+Generate comprehensive documentation for the Exaix agent blueprint schema. Document:
 
 - Complete TOML schema specification for agent definitions in Blueprints/Agents/
 - All supported blueprint fields, types, and validation rules
@@ -249,7 +249,7 @@ Generate comprehensive documentation for the ExoFrame agent blueprint schema. Do
 **Request Prompt**:
 
 ```text
-Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate:
+Perform a comprehensive code review of Exaix's plan executor implementation. Evaluate:
 
 - Code quality and correctness in src/services/plan_executor.ts and related execution logic
 - Security validation of plan execution and tool invocation

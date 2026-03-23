@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > **Status: Completed**
-> This phase transforms the static `docs/dev/ExoFrame_Architecture.md` into a living, discoverable `ARCHITECTURE.md` at the project root, designed specifically to serve as a ground-truth knowledge base for AI agents.
+> This phase transforms the static `docs/dev/Exaix_Architecture.md` into a living, discoverable `ARCHITECTURE.md` at the project root, designed specifically to serve as a ground-truth knowledge base for AI agents.
 
 ## Executive Summary
 
@@ -19,7 +19,7 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 
 ## Goals
 
-- [x] Rename `docs/dev/ExoFrame_Architecture.md` to `ARCHITECTURE.md` and move to root.
+- [x] Rename `docs/dev/Exaix_Architecture.md` to `ARCHITECTURE.md` and move to root.
 - [x] Update all references (CLAUDE.md, CONTRIBUTING.md, etc.) to point to new location.
 - [x] **Enrich Architecture Doc**: Add relative file paths to all component descriptions and diagrams.
 - [x] **Establish Module Header Standard**: Define a strict format for file-level comments.
@@ -33,7 +33,7 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 
 ```diff
 
-- docs/dev/ExoFrame_Architecture.md
+- docs/dev/Exaix_Architecture.md
 + ARCHITECTURE.md
 
 ### 2. Architecture Document Grounding
@@ -79,7 +79,7 @@ We will enforce a standardized JSDoc header for all core modules. This allows ag
 
 ### Step 1: Move and Rename
 
-- [x] Move `docs/dev/ExoFrame_Architecture.md` to `/ARCHITECTURE.md`.
+- [x] Move `docs/dev/Exaix_Architecture.md` to `/ARCHITECTURE.md`.
 - [x] Update `CLAUDE.md` to reference `ARCHITECTURE.md` as primary context.
 - [x] Update `CONTRIBUTING.md` (if exists).
 

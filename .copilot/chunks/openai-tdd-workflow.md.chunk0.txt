@@ -1,12 +1,12 @@
 ```text
 Key points
 - Start by proposing failing tests with explicit assertions.
-- Use existing ExoFrame test helpers (retrieve guidance from agents/ first).
+- Use existing Exaix test helpers (retrieve guidance from agents/ first).
 - Only then implement the minimal change to make tests pass.
 
 Canonical prompt (short)
 
-"You are implementing a change in ExoFrame using TDD. First, inject agents/ context for testing patterns. Then propose 2–4 failing tests with explicit assertions. After that, provide minimal file-scoped diffs to make them pass. End with verification commands. Cite agent doc paths used."
+"You are implementing a change in Exaix using TDD. First, inject agents/ context for testing patterns. Then propose 2–4 failing tests with explicit assertions. After that, provide minimal file-scoped diffs to make them pass. End with verification commands. Cite agent doc paths used."
 
 Examples
 

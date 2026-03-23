@@ -3,7 +3,7 @@
   "title": "phase-21-magic-numbers-centralization.md",
   "vecs": [
     {
-      "text": "Based on the commit `a5f3190` - \"config: centralize magic numbers and make runtime settings configurable\", here's the ready-to-copy planning document:\n\n````markdown\n# Phase 2.1: Configuration Refactoring - Magic Numbers Centralization\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/ExoFrame_User_Guide.md` for current configuration info.\n\n## Document Information\n\n- **Date**: January 9, 2026\n- **Status**: ✅ Completed\n- **Priority**: High\n- **Related Commits**: `a5f3190`\n- **Files Changed**: 40 files (+676, -170 lines)\n\n## Overview",
+      "text": "Based on the commit `a5f3190` - \"config: centralize magic numbers and make runtime settings configurable\", here's the ready-to-copy planning document:\n\n````markdown\n# Phase 2.1: Configuration Refactoring - Magic Numbers Centralization\n\n> [!NOTE]\n> **Status: Integrated**\n> This planning document has been implemented and its features are now part of the core codebase.\n> See `docs/Exaix_User_Guide.md` for current configuration info.\n\n## Document Information\n\n- **Date**: January 9, 2026\n- **Status**: ✅ Completed\n- **Priority**: High\n- **Related Commits**: `a5f3190`\n- **Files Changed**: 40 files (+676, -170 lines)\n\n## Overview",
       "vector": [
         0.4745098039215686,
         0.8196078431372549,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "```typescript\nexport const DEFAULT_MCP_ENABLED = true;\nexport const DEFAULT_MCP_TRANSPORT = \"stdio\";\nexport const DEFAULT_MCP_SERVER_NAME = \"exoframe\";\nexport const DEFAULT_MCP_VERSION = \"1.0.0\";\nexport const DEFAULT_MCP_AGENT_ID = \"system\";\n```\n\n#### Git Defaults\n\n```typescript\nexport const DEFAULT_GIT_BRANCH_PREFIX_PATTERN = \"^(feat|fix|docs|chore|refactor|test)/\";\nexport const DEFAULT_GIT_ALLOWED_PREFIXES = [\"feat\", \"fix\", \"docs\", \"chore\", \"refactor\", \"test\"];\n```\n\n#### API Endpoint Defaults",
+      "text": "```typescript\nexport const DEFAULT_MCP_ENABLED = true;\nexport const DEFAULT_MCP_TRANSPORT = \"stdio\";\nexport const DEFAULT_MCP_SERVER_NAME = \"exaix\";\nexport const DEFAULT_MCP_VERSION = \"1.0.0\";\nexport const DEFAULT_MCP_AGENT_ID = \"system\";\n```\n\n#### Git Defaults\n\n```typescript\nexport const DEFAULT_GIT_BRANCH_PREFIX_PATTERN = \"^(feat|fix|docs|chore|refactor|test)/\";\nexport const DEFAULT_GIT_ALLOWED_PREFIXES = [\"feat\", \"fix\", \"docs\", \"chore\", \"refactor\", \"test\"];\n```\n\n#### API Endpoint Defaults",
       "vector": [
         0.4549019607843137,
         0.2901960784313726,
@@ -969,7 +969,7 @@
       ]
     },
     {
-      "text": "```typescript\nconstructor(options?: ToolRegistryConfig) {\n  // Use ConfigSchema to parse and apply all defaults automatically\n  this.config = options?.config || ConfigSchema.parse({\n    system: { root: Deno.cwd(), log_level: \"info\" },\n    paths: {},       // Will use schema defaults\n    database: {},    // Will use schema defaults\n    watcher: {},     // Will use schema defaults\n    agents: {},      // Will use schema defaults including max_iterations\n    models: {},      // Will use schema defaults\n    portals: [],\n    mcp: {},         // Will use schema defaults\n  });\n}\n```\n\n**Status**: ✅ Completed\n\n---\n\n### ✅ 6. Enhanced Sample Configuration\n\n**File**: `templates/exo.config.sample.toml` (+92, -6 lines)\n\nEnriched sample configuration with:",
+      "text": "```typescript\nconstructor(options?: ToolRegistryConfig) {\n  // Use ConfigSchema to parse and apply all defaults automatically\n  this.config = options?.config || ConfigSchema.parse({\n    system: { root: Deno.cwd(), log_level: \"info\" },\n    paths: {},       // Will use schema defaults\n    database: {},    // Will use schema defaults\n    watcher: {},     // Will use schema defaults\n    agents: {},      // Will use schema defaults including max_iterations\n    models: {},      // Will use schema defaults\n    portals: [],\n    mcp: {},         // Will use schema defaults\n  });\n}\n```\n\n**Status**: ✅ Completed\n\n---\n\n### ✅ 6. Enhanced Sample Configuration\n\n**File**: `templates/exa.config.sample.toml` (+92, -6 lines)\n\nEnriched sample configuration with:",
       "vector": [
         0.0196078431372549,
         0.07450980392156863,

@@ -127,8 +127,8 @@ Deno.test("ProviderFactory: defaults to MockLLMProvider when ai section missing"
 // ============================================================================
 
 Deno.test(
-  "ProviderFactory: EXO_LLM_PROVIDER=mock creates MockLLMProvider",
-  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
+  "ProviderFactory: EXA_LLM_PROVIDER=mock creates MockLLMProvider",
+  withEnvVars({ EXA_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig();
     config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
@@ -139,8 +139,8 @@ Deno.test(
 );
 
 Deno.test(
-  "ProviderFactory: EXO_LLM_PROVIDER=ollama creates OllamaProvider",
-  withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, async () => {
+  "ProviderFactory: EXA_LLM_PROVIDER=ollama creates OllamaProvider",
+  withEnvVars({ EXA_LLM_PROVIDER: "ollama" }, async () => {
     const config = createTestConfig();
     const provider = await ProviderFactory.create(config);
 
@@ -150,8 +150,8 @@ Deno.test(
 );
 
 Deno.test(
-  "ProviderFactory: EXO_LLM_MODEL overrides config model",
-  withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "codellama" }, async () => {
+  "ProviderFactory: EXA_LLM_MODEL overrides config model",
+  withEnvVars({ EXA_LLM_PROVIDER: "ollama", EXA_LLM_MODEL: "codellama" }, async () => {
     const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     const provider = await ProviderFactory.create(config);
 
@@ -162,7 +162,7 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: env var overrides config",
-  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
+  withEnvVars({ EXA_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
@@ -200,7 +200,7 @@ Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", as
 
 Deno.test(
   "ProviderFactory: anthropic requires ANTHROPIC_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "" }, async () => {
+  withEnvVars({ EXA_LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "" }, async () => {
     // Ensure API key is not in secure store
     SecureCredentialStore.clear("ANTHROPIC_API_KEY");
 
@@ -216,7 +216,7 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: openai requires OPENAI_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "openai", OPENAI_API_KEY: "" }, async () => {
+  withEnvVars({ EXA_LLM_PROVIDER: "openai", OPENAI_API_KEY: "" }, async () => {
     // Ensure API key is not in secure store
     SecureCredentialStore.clear("OPENAI_API_KEY");
 
@@ -236,7 +236,7 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: unknown provider falls back to mock with warning",
-  withEnvVars({ EXO_LLM_PROVIDER: "unknown-provider-xyz" }, async () => {
+  withEnvVars({ EXA_LLM_PROVIDER: "unknown-provider-xyz" }, async () => {
     const config = createTestConfig();
 
     // Capture console.warn output
@@ -267,10 +267,10 @@ Deno.test(
 // ============================================================================
 
 Deno.test(
-  "ProviderFactory: EXO_LLM_BASE_URL sets base URL for Ollama",
+  "ProviderFactory: EXA_LLM_BASE_URL sets base URL for Ollama",
   withEnvVars({
-    EXO_LLM_PROVIDER: "ollama",
-    EXO_LLM_BASE_URL: "http://custom-host:8080",
+    EXA_LLM_PROVIDER: "ollama",
+    EXA_LLM_BASE_URL: "http://custom-host:8080",
   }, async () => {
     const config = createTestConfig();
     const provider = await ProviderFactory.create(config);
@@ -282,10 +282,10 @@ Deno.test(
 );
 
 Deno.test(
-  "ProviderFactory: EXO_LLM_TIMEOUT_MS sets timeout",
+  "ProviderFactory: EXA_LLM_TIMEOUT_MS sets timeout",
   withEnvVars({
-    EXO_LLM_PROVIDER: "ollama",
-    EXO_LLM_TIMEOUT_MS: "60000",
+    EXA_LLM_PROVIDER: "ollama",
+    EXA_LLM_TIMEOUT_MS: "60000",
   }, async () => {
     const config = createTestConfig();
     const provider = await ProviderFactory.create(config);
@@ -360,7 +360,7 @@ Deno.test("ProviderFactory: getProviderInfo returns provider details", () => {
 
 Deno.test(
   "ProviderFactory: getProviderInfo respects env vars",
-  withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, () => {
+  withEnvVars({ EXA_LLM_PROVIDER: "ollama" }, () => {
     const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     const info = ProviderFactory.getProviderInfo(config);
 
@@ -376,8 +376,8 @@ Deno.test(
 Deno.test(
   "ProviderFactory: anthropic with API key returns placeholder MockLLMProvider",
   withEnvVars({
-    EXO_LLM_PROVIDER: "anthropic",
-    EXO_LLM_MODEL: TEST_MODEL_ANTHROPIC,
+    EXA_LLM_PROVIDER: "anthropic",
+    EXA_LLM_MODEL: TEST_MODEL_ANTHROPIC,
   }, async () => {
     // Initialize secure store with test key
     await SecureCredentialStore.set("ANTHROPIC_API_KEY", "test-key");
@@ -403,8 +403,8 @@ Deno.test(
 Deno.test(
   "ProviderFactory: openai with API key returns placeholder MockLLMProvider",
   withEnvVars({
-    EXO_LLM_PROVIDER: "openai",
-    EXO_LLM_MODEL: TEST_MODEL_OPENAI,
+    EXA_LLM_PROVIDER: "openai",
+    EXA_LLM_MODEL: TEST_MODEL_OPENAI,
   }, async () => {
     // Initialize secure store with test key
     await SecureCredentialStore.set("OPENAI_API_KEY", "test-key");
@@ -442,14 +442,14 @@ Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider", async (
 Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider from env", async () => {
   const config = createTestConfig();
   // Set env to use codellama model
-  Deno.env.set("EXO_LLM_MODEL", "llama3.2:8b");
+  Deno.env.set("EXA_LLM_MODEL", "llama3.2:8b");
 
   try {
     const provider = await ProviderFactory.create(config);
     assertExists(provider);
     assertStringIncludes(provider.id, "llama3.2");
   } finally {
-    Deno.env.delete("EXO_LLM_MODEL");
+    Deno.env.delete("EXA_LLM_MODEL");
   }
 });
 

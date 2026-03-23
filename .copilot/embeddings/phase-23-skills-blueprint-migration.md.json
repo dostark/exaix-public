@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "```\nMemory/Skills/core/\n├── code-review.skill.md          # Code review methodology blueprint\n├── commit-message.skill.md       # Commit message best practices\n├── documentation-driven.skill.md # Documentation-first approach\n├── error-handling.skill.md       # Error handling patterns\n├── exoframe-conventions.skill.md # ExoFrame-specific conventions\n├── security-first.skill.md       # Security-first development\n├── tdd-methodology.skill.md      # Test-driven development approach\n└── typescript-patterns.skill.md  # TypeScript best practices\n```\n\n### Skill Reference Analysis\n\n**Agents referencing core skills:**",
+      "text": "```\nMemory/Skills/core/\n├── code-review.skill.md          # Code review methodology blueprint\n├── commit-message.skill.md       # Commit message best practices\n├── documentation-driven.skill.md # Documentation-first approach\n├── error-handling.skill.md       # Error handling patterns\n├── exaix-conventions.skill.md # Exaix-specific conventions\n├── security-first.skill.md       # Security-first development\n├── tdd-methodology.skill.md      # Test-driven development approach\n└── typescript-patterns.skill.md  # TypeScript best practices\n```\n\n### Skill Reference Analysis\n\n**Agents referencing core skills:**",
       "vector": [
         0.8470588235294118,
         0.3686274509803922,
@@ -555,7 +555,7 @@
       ]
     },
     {
-      "text": "```\nBlueprints/\n├── Agents/\n│   ├── senior-coder.md     # References \"typescript-patterns\" skill\n│   └── ...\n├── Flows/\n│   ├── code_review.flow.ts # Uses \"code-review\" skill\n│   └── ...\n├── Skills/                 # ← Core skills moved here\n│   ├── code-review.skill.md\n│   ├── typescript-patterns.skill.md\n│   ├── error-handling.skill.md\n│   ├── tdd-methodology.skill.md\n│   ├── security-first.skill.md\n│   ├── commit-message.skill.md\n│   ├── documentation-driven.skill.md\n│   └── exoframe-conventions.skill.md\n└── src/\n    └── flows/\n```\n\n### Migration Strategy\n\n#### Phase 1: Preparation (1 hour)\n\n- [x] Create `Blueprints/Skills/` directory\n- [x] Create `Blueprints/Skills/README.md` explaining purpose\n- [x] Audit all skill references in codebase\n- [x] Document current skill usage patterns",
+      "text": "```\nBlueprints/\n├── Agents/\n│   ├── senior-coder.md     # References \"typescript-patterns\" skill\n│   └── ...\n├── Flows/\n│   ├── code_review.flow.ts # Uses \"code-review\" skill\n│   └── ...\n├── Skills/                 # ← Core skills moved here\n│   ├── code-review.skill.md\n│   ├── typescript-patterns.skill.md\n│   ├── error-handling.skill.md\n│   ├── tdd-methodology.skill.md\n│   ├── security-first.skill.md\n│   ├── commit-message.skill.md\n│   ├── documentation-driven.skill.md\n│   └── exaix-conventions.skill.md\n└── src/\n    └── flows/\n```\n\n### Migration Strategy\n\n#### Phase 1: Preparation (1 hour)\n\n- [x] Create `Blueprints/Skills/` directory\n- [x] Create `Blueprints/Skills/README.md` explaining purpose\n- [x] Audit all skill references in codebase\n- [x] Document current skill usage patterns",
       "vector": [
         0.01568627450980392,
         0.6509803921568628,

@@ -1,15 +1,15 @@
-# Phase 27: ExoFrame Magic Number & Magic Word Externalization for True Configurability
+# Phase 27: Exaix Magic Number & Magic Word Externalization for True Configurability
 
 > [!NOTE]
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
-> See `docs/ExoFrame_User_Guide.md` for current usage.
+> See `docs/Exaix_User_Guide.md` for current usage.
 
 ## Executive Summary
 
-This phase aims to make ExoFrame fully user-configurable by externalizing all hardcoded magic numbers, magic words, and lists from the source code. The goal is to move all user-facing configuration (timeouts, limits, model names, provider lists, etc.) into TOML configuration files (primarily `exo.config.toml` and `exo.config.sample.toml`), and all internal constants into dedicated `constants.ts` modules. For CLI/TUI-specific constants, separate config files will be considered. This will empower users to adapt ExoFrame to their needs without modifying source code, improving maintainability, portability, and user experience.
+This phase aims to make Exaix fully user-configurable by externalizing all hardcoded magic numbers, magic words, and lists from the source code. The goal is to move all user-facing configuration (timeouts, limits, model names, provider lists, etc.) into TOML configuration files (primarily `exa.config.toml` and `exa.config.sample.toml`), and all internal constants into dedicated `constants.ts` modules. For CLI/TUI-specific constants, separate config files will be considered. This will empower users to adapt Exaix to their needs without modifying source code, improving maintainability, portability, and user experience.
 
-**Current Status:** Phase 27 fully completed. All user-facing configuration has been migrated to `exo.config.toml`, internal constants to `constants.ts`, and CLI/TUI constants to their respective config files. Enum usage is standard across the codebase. Documentation and migration guides are in place.
+**Current Status:** Phase 27 fully completed. All user-facing configuration has been migrated to `exa.config.toml`, internal constants to `constants.ts`, and CLI/TUI constants to their respective config files. Enum usage is standard across the codebase. Documentation and migration guides are in place.
 
 ---
 
@@ -61,7 +61,7 @@ All planned phases have been successfully executed:
 ## Goals
 
 - Eliminate all hardcoded magic numbers and magic words from the codebase. ✅
-- Move user-facing configuration to `exo.config.sample.toml` (and `exo.config.toml`). ✅
+- Move user-facing configuration to `exa.config.sample.toml` (and `exa.config.toml`). ✅
 - Move internal-only constants to `src/constants.ts` (or module-specific constants files). ✅
 - For CLI/TUI, consider `cli.config.ts` and `tui.config.ts` for user-tunable UI/UX constants. ✅
 - Move all model/provider names, fallback chains, and task routing lists to configuration. ✅
@@ -101,7 +101,7 @@ All planned phases have been successfully executed:
 
 **Completed:**
 
-- `exo.config.sample.toml` created with full options.
+- `exa.config.sample.toml` created with full options.
 - Schema updated.
 - Services refactored.
 
@@ -114,7 +114,7 @@ All planned phases have been successfully executed:
 ## Deliverables
 
 - All magic numbers/words/lists externalized to config or constants files. ✅
-- Updated `exo.config.sample.toml` and documentation. ✅
+- Updated `exa.config.sample.toml` and documentation. ✅
 - New/updated `constants.ts`, `cli.config.ts`, `tui.config.ts` as needed. ✅
 - Migration guide and validation scripts. ✅ (`docs/dev/Migration_Guide_Phase27.md`)
 - PR with detailed commit messages and code review notes. (Ready for PR)
@@ -136,7 +136,7 @@ All planned phases have been successfully executed:
 
 ### Phase 5: Documentation and Migration ✅ **COMPLETED**
 
-- `ExoFrame_Technical_Spec.md` updated.
+- `Exaix_Technical_Spec.md` updated.
 - `Provider_Strategy_Guide.md` updated.
 - `Migration_Guide_Phase27.md` created.
 
@@ -169,7 +169,7 @@ All planned phases have been successfully executed:
 
 - Revise `.copilot/README.md` and any agent onboarding docs to instruct contributors to:
   - Never introduce new magic numbers or magic words in code.
-  - Always add user-facing configuration to TOML files (`exo.config.sample.toml`).
+  - Always add user-facing configuration to TOML files (`exa.config.sample.toml`).
   - Use `constants.ts`, `cli.config.ts`, or `tui.config.ts` for internal constants.
   - Reference the migration guide for updating legacy code.
   - Include a checklist in PR templates to verify no magic numbers/words were added.
@@ -178,7 +178,7 @@ All planned phases have been successfully executed:
 
 - Update `CONTRIBUTING.md` and/or `docs/dev/Development_Guidelines.md` to include:
   - Policy: No magic numbers/words in code; all must be externalized.
-  - How to add new config options: Add to `exo.config.sample.toml` with documentation, update schema in `src/config/schema.ts`, and provide defaults in `src/config/ai_config.ts`.
+  - How to add new config options: Add to `exa.config.sample.toml` with documentation, update schema in `src/config/schema.ts`, and provide defaults in `src/config/ai_config.ts`.
   - How to update and use constants files: Create or update `constants.ts` for internal values, ensure named exports.
   - How to write tests for new configuration options: Include unit tests for config loading and integration tests for behavior changes.
   - How to validate that no new magic numbers/words are introduced: Use the provided grep commands in CI/linting, add a pre-commit hook.
@@ -206,7 +206,7 @@ All planned phases have been successfully executed:
 **Final Success (Completed) ✅:**
 
 - Zero magic words found by discovery grep commands ✅
-- Users can fully configure ExoFrame behavior without code changes ✅
+- Users can fully configure Exaix behavior without code changes ✅
 - All tests pass with externalized configuration ✅
 - Comprehensive documentation and migration guides provided ✅
 - CI validation prevents new magic numbers/words from being introduced ✅ (via `CONTRIBUTING.md` and pre-commit checks)
@@ -216,7 +216,7 @@ All planned phases have been successfully executed:
 ## Appendix: Example Config Additions
 
 ```toml
-# exo.config.sample.toml
+# exa.config.sample.toml
 
 [system]
 debounce_ms = 200
@@ -243,7 +243,7 @@ theme = "dark"
 
 - [Phase 26: LLM Provider Flexibility & Multi-Model Support Strategy](./phase-26-llm-provider-flexibility.md)
 - [Provider Strategy Guide](../../docs/Provider_Strategy_Guide.md)
-- [ExoFrame Technical Specification](../../docs/dev/ExoFrame_Technical_Spec.md)
+- [Exaix Technical Specification](../../docs/dev/Exaix_Technical_Spec.md)
 
 ---
 

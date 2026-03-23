@@ -1,4 +1,4 @@
-# ExoFrame — Cursor IDE Agent Rules
+# Exaix — Cursor IDE Agent Rules
 
 ## ⚠️ MANDATORY Pre-Task Requirements
 
@@ -8,8 +8,8 @@
 2. **Consult `.copilot/cross-reference.md`** for task-specific guidance
 3. **Read matching `.copilot/` documentation:**
    - Writing tests? → `.copilot/tests/testing.md`
-   - Adding features? → `.copilot/source/exoframe.md`
-   - Refactoring? → `.copilot/source/exoframe.md`
+   - Adding features? → `.copilot/source/exaix.md`
+   - Refactoring? → `.copilot/source/exaix.md`
    - Documentation? → `.copilot/docs/documentation.md`
    - Planning? → `.copilot/planning/*.md`
 4. **Cite consulted docs** in your implementation plan or explanation
@@ -27,7 +27,7 @@ These actions will result in rejected code:
 ## Key Project Constraints
 
 ### No Magic Values
-- **User-facing config:** Add to `exo.config.sample.toml` + `src/config/schema.ts`
+- **User-facing config:** Add to `exa.config.sample.toml` + `src/config/schema.ts`
 - **Internal constants:** Add to `src/constants.ts`
 - **CLI/TUI defaults:** Add to `src/cli/cli.config.ts` or `src/tui/tui.config.ts`
 - **Enums:** Use `src/enums.ts` for all fixed string sets
@@ -60,15 +60,15 @@ const env = await TestEnvironment.create();
 
 When implementing, acknowledge which `.copilot/` docs you consulted:
 
-> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exoframe.md` for service architecture before implementing this feature."
+> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exaix.md` for service architecture before implementing this feature."
 
 ## Quick Reference
 
 | Task | Required Reading |
 |------|------------------|
 | Writing tests | `.copilot/tests/testing.md` |
-| Adding features | `.copilot/source/exoframe.md` + `.copilot/tests/testing.md` |
-| Refactoring | `.copilot/source/exoframe.md` |
+| Adding features | `.copilot/source/exaix.md` + `.copilot/tests/testing.md` |
+| Refactoring | `.copilot/source/exaix.md` |
 | Documentation | `.copilot/docs/documentation.md` |
 | Planning | `.copilot/planning/*.md` |
 

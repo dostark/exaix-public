@@ -32,7 +32,7 @@ export class MemoryFormatter {
   static formatScopeDetail(node: ITreeNode): string {
     if (node.id === MemoryTuiScope.GLOBAL) {
       const memory = node.data as IGlobalMemory | null;
-      if (!memory) return "Global memory not initialized.\n\nRun: exoctl memory global show";
+      if (!memory) return "Global memory not initialized.\n\nRun: exactl memory global show";
       return [
         "# Global Memory",
         "",

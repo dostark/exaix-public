@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "**Completed:** 2026-01-05\n\n---\n\n## Executive Summary\n\nThis phase ensures all blueprints in `Blueprints/` are consistent with the current\nExoFrame architecture, particularly the Phase 17 Skills system. It addresses:\n\n1. **Format Inconsistency** - Mixed TOML (`+++`) and YAML (`---`) frontmatter\n2. **Missing Skills Integration** - No blueprints use `default_skills` yet\n3. **Flow-Agent Mismatches** - Flows reference agents that don't exist\n4. **Stale Model References** - Some blueprints use outdated model names\n5. **Template Gaps** - Templates don't demonstrate skill configuration\n\n### Key Goals",
+      "text": "**Completed:** 2026-01-05\n\n---\n\n## Executive Summary\n\nThis phase ensures all blueprints in `Blueprints/` are consistent with the current\nExaix architecture, particularly the Phase 17 Skills system. It addresses:\n\n1. **Format Inconsistency** - Mixed TOML (`+++`) and YAML (`---`) frontmatter\n2. **Missing Skills Integration** - No blueprints use `default_skills` yet\n3. **Flow-Agent Mismatches** - Flows reference agents that don't exist\n4. **Stale Model References** - Some blueprints use outdated model names\n5. **Template Gaps** - Templates don't demonstrate skill configuration\n\n### Key Goals",
       "vector": [
         0.3137254901960784,
         0.5647058823529412,
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "text": "| Agent ID               | Required By                        | Recommended Skills                  |\n| ---------------------- | ---------------------------------- | ----------------------------------- |\n| `security-expert`      | code_review.flow                   | `security-first`, `code-review`     |\n| `performance-engineer` | code_review.flow                   | `code-review`                       |\n| `technical-writer`     | code_review, documentation         | `documentation-driven`              |\n| `product-manager`      | feature_development                | (none)                              |\n| `software-architect`   | feature_development, documentation | `exoframe-conventions`              |\n| `test-engineer`        | feature_development                | `tdd-methodology`, `error-handling` |\n| `code-analyst`         | documentation                      | `code-review`                       |",
+      "text": "| Agent ID               | Required By                        | Recommended Skills                  |\n| ---------------------- | ---------------------------------- | ----------------------------------- |\n| `security-expert`      | code_review.flow                   | `security-first`, `code-review`     |\n| `performance-engineer` | code_review.flow                   | `code-review`                       |\n| `technical-writer`     | code_review, documentation         | `documentation-driven`              |\n| `product-manager`      | feature_development                | (none)                              |\n| `software-architect`   | feature_development, documentation | `exaix-conventions`              |\n| `test-engineer`        | feature_development                | `tdd-methodology`, `error-handling` |\n| `code-analyst`         | documentation                      | `code-review`                       |",
       "vector": [
         0.6901960784313725,
         0.4470588235294118,
@@ -831,7 +831,7 @@
       ]
     },
     {
-      "text": "| Skill ID               | Recommended For                                |\n| ---------------------- | ---------------------------------------------- |\n| `code-review`          | code-reviewer, security-auditor, quality-judge |\n| `security-first`       | security-auditor, security-expert              |\n| `tdd-methodology`      | test-engineer, feature-developer               |\n| `error-handling`       | senior-coder, feature-developer                |\n| `documentation-driven` | api-documenter, technical-writer               |\n| `exoframe-conventions` | all ExoFrame-specific agents                   |\n| `typescript-patterns`  | senior-coder, feature-developer                |\n| `commit-message`       | feature-developer                              |\n\n---\n\n## Schema Requirements",
+      "text": "| Skill ID               | Recommended For                                |\n| ---------------------- | ---------------------------------------------- |\n| `code-review`          | code-reviewer, security-auditor, quality-judge |\n| `security-first`       | security-auditor, security-expert              |\n| `tdd-methodology`      | test-engineer, feature-developer               |\n| `error-handling`       | senior-coder, feature-developer                |\n| `documentation-driven` | api-documenter, technical-writer               |\n| `exaix-conventions` | all Exaix-specific agents                   |\n| `typescript-patterns`  | senior-coder, feature-developer                |\n| `commit-message`       | feature-developer                              |\n\n---\n\n## Schema Requirements",
       "vector": [
         0.7568627450980392,
         0.2235294117647059,

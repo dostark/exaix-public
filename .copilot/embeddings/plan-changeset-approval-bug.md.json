@@ -3,7 +3,7 @@
   "title": "Plan/Changeset Approval Not Reflected in List Commands",
   "vecs": [
     {
-      "text": "## Problem\n\nWhen following the manual test scenario for plan approval and changeset approval, the following issues were observed:\n\n- After approving a plan, `exoctl plan list` does not show the approved plan (even with `--status=approved`).\n- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exoctl changeset list` returns an empty list.\n\n## Reproduction Steps",
+      "text": "## Problem\n\nWhen following the manual test scenario for plan approval and changeset approval, the following issues were observed:\n\n- After approving a plan, `exactl plan list` does not show the approved plan (even with `--status=approved`).\n- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exactl changeset list` returns an empty list.\n\n## Reproduction Steps",
       "vector": [
         0.7411764705882353,
         0.9176470588235294,
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "text": "1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.\n2. Submit a request and approve the generated plan.\n3. Run `exoctl plan list` and `exoctl plan list --status=approved`.\n4. Observe that no plans are listed, even though approval succeeded.\n5. Check the portal repo: the feature branch and changeset are present.\n6. Run `exoctl changeset list`.\n7. Observe that no changesets are listed.\n\n## Expected vs Observed Behavior\n\n**Expected:**\n\n- Approved plans should be visible in `exoctl plan list` (with or without status filter).\n- Created changesets should be listed by `exoctl changeset list` after plan approval and execution.\n\n**Observed:**",
+      "text": "1. Deploy a fresh Exaix workspace and configure a test portal as described in the manual scenario.\n2. Submit a request and approve the generated plan.\n3. Run `exactl plan list` and `exactl plan list --status=approved`.\n4. Observe that no plans are listed, even though approval succeeded.\n5. Check the portal repo: the feature branch and changeset are present.\n6. Run `exactl changeset list`.\n7. Observe that no changesets are listed.\n\n## Expected vs Observed Behavior\n\n**Expected:**\n\n- Approved plans should be visible in `exactl plan list` (with or without status filter).\n- Created changesets should be listed by `exactl changeset list` after plan approval and execution.\n\n**Observed:**",
       "vector": [
         0.6705882352941176,
         0.9529411764705882,
@@ -141,7 +141,7 @@
       ]
     },
     {
-      "text": "- `exoctl plan list` returns no plans after approval.\n- `exoctl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.\n\n## Additional Context\n\n- Plan file is moved to `Workspace/Archive/` after approval.\n- Feature branch is created and changes applied in the portal repo.\n- No errors reported in CLI output during the process.\n\n## Impact\n\n- Users cannot track approved plans or resulting changesets via CLI, breaking expected workflow and auditability.\n\n## Attachments\n\n- See detailed CLI session and scenario in `docs/dev/ExoFrame_Manual_Test_Scenarios.md` (lines 830+)\n\n## Suggested Investigation\n\n- Check if plan/changeset list commands are filtering out approved/archived items incorrectly.\n\n## Latest Update (2026-01-22)",
+      "text": "- `exactl plan list` returns no plans after approval.\n- `exactl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.\n\n## Additional Context\n\n- Plan file is moved to `Workspace/Archive/` after approval.\n- Feature branch is created and changes applied in the portal repo.\n- No errors reported in CLI output during the process.\n\n## Impact\n\n- Users cannot track approved plans or resulting changesets via CLI, breaking expected workflow and auditability.\n\n## Attachments\n\n- See detailed CLI session and scenario in `docs/dev/Exaix_Manual_Test_Scenarios.md` (lines 830+)\n\n## Suggested Investigation\n\n- Check if plan/changeset list commands are filtering out approved/archived items incorrectly.\n\n## Latest Update (2026-01-22)",
       "vector": [
         0.33725490196078434,
         0.6901960784313725,
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "text": "Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.\n\n### Reproduction from Latest Test\n\n```bash\nexoctl changeset list\n✅ changeset.list: changesets\n   count: 0\n   message: No changesets found\n\n# But in portal repo:\ngit branch\n* feat/request-a300d5a5-a300d5a5\n  master\n```\n\nThe changeset listing logic needs to be investigated further.\n\n## Resolution\n\n### Fixed on 2026-01-22\n\nRoot causes identified and resolved:",
+      "text": "Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exactl changeset list` still returns empty.\n\n### Reproduction from Latest Test\n\n```bash\nexactl changeset list\n✅ changeset.list: changesets\n   count: 0\n   message: No changesets found\n\n# But in portal repo:\ngit branch\n* feat/request-a300d5a5-a300d5a5\n  master\n```\n\nThe changeset listing logic needs to be investigated further.\n\n## Resolution\n\n### Fixed on 2026-01-22\n\nRoot causes identified and resolved:",
       "vector": [
         0.7254901960784313,
         0,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "1. **Changeset List Missing Config Portals**: The `exoctl changeset list` command only scanned portal symlinks in the workspace but ignored portals defined in `config.portals`. Changesets in portal repositories defined only in config were not discovered.\n\n2. **Execution Loop Hardcoded Archive Path**: The execution loop used a hardcoded \"Archive\" path instead of the configured `config.paths.archive` value, causing plan archiving to fail or use incorrect locations.\n\n### Changes Made",
+      "text": "1. **Changeset List Missing Config Portals**: The `exactl changeset list` command only scanned portal symlinks in the workspace but ignored portals defined in `config.portals`. Changesets in portal repositories defined only in config were not discovered.\n\n2. **Execution Loop Hardcoded Archive Path**: The execution loop used a hardcoded \"Archive\" path instead of the configured `config.paths.archive` value, causing plan archiving to fail or use incorrect locations.\n\n### Changes Made",
       "vector": [
         0.39215686274509803,
         0.2235294117647059,
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "text": "- **Enhanced changeset scanning** in `src/cli/changeset_commands.ts`: Added fallback scanning of `config.portals` array when symlink scanning finds no changesets.\n- **Fixed archive path usage** in `src/services/execution_loop.ts`: Changed from hardcoded \"Archive\" to `config.paths.archive`.\n- **Added regression test** in `tests/cli/changeset_commands_test.ts`: Ensures changeset list discovers changesets in config-defined portals.\n\n### Verification\n\n- All existing tests pass\n- Manual testing confirms `exoctl changeset list` now shows changesets from portal repositories\n- Plan approval and archiving now uses correct configured paths",
+      "text": "- **Enhanced changeset scanning** in `src/cli/changeset_commands.ts`: Added fallback scanning of `config.portals` array when symlink scanning finds no changesets.\n- **Fixed archive path usage** in `src/services/execution_loop.ts`: Changed from hardcoded \"Archive\" to `config.paths.archive`.\n- **Added regression test** in `tests/cli/changeset_commands_test.ts`: Ensures changeset list discovers changesets in config-defined portals.\n\n### Verification\n\n- All existing tests pass\n- Manual testing confirms `exactl changeset list` now shows changesets from portal repositories\n- Plan approval and archiving now uses correct configured paths",
       "vector": [
         0.6235294117647059,
         0.09803921568627451,

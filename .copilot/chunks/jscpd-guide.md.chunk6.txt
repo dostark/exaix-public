@@ -21,7 +21,7 @@ npx jscpd src/ tests/ --threshold 5
 npx jscpd src/ai/ --threshold 3
 ```text
 
-## ExoFrame-Specific Patterns
+## Exaix-Specific Patterns
 
 ### Test Helper Locations
 

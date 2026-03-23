@@ -11,7 +11,7 @@
 
 ## Environment
 
-- ExoFrame Version: Current development
+- Exaix Version: Current development
 - OS: Linux
 - Deno Version: 1.x.x
 - Database: SQLite (journal.db)

@@ -11,7 +11,7 @@ import { z } from "zod";
 import { REQUEST_STATUS_VALUES } from "../status/request_status.ts";
 
 /**
- * Schema for ExoFrame request frontmatter
+ * Schema for Exaix request frontmatter
  *
  * Validates the YAML frontmatter structure in request markdown files
  * located in Workspace/Requests

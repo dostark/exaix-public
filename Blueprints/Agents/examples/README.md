@@ -1,6 +1,6 @@
-# ExoFrame Agent Examples
+# Exaix Agent Examples
 
-This directory contains comprehensive example agent blueprints demonstrating real-world patterns and capabilities for ExoFrame. These examples serve as templates and starting points for creating custom agents.
+This directory contains comprehensive example agent blueprints demonstrating real-world patterns and capabilities for Exaix. These examples serve as templates and starting points for creating custom agents.
 
 ## 📁 Directory Structure
 
@@ -154,8 +154,8 @@ See `agents/tests/testing.md` for comprehensive testing guidelines.
 
 ## 📚 Related Documentation
 
-- `docs/ExoFrame_Implementation_Plan.md` - Step 6.10: Agent Examples
-- `agents/source/exoframe.md` - Blueprint creation guidelines
+- `docs/Exaix_Implementation_Plan.md` - Step 6.10: Agent Examples
+- `agents/source/exaix.md` - Blueprint creation guidelines
 - `agents/tests/testing.md` - Testing guidelines
 - `Blueprints/Flows/examples/` - Flow examples that use these agents
 

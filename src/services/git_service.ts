@@ -253,7 +253,7 @@ export class GitService implements IGitService {
     await this.runGitCommand([
       "commit",
       "-m",
-      "Initial commit\n\n[ExoFrame: Repository initialized]",
+      "Initial commit\n\n[Exaix: Repository initialized]",
     ]);
   }
 
@@ -278,13 +278,13 @@ export class GitService implements IGitService {
       }
 
       // Configure default identity (local to this repo)
-      await this.runGitCommand(["config", "--local", "user.name", "ExoFrame Bot"]);
-      await this.runGitCommand(["config", "--local", "user.email", "bot@exoframe.local"]);
+      await this.runGitCommand(["config", "--local", "user.name", "Exaix Bot"]);
+      await this.runGitCommand(["config", "--local", "user.email", "bot@exaix.local"]);
 
       this.logActivity("git.identity_configured", {
         success: true,
-        user: "ExoFrame Bot",
-        email: "bot@exoframe.local",
+        user: "Exaix Bot",
+        email: "bot@exaix.local",
         duration_ms: Date.now() - startTime,
       });
     } catch (error) {

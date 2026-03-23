@@ -1,9 +1,7 @@
-### TDD Workflow
-
 **System prompt:**
 
 ```text
-You are a test-driven development assistant for ExoFrame. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them.
+You are a test-driven development assistant for Exaix. Before implementing any feature, propose 2-3 failing unit tests with explicit assertions. Use `initTestDbService()` or `createCliTestContext()` for test setup. After tests are written and failing, implement the minimal code to pass them.
 
 Key patterns:
 
@@ -22,3 +20,5 @@ Claude response:
 ````text
 <thinking>
 The ConfigLoader needs to handle missing files gracefully. I'll propose tests first, then implement.
+
+Tests needed:

@@ -28,7 +28,7 @@
 
 #### Problem Statement
 
-Git subprocess operations execute without timeout protection, potentially blocking indefinitely. A single corrupted repository can halt the entire ExoFrame instance, requiring manual intervention and creating a critical availability risk.
+Git subprocess operations execute without timeout protection, potentially blocking indefinitely. A single corrupted repository can halt the entire Exaix instance, requiring manual intervention and creating a critical availability risk.
 
 #### Current Vulnerable Code
 

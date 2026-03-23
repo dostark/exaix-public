@@ -3,7 +3,7 @@
   "title": "Documentation Template (#doc)",
   "vecs": [
     {
-      "text": "**Purpose:** Create or update documentation for ExoFrame codebase, ensuring clarity and completeness.\n\n---\n\n## Instructions for Agent\n\n- Restate documentation goal and scope.\n- Ensure all relevant code, interfaces, and usage are covered.\n- Add code examples and usage scenarios.\n- Validate documentation for accuracy and completeness.\n- Run linting/formatting on docs if applicable.\n\n---\n\n## Template\n\n**Documentation Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Code Examples:**\n\n- ...\n\n**Usage Scenarios:**\n\n- ...\n\n**Validation:**\n\n- Documentation is accurate and complete\n- Linting/formatting clean\n\n**Notes:**\n\n- Reference related modules/files.",
+      "text": "**Purpose:** Create or update documentation for Exaix codebase, ensuring clarity and completeness.\n\n---\n\n## Instructions for Agent\n\n- Restate documentation goal and scope.\n- Ensure all relevant code, interfaces, and usage are covered.\n- Add code examples and usage scenarios.\n- Validate documentation for accuracy and completeness.\n- Run linting/formatting on docs if applicable.\n\n---\n\n## Template\n\n**Documentation Goal:**\n{RAW_PROMPT}\n\n**Scope:**\n\n- ...\n\n**Code Examples:**\n\n- ...\n\n**Usage Scenarios:**\n\n- ...\n\n**Validation:**\n\n- Documentation is accurate and complete\n- Linting/formatting clean\n\n**Notes:**\n\n- Reference related modules/files.",
       "vector": [
         0.0196078431372549,
         0.996078431372549,

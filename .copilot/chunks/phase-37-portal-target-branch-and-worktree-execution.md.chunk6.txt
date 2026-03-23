@@ -7,10 +7,10 @@ Add to portal config entries:
 
 CLI support (to be added)
 
-- Extend `exoctl portal add <target-path> <alias>` with options:
+- Extend `exactl portal add <target-path> <alias>` with options:
   - `--default-branch <branch>`
   - `--execution-strategy <branch|worktree>`
 
-This matches the intent of “exoctl add portal … with worktree option” while keeping the actual command name consistent with the current CLI (`exoctl portal add`).
+This matches the intent of “exactl add portal … with worktree option” while keeping the actual command name consistent with the current CLI (`exactl portal add`).
 
 Notes:

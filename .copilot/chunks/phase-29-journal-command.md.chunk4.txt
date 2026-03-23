@@ -5,7 +5,7 @@
 
 **Verification Plan (MT-26 Mapping):**
 
-1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
+1. **Basic Queries:** `exactl journal` (default tail), `exactl journal --filter trace_id=...`
 
 1.
 

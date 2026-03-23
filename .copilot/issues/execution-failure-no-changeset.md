@@ -2,18 +2,18 @@
 
 ## Description
 
-User reports that after approving a plan, `exoctl changeset list` returns 0 changesets, even though the journal indicates `execution.completed` and `report.generated`.
+User reports that after approving a plan, `exactl changeset list` returns 0 changesets, even though the journal indicates `execution.completed` and `report.generated`.
 
 ## Symptoms
 
-- `exoctl plan approve` succeeds.
+- `exactl plan approve` succeeds.
 - Journal logs show:
   - `execution.started`
   - `tool.create_directory`
   - `tool.write_file`
   - `execution.completed`
   - `report.generated` (by `mission_reporter`)
-- `exoctl changeset list` returns empty.
+- `exactl changeset list` returns empty.
 - `Memory/Execution` seems empty (except `.gitkeep`).
 
 ## Potential Causes

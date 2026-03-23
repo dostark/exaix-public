@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["infrastructure", "configuration", "deployment", "setup"]
 ---
 
-**Purpose:** Plan and implement infrastructure or configuration changes for ExoFrame.
+**Purpose:** Plan and implement infrastructure or configuration changes for Exaix.
 
 ---
 

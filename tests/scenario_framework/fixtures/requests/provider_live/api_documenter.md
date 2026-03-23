@@ -1,4 +1,4 @@
-Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document:
+Generate comprehensive documentation for the Exaix agent blueprint schema. Document:
 
 - Complete TOML schema specification for agent definitions in Blueprints/Agents/
 - All supported blueprint fields, types, and validation rules

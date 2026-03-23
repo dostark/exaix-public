@@ -11,10 +11,10 @@ deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agen
 
 ### Copilot Labs / Prompt Template (short)
 
-System: You are a repository-aware coding assistant for ExoFrame. Before answering, consult the `.copilot/manifest.json` by using the `.copilot/` short_summary and include the matching `short_summary` items. Try to prefer tests-first (TDD) patterns. When suggesting code, add tests.
+System: You are a repository-aware coding assistant for Exaix. Before answering, consult the `.copilot/manifest.json` by using the `.copilot/` short_summary and include the matching `short_summary` items. Try to prefer tests-first (TDD) patterns. When suggesting code, add tests.
 
 User: [task details]
 
 ### 3. The Living Plan Principle
 
-The `ExoFrame_Implementation_Plan.md` is not a static roadmap; it is a mutable artifact.
+The `Exaix_Implementation_Plan.md` is not a static roadmap; it is a mutable artifact.

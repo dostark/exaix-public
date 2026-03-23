@@ -1,13 +1,13 @@
 ---
 agent: copilot
 scope: dev
-title: ExoFrame quick reference for Copilot
+title: Exaix quick reference for Copilot
 short_summary: "Deno + TypeScript Flow-driven AI automation. Key dirs: src/, tests/, Blueprints/, docs/. Consult .copilot/manifest.json before edits."
 version: "0.1"
 topics: ["repo-overview", "testing", "flows", "obsidian"]
 ---
 
-## ExoFrame — Copilot quick reference
+## Exaix — Copilot quick reference
 
 Purpose
 
@@ -20,7 +20,7 @@ Quick notes
 - Tests: `tests/` (use `initTestDbService()` and `createCliTestContext()` helpers)
 
 Canonical prompt (short):
-"You are a repository-aware coding assistant for ExoFrame. Read the `.copilot/manifest.json` and include any `short_summary` matches before replying. When proposing code, prefer existing helpers and tests, and add unit tests for behavior changes."
+"You are a repository-aware coding assistant for Exaix. Read the `.copilot/manifest.json` and include any `short_summary` matches before replying. When proposing code, prefer existing helpers and tests, and add unit tests for behavior changes."
 
 Examples
 
@@ -36,9 +36,9 @@ Philosophy & Workflow
 
 Do / Don't
 
-- ✅ Do consult `.copilot/manifest.json` and `agents/copilot/exoframe.md` before applying repo-specific assumptions.
+- ✅ Do consult `.copilot/manifest.json` and `agents/copilot/exaix.md` before applying repo-specific assumptions.
 - ❌ Don't assume production agent blueprint semantics when modifying these docs — runtime agents live in `Blueprints/Agents/`.
-- ❌ Don't suggest Web UI/React for core features. ExoFrame is TUI-first (Terminal User Interface).
+- ❌ Don't suggest Web UI/React for core features. Exaix is TUI-first (Terminal User Interface).
 - ✅ Do distinguish between `Flows/examples/` (runnable) and `Flows/templates/` (scaffolding).
 
 Quick verification

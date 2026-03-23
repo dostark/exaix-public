@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read --allow-write --allow-run --allow-ffi
-// Minimal DB setup script for ExoFrame
+// Minimal DB setup script for Exaix
 // Wrapper around the migration system to initialize the database.
 
 import { ensureDir } from "@std/fs";
@@ -88,7 +88,7 @@ function extractSql(content: string, type: MigrationDirection): string {
 }
 
 async function main() {
-  console.log("Initializing ExoFrame Database...");
+  console.log("Initializing Exaix Database...");
 
   // Ensure System directory exists
   await ensureDir(RUNTIME_DIR);

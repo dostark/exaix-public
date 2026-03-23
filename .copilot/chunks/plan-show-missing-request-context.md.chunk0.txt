@@ -1,23 +1,23 @@
 ## Problem
 
-The `exoctl plan show` and `exoctl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.
+The `exactl plan show` and `exactl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.
 
 ## Reproduction Steps
 
 ```bash
 # Create a request
-exoctl request "Test request"
+exactl request "Test request"
 
 # Check plan list - missing request and agent info
-exoctl plan list
+exactl plan list
 
 # Check plan show - missing request and agent info
-exoctl plan show <plan-id>
+exactl plan show <plan-id>
 ```text
 
 ## Observed Behavior
 
-**Current `exoctl plan list` output:**
+**Current `exactl plan list` output:**
 
 ```text
 ✅ plan.list: plans
@@ -27,4 +27,4 @@ exoctl plan show <plan-id>
    trace: f493fe2a...
 ```text
 
-**Current `exoctl plan show` output:**
+**Current `exactl plan show` output:**

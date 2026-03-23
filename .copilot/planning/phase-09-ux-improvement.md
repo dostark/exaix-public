@@ -1,10 +1,10 @@
 # Phase 9: UX Improvements & UI Evaluation 🏗️ IN PROGRESS
 
-**Goal:** Reduce friction in the ExoFrame workflow while evaluating whether a dedicated UI is needed beyond Obsidian.
+**Goal:** Reduce friction in the Exaix workflow while evaluating whether a dedicated UI is needed beyond Obsidian.
 
-### Context: ExoFrame vs IDE Agents
+### Context: Exaix vs IDE Agents
 
-ExoFrame's value proposition is **not** real-time coding assistance (IDE agents do that better). ExoFrame excels at:
+Exaix's value proposition is **not** real-time coding assistance (IDE agents do that better). Exaix excels at:
 
 1. **Audit trail & traceability** — trace_id linking everything
 
@@ -82,7 +82,7 @@ router.get("/ws", (ctx) => {
 1. **Status Dashboard** (`Knowledge/Dashboard.md`)
 
 ```markdown
-# ExoFrame Dashboard
+# Exaix Dashboard
 
 ## Daemon Status
 
@@ -152,11 +152,11 @@ ${markdown}
 
 ### Step 9.3: TUI Cockpit Implementation Plan
 
-**Goal:** Deliver an interactive, terminal-based dashboard (TUI) for ExoFrame, providing a native developer experience for monitoring, approval, and control—without requiring a browser or Obsidian.
+**Goal:** Deliver an interactive, terminal-based dashboard (TUI) for Exaix, providing a native developer experience for monitoring, approval, and control—without requiring a browser or Obsidian.
 
 #### Rationale
 
-- **Fits Developer Workflow:** Most ExoFrame users operate in the terminal; a TUI cockpit feels native and fast.
+- **Fits Developer Workflow:** Most Exaix users operate in the terminal; a TUI cockpit feels native and fast.
 - **Interactivity:** Enables real-time plan approval, log streaming, and portal management—features not possible with static dashboards.
 - **No External Dependencies:** No need for Obsidian or a web server; works anywhere Deno runs.
 
@@ -169,9 +169,9 @@ ${markdown}
 
 1.
 
-- Implement and document the `exoctl dashboard` command as the entry point for the TUI cockpit.
-- Ensure the TUI can run in parallel with the ExoFrame daemon.
-- Update User Guide, Technical Spec, and Manual Test Scenarios to include full usage, options, and troubleshooting for `exoctl dashboard`.
+- Implement and document the `exactl dashboard` command as the entry point for the TUI cockpit.
+- Ensure the TUI can run in parallel with the Exaix daemon.
+- Update User Guide, Technical Spec, and Manual Test Scenarios to include full usage, options, and troubleshooting for `exactl dashboard`.
 
 1.
 
@@ -230,7 +230,7 @@ ${markdown}
 
 1.
 
-- Use ExoFrame's existing file/database APIs for data (no new backend required).
+- Use Exaix's existing file/database APIs for data (no new backend required).
 - Implement event polling or file watching for real-time updates.
 - Ensure all actions (approve, reject, control) are reflected in the Activity Journal for auditability.
 
@@ -261,7 +261,7 @@ ${markdown}
 #### Notes
 
 - Obsidian dashboards remain for knowledge management and historical review.
-- TUI cockpit is the primary interactive UI for ExoFrame MVP; web dashboard is deferred to v2.0 unless user demand shifts.
+- TUI cockpit is the primary interactive UI for Exaix MVP; web dashboard is deferred to v2.0 unless user demand shifts.
 
 ---
 
@@ -428,7 +428,7 @@ Create the Daemon Control view to show daemon status, uptime, and errors. Provid
 ### Step 9.9: Unified TUI Dashboard & Agent Status View ✅ COMPLETED
 
 **Description:**
-Implement a unified, interactive TUI dashboard integrating all major ExoFrame views—Portal Manager, Plan Reviewer, Monitor, Daemon Control, and Agent Status—into a single, keyboard-driven terminal UI. The Agent Status view is a core panel, listing all registered agents, their health, last activity, and agent-specific logs/errors, with clear indicators for availability and issues. The dashboard supports real-time updates, notifications, theming, accessibility, and keybinding customization. Built using strict Test-Driven Development (TDD) with mock services for isolated testing.
+Implement a unified, interactive TUI dashboard integrating all major Exaix views—Portal Manager, Plan Reviewer, Monitor, Daemon Control, and Agent Status—into a single, keyboard-driven terminal UI. The Agent Status view is a core panel, listing all registered agents, their health, last activity, and agent-specific logs/errors, with clear indicators for availability and issues. The dashboard supports real-time updates, notifications, theming, accessibility, and keybinding customization. Built using strict Test-Driven Development (TDD) with mock services for isolated testing.
 
 **Features:**
 
@@ -549,12 +549,12 @@ Implement the Request Manager view to list all requests, view request details, c
 
 ### Phase 9 Exit Criteria
 
-[x] `exoctl request` command implemented and tested
+[x] `exactl request` command implemented and tested
 [x] UI evaluation document created with decision
 [x] Obsidian dashboard templates in `Knowledge/`
 [x] Documentation updated with clear positioning
 [x] User Guide includes quick request examples
-[x] TUI Dashboard (`exoctl dashboard`) implemented:
+[x] TUI Dashboard (`exactl dashboard`) implemented:
 
 - [x] All core views (Monitor, Plan Reviewer, Portal Manager, Daemon Control, Agent Status, Request Manager) are accessible and functional
 - [x] Split view (multi-pane) functionality works with dynamic resizing, focus switching, and preset layouts

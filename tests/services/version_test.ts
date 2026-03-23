@@ -11,7 +11,7 @@ import { BINARY_VERSION, WORKSPACE_SCHEMA_VERSION } from "../../src/shared/versi
 
 const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 
-describe("ExoFrame version constants", () => {
+describe("Exaix version constants", () => {
   it("BINARY_VERSION is a non-empty string", () => {
     assert(typeof BINARY_VERSION === "string");
     assert(BINARY_VERSION.length > 0);

@@ -9,9 +9,9 @@ topics: ["cli", "naming", "semantic-clarity", "artifacts", "changesets", "review
 
 > [!NOTE]
 > **Status: ✅ Complete (Tasks 1-3 implemented, Task 4 in progress)**
-> This phase improves semantic clarity by renaming `exoctl changeset` commands to `exoctl review`, accurately reflecting the unified review workflow for both git changesets (code changes) and file artifacts (analysis outputs).
+> This phase improves semantic clarity by renaming `exactl changeset` commands to `exactl review`, accurately reflecting the unified review workflow for both git changesets (code changes) and file artifacts (analysis outputs).
 >
-> **Context:** Phase 35 introduced artifact storage in `Memory/Execution/` for read-only agents, creating a unified approval workflow via `exoctl changeset` commands. However, "changeset" is git-specific terminology that confuses users when reviewing non-code artifacts.
+> **Context:** Phase 35 introduced artifact storage in `Memory/Execution/` for read-only agents, creating a unified approval workflow via `exactl changeset` commands. However, "changeset" is git-specific terminology that confuses users when reviewing non-code artifacts.
 >
 > **Implementation Summary:**
 >
@@ -22,13 +22,13 @@ topics: ["cli", "naming", "semantic-clarity", "artifacts", "changesets", "review
 
 ## Executive Summary
 
-Following Phase 35's unified review workflow implementation (git changesets + file artifacts), ExoFrame needs clearer terminology to help users understand they're reviewing both code changes and analysis artifacts through a single command interface.
+Following Phase 35's unified review workflow implementation (git changesets + file artifacts), Exaix needs clearer terminology to help users understand they're reviewing both code changes and analysis artifacts through a single command interface.
 
 ### **Problem Statement**
 
 **Current Confusion:**
 
-- Command `exoctl changeset list` shows both git changesets AND analysis artifacts
+- Command `exactl changeset list` shows both git changesets AND analysis artifacts
 - "Changeset" implies git/code changes, but also shows read-only agent outputs
 - Users expect `changeset approve` to merge git branches, but it also updates artifact frontmatter status
 - Semantic mismatch: "changeset" doesn't accurately describe artifact approval
@@ -37,7 +37,7 @@ Following Phase 35's unified review workflow implementation (git changesets + fi
 
 ```bash
 # Confusing: Why is an analysis artifact called a "changeset"?
-$ exoctl changeset list
+$ exactl changeset list
 🔀 Changesets (2):
 
 📌 implement-auth (feat/implement-auth-550e8400)  # Git changeset ✅ Makes sense
@@ -53,7 +53,7 @@ $ exoctl changeset list
 
 Rename commands and terminology from "changeset" to "review":
 
-- **CLI Commands:** `exoctl changeset` → `exoctl review`
+- **CLI Commands:** `exactl changeset` → `exactl review`
 - **Database Tables:** `changesets` → `reviews` (with migration)
 - **Code Modules:** `ChangesetService` → `ReviewService`
 - **User-Facing Text:** "changeset" → "review" in messages and docs
@@ -69,7 +69,7 @@ Rename commands and terminology from "changeset" to "review":
 
 ## Goals
 
-- [x] Rename CLI command group: `exoctl changeset` → `exoctl review`
+- [x] Rename CLI command group: `exactl changeset` → `exactl review`
 - [x] Delete old changeset command files completely
 - [x] Rename database table: `changesets` → `reviews` (with migration script)
 - [x] Rename service classes: `ChangesetService` → `ReviewService`
@@ -87,10 +87,10 @@ Rename commands and terminology from "changeset" to "review":
 **CLI Commands (Phase 35):**
 
 ```bash
-exoctl changeset list              # List pending changesets/artifacts
-exoctl changeset show <id>         # Show details with diff/content
-exoctl changeset approve <id>      # Approve for merge/acceptance
-exoctl changeset reject <id>       # Reject with reason
+exactl changeset list              # List pending changesets/artifacts
+exactl changeset show <id>         # Show details with diff/content
+exactl changeset approve <id>      # Approve for merge/acceptance
+exactl changeset reject <id>       # Reject with reason
 ```
 
 **Implementation Locations:**
@@ -187,15 +187,15 @@ class ChangesetService {
 
 ```bash
 # ✅ All commands working
-exoctl review list
-exoctl review show <id>
-exoctl review approve <id>
-exoctl review reject <id> --reason "..."
+exactl review list
+exactl review show <id>
+exactl review approve <id>
+exactl review reject <id> --reason "..."
 ```
 
 **Success Criteria:**
 
-- ✅ `exoctl review` commands function identically to `changeset`
+- ✅ `exactl review` commands function identically to `changeset`
 - ✅ Help text uses "review" terminology
 - ✅ Output messages say "Reviews" instead of "Changesets"
 - ✅ All existing functionality preserved
@@ -222,7 +222,7 @@ exoctl review reject <id> --reason "..."
 ```bash
 # ✅ Old command no longer exists (files deleted)
 # ✅ New command works
-$ exoctl review list
+$ exactl review list
 📋 Reviews (2):
 ...
 ```
@@ -231,7 +231,7 @@ $ exoctl review list
 
 - ✅ Old command files deleted
 - ✅ CLI router updated
-- ✅ Error messages reference 'exoctl review'
+- ✅ Error messages reference 'exactl review'
 
 ---
 
@@ -390,10 +390,10 @@ const sql = `SELECT * FROM reviews WHERE status = ?`;
 
 #### ⏳ Task 4.1: Update User Guide
 
-**File:** `docs/ExoFrame_User_Guide.md`
+**File:** `docs/Exaix_User_Guide.md`
 
 - [ ] Section 4.2: Rename "Changeset Commands" → "Review Commands"
-- [ ] Update all command examples: `exoctl changeset` → `exoctl review`
+- [ ] Update all command examples: `exactl changeset` → `exactl review`
 - [ ] Update terminology in explanations
 - [ ] Add migration note (not needed - no production deployment)
 
@@ -406,21 +406,21 @@ Review and approve both code changes (git changesets) and analysis artifacts (re
 
 ```bash
 # List all pending reviews (code and artifacts)
-exoctl review list
-exoctl review list --status pending
+exactl review list
+exactl review list --status pending
 
 # Show review details
-exoctl review show <review-id>
+exactl review show <review-id>
 
 # Approve a review (merges git branch or updates artifact status)
-exoctl review approve <review-id>
+exactl review approve <review-id>
 
 # Reject a review with reason
-exoctl review reject <review-id> --reason "Needs revision"
+exactl review reject <review-id> --reason "Needs revision"
 ```
 ````
 
-**⚠️ Migration Note:** The old `exoctl changeset` commands are deprecated but still work with warnings. Update your scripts to use `exoctl review` instead.
+**⚠️ Migration Note:** The old `exactl changeset` commands are deprecated but still work with warnings. Update your scripts to use `exactl review` instead.
 
 **Success Criteria:**
 
@@ -430,7 +430,7 @@ exoctl review reject <review-id> --reason "Needs revision"
 
 #### Task 4.2: Update Technical Spec
 
-**File:** `docs/dev/ExoFrame_Technical_Spec.md`
+**File:** `docs/dev/Exaix_Technical_Spec.md`
 
 - Section 8.5: Update "Portal Workspace Integration" with review terminology
 - Update architecture diagrams and code examples
@@ -467,14 +467,14 @@ exoctl review reject <review-id> --reason "Needs revision"
 
 1. **✅ Git Review Workflow:**
    - ✅ Create request → generate plan → approve → create feature branch
-   - ✅ List reviews: `exoctl review list` (36 CLI tests passing)
-   - ✅ Show git diff: `exoctl review show <id>`
-   - ✅ Approve and merge: `exoctl review approve <id>`
+   - ✅ List reviews: `exactl review list` (36 CLI tests passing)
+   - ✅ Show git diff: `exactl review show <id>`
+   - ✅ Approve and merge: `exactl review approve <id>`
 
 1.
    - ✅ Service tests cover artifact registration (20 tests)
    - ✅ Portal tests cover portal repository reviews (10 tests)
-   - ✅ List reviews: `exoctl review list` (shows both git and artifacts)
+   - ✅ List reviews: `exactl review list` (shows both git and artifacts)
    - ✅ Show review details working
 
 1.
@@ -484,8 +484,8 @@ exoctl review reject <review-id> --reason "Needs revision"
 
 **Testing Checklist:**
 
-- [x] New `exoctl review` commands work correctly (36 tests)
-- [x] Old `exoctl changeset` commands removed (files deleted)
+- [x] New `exactl review` commands work correctly (36 tests)
+- [x] Old `exactl changeset` commands removed (files deleted)
 - [x] Git review approval merges branches correctly (tested in CLI tests)
 - [x] ReviewRegistry service functional (20 tests)
 - [x] Database migration preserves all data (66 tests passing)
@@ -508,11 +508,11 @@ exoctl review reject <review-id> --reason "Needs revision"
 
 | Old Command (Removed)            | New Command                   |
 | -------------------------------- | ----------------------------- |
-| `exoctl changeset list`          | `exoctl review list`          |
-| `exoctl changeset show <id>`     | `exoctl review show <id>`     |
-| `exoctl changeset approve <id>`  | `exoctl review approve <id>`  |
-| `exoctl changeset reject <id>`   | `exoctl review reject <id>`   |
-| `exoctl changeset list --status` | `exoctl review list --status` |
+| `exactl changeset list`          | `exactl review list`          |
+| `exactl changeset show <id>`     | `exactl review show <id>`     |
+| `exactl changeset approve <id>`  | `exactl review approve <id>`  |
+| `exactl changeset reject <id>`   | `exactl review reject <id>`   |
+| `exactl changeset list --status` | `exactl review list --status` |
 
 **Note:** Old commands are completely removed (no backward compatibility needed - no production deployment exists).
 
@@ -531,7 +531,7 @@ exoctl review reject <review-id> --reason "Needs revision"
 1.
 
    ```bash
-   exoctl daemon stop
+   exactl daemon stop
    ```
 
 1.
@@ -543,21 +543,21 @@ exoctl review reject <review-id> --reason "Needs revision"
 1.
 
    ```bash
-   exoctl daemon start
+   exactl daemon start
    ```
 
 1.
 
    ```bash
-   exoctl review list
+   exactl review list
    ```
 
 **Rollback (if needed):**
 
 ```bash
-exoctl daemon stop
+exactl daemon stop
 sqlite3 ~/.exo/journal.db < migrations/009_rollback_reviews_rename.sql
-exoctl daemon start
+exactl daemon start
 ```
 
 ### Script Updates
@@ -566,10 +566,10 @@ exoctl daemon start
 
 ```bash
 # Before
-exoctl changeset list --status pending | grep artifact
+exactl changeset list --status pending | grep artifact
 
 # After
-exoctl review list --status pending | grep artifact
+exactl review list --status pending | grep artifact
 ```
 
 **CI/CD pipelines:**
@@ -577,11 +577,11 @@ exoctl review list --status pending | grep artifact
 ```yaml
 # Before
 
-- run: exoctl changeset approve $REVIEW_ID
+- run: exactl changeset approve $REVIEW_ID
 
 # After
 
-- run: exoctl review approve $REVIEW_ID
+- run: exactl review approve $REVIEW_ID
 
 ---
 
@@ -599,8 +599,8 @@ exoctl review list --status pending | grep artifact
 
 ### Functional Requirements
 
-- [ ] `exoctl review` commands work correctly
-- [ ] Old `exoctl changeset` commands removed completely
+- [ ] `exactl review` commands work correctly
+- [ ] Old `exactl changeset` commands removed completely
 - [ ] Database migration completes without data loss
 - [ ] Git review approval merges branches correctly
 - [ ] Artifact review approval updates frontmatter status
@@ -642,8 +642,8 @@ exoctl review list --status pending | grep artifact
 
 ### Single Release (Immediate)
 
-- ✅ New `exoctl review` commands implemented (36 tests)
-- ✅ Old `exoctl changeset` commands removed completely
+- ✅ New `exactl review` commands implemented (36 tests)
+- ✅ Old `exactl changeset` commands removed completely
 - ✅ Database migration script provided (007_rename_changesets_to_reviews.sql)
 - 🔄 Documentation updates in progress
 - ⏳ Final "changeset" reference verification pending
@@ -682,13 +682,13 @@ exoctl review list --status pending | grep artifact
 - **Pull Request (GitHub):** Review workflow for changesets
 - **Merge Request (GitLab):** Review workflow for changesets
 
-**ExoFrame Context:**
+**Exaix Context:**
 
 - Git changesets: Code modifications in feature branches ✅ Standard usage
 - Artifacts: Analysis outputs from read-only agents ❌ Not "changes"
 - Unified workflow: Both need human review ✅ "Review" encompasses both
 
-**Conclusion:** "Review" is more semantically accurate for ExoFrame's unified workflow.
+**Conclusion:** "Review" is more semantically accurate for Exaix's unified workflow.
 
 ---
 
@@ -709,7 +709,7 @@ exoctl review list --status pending | grep artifact
 
 - [Phase 35: Portal Workspace Integration](./.copilot/planning/phase-35-portal-workspace-integration.md)
 - [Phase 30: CLI Flow Request](./.copilot/planning/phase-30-cli-flow-request.md)
-- [ExoFrame User Guide](../../docs/ExoFrame_User_Guide.md)
-- [ExoFrame Technical Spec](../../docs/dev/ExoFrame_Technical_Spec.md)
+- [Exaix User Guide](../../docs/Exaix_User_Guide.md)
+- [Exaix Technical Spec](../../docs/dev/Exaix_Technical_Spec.md)
 
 ```

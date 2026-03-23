@@ -20,7 +20,7 @@ const profileType = new EnumType(ScenarioCiProfile);
 await new Command()
   .name("scenario-runner")
   .version("0.1.0")
-  .description("ExoFrame Scenario Test Framework Runner")
+  .description("Exaix Scenario Test Framework Runner")
   .type("mode", modeType)
   .type("profile", profileType)
   .option("-c, --config <path:string>", "Path to the runtime configuration YAML or JSON file")
@@ -110,7 +110,7 @@ await new Command()
           mode: runtimeConfig.mode,
           interactiveAllowed: runtimeConfig.mode !== ScenarioExecutionMode.AUTO,
           verbose: runtimeConfig.verbose,
-          exoctlExecutable: Deno.env.get("EXO_BIN_PATH") ? `${Deno.env.get("EXO_BIN_PATH")}/exoctl` : undefined,
+          exactlExecutable: Deno.env.get("EXA_BIN_PATH") ? `${Deno.env.get("EXA_BIN_PATH")}/exactl` : undefined,
         });
 
         console.log(`Outcome: ${result.manifest.outcome}`);

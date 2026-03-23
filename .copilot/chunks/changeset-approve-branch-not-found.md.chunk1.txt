@@ -3,7 +3,7 @@
    message: Branch not found: feat/request-a300d5a5-a300d5a5
 ```text
 
-But `exoctl changeset list` shows:
+But `exactl changeset list` shows:
 
 ```text
 ✅ changeset.list: changesets
@@ -20,7 +20,7 @@ The approve command should find the branch in the correct repository (portal or 
 
 ## Environment
 
-- ExoFrame Version: current development
+- Exaix Version: current development
 - OS: Linux
 - Deno Version: 1.x.x
 - Relevant Config: Portal repositories configured

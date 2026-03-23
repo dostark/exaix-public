@@ -35,8 +35,7 @@ export const TUI_MSG_SELECT_ITEM = "Select an item to view details.";
 export const TUI_MSG_PRESS_QUIT = "Press ESC or q to close";
 
 export const TUI_MSG_PRESS_CLOSE_HELP = "\nPress ? or Esc to close help";
-export const TUI_MSG_DASHBOARD_HEADER =
-  "                         ExoFrame TUI Dashboard                               ";
+export const TUI_MSG_DASHBOARD_HEADER = "                         Exaix TUI Dashboard                               ";
 
 // ============================================================================
 // TUI Layout and Display Constants

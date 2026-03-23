@@ -24,4 +24,4 @@
 
 ## Step 29.5: TUI Upgrade (Monitor View)
 
-**Goal:** Enable the TUI "Monitor" view to function as a full UI for `exoctl journal`.
+**Goal:** Enable the TUI "Monitor" view to function as a full UI for `exactl journal`.

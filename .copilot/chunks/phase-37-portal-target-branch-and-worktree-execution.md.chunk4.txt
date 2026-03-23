@@ -1,5 +1,5 @@
 1. **Approval semantics become “merge into target branch”, which can be risky if automated.**
-   - If `exoctl review approve` auto-checkouts and merges into arbitrary branches, it may surprise users.
+   - If `exactl review approve` auto-checkouts and merges into arbitrary branches, it may surprise users.
    - Safer: require explicit target branch and enforce “must be on target branch” (or provide a guarded `--checkout-target` flag).
 
 1. **Portal “default branch” isn’t the key problem — “target branch per request” is.**

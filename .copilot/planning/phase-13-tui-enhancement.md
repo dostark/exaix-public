@@ -25,7 +25,7 @@
 
 ## 1. Executive Summary
 
-This document outlines the enhancement of ExoFrame's TUI components to achieve feature parity with the recently implemented Memory View (Phase 12.12-12.14). The Memory View established new standards for:
+This document outlines the enhancement of Exaix's TUI components to achieve feature parity with the recently implemented Memory View (Phase 12.12-12.14). The Memory View established new standards for:
 
 - **Async loading states** with spinner animations
 - **Rich markdown rendering** in detail panels
@@ -184,7 +184,7 @@ The current split view in `tui_dashboard.ts` provides:
 - Tab/Shift+Tab pane switching
 - Close pane (`c`)
 - Basic resize with `resizePane()`
-- Layout save/restore to `~/.exoframe/tui_layout.json`
+- Layout save/restore to `~/.exaix/tui_layout.json`
 
 ### 4.2 Enhanced Split View Features
 
@@ -734,18 +734,18 @@ export abstract class TuiSessionBase {
 
 **Tasks:**
 
-- [x] Update `docs/ExoFrame_User_Guide.md` TUI section
+- [x] Update `docs/Exaix_User_Guide.md` TUI section
 - [x] Create `docs/TUI_Keyboard_Reference.md`
-- [x] Update `docs/ExoFrame_Architecture.md` TUI section
+- [x] Update `docs/Exaix_Architecture.md` TUI section
 - [x] Add inline help content to all views
 - [x] Create TUI screenshots for docs
 - [x] Update README with TUI highlights
 
 **Deliverables:**
 
-- Updated `docs/ExoFrame_User_Guide.md`
+- Updated `docs/Exaix_User_Guide.md`
 - New `docs/TUI_Keyboard_Reference.md`
-- Updated `docs/ExoFrame_Architecture.md`
+- Updated `docs/Exaix_Architecture.md`
 
 ---
 
@@ -797,19 +797,19 @@ export abstract class TuiSessionBase {
 
 ### 6.1 User Guide TUI Section
 
-The following sections need updates in `docs/ExoFrame_User_Guide.md`:
+The following sections need updates in `docs/Exaix_User_Guide.md`:
 
 #### 4.1a Working with the TUI Dashboard (Expanded)
 
 ````markdown
 ## TUI Dashboard Overview
 
-The ExoFrame TUI Dashboard is a powerful terminal interface for managing your development workflow.
+The Exaix TUI Dashboard is a powerful terminal interface for managing your development workflow.
 
 ### Launching the Dashboard
 
 ```bash
-exoctl dashboard
+exactl dashboard
 ```text
 ````text
 
@@ -1090,8 +1090,8 @@ Create `docs/TUI_Keyboard_Reference.md`:
 ## 11. References
 
 - [Phase 12.5+ Memory Banks v2](phase-12.5-memory-bank-enhanced.md)
-- [ExoFrame User Guide - TUI Section](../docs/ExoFrame_User_Guide.md#41a-working-with-the-tui-dashboard)
-- [ExoFrame Architecture - TUI](../docs/ExoFrame_Architecture.md#tui-dashboard-architecture)
+- [Exaix User Guide - TUI Section](../docs/Exaix_User_Guide.md#41a-working-with-the-tui-dashboard)
+- [Exaix Architecture - TUI](../docs/Exaix_Architecture.md#tui-dashboard-architecture)
 - [TUI Keyboard Reference](../docs/TUI_Keyboard_Reference.md)
 - [Memory View Implementation](../src/tui/memory_view.ts)
 - [Markdown Renderer](../src/tui/utils/markdown_renderer.ts)

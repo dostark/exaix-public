@@ -3,7 +3,7 @@
   "title": "phase-09-ux-improvement.md",
   "vecs": [
     {
-      "text": "## Phase 9: UX Improvements & UI Evaluation 🏗️ IN PROGRESS\n\n**Goal:** Reduce friction in the ExoFrame workflow while evaluating whether a dedicated UI is needed beyond Obsidian.\n\n### Context: ExoFrame vs IDE Agents\n\nExoFrame's value proposition is **not** real-time coding assistance (IDE agents do that better). ExoFrame excels at:\n\n1. **Audit trail & traceability** — trace_id linking everything\n2. **Asynchronous workflows** — drop request, come back later\n3. **Explicit approval gates** — no accidental destructive changes\n4. **Multi-project context** — portals span multiple codebases\n\nHowever, the current \"drop a markdown file\" workflow has friction. This phase addresses that.\n\n---\n\n### Step 9.1: UI Strategy Evaluation ✅ COMPLETED",
+      "text": "## Phase 9: UX Improvements & UI Evaluation 🏗️ IN PROGRESS\n\n**Goal:** Reduce friction in the Exaix workflow while evaluating whether a dedicated UI is needed beyond Obsidian.\n\n### Context: Exaix vs IDE Agents\n\nExaix's value proposition is **not** real-time coding assistance (IDE agents do that better). Exaix excels at:\n\n1. **Audit trail & traceability** — trace_id linking everything\n2. **Asynchronous workflows** — drop request, come back later\n3. **Explicit approval gates** — no accidental destructive changes\n4. **Multi-project context** — portals span multiple codebases\n\nHowever, the current \"drop a markdown file\" workflow has friction. This phase addresses that.\n\n---\n\n### Step 9.1: UI Strategy Evaluation ✅ COMPLETED",
       "vector": [
         0.7411764705882353,
         0.1568627450980392,
@@ -279,7 +279,7 @@
       ]
     },
     {
-      "text": "// WebSocket for real-time updates\nrouter.get(\"/ws\", (ctx) => {\n  const socket = ctx.upgrade();\n  activityJournal.subscribe((event) => {\n    socket.send(JSON.stringify(event));\n  });\n});\n```\n\n---\n\n### Step 9.2: Obsidian Dashboard Enhancement ✅ COMPLETED\n\n**Current State:** Basic Dataview queries exist but are underdeveloped.\n\n**Enhancements:**\n\n1. **Status Dashboard** (`Knowledge/Dashboard.md`)\n\n```markdown\n# ExoFrame Dashboard\n\n## Daemon Status\n\n\\`\\`\\`dataview\nTABLE WITHOUT ID\n\"🟢 Running\" as Status,\nfile.mtime as \"Last Activity\"\nFROM \"System\"\nWHERE file.name = \"daemon.pid\"\n\\`\\`\\`\n\n## Pending Plans\n\n\\`\\`\\`dataview\nTABLE status, created, agent\nFROM \"Inbox/Plans\"\nWHERE status = \"review\"\nSORT created DESC\n\\`\\`\\`\n\n## Recent Activity",
+      "text": "// WebSocket for real-time updates\nrouter.get(\"/ws\", (ctx) => {\n  const socket = ctx.upgrade();\n  activityJournal.subscribe((event) => {\n    socket.send(JSON.stringify(event));\n  });\n});\n```\n\n---\n\n### Step 9.2: Obsidian Dashboard Enhancement ✅ COMPLETED\n\n**Current State:** Basic Dataview queries exist but are underdeveloped.\n\n**Enhancements:**\n\n1. **Status Dashboard** (`Knowledge/Dashboard.md`)\n\n```markdown\n# Exaix Dashboard\n\n## Daemon Status\n\n\\`\\`\\`dataview\nTABLE WITHOUT ID\n\"🟢 Running\" as Status,\nfile.mtime as \"Last Activity\"\nFROM \"System\"\nWHERE file.name = \"daemon.pid\"\n\\`\\`\\`\n\n## Pending Plans\n\n\\`\\`\\`dataview\nTABLE status, created, agent\nFROM \"Inbox/Plans\"\nWHERE status = \"review\"\nSORT created DESC\n\\`\\`\\`\n\n## Recent Activity",
       "vector": [
         0.6,
         0.6313725490196078,
@@ -417,7 +417,7 @@
       ]
     },
     {
-      "text": "- No real-time updates (must refresh)\n- No interactive buttons (use CLI for actions)\n- Requires Obsidian + Dataview plugin\n\n---\n\n### Step 9.3: TUI Cockpit Implementation Plan\n\n**Goal:** Deliver an interactive, terminal-based dashboard (TUI) for ExoFrame, providing a native developer experience for monitoring, approval, and control—without requiring a browser or Obsidian.\n\n#### Rationale\n\n- **Fits Developer Workflow:** Most ExoFrame users operate in the terminal; a TUI cockpit feels native and fast.\n- **Interactivity:** Enables real-time plan approval, log streaming, and portal management—features not possible with static dashboards.\n- **No External Dependencies:** No need for Obsidian or a web server; works anywhere Deno runs.\n\n#### Implementation Steps\n\n1. **Library Selection & Setup**",
+      "text": "- No real-time updates (must refresh)\n- No interactive buttons (use CLI for actions)\n- Requires Obsidian + Dataview plugin\n\n---\n\n### Step 9.3: TUI Cockpit Implementation Plan\n\n**Goal:** Deliver an interactive, terminal-based dashboard (TUI) for Exaix, providing a native developer experience for monitoring, approval, and control—without requiring a browser or Obsidian.\n\n#### Rationale\n\n- **Fits Developer Workflow:** Most Exaix users operate in the terminal; a TUI cockpit feels native and fast.\n- **Interactivity:** Enables real-time plan approval, log streaming, and portal management—features not possible with static dashboards.\n- **No External Dependencies:** No need for Obsidian or a web server; works anywhere Deno runs.\n\n#### Implementation Steps\n\n1. **Library Selection & Setup**",
       "vector": [
         0.3411764705882353,
         0.26666666666666666,
@@ -486,7 +486,7 @@
       ]
     },
     {
-      "text": "- Evaluate and select a Deno-compatible TUI library (e.g., `cliffy` or `deno-tui`).\n- Scaffold a new TUI module under `src/ui/tui/`.\n\n2. **TUI Command Integration**\n\n- Implement and document the `exoctl dashboard` command as the entry point for the TUI cockpit.\n- Ensure the TUI can run in parallel with the ExoFrame daemon.\n- Update User Guide, Technical Spec, and Manual Test Scenarios to include full usage, options, and troubleshooting for `exoctl dashboard`.\n\n3. **TUI Cockpit Features**\n\n**Core Views (all support split view):**",
+      "text": "- Evaluate and select a Deno-compatible TUI library (e.g., `cliffy` or `deno-tui`).\n- Scaffold a new TUI module under `src/ui/tui/`.\n\n2. **TUI Command Integration**\n\n- Implement and document the `exactl dashboard` command as the entry point for the TUI cockpit.\n- Ensure the TUI can run in parallel with the Exaix daemon.\n- Update User Guide, Technical Spec, and Manual Test Scenarios to include full usage, options, and troubleshooting for `exactl dashboard`.\n\n3. **TUI Cockpit Features**\n\n**Core Views (all support split view):**",
       "vector": [
         0.26666666666666666,
         0.7215686274509804,
@@ -693,7 +693,7 @@
       ]
     },
     {
-      "text": "- Multi-user session support (for remote/SSH collaboration)\n- Inline help and onboarding walkthrough\n- Activity heatmaps or visual analytics\n- Quick actions: re-run plan, duplicate request, escalate to human\n\n**Testing & Documentation:**\n\n- Manual and automated tests for TUI flows (mock Activity Journal, plan approval, etc.)\n- Update User Guide and README with TUI usage instructions and screenshots\n\n4. **Architecture & Data Flow**\n\n- Use ExoFrame's existing file/database APIs for data (no new backend required).\n- Implement event polling or file watching for real-time updates.\n- Ensure all actions (approve, reject, control) are reflected in the Activity Journal for auditability.\n\n5. **User Experience**",
+      "text": "- Multi-user session support (for remote/SSH collaboration)\n- Inline help and onboarding walkthrough\n- Activity heatmaps or visual analytics\n- Quick actions: re-run plan, duplicate request, escalate to human\n\n**Testing & Documentation:**\n\n- Manual and automated tests for TUI flows (mock Activity Journal, plan approval, etc.)\n- Update User Guide and README with TUI usage instructions and screenshots\n\n4. **Architecture & Data Flow**\n\n- Use Exaix's existing file/database APIs for data (no new backend required).\n- Implement event polling or file watching for real-time updates.\n- Ensure all actions (approve, reject, control) are reflected in the Activity Journal for auditability.\n\n5. **User Experience**",
       "vector": [
         0.9372549019607843,
         0.9411764705882353,
@@ -831,7 +831,7 @@
       ]
     },
     {
-      "text": "- [x] Real-time log monitor view\n      [ ] Interactive plan review/approval\n      [ ] Portal management view\n      [ ] Daemon control integration\n      [ ] Documentation and user testing\n\n#### Notes\n\n- Obsidian dashboards remain for knowledge management and historical review.\n- TUI cockpit is the primary interactive UI for ExoFrame MVP; web dashboard is deferred to v2.0 unless user demand shifts.\n\n---\n\n### Step 9.4: Implement Monitor View (Log Streaming) ✅ COMPLETED\n\n**Description:**\nDesign and implement the Monitor panel for real-time log streaming, filtering, and export. Integrate with Activity Journal and provide color-coded log levels and clear status indicators.\n\n**Test Description:**",
+      "text": "- [x] Real-time log monitor view\n      [ ] Interactive plan review/approval\n      [ ] Portal management view\n      [ ] Daemon control integration\n      [ ] Documentation and user testing\n\n#### Notes\n\n- Obsidian dashboards remain for knowledge management and historical review.\n- TUI cockpit is the primary interactive UI for Exaix MVP; web dashboard is deferred to v2.0 unless user demand shifts.\n\n---\n\n### Step 9.4: Implement Monitor View (Log Streaming) ✅ COMPLETED\n\n**Description:**\nDesign and implement the Monitor panel for real-time log streaming, filtering, and export. Integrate with Activity Journal and provide color-coded log levels and clear status indicators.\n\n**Test Description:**",
       "vector": [
         0.10588235294117647,
         0.6941176470588235,

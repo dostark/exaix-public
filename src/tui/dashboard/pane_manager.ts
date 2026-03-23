@@ -35,7 +35,7 @@ export async function splitPane(
     const globalWithDenoPane = globalThis as PaneManagerGlobalWithDeno;
     if (
       typeof globalWithDenoPane.Deno !== "undefined" &&
-      globalWithDenoPane.Deno?.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+      globalWithDenoPane.Deno?.env.get("EXA_TEST_LOG_SPLIT_DEBUG") === "1"
     ) {
       console.debug("[TUI][DEBUG] splitPane vertical BEFORE", activePane.id, "flexWidth=", activePane.flexWidth);
     }
@@ -61,7 +61,7 @@ export async function splitPane(
     const globalWithDenoPane2 = globalThis as PaneManagerGlobalWithDeno;
     if (
       typeof globalWithDenoPane2.Deno !== "undefined" &&
-      globalWithDenoPane2.Deno?.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+      globalWithDenoPane2.Deno?.env.get("EXA_TEST_LOG_SPLIT_DEBUG") === "1"
     ) {
       console.debug("[TUI][DEBUG] splitPane vertical AFTER", activePane.id, "flexWidth=", activePane.flexWidth);
     }

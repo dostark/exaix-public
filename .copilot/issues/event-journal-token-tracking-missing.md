@@ -9,7 +9,7 @@ labels: [bug, event-journal, token-usage]
 
 ## Problem
 
-The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates ExoFrame's declared functionality for cost tracking and monitoring.
+The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates Exaix's declared functionality for cost tracking and monitoring.
 
 ## Reproduction Steps
 
@@ -52,10 +52,10 @@ Example expected payload:
 
 ## Environment
 
-- ExoFrame Version: Current development version
+- Exaix Version: Current development version
 - OS: Linux
 - Deno Version: As configured in deno.json
-- Relevant Config: exo.config.toml (LLM provider settings)
+- Relevant Config: exa.config.toml (LLM provider settings)
 
 ## Investigation Needed
 
@@ -83,7 +83,7 @@ None currently known. Manual cost tracking required via external monitoring.
 
 ## Priority Justification
 
-High priority because token usage and cost tracking is a core declared feature of ExoFrame for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.
+High priority because token usage and cost tracking is a core declared feature of Exaix for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.
 
 ## Resolution
 

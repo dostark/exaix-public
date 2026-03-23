@@ -1,11 +1,11 @@
 - [x] ProviderSelector uses config.provider_strategy
 - [x] No environment variable checking in selection logic
-- [x] Need to modify selection to respect EXO_LLM_PROVIDER override
+- [x] Need to modify selection to respect EXA_LLM_PROVIDER override
 
 ### Test Mode Impact
 
-- [x] EXO_TEST_MODE not set (confirmed via `env | grep EXO`)
-- [x] Test mode settings commented out in exo.config.toml
+- [x] EXA_TEST_MODE not set (confirmed via `env | grep EXO`)
+- [x] Test mode settings commented out in exa.config.toml
 - [x] isTestMode() function exists but not used in provider selection
 - [x] Test mode does not affect this bug
 

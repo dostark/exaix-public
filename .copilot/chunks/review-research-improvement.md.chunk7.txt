@@ -1,8 +1,8 @@
 | Document                               | Purpose                                   |
 | -------------------------------------- | ----------------------------------------- |
-| `docs/ExoFrame_User_Guide.md`          | User-facing feature documentation         |
+| `docs/Exaix_User_Guide.md`          | User-facing feature documentation         |
 | `docs/Building_with_AI_Agents.md`      | Patterns and best practices               |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase completion status                   |
+| `docs/Exaix_Implementation_Plan.md` | Phase completion status                   |
 | Subsystem README                       | Template catalog, configuration reference |
 
 **Documentation Phase Template:**

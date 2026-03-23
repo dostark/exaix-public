@@ -80,14 +80,14 @@
       "path": "core/typescript-patterns.skill.md"
     },
     {
-      "skill_id": "exoframe-conventions",
-      "name": "ExoFrame Conventions",
+      "skill_id": "exaix-conventions",
+      "name": "Exaix Conventions",
       "version": "1.0.0",
       "status": "active",
       "scope": "project",
-      "project": "ExoFrame",
-      "triggers": { "keywords": ["exoframe", "agent", "flow"], "task_types": ["feature"], "tags": ["exoframe"] },
-      "path": "core/exoframe-conventions.skill.md"
+      "project": "Exaix",
+      "triggers": { "keywords": ["exaix", "agent", "flow"], "task_types": ["feature"], "tags": ["exaix"] },
+      "path": "core/exaix-conventions.skill.md"
     }
   ]
 }

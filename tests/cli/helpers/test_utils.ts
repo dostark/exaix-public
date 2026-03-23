@@ -4,8 +4,8 @@
  * @description Test utilities for CLI command testing.
  */
 
-import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";
-import type * as ExoCtlModule from "../../../src/cli/exoctl.ts";
+import type { ExaCtlTestContext } from "../../../src/cli/exactl.ts";
+import type * as ExaCtlModule from "../../../src/cli/exactl.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import {
@@ -16,20 +16,20 @@ import {
 
 // Dynamic import required for test module loading (documented in CODE_STYLE.md)
 // This must remain a dynamic import because the module is only needed at runtime in test mode.
-const exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> = import("../../../src/cli/exoctl.ts");
+const exactlModulePromise: Promise<typeof import("../../../src/cli/exactl.ts")> = import("../../../src/cli/exactl.ts");
 
-function loadExoCtlModule(): Promise<typeof import("../../../src/cli/exoctl.ts")> {
-  return exoctlModulePromise;
+function loadExaCtlModule(): Promise<typeof import("../../../src/cli/exactl.ts")> {
+  return exactlModulePromise;
 }
 
-export async function withTestMod<T>(fn: (mod: typeof ExoCtlModule, ctx: ExoCtlTestContext) => Promise<T> | T) {
-  const origEnv = Deno.env.get("EXO_TEST_CLI_MODE") ?? Deno.env.get("EXO_TEST_MODE");
-  Deno.env.set("EXO_TEST_CLI_MODE", "1");
-  Deno.env.set("EXO_TEST_MODE", "1");
-  let ctx: ExoCtlTestContext | undefined;
+export async function withTestMod<T>(fn: (mod: typeof ExaCtlModule, ctx: ExaCtlTestContext) => Promise<T> | T) {
+  const origEnv = Deno.env.get("EXA_TEST_CLI_MODE") ?? Deno.env.get("EXA_TEST_MODE");
+  Deno.env.set("EXA_TEST_CLI_MODE", "1");
+  Deno.env.set("EXA_TEST_MODE", "1");
+  let ctx: ExaCtlTestContext | undefined;
   const tempDir: string = await Deno.makeTempDir({ prefix: "exo-test-" });
   await ensureDir(tempDir);
-  const configPath: string = join(tempDir, "exo.config.toml");
+  const configPath: string = join(tempDir, "exa.config.toml");
   const configContent = `
 [system]
 root = "./"
@@ -52,10 +52,10 @@ provider = "mock"
 model = "test"
 `;
   await Deno.writeTextFile(configPath, configContent);
-  // Set EXO_CONFIG_PATH before any CLI code loads
-  Deno.env.set("EXO_CONFIG_PATH", configPath);
+  // Set EXA_CONFIG_PATH before any CLI code loads
+  Deno.env.set("EXA_CONFIG_PATH", configPath);
   try {
-    const loadedMod = await loadExoCtlModule();
+    const loadedMod = await loadExaCtlModule();
     // Use real DB in test mode if possible
     if (loadedMod.__test_initializeServices) {
       const services = await loadedMod.__test_initializeServices({ instantiateDb: true, configPath });
@@ -95,14 +95,14 @@ model = "test"
       }
     }
     if (origEnv === undefined) {
-      Deno.env.delete("EXO_TEST_CLI_MODE");
-      Deno.env.delete("EXO_TEST_MODE");
+      Deno.env.delete("EXA_TEST_CLI_MODE");
+      Deno.env.delete("EXA_TEST_MODE");
     } else {
-      Deno.env.set("EXO_TEST_CLI_MODE", origEnv);
-      Deno.env.set("EXO_TEST_MODE", origEnv);
+      Deno.env.set("EXA_TEST_CLI_MODE", origEnv);
+      Deno.env.set("EXA_TEST_MODE", origEnv);
     }
     if (configPath) {
-      Deno.env.delete("EXO_CONFIG_PATH");
+      Deno.env.delete("EXA_CONFIG_PATH");
     }
     // Clean up ephemeral config and temp dir
     if (tempDir) {

@@ -19,7 +19,7 @@ import { DEFAULT_MCP_VERSION, DEFAULT_QUERY_LIMIT } from "../constants.ts";
 export const MCPConfigSchema = z.object({
   enabled: z.boolean().default(true),
   transport: z.nativeEnum(McpTransportType).default(McpTransportType.STDIO),
-  server_name: z.string().default("exoframe"),
+  server_name: z.string().default("exaix"),
   version: z.string().default(DEFAULT_MCP_VERSION),
 });
 

@@ -11,7 +11,7 @@ topics: ["self-improvement", "instruction-adequacy", "agents", "maintenance", "r
 
 Key points
 
-- Before non-trivial work, run an **Instruction Adequacy Check**: do we have enough ExoFrame-specific guidance to act and verify?
+- Before non-trivial work, run an **Instruction Adequacy Check**: do we have enough Exaix-specific guidance to act and verify?
 - If guidance is missing, do a **Doc Patch Loop**: add the smallest, task-scoped update to `.copilot/`, then rebuild/validate, then continue the primary task.
 - Keep updates grounded: add checklists, examples, and commands; avoid speculative “nice-to-have” prose.
 - Treat doc changes like code changes: minimal diff, clear success criteria, and a regression test when appropriate.
@@ -33,7 +33,7 @@ Use this at the start of a session or before a multi-step change.
 
 1.
    - ✅ Adequate if the docs specify:
-     - what files/patterns to use (ExoFrame-specific)
+     - what files/patterns to use (Exaix-specific)
      - what invariants to preserve
      - what verification to run (tests/lint/CI checks)
    - ❌ Inadequate if any of these are missing or ambiguous.
@@ -73,7 +73,7 @@ Use this at the start of a session or before a multi-step change.
 
 ## Gap taxonomy (what to look for)
 
-- **Missing examples**: no concrete ExoFrame-specific snippet for the task.
+- **Missing examples**: no concrete Exaix-specific snippet for the task.
 - **Missing commands**: no “what to run” for verification/build/validation.
 - **Missing invariants**: unclear what behavior must not change.
 - **Missing cross-links**: docs exist but are hard to discover.
@@ -86,7 +86,7 @@ Do / Don’t
 - ✅ Do ask 1–3 clarifying questions if the requirement is ambiguous before changing docs.
 - ✅ Do rebuild `.copilot/manifest.json`, chunks, and embeddings after agent doc edits.
 - ✅ Do add a regression test when a missing instruction caused a real failure.
-- ❌ Don’t broaden scope into “general best practices” unrelated to ExoFrame.
+- ❌ Don’t broaden scope into “general best practices” unrelated to Exaix.
 - ❌ Don’t update many docs at once without a clear gap list.
 
 Canonical prompt (short)

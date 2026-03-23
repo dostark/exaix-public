@@ -2,14 +2,14 @@
 agent: general
 scope: dev
 title: Review-Research-Improvement Pattern
-short_summary: "Systematic approach to evaluate ExoFrame subsystems, identify weaknesses, and create actionable improvement plans."
+short_summary: "Systematic approach to evaluate Exaix subsystems, identify weaknesses, and create actionable improvement plans."
 version: "1.0"
 topics: ["architecture-review", "improvement-planning", "patterns", "refactoring", "quality"]
 ---
 
 ## Review-Research-Improvement Pattern
 
-A structured methodology for evaluating ExoFrame subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.
+A structured methodology for evaluating Exaix subsystems, identifying architectural weaknesses, and producing actionable improvement plans with concrete artifacts.
 
 ## When to Use
 
@@ -183,9 +183,9 @@ This phase should update:
 
 | Document                               | Purpose                                   |
 | -------------------------------------- | ----------------------------------------- |
-| `docs/ExoFrame_User_Guide.md`          | User-facing feature documentation         |
+| `docs/Exaix_User_Guide.md`          | User-facing feature documentation         |
 | `docs/Building_with_AI_Agents.md`      | Patterns and best practices               |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase completion status                   |
+| `docs/Exaix_Implementation_Plan.md` | Phase completion status                   |
 | Subsystem README                       | Template catalog, configuration reference |
 
 **Documentation Phase Template:**
@@ -199,7 +199,7 @@ This phase should update:
 
 | File                            | Updates Required      |
 | ------------------------------- | --------------------- |
-| docs/ExoFrame_User_Guide.md     | [Section]: [features] |
+| docs/Exaix_User_Guide.md     | [Section]: [features] |
 | docs/Building_with_AI_Agents.md | [patterns, examples]  |
 | [Subsystem]/README.md           | [templates, config]   |
 

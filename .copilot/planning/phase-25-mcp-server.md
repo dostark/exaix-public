@@ -3,21 +3,21 @@
 > [!NOTE]
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
-> See `docs/ExoFrame_User_Guide.md` for current usage.
+> See `docs/Exaix_User_Guide.md` for current usage.
 
-**Goal:** Implement high-level ExoFrame domain tools (Create Request, List Plans, Approve, Query Journal) for the MCP server.
+**Goal:** Implement high-level Exaix domain tools (Create Request, List Plans, Approve, Query Journal) for the MCP server.
 
 ## Overview
 
-We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git tools (Phase 13/Foundation). This phase focuses on exposing the core ExoFrame logic to AI agents.
+We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git tools (Phase 13/Foundation). This phase focuses on exposing the core Exaix logic to AI agents.
 
 ### Step 25.1: Domain Tools Implementation
 
-**Goal:** Allow agents to perform ExoFrame actions.
+**Goal:** Allow agents to perform Exaix actions.
 
 **New Tools:**
 
-1. `exoframe_create_request`: Create a new request file.
+1. `exaix_create_request`: Create a new request file.
 
 1.
 1.
@@ -34,7 +34,7 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 
 **Updates:**
 
-- [x] Use `exo.config.toml` for enabling/disabling tools (refer to [src/config/schema.ts](file:///home/dkasymov/git/ExoFrame/src/config/schema.ts)).
+- [x] Use `exa.config.toml` for enabling/disabling tools (refer to [src/config/schema.ts](file:///home/dkasymov/git/Exaix/src/config/schema.ts)).
 - [x] Enforce `agent_id` tracking for all tool calls.
 
 ### Step 25.3: Verification
@@ -42,7 +42,7 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 **Tests:**
 
 - [x] Unit tests for domain tools (mocking `RequestCommands` and `PlanCommands`).
-- [x] Integration tests via `exoctl mcp start`.
+- [x] Integration tests via `exactl mcp start`.
 
 **Documentation:**
 
@@ -52,7 +52,7 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 ### Exit Criteria
 
 - [x] All high-level tools implemented and registered.
-- [x] Users can drive ExoFrame via Claude Desktop / Cline.
+- [x] Users can drive Exaix via Claude Desktop / Cline.
 - [x] Activity Journal logs all high-level actions.
 
 ---
@@ -61,7 +61,7 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 
 **Duration:** 1-2 weeks\
 **Prerequisites:** Phases 1–12 (All core features complete, Obsidian retired)\
-**Goal:** Add Model Context Protocol (MCP) server interface for programmatic ExoFrame interaction
+**Goal:** Add Model Context Protocol (MCP) server interface for programmatic Exaix interaction
 
 ### Step 13.1: MCP Server Foundation ✅ COMPLETED
 
@@ -78,7 +78,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 
 **Success Criteria:**
 
-1. [x] MCP server starts via `exoctl mcp start`
+1. [x] MCP server starts via `exactl mcp start`
 
 1.
 1.
@@ -88,7 +88,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 
 **Success Criteria:**
 
-1. [x] `exoframe_create_request` creates request files
+1. [x] `exaix_create_request` creates request files
 
 1.
 1.
@@ -125,7 +125,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 
 **For Users:**
 
-- Automate ExoFrame workflows from AI assistants
+- Automate Exaix workflows from AI assistants
 - Integrate with existing IDE agents
 - Programmatic access without learning CLI
 

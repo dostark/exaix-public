@@ -31,7 +31,7 @@ export interface IRunSyntheticScenarioOptions {
   mode: ScenarioExecutionMode;
   startStepIndex?: number;
   interactiveAllowed?: boolean;
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
   env?: { [key: string]: string };
   portalAliases?: string[];
   verbose?: boolean;
@@ -65,7 +65,7 @@ export async function runSyntheticScenario(
       const outcome = await executeSyntheticStep({
         step,
         workspaceRoot: options.workspaceRoot,
-        exoctlExecutable: options.exoctlExecutable,
+        exactlExecutable: options.exactlExecutable,
         requestFixturePath: loadedScenario.requestFixture.absolutePath,
         frameworkHome: options.frameworkHome,
         env: options.env,
@@ -110,7 +110,7 @@ export async function runSyntheticScenario(
 interface IExecuteSyntheticStepOptions {
   step: IScenarioStep;
   workspaceRoot: string;
-  exoctlExecutable?: string;
+  exactlExecutable?: string;
   requestFixturePath: string;
   frameworkHome: string;
   env?: { [key: string]: string };
@@ -148,7 +148,7 @@ async function executeSyntheticStep(
 
   const executionResult = await executeScenarioStep({
     step: resolvedStep,
-    exoctlExecutable: options.exoctlExecutable,
+    exactlExecutable: options.exactlExecutable,
     cwd: options.workspaceRoot,
     env,
     verbose: options.verbose,

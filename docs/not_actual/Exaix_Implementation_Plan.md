@@ -1,4 +1,4 @@
-# ExoFrame Implementation Plan
+# Exaix Implementation Plan
 
 - **Version:** 1.8.0
 - **Release Date:** 2026-01-03

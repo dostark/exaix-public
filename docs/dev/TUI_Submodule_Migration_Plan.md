@@ -1,6 +1,6 @@
 # TUI Submodule Migration Plan
 
-This document outlines the steps to move the ExoFrame TUI implementation into a separate Git repository and integrate it back into the main `ExoFrame` repository as a Git submodule.
+This document outlines the steps to move the Exaix TUI implementation into a separate Git repository and integrate it back into the main `Exaix` repository as a Git submodule.
 
 ## Rationale
 
@@ -14,39 +14,39 @@ The new TUI is a significant project with high implementation efforts, separate 
 
 ### Phase 1: Preparation of the New Repository
 
-1. **Initialize New Repository**: Create a new repository (e.g., `ExoFrame-TUI`).
+1. **Initialize New Repository**: Create a new repository (e.g., `Exaix-TUI`).
 
 1.
 
 ### Phase 2: Code Extraction
 
-1. **Export TUI Core**: Move the contents of `ExoFrame/src/tui` to the new repository.
+1. **Export TUI Core**: Move the contents of `Exaix/src/tui` to the new repository.
 
 1.
-   - Update imports in the new repository to reference the main repository via a specific `exoframe` import map entry or relative paths if testing locally.
+   - Update imports in the new repository to reference the main repository via a specific `exaix` import map entry or relative paths if testing locally.
    - Ideally, use a published version or a stable branch of the core interfaces.
 1.
 
 ### Phase 3: Submodule Integration
 
-1. **Remove Old Code**: Delete `src/tui` and `tests/tui` from the main `ExoFrame` repository.
+1. **Remove Old Code**: Delete `src/tui` and `tests/tui` from the main `Exaix` repository.
 
    ```bash
-   git submodule add https://github.com/dostark/ExoFrame-TUI.git vendor/tui
+   git submodule add https://github.com/dostark/Exaix-TUI.git vendor/tui
    ```
 1.
    - Create a symlink or update `deno.json` import maps to map `src/tui` to `vendor/tui/src`.
-   - Ensure the TUI can still be launched via `exoctl tui`.
+   - Ensure the TUI can still be launched via `exactl tui`.
 
 ### Phase 4: Build and Integration
 
-1. **Update `exoctl`**: Modify the `tui` command in `exoctl` to import the entry point from the submodule.
+1. **Update `exactl`**: Modify the `tui` command in `exactl` to import the entry point from the submodule.
 
 1.
 
 ## Potential Challenges
 
-- **Circular Dependencies**: The TUI depends on core services, and `exoctl` depends on the TUI. This needs careful interface management.
+- **Circular Dependencies**: The TUI depends on core services, and `exactl` depends on the TUI. This needs careful interface management.
 - **CI/CD Complexity**: Testing the main repo will now require initializing submodules.
 - **Developer Workflow**: Developers working on TUI changes will need to manage commits in two repositories.
 

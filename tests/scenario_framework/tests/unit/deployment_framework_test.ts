@@ -2,7 +2,7 @@
  * @module ScenarioFrameworkDeploymentFrameworkTest
  * @path tests/scenario_framework/tests/unit/deployment_framework_test.ts
  * @description RED-first tests for Step 6. Verifies deployable
- * framework planning, external runtime config resolution, non-ExoFrame portal
+ * framework planning, external runtime config resolution, non-Exaix portal
  * path handling, and deterministic deployment manifest writing before the
  * deployment module exists.
  * @architectural-layer Test
@@ -60,7 +60,7 @@ Deno.test("[ScenarioFrameworkDeployment] runtime config resolves explicit worksp
   const runtimeConfig = resolveRuntimeConfigForExecution({
     executionDirectory: "/opt/tools/scenario_framework",
     fileConfig: {
-      workspace_path: "/tmp/workspaces/exoframe-under-test",
+      workspace_path: "/tmp/workspaces/exaix-under-test",
       output_dir: "/tmp/scenario-output",
       portals: {
         "portal-sample-app": "/srv/repos/sample-app",
@@ -70,16 +70,16 @@ Deno.test("[ScenarioFrameworkDeployment] runtime config resolves explicit worksp
   });
 
   assertEquals(runtimeConfig.framework_home, "/opt/tools/scenario_framework");
-  assertEquals(runtimeConfig.workspace_path, "/tmp/workspaces/exoframe-under-test");
+  assertEquals(runtimeConfig.workspace_path, "/tmp/workspaces/exaix-under-test");
   assertEquals(runtimeConfig.output_dir, "/tmp/scenario-output");
   assertEquals(runtimeConfig.portals?.["portal-sample-app"], "/srv/repos/sample-app");
 });
 
-Deno.test("[ScenarioFrameworkDeployment] portal mount preparation accepts non-ExoFrame repository paths", () => {
+Deno.test("[ScenarioFrameworkDeployment] portal mount preparation accepts non-Exaix repository paths", () => {
   const runtimeConfig = resolveRuntimeConfigForExecution({
     executionDirectory: "/opt/tools/scenario_framework",
     fileConfig: {
-      workspace_path: "/tmp/workspaces/exoframe-under-test",
+      workspace_path: "/tmp/workspaces/exaix-under-test",
       output_dir: "/tmp/scenario-output",
       portals: {
         "portal-sample-app": "/srv/repos/sample-app",

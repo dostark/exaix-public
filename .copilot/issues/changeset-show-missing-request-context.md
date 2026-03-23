@@ -8,7 +8,7 @@ labels: [enhancement, cli, changeset, ux]
 
 ## Problem
 
-The `exoctl changeset list` and `exoctl changeset show` commands provide minimal information about changesets, missing crucial context about the original request, plan, and flow step that created the changeset. Users cannot easily trace changesets back to their source or understand the full workflow context.
+The `exactl changeset list` and `exactl changeset show` commands provide minimal information about changesets, missing crucial context about the original request, plan, and flow step that created the changeset. Users cannot easily trace changesets back to their source or understand the full workflow context.
 
 ## Current State
 
@@ -107,7 +107,7 @@ Add to `changesets` table:
 ## Files to Modify
 
 - `src/cli/changeset_commands.ts` - Add metadata loading methods
-- `src/cli/exoctl.ts` - Update display formatting
+- `src/cli/exactl.ts` - Update display formatting
 - `src/schemas/changeset.ts` - Add new fields
 - `migrations/005_changeset_enhancement.sql` - Schema updates
 - `src/services/changeset_registry.ts` - Update registration logic

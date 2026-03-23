@@ -17,7 +17,7 @@ import * as TEST_CONSTANTS from "./config/constants.ts";
 const TEST_KEY_ANTHROPIC = "sk-ant-test-key";
 const TEST_KEY_OPENAI = "sk-test-key";
 const TEST_KEY_GOOGLE = "test-api-key";
-const PERSIST_ENV_VAR = "EXO_PERSIST_ENV_CREDENTIALS";
+const PERSIST_ENV_VAR = "EXA_PERSIST_ENV_CREDENTIALS";
 const TEST_MODEL = "test-model";
 
 // Helper to mock resolved options
@@ -98,7 +98,7 @@ async function testEnvToStoreSync({
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
   interface ExoGlobal {
-    EXO_PERSIST_ENV_CREDENTIALS?: boolean;
+    EXA_PERSIST_ENV_CREDENTIALS?: boolean;
   }
   const globalWithPersistence = globalThis as typeof globalThis & ExoGlobal;
   globalWithPersistence[PERSIST_ENV_VAR] = true;

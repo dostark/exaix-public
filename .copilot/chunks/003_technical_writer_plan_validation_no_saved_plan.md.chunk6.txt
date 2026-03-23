@@ -6,8 +6,8 @@
 
 ```bash
 # Submit request to technical-writer agent
-exoctl request --portal portal-exoframe --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine..."
+exactl request --portal portal-exaix --agent technical-writer "Create comprehensive API documentation for Exaix's flow engine..."
 
 # Check request status
-exoctl request show <trace-id>
+exactl request show <trace-id>
 # Shows: status: failed

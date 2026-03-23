@@ -46,7 +46,7 @@ export class ProviderFactory {
    * Create an LLM provider using a fallback chain.
    * Tries primary, then fallbacks, with optional health check and retry logic.
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param fallback - Fallback chain config
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
@@ -108,7 +108,7 @@ export class ProviderFactory {
   /**
    * Create an LLM provider by looking up a named fallback chain in configuration.
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param chainName - Name of the fallback chain to use (e.g., "balanced", "fast")
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
@@ -149,11 +149,11 @@ export class ProviderFactory {
    * Create an LLM provider based on environment and configuration.
    *
    * Priority order:
-   * 1. Environment variables (EXO_LLM_PROVIDER, EXO_LLM_MODEL, etc.)
+   * 1. Environment variables (EXA_LLM_PROVIDER, EXA_LLM_MODEL, etc.)
    * 2. Config file [ai] section
    * 3. Defaults (MockLLMProvider)
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
    */
@@ -171,7 +171,7 @@ export class ProviderFactory {
   /**
    * Create an LLM provider by name from the models configuration.
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param name - Name of the model configuration (e.g., "default", "fast")
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
@@ -196,7 +196,7 @@ export class ProviderFactory {
   /**
    * Get information about what provider would be created
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @returns Provider information for logging
    */
   static getProviderInfo(config: Config): IProviderInfo {
@@ -207,7 +207,7 @@ export class ProviderFactory {
   /**
    * Get information about what provider would be created by name
    *
-   * @param config - ExoFrame configuration
+   * @param config - Exaix configuration
    * @param name - Name of the model configuration
    * @returns Provider information for logging
    */
@@ -228,10 +228,10 @@ export class ProviderFactory {
   ): IResolvedProviderOptions {
     // ✓ Validate model config to prevent type confusion attacks
     const modelConfig = rawModelConfig ? InputValidator.validateModelConfig(rawModelConfig) : undefined;
-    const envProvider = this.safeEnvGet("EXO_LLM_PROVIDER");
-    const envModel = this.safeEnvGet("EXO_LLM_MODEL");
-    const envBaseUrl = this.safeEnvGet("EXO_LLM_BASE_URL");
-    const envTimeout = this.safeEnvGet("EXO_LLM_TIMEOUT_MS");
+    const envProvider = this.safeEnvGet("EXA_LLM_PROVIDER");
+    const envModel = this.safeEnvGet("EXA_LLM_MODEL");
+    const envBaseUrl = this.safeEnvGet("EXA_LLM_BASE_URL");
+    const envTimeout = this.safeEnvGet("EXA_LLM_TIMEOUT_MS");
 
     // Base ai config from global config or sensible defaults
     const baseAi: AiConfig = (config.ai as AiConfig) ?? {
@@ -256,7 +256,7 @@ export class ProviderFactory {
       if (ProviderRegistry.getSupportedProviders().includes(normalized)) {
         providerType = normalized as ProviderType;
       } else {
-        console.warn(`Unknown provider '${envProvider}' from EXO_LLM_PROVIDER, falling back to mock`);
+        console.warn(`Unknown provider '${envProvider}' from EXA_LLM_PROVIDER, falling back to mock`);
         providerType = ProviderType.MOCK;
       }
     } else if (merged.provider) {
@@ -360,7 +360,7 @@ export class ProviderFactory {
    * Determine the source of configuration
    */
   private static determineSource(): ConfigSource {
-    if (this.safeEnvGet("EXO_LLM_PROVIDER")) {
+    if (this.safeEnvGet("EXA_LLM_PROVIDER")) {
       return ConfigSource.ENV;
     }
     // Note: We can't easily tell if config was set, so default to "config" if not env

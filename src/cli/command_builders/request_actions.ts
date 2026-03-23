@@ -4,7 +4,7 @@
  * @description Provides builders and helper functions for defining request-related CLI actions and subcommands.
  * @architectural-layer CLI
  * @dependencies [request_commands, base_command]
- * @related-files [src/cli/exoctl.ts, src/cli/request_commands.ts]
+ * @related-files [src/cli/exactl.ts, src/cli/request_commands.ts]
  */
 
 import type { RequestCommands } from "../commands/request_commands.ts";
@@ -130,7 +130,7 @@ export async function handleRequestCreate(
     // Require description for inline mode
     if (!description) {
       display.error("cli.error", "request", {
-        message: 'Description required. Usage: exoctl request "<description>" or use --file',
+        message: 'Description required. Usage: exactl request "<description>" or use --file',
       });
       Deno.exit(1);
     }

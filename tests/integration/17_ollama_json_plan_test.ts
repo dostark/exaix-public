@@ -21,8 +21,8 @@ import { getWorkspacePlansDir } from "../helpers/paths_helper.ts";
 const OLLAMA_MODEL = "llama3.2";
 const OLLAMA_BASE_URL = Deno.env.get("OLLAMA_BASE_URL") || "http://localhost:11434";
 
-const EXO_TEST_ENABLE_OLLAMA = Deno.env.get("EXO_TEST_ENABLE_OLLAMA") === "1";
-const OLLAMA_AVAILABLE = EXO_TEST_ENABLE_OLLAMA ? await isOllamaAvailable() : false;
+const EXA_TEST_ENABLE_OLLAMA = Deno.env.get("EXA_TEST_ENABLE_OLLAMA") === "1";
+const OLLAMA_AVAILABLE = EXA_TEST_ENABLE_OLLAMA ? await isOllamaAvailable() : false;
 
 /**
  * Check if Ollama is running and model is available
@@ -84,7 +84,7 @@ function createTestRequest() {
 
 Deno.test({
   name: "Ollama Integration: Generate JSON plan with llama3.2",
-  ignore: !(EXO_TEST_ENABLE_OLLAMA && OLLAMA_AVAILABLE),
+  ignore: !(EXA_TEST_ENABLE_OLLAMA && OLLAMA_AVAILABLE),
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
@@ -253,7 +253,7 @@ Deno.test({
 // Skip Message for CI/Local without Ollama
 // ============================================================================
 
-if (EXO_TEST_ENABLE_OLLAMA && !OLLAMA_AVAILABLE) {
+if (EXA_TEST_ENABLE_OLLAMA && !OLLAMA_AVAILABLE) {
   console.log(`
 ⚠️  Ollama tests skipped - Ollama not available
 
@@ -261,7 +261,7 @@ To run these tests:
 1. Install Ollama: https://ollama.ai
 2. Start Ollama: ollama serve
 3. Pull model: ollama pull ${OLLAMA_MODEL}
-4. Enable: EXO_TEST_ENABLE_OLLAMA=1
+4. Enable: EXA_TEST_ENABLE_OLLAMA=1
 5. Run tests: deno test tests/integration/17_ollama_json_plan_test.ts --allow-all --no-check
 
 Current configuration:

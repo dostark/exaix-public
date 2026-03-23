@@ -1,9 +1,9 @@
 # 4. Mount portal
-cd ~/ExoFrame
-exoctl portal add /tmp/test-portal TestApp
+cd ~/Exaix
+exactl portal add /tmp/test-portal TestApp
 
 # 5. Submit request
-exoctl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
+exactl request "Create folder src/, create file src/utils.ts, add hello world function to src/utils.ts" \
     --agent senior-coder \
     --portal TestApp
 ```
@@ -18,6 +18,6 @@ The daemon logs show:
 1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997
 ```
 
-`exoctl plan list` shows 0 plans.
+`exactl plan list` shows 0 plans.
 
 ## Expected Behavior

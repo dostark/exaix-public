@@ -22,7 +22,7 @@ default_skills: ["code-review", "error-handling", "portal-grounding"]  # NEW
 ---
 ```text
 
-**Available Core Skills:** `code-review`, `security-first`, `tdd-methodology`, `error-handling`, `documentation-driven`, `typescript-patterns`, `commit-message`, `exoframe-conventions`
+**Available Core Skills:** `code-review`, `security-first`, `tdd-methodology`, `error-handling`, `documentation-driven`, `typescript-patterns`, `commit-message`, `exaix-conventions`
 
 See `Blueprints/Skills/` for skill definitions.
 
@@ -33,7 +33,7 @@ See `Blueprints/Skills/` for skill definitions.
 Active blueprints are ready to use:
 
 ```bash
-exoctl request "Task description" --agent senior-coder
+exactl request "Task description" --agent senior-coder
 ```text
 
 ### Using Examples
@@ -80,7 +80,7 @@ Each blueprint file contains:
 | `security-expert`      | `security-first`, `code-review`               | Security vulnerability analysis |
 | `performance-engineer` | `code-review`                                 | Performance optimization        |
 | `technical-writer`     | `documentation-driven`                        | Documentation generation        |
-| `software-architect`   | `exoframe-conventions`, `typescript-patterns` | Architecture design             |
+| `software-architect`   | `exaix-conventions`, `typescript-patterns` | Architecture design             |
 | `test-engineer`        | `tdd-methodology`, `error-handling`           | Test implementation             |
 | `product-manager`      | -                                             | Requirements analysis           |
 | `code-analyst`         | `code-review`, `typescript-patterns`          | Code structure analysis         |
@@ -133,7 +133,7 @@ The following tools are available for agents to use in their plans:
 
 ## Creating New Blueprints
 
-Use `exoctl blueprint create` or manually create following this template:
+Use `exactl blueprint create` or manually create following this template:
 
 ````markdown
 +++
@@ -190,7 +190,7 @@ The system will:
 Test your blueprint with:
 
 ```bash
-exoctl request "Your test request" --agent my-agent
+exactl request "Your test request" --agent my-agent
 ````text
 
 Check the generated plan in `Workspace/Plans/` - it should contain properly formatted markdown converted from JSON.

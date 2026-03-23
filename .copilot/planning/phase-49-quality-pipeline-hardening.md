@@ -303,7 +303,7 @@ These structured fields feed directly into:
 - [x] Add `acceptance_criteria`, `expected_outcomes`, and `scope` to `IRequestFrontmatter`.
 - [x] Update `RequestParser` to handle YAML list fields.
 - [x] Update `buildParsedRequest()` to include structured expectations in context.
-- [x] Add `--acceptance-criteria` option to `exoctl request create`.
+- [x] Add `--acceptance-criteria` option to `exactl request create`.
 - [x] Write tests for parsing and propagating structured expectations.
 
 ---
@@ -685,7 +685,7 @@ These structured fields feed directly into:
 
 **Architecture notes:**
 
-- `exoctl request create --acceptance-criteria "All tests pass" --acceptance-criteria "New endpoint returns 200"`
+- `exactl request create --acceptance-criteria "All tests pass" --acceptance-criteria "New endpoint returns 200"`
 - Repeatable flag — each usage adds to the `acceptanceCriteria` array in `IRequestOptions`
 - Also add `--expected-outcome` repeatable flag → `expectedOutcomes`
 - `addOptionalFrontmatterFields()` writes them as `acceptance_criteria` / `expected_outcomes` in the YAML (snake_case to match `IRequestFrontmatter`)
@@ -698,7 +698,7 @@ These structured fields feed directly into:
 - [x] Values propagated from flag → `IRequestOptions` → `addOptionalFrontmatterFields()` → YAML
 - [x] Request creation works without new flags
 
-✅ IMPLEMENTED — `src/cli/exoctl.ts`, `src/cli/handlers/request_create_handler.ts`, `src/cli/command_builders/request_actions.ts` updated; 4 tests in `tests/cli/commands/request_create_criteria_test.ts`
+✅ IMPLEMENTED — `src/cli/exactl.ts`, `src/cli/handlers/request_create_handler.ts`, `src/cli/command_builders/request_actions.ts` updated; 4 tests in `tests/cli/commands/request_create_criteria_test.ts`
 
 **Implemented tests** (`tests/cli/commands/request_create_criteria_test.ts`):
 
@@ -818,15 +818,15 @@ These structured fields feed directly into:
 
 **Files to modify:**
 
-- `docs/ExoFrame_User_Guide.md`
-- `docs/dev/ExoFrame_Technical_Spec.md`
-- `.copilot/source/exoframe.md`
+- `docs/Exaix_User_Guide.md`
+- `docs/dev/Exaix_Technical_Spec.md`
+- `.copilot/source/exaix.md`
 - `.copilot/cross-reference.md`
 - `.copilot/manifest.json`
 
 **Updates:**
 
-1. **`docs/ExoFrame_User_Guide.md`:**
+1. **`docs/Exaix_User_Guide.md`:**
    - Document structured frontmatter fields with examples
    - Document `--acceptance-criteria` and `--expected-outcome` CLI flags
    - Explain how explicit criteria improve quality
@@ -844,7 +844,7 @@ These structured fields feed directly into:
    - Add structured frontmatter to request format
 
 1.
-   - Add row: `quality hardening / pipeline improvements` → `source/exoframe.md` + `planning/phase-49-quality-pipeline-hardening.md`
+   - Add row: `quality hardening / pipeline improvements` → `source/exaix.md` + `planning/phase-49-quality-pipeline-hardening.md`
 
 1.
    - Regenerate via `deno run --allow-read --allow-write scripts/build_agents_index.ts`
@@ -856,7 +856,7 @@ These structured fields feed directly into:
 - [x] `.copilot/` docs updated
 - [x] `manifest.json` is fresh
 
-✅ IMPLEMENTED — `docs/ExoFrame_User_Guide.md`, `docs/dev/ExoFrame_Technical_Spec.md`, `.copilot/source/exoframe.md`, `.copilot/cross-reference.md`, and `.copilot/manifest.json` updated.
+✅ IMPLEMENTED — `docs/Exaix_User_Guide.md`, `docs/dev/Exaix_Technical_Spec.md`, `.copilot/source/exaix.md`, `.copilot/cross-reference.md`, and `.copilot/manifest.json` updated.
 
 **Implemented validation:** `deno task check:docs` passes.
 
@@ -1084,7 +1084,7 @@ Additionally, `SessionMemoryService` is **not currently used** in `RequestProces
 
 ### Gap B4: `IRequestOptions` Missing `acceptanceCriteria` / `expectedOutcomes` Fields 🟡 Feasibility
 
-**Location in plan:** Step 11 — "Add `--acceptance-criteria` option to `exoctl request create`"
+**Location in plan:** Step 11 — "Add `--acceptance-criteria` option to `exactl request create`"
 
 **Problem:** `IRequestOptions` in `src/shared/types/request.ts` defines the CLI-to-handler contract (`agent`, `priority`, `portal`, `target_branch`, `model`, `flow`, `skills`, `skipSkills`, `subject`, `analyze`, `analysis_engine`). There is no `acceptanceCriteria` or `expectedOutcomes` field. `RequestCreateHandler.addOptionalFrontmatterFields()` only reads from `IRequestOptions` fields. Step 11 adds CLI flags but the chain from flag → `IRequestOptions` → `addOptionalFrontmatterFields()` → YAML is not specified.
 

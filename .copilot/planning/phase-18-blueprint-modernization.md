@@ -28,7 +28,7 @@
 ## Executive Summary
 
 This phase ensures all blueprints in `Blueprints/` are consistent with the current
-ExoFrame architecture, particularly the Phase 17 Skills system. It addresses:
+Exaix architecture, particularly the Phase 17 Skills system. It addresses:
 
 1. **Format Inconsistency** - Mixed TOML (`+++`) and YAML (`---`) frontmatter
 
@@ -110,7 +110,7 @@ ExoFrame architecture, particularly the Phase 17 Skills system. It addresses:
 | `performance-engineer` | code_review.flow                   | `code-review`                       |
 | `technical-writer`     | code_review, documentation         | `documentation-driven`              |
 | `product-manager`      | feature_development                | (none)                              |
-| `software-architect`   | feature_development, documentation | `exoframe-conventions`              |
+| `software-architect`   | feature_development, documentation | `exaix-conventions`              |
 | `test-engineer`        | feature_development                | `tdd-methodology`, `error-handling` |
 | `code-analyst`         | documentation                      | `code-review`                       |
 
@@ -125,7 +125,7 @@ From `Memory/Skills/core/`:
 | `tdd-methodology`      | test-engineer, feature-developer               |
 | `error-handling`       | senior-coder, feature-developer                |
 | `documentation-driven` | api-documenter, technical-writer               |
-| `exoframe-conventions` | all ExoFrame-specific agents                   |
+| `exaix-conventions` | all Exaix-specific agents                   |
 | `typescript-patterns`  | senior-coder, feature-developer                |
 | `commit-message`       | feature-developer                              |
 
@@ -235,7 +235,7 @@ Invalid:
 - [ ] All root blueprints use YAML frontmatter (`---`)
 - [ ] All model references match `provider:model` format
 - [ ] All agents have appropriate `default_skills`
-- [ ] `exoctl blueprint validate <agent>` passes for each
+- [ ] `exactl blueprint validate <agent>` passes for each
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`
 
@@ -281,7 +281,7 @@ Invalid:
 
 - [ ] All example blueprints have `default_skills` field
 - [ ] Skills match agent responsibilities
-- [ ] `exoctl blueprint validate <agent>` passes for each
+- [ ] `exactl blueprint validate <agent>` passes for each
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`
 
@@ -355,7 +355,7 @@ default_skills: [...]
 - [ ] All 7 agents created with valid YAML frontmatter
 - [ ] Each agent has appropriate `default_skills`
 - [ ] Each agent has clear role and system prompt
-- [ ] `exoctl blueprint validate <agent>` passes for each
+- [ ] `exactl blueprint validate <agent>` passes for each
 - [ ] All flows can resolve their agent references
 
 **Projected Tests:** `tests/blueprints/validation_test.ts`

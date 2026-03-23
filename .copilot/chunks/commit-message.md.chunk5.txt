@@ -5,9 +5,9 @@ Files changed:
 - .copilot/prompts/*.md (NEW, 7 prompt templates)
 - .copilot/README.md (79→267+ lines)
 - .copilot/copilot/summary.md (added frontmatter)
-- .copilot/copilot/exoframe.md (optimized summary)
+- .copilot/copilot/exaix.md (optimized summary)
 - tests/agents/claude_enhancements_test.ts (NEW, 12 tests)
-- docs/ExoFrame_Implementation_Plan.md (added Step 10.5)
+- docs/Exaix_Implementation_Plan.md (added Step 10.5)
 
 Implements Step 10.5 (10/10 success criteria met)"
 ```

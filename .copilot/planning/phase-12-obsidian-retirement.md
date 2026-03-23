@@ -48,7 +48,7 @@ Phase 5 successfully integrated Obsidian as an optional knowledge management lay
 
 ### 1.2 Why Obsidian Should Be Retired
 
-With the completion of **Phase 9 (TUI Dashboard)**, ExoFrame now has a native, terminal-based interface that provides:
+With the completion of **Phase 9 (TUI Dashboard)**, Exaix now has a native, terminal-based interface that provides:
 
 **Functional Overlap:**
 
@@ -854,7 +854,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **Implementation Plan Updates:**
 
-- [x] Update `docs/ExoFrame_Implementation_Plan.md`
+- [x] Update `docs/Exaix_Implementation_Plan.md`
   - Mark Phase 5 as "DEPRECATED - Removed in v1.1"
   - Add deprecation notice at top of Phase 5
   - Insert Phase 12 (reference this document)
@@ -865,7 +865,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **Architecture Documentation:**
 
-- [x] Update `docs/ExoFrame_Architecture.md`
+- [x] Update `docs/Exaix_Architecture.md`
   - Replace Knowledge/ with Memory/ in directory structure
   - Update directory structure diagrams
   - Document memory bank services
@@ -874,7 +874,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **User Guide:**
 
-- [x] Update `docs/ExoFrame_User_Guide.md`
+- [x] Update `docs/Exaix_User_Guide.md`
   - **REMOVE** entire "3.2 Obsidian Integration" section
   - **REMOVE** Dataview setup instructions
   - **REMOVE** Obsidian file watcher configuration
@@ -885,14 +885,14 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **Testing Strategy:**
 
-- [x] Update `docs/ExoFrame_Testing_and_CI_Strategy.md`
+- [x] Update `docs/Exaix_Testing_and_CI_Strategy.md`
   - Remove Obsidian integration tests from test inventory
   - Update test location table (remove `tests/obsidian/`)
   - Update test count
 
 **Developer Setup:**
 
-- [x] Update `docs/ExoFrame_Developer_Setup.md`
+- [x] Update `docs/Exaix_Developer_Setup.md`
   - Remove Obsidian installation instructions
   - Remove Obsidian vault configuration
   - Remove Obsidian integration test commands
@@ -901,7 +901,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **Technical Spec:**
 
-- [x] Update `docs/ExoFrame_Technical_Spec.md`
+- [x] Update `docs/Exaix_Technical_Spec.md`
   - Update file format inventory
   - Remove Obsidian-specific formats (Dataview queries, wikilinks)
   - Add memory bank schemas
@@ -916,7 +916,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 **White Paper:**
 
-- [ ] Update `docs/ExoFrame_White_Paper.md` (if it mentions Obsidian)
+- [ ] Update `docs/Exaix_White_Paper.md` (if it mentions Obsidian)
   - Remove Obsidian references
   - Add Memory Banks to architecture
 
@@ -1135,9 +1135,9 @@ Total: ~770 KB
 
 ### C. Related Documentation
 
-- [ExoFrame_Architecture.md](../docs/ExoFrame_Architecture.md) — System architecture
-- [ExoFrame_Implementation_Plan.md](../docs/ExoFrame_Implementation_Plan.md) — Full project roadmap
-- [ExoFrame_Testing_Strategy.md](../docs/ExoFrame_Testing_Strategy.md) — Testing approach
+- [Exaix_Architecture.md](../docs/Exaix_Architecture.md) — System architecture
+- [Exaix_Implementation_Plan.md](../docs/Exaix_Implementation_Plan.md) — Full project roadmap
+- [Exaix_Testing_Strategy.md](../docs/Exaix_Testing_Strategy.md) — Testing approach
 
 ---
 

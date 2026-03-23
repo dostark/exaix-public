@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { __test_command } from "../src/cli/exoctl.ts";
+import { __test_command } from "../src/cli/exactl.ts";
 
 Deno.test("[regression] CLI wiring: portal analyze command is registered", () => {
   const portalCmd = __test_command.getCommand("portal");

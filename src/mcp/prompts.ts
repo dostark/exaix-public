@@ -1,7 +1,7 @@
 /**
  * @module MCPPrompts
  * @path src/mcp/prompts.ts
- * @description Provides prompt templates for common ExoFrame operations, guiding agents through structured workflows.
+ * @description Provides prompt templates for common Exaix operations, guiding agents through structured workflows.
  * @architectural-layer MCP
  * @dependencies [Config, DatabaseService]
  * @related-files [src/services/db.ts]
@@ -51,7 +51,7 @@ export function getPrompts(): IMCPPrompt[] {
   return [
     {
       name: "execute_plan",
-      description: "Execute an approved ExoFrame plan with guided steps",
+      description: "Execute an approved Exaix plan with guided steps",
       arguments: [
         {
           name: "plan_id",
@@ -121,7 +121,7 @@ export function generateExecutePlanPrompt(
       role: MessageRole.USER,
       content: {
         type: "text",
-        text: `You are executing an ExoFrame plan in portal "${portal}".
+        text: `You are executing an Exaix plan in portal "${portal}".
 
 **Plan ID:** ${plan_id}
 

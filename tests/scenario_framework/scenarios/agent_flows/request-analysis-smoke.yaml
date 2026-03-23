@@ -15,7 +15,7 @@ steps:
     input_criteria: []
     output_criteria: []
   - id: "create-request-analysis"
-    type: "exoctl"
+    type: "exactl"
     command: "request"
     args: ["--analyze", "--engine", "llm", "--file", "$REQUEST_FIXTURE"]
     input_criteria: []

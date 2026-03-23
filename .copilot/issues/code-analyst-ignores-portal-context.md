@@ -23,10 +23,10 @@ The `code-analyst` agent often generates plans that reference files or logic tha
 ## Reproduction Steps
 
 ```bash
-exoctl request --agent code-analyst --portal portal-exoframe "Review current implementation of 'exoctl plan revise' if it has correct and full functionality."
-exoctl plan show request-2c470736_plan
-exoctl plan revise request-2c470736_plan --comment "Create another plan. An implementation is related to ExoFrame framework. Its functional source code is contained in src/ folder of the current portal."
-exoctl plan show request-2c470736_plan
+exactl request --agent code-analyst --portal portal-exaix "Review current implementation of 'exactl plan revise' if it has correct and full functionality."
+exactl plan show request-2c470736_plan
+exactl plan revise request-2c470736_plan --comment "Create another plan. An implementation is related to Exaix framework. Its functional source code is contained in src/ folder of the current portal."
+exactl plan show request-2c470736_plan
 ```
 
 ## Observed Behavior
@@ -37,8 +37,8 @@ exoctl plan show request-2c470736_plan
 
 ## Expected Behavior
 
-- Plan should read from the configured portal repository (`portal-exoframe`).
-- Plan should reference actual ExoFrame files in `src/cli/` and related modules.
+- Plan should read from the configured portal repository (`portal-exaix`).
+- Plan should reference actual Exaix files in `src/cli/` and related modules.
 - Revision comments should cause the agent to regenerate a plan grounded in the repo.
 
 ## Problem Analysis

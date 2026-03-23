@@ -1,9 +1,3 @@
-4. IMPLEMENT (one criterion at a time):
-   FIRST: Path traversal tests
-   - Write test for ../ attempts
-   - Verify PathResolver blocks them
-   - Mark [ ] → [x]
-
 SECOND: Symlink escape tests
    - Write test for symlink detection
    - Verify Portal config validates
