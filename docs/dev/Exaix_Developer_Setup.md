@@ -7,6 +7,11 @@
 
 > **Edition Model:** Exaix 2.0 uses a multi-repository architecture. Solo edition uses only `exaix-core` (public). Team/Enterprise editions require access to private submodules.
 
+> **📚 Developer Tools**:
+>
+> - **Quick Reference**: [../../TOOLS.md](../../TOOLS.md) — Concise guide for AI agents (recommended first stop)
+> - **Full Guide**: [./Exaix_Tools.md](./Exaix_Tools.md) — Detailed installation and usage instructions
+
 Provide step-by-step instructions to bootstrap a local development workspace for Exaix. Two platforms are supported
 in this plan: **Ubuntu (pure)** and **Windows with WSL2**. The goal is a reproducible, minimal environment that allows
 contributors to run the daemon, tests and benchmarks locally.
@@ -17,6 +22,26 @@ contributors to run the daemon, tests and benchmarks locally.
 - Create a local repository and initial configuration
 - Initialize the Activity Journal and Memory Banks
 - Run the daemon in development mode and execute the test suite
+
+## Quick Start: Install All Tools
+
+For a complete development environment, see **[TOOLS.md](../../TOOLS.md)** which includes:
+
+- **Required**: Deno, Git, SQLite3, exactl CLI, just, watchexec
+- **Recommended**: lazygit, delta, fd, ripgrep, fzf, bat, Docker
+- **Optional**: Ollama, tmux, glow, eza, procs
+
+```bash
+# Quick install for Ubuntu/WSL
+sudo apt update
+sudo apt install -y git sqlite3 ripgrep fzf jq tmux
+
+# Install Deno
+curl -fsSL https://deno.land/install.sh | sh
+
+# Install Exaix CLI
+deno install --global --config deno.json --allow-all --name exactl src/cli/exactl.ts
+```
 
 ### 0. Preflight (common)
 

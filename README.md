@@ -12,10 +12,13 @@ Core ideas
 
 Where to find more detail
 
+- **Developer Tools**: [./TOOLS.md](./TOOLS.md) — Quick reference for AI agents (concise)
+- **Full Tools Guide**: [./docs/dev/Exaix_Tools.md](./docs/dev/Exaix_Tools.md) — Detailed installation and usage
 - User Guide: [./docs/Exaix_User_Guide.md](./docs/Exaix_User_Guide.md)
 - Technical Spec: [./docs/dev/Exaix_Technical_Spec.md](./docs/dev/Exaix_Technical_Spec.md)
 - White Paper: [./docs/dev/Exaix_White_Paper.md](./docs/dev/Exaix_White_Paper.md)
 - Development & TDD: [./docs/dev/Building_with_AI_Agents.md](./docs/dev/Building_with_AI_Agents.md)
+- Developer Setup: [./docs/dev/Exaix_Developer_Setup.md](./docs/dev/Exaix_Developer_Setup.md)
 
 Quick start
 
