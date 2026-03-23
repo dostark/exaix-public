@@ -36,7 +36,7 @@ describe("RequestCommands", () => {
 
     // Create mock flow file for testing
     const flowsDir = join(tempDir, "Blueprints", "Flows");
-    await Deno.writeTextFile(join(flowsDir, "code-review.flow.ts"), "mock flow content");
+    await Deno.writeTextFile(join(flowsDir, "code-review.flow.yaml"), "mock flow content");
 
     // Derived paths
     requestsDir = getWorkspaceRequestsDir(tempDir);

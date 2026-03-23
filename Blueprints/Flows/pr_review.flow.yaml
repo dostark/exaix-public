@@ -1,0 +1,135 @@
+id: pr-review
+name: Pull Request Review Flow
+description: >-
+  Comprehensive PR review covering code quality, security, performance, and
+  documentation
+version: 1.0.0
+steps:
+  - id: diff-analysis
+    name: Analyze PR Diff
+    type: agent
+    agent: code-analyst
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: code-quality-review
+    name: Code Quality Review
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - diff-analysis
+    input:
+      source: step
+      stepId: diff-analysis
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: security-review
+    name: Security Review
+    type: agent
+    agent: security-expert
+    dependsOn:
+      - diff-analysis
+    input:
+      source: step
+      stepId: diff-analysis
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: performance-review
+    name: Performance Impact Review
+    type: agent
+    agent: performance-engineer
+    dependsOn:
+      - diff-analysis
+    input:
+      source: step
+      stepId: diff-analysis
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: test-coverage-review
+    name: Test Coverage Review
+    type: agent
+    agent: test-engineer
+    dependsOn:
+      - diff-analysis
+    input:
+      source: step
+      stepId: diff-analysis
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: documentation-review
+    name: Documentation Review
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - diff-analysis
+    input:
+      source: step
+      stepId: diff-analysis
+      transform: mergeAsContext
+    timeout: 30000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: consolidate-feedback
+    name: Consolidate Review Feedback
+    type: agent
+    agent: quality-judge
+    dependsOn:
+      - code-quality-review
+      - security-review
+      - performance-review
+      - test-coverage-review
+      - documentation-review
+    input:
+      source: aggregate
+      from:
+        - code-quality-review
+        - security-review
+        - performance-review
+        - test-coverage-review
+        - documentation-review
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: generate-pr-report
+    name: Generate PR Review Report
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - consolidate-feedback
+    input:
+      source: aggregate
+      from:
+        - diff-analysis
+        - consolidate-feedback
+      transform: mergeAsContext
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: generate-pr-report
+  format: markdown
+settings:
+  maxParallelism: 5
+  failFast: false
+  timeout: 360000
+  includeRequestCriteria: false

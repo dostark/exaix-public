@@ -1,0 +1,66 @@
+id: self-correcting-template
+name: Self-Correcting Flow Template
+description: Template for quality-checked flows with LLM-as-a-Judge evaluation
+version: 1.0.0
+steps:
+  - id: generate-initial
+    name: Generate Initial Output
+    type: agent
+    agent: generator-agent
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 1000
+  - id: evaluate-quality
+    name: Evaluate Output Quality
+    type: agent
+    agent: quality-judge
+    dependsOn:
+      - generate-initial
+    input:
+      source: aggregate
+      from:
+        - generate-initial
+      transform: merge_as_context
+    retry:
+      maxAttempts: 1
+      backoffMs: 2000
+  - id: refine-output
+    name: Refine Output Based on Feedback
+    type: agent
+    agent: refiner-agent
+    dependsOn:
+      - evaluate-quality
+    input:
+      source: aggregate
+      from:
+        - generate-initial
+        - evaluate-quality
+      transform: merge_as_context
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: finalize-output
+    name: Finalize Output
+    type: agent
+    agent: generator-agent
+    dependsOn:
+      - refine-output
+    input:
+      source: step
+      stepId: refine-output
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: finalize-output
+  format: markdown
+settings:
+  maxParallelism: 1
+  failFast: false
+  timeout: 600000
+  includeRequestCriteria: false

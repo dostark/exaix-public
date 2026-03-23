@@ -1,0 +1,160 @@
+id: migration-planning
+name: Migration Planning Flow
+description: >-
+  Plan code migrations with impact analysis, risk assessment, and step-by-step
+  execution plan
+version: 1.0.0
+steps:
+  - id: gather-requirements
+    name: Gather Migration Requirements
+    type: agent
+    agent: product-manager
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: analyze-current-state
+    name: Analyze Current Codebase
+    type: agent
+    agent: code-analyst
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    timeout: 90000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: impact-analysis
+    name: Impact Analysis
+    type: agent
+    agent: software-architect
+    dependsOn:
+      - gather-requirements
+      - analyze-current-state
+    input:
+      source: aggregate
+      from:
+        - gather-requirements
+        - analyze-current-state
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: breaking-changes
+    name: Identify Breaking Changes
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - impact-analysis
+    input:
+      source: aggregate
+      from:
+        - gather-requirements
+        - impact-analysis
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: risk-assessment
+    name: Risk Assessment
+    type: agent
+    agent: qa-engineer
+    dependsOn:
+      - impact-analysis
+      - breaking-changes
+    input:
+      source: aggregate
+      from:
+        - impact-analysis
+        - breaking-changes
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: security-considerations
+    name: Security Considerations
+    type: agent
+    agent: security-expert
+    dependsOn:
+      - impact-analysis
+    input:
+      source: step
+      stepId: impact-analysis
+      transform: mergeAsContext
+    timeout: 30000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: create-migration-plan
+    name: Create Migration Plan
+    type: agent
+    agent: software-architect
+    dependsOn:
+      - breaking-changes
+      - risk-assessment
+      - security-considerations
+    input:
+      source: aggregate
+      from:
+        - gather-requirements
+        - impact-analysis
+        - breaking-changes
+        - risk-assessment
+        - security-considerations
+      transform: mergeAsContext
+    timeout: 90000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: testing-strategy
+    name: Define Testing Strategy
+    type: agent
+    agent: test-engineer
+    dependsOn:
+      - create-migration-plan
+    input:
+      source: aggregate
+      from:
+        - breaking-changes
+        - create-migration-plan
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: generate-documentation
+    name: Generate Migration Documentation
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - create-migration-plan
+      - testing-strategy
+    input:
+      source: aggregate
+      from:
+        - gather-requirements
+        - impact-analysis
+        - breaking-changes
+        - risk-assessment
+        - create-migration-plan
+        - testing-strategy
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: generate-documentation
+  format: markdown
+settings:
+  maxParallelism: 2
+  failFast: false
+  timeout: 540000
+  includeRequestCriteria: false

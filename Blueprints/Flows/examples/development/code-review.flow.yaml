@@ -1,0 +1,77 @@
+id: code-review-flow
+name: Comprehensive Code Review
+description: Multi-perspective code review with specialized analysis and synthesis
+version: 1.0.0
+steps:
+  - id: security-analysis
+    name: Security Analysis
+    type: agent
+    agent: security-reviewer
+    dependsOn: []
+    input:
+      source: request
+      transform: extract_code
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: performance-analysis
+    name: Performance Analysis
+    type: agent
+    agent: performance-reviewer
+    dependsOn: []
+    input:
+      source: request
+      transform: extract_code
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: maintainability-analysis
+    name: Maintainability Analysis
+    type: agent
+    agent: maintainability-reviewer
+    dependsOn: []
+    input:
+      source: request
+      transform: extract_code
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: best-practices-analysis
+    name: Best Practices Analysis
+    type: agent
+    agent: best-practices-reviewer
+    dependsOn: []
+    input:
+      source: request
+      transform: extract_code
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: synthesis-review
+    name: Synthesis and Final Review
+    type: agent
+    agent: senior-reviewer
+    dependsOn:
+      - security-analysis
+      - performance-analysis
+      - maintainability-analysis
+      - best-practices-analysis
+    input:
+      source: aggregate
+      from:
+        - security-analysis
+        - performance-analysis
+        - maintainability-analysis
+        - best-practices-analysis
+      transform: merge_as_context
+    retry:
+      maxAttempts: 2
+      backoffMs: 3000
+output:
+  from: synthesis-review
+  format: markdown
+settings:
+  maxParallelism: 4
+  failFast: false
+  timeout: 600000
+  includeRequestCriteria: false

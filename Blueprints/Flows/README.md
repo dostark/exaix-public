@@ -6,7 +6,7 @@ This directory contains Flow definitions and templates for multi-agent orchestra
 
 - `examples/`: **Reference Implementations**. Comprehensive, educational examples demonstrating complex patterns (e.g., fan-out/fan-in) and specialized agent usage. Use these to learn and as a base for complex custom flows.
 - `templates/`: **Abstract Patterns**. Generic, reusable structures (e.g., Pipeline, Staged) with placeholders. Use these as a starting point for new flows when you know the structure but need to define the logic.
-- `*.flow.ts`: **Active Flows**. Ready-to-use flows available in your workspace. These typically use standard agents and are simpler than examples.
+- `*.flow.yaml`: **Active Flows**. Ready-to-use flows available in your workspace. These typically use standard agents and are simpler than examples.
 
 ## Skills Integration (Phase 17)
 
@@ -48,7 +48,7 @@ exoctl flow run --id code-review
 
 Examples in `examples/` are for learning. To use one:
 
-1. Copy it to this directory: `cp examples/development/code-review.flow.ts .`
+1. Copy it to this directory: `cp examples/development/code-review.flow.yaml .`
 
 1.
 1.
@@ -57,7 +57,7 @@ Examples in `examples/` are for learning. To use one:
 
 Templates in `templates/` are for building new flows:
 
-1. Copy a template: `cp templates/pipeline.flow.template.ts my-new-flow.flow.ts`
+1. Copy a template: `cp templates/pipeline.flow.template.yaml my-new-flow.flow.yaml`
 
 1.
 1.
@@ -104,7 +104,7 @@ Templates in `templates/` are for building new flows:
 
 ## Blueprint Fragments
 
-While Agent Blueprints (`.md`) use a fragment inclusion system (`{{include:fragment}}`), **Flows** (`.flow.ts`) do not.
+While Agent Blueprints (`.md`) use a fragment inclusion system (`{{include:fragment}}`), **Flows** (`.flow.yaml`) do not.
 
 Since flows are TypeScript files, they should use standard ES module imports to share logic, schemas, or prompt strings if needed. However, the _agents_ called by flows will still benefit from the fragment system defined in their respective blueprints.
 

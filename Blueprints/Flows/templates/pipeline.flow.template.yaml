@@ -1,0 +1,63 @@
+id: pipeline-template
+name: Pipeline Flow Template
+description: Template for sequential pipeline workflows
+version: 1.0.0
+steps:
+  - id: initialize
+    name: Initialize Process
+    type: agent
+    agent: coordinator-agent
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: process-step-1
+    name: First Processing Step
+    type: agent
+    agent: processor-agent
+    dependsOn:
+      - initialize
+    input:
+      source: step
+      stepId: initialize
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: process-step-2
+    name: Second Processing Step
+    type: agent
+    agent: refiner-agent
+    dependsOn:
+      - process-step-1
+    input:
+      source: step
+      stepId: process-step-1
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: finalize
+    name: Finalize Results
+    type: agent
+    agent: summarizer-agent
+    dependsOn:
+      - process-step-2
+    input:
+      source: step
+      stepId: process-step-2
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: finalize
+  format: markdown
+settings:
+  maxParallelism: 1
+  failFast: true
+  timeout: 300000
+  includeRequestCriteria: false

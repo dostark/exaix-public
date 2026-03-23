@@ -117,6 +117,6 @@ The user wants to analyze the authentication codebase. I need to:
 
 This agent is used by:
 
-- `documentation.flow.ts` - Code structure extraction step
+- `documentation.flow.yaml` - Code structure extraction step
 - Direct codebase analysis via request
 

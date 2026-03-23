@@ -118,6 +118,6 @@ The user wants to test the user authentication system. I need to:
 
 This agent is used by:
 
-- `feature_development.flow.ts` - Integration testing step
+- `feature_development.flow.yaml` - Integration testing step
 - Direct QA assessment via request
 

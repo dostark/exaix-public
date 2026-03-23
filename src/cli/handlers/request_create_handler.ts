@@ -176,7 +176,7 @@ export class RequestCreateHandler extends BaseCommand {
   }
 
   private async assertFlowExists(flowId: string): Promise<void> {
-    const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${flowId}.flow.ts`);
+    const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${flowId}.flow.yaml`);
     try {
       await Deno.stat(flowPath);
     } catch {

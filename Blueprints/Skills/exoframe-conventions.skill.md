@@ -235,7 +235,7 @@ const EVENT_TYPES = {
 Define flows in Blueprints/Flows/:
 
 ```typescript
-// Blueprints/Flows/example.flow.ts
+// Blueprints/Flows/example.flow.yaml
 
 import { defineFlow } from "../../src/flows/define_flow.ts";
 

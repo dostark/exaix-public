@@ -6,12 +6,9 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-
 import { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 import { join } from "@std/path";
-import { copySync, ensureDirSync } from "@std/fs";
-
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { createMockProvider } from "../helpers/mock_provider.ts";
 
@@ -26,26 +23,10 @@ async function createMockContext(
     cleanup,
   };
 }
+
 function getFlowDir(ctx: ICliApplicationContext) {
   const config = ctx.config.getAll();
   return join(config.system.root, config.paths.blueprints, "Flows");
-}
-
-function seedFlowModuleSupportFiles(ctx: ICliApplicationContext, _flowDir: string) {
-  // We need the shared directory and define_flow.ts in Blueprints/Flows for dynamic import to work
-  const config = ctx.config.getAll();
-  const blueprintsDir = join(config.system.root, config.paths.blueprints);
-  const flowsDir = join(blueprintsDir, "Flows");
-  copySync("src/shared", join(flowsDir, "shared"));
-
-  // copy transforms.ts because shared/schemas/flow.ts depends on it
-  ensureDirSync(join(flowsDir, "flows"));
-  copySync("src/flows/transforms.ts", join(flowsDir, "flows/transforms.ts"));
-
-  // copy define_flow but patch its import paths
-  const original = Deno.readTextFileSync("src/flows/define_flow.ts");
-  const patched = original.replace(/\.\.\/shared\//g, "./shared/");
-  Deno.writeTextFileSync(join(flowsDir, "define_flow.ts"), patched);
 }
 
 async function withFlowsDir(
@@ -89,18 +70,14 @@ Deno.test("FlowCommands: listFlows returns empty when no flows", async () => {
 Deno.test("FlowCommands: listFlows outputs table for valid flows", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const validFlow = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "cli-flow",
-  name: "CLI Flow",
-  description: "Flow for CLI test",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "cli-flow"
+name: "CLI Flow"
+description: "Flow for CLI test"
+steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/cli-flow.flow.ts`, validFlow);
+    await Deno.writeTextFile(`${flowDir}/cli-flow.flow.yaml`, validFlow);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.listFlows();
@@ -113,25 +90,20 @@ export default defineFlow({
 Deno.test("FlowCommands: listFlows outputs JSON when requested", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const flowModule = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "json-flow",
-  name: "JSON IFlow as Flow",
-  description: "IFlow as Flow for JSON test",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "json-flow"
+name: "JSON IFlow as Flow"
+description: "IFlow as Flow for JSON test"
+steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/json-flow.flow.ts`, flowModule);
+    await Deno.writeTextFile(`${flowDir}/json-flow.flow.yaml`, flowModule);
 
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.listFlows({ json: true });
     });
 
-    // should be valid JSON and include our flow id
     assertStringIncludes(output, '"id": "json-flow"');
   });
 });
@@ -139,18 +111,14 @@ export default defineFlow({
 Deno.test("FlowCommands: validateFlow returns valid for correct flow", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const validFlow = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "valid-cli-flow",
-  name: "Valid CLI IFlow as Flow",
-  description: "Valid flow for CLI test",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "valid-cli-flow"
+name: "Valid CLI IFlow as Flow"
+description: "Valid flow for CLI test"
+steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/valid-cli-flow.flow.ts`, validFlow);
+    await Deno.writeTextFile(`${flowDir}/valid-cli-flow.flow.yaml`, validFlow);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.validateFlow("valid-cli-flow");
@@ -161,22 +129,16 @@ export default defineFlow({
 
 Deno.test("FlowCommands: validateFlowWithoutService fallback works", async () => {
   const ctx = await createMockContext();
-  // Ensure flowValidator is missing
   ctx.flowValidator = undefined;
-
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const validFlow = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "fallback-flow",
-  name: "Fallback Flow",
-  description: "Test fallback validation",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "fallback-flow"
+name: "Fallback Flow"
+description: "Test fallback validation"
+steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(join(flowDir, "fallback-flow.flow.ts"), validFlow);
+    await Deno.writeTextFile(join(flowDir, "fallback-flow.flow.yaml"), validFlow);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.validateFlow("fallback-flow");
@@ -188,18 +150,14 @@ export default defineFlow({
 Deno.test("FlowCommands: showFlow outputs JSON when requested (id check)", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const flowDef = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "show-flow",
-  name: "Show IFlow as Flow",
-  description: "IFlow as Flow to test show",
-  steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "show-flow"
+name: "Show IFlow as Flow"
+description: "IFlow as Flow to test show"
+steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/show-flow.flow.ts`, flowDef);
+    await Deno.writeTextFile(`${flowDir}/show-flow.flow.yaml`, flowDef);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.showFlow("show-flow", { json: true });
@@ -212,24 +170,18 @@ export default defineFlow({
 Deno.test("FlowCommands: showFlow prints JSON when requested (id & name)", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const flowModule = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "show-flow-2",
-  name: "Show Flow 2",
-  description: "Flow for show test",
-  steps: [{ id: "s1", name: "Step 1", agent: "agentA", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "show-flow-2"
+name: "Show Flow 2"
+description: "Flow for show test"
+steps: [{ id: "s1", name: "Step 1", agent: "agentA", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/show-flow-2.flow.ts`, flowModule);
-
+    await Deno.writeTextFile(`${flowDir}/show-flow-2.flow.yaml`, flowModule);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.showFlow("show-flow-2", { json: true });
     });
-
     assertStringIncludes(output, '"id": "show-flow-2"');
     assertStringIncludes(output, '"name": "Show Flow 2"');
   });
@@ -238,28 +190,28 @@ export default defineFlow({
 Deno.test("FlowCommands: showFlow renders full view (non-JSON)", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const flowModule = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "full-flow",
-  name: "Full IFlow as Flow",
-  description: "IFlow as Flow for full render test",
-  steps: [
-    { id: "a", name: "Step A", agent: "agentA", dependsOn: [] , input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 }},
-    { id: "b", name: "Step B", agent: "agentB", dependsOn: ["a"] , input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 }}
-  ],
-  settings: { maxParallelism: 2, failFast: true },
-  output: { from: "b", format: "markdown" },
-});
+id: "full-flow"
+name: "Full IFlow as Flow"
+description: "IFlow as Flow for full render test"
+steps:
+  - id: "a"
+    name: "Step A"
+    agent: "agentA"
+    input: { source: "request", transform: "passthrough" }
+  - id: "b"
+    name: "Step B"
+    agent: "agentB"
+    dependsOn: ["a"]
+    input: { source: "request", transform: "passthrough" }
+settings: { maxParallelism: 2, failFast: true }
+output: { from: "b", format: "markdown" }
 `;
-    await Deno.writeTextFile(`${flowDir}/full-flow.flow.ts`, flowModule);
-
+    await Deno.writeTextFile(`${flowDir}/full-flow.flow.yaml`, flowModule);
     const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.showFlow("full-flow");
     });
-
     assertStringIncludes(output, "Dependency Graph:");
     assertStringIncludes(output, "Settings:");
     assertStringIncludes(output, "agentA");
@@ -284,7 +236,6 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
       };
     };
 
-    // Capture console.error
     let errOut = "";
     const origErr = console.error;
     console.error = (...args: string[]) => {
@@ -301,7 +252,6 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
         await commands.listFlows();
       } catch (_e) {
         threw = true;
-        // ensure console.error logged the message
         if (!errOut.includes("Error listing flows: boom")) {
           throw new Error(`Expected error log not found. got: ${errOut}`);
         }
@@ -318,18 +268,14 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
 Deno.test("FlowCommands: validateFlow outputs JSON when requested and handles validator errors", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
     const validFlow = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "valid-for-json",
-  name: "JSON IFlow as Flow",
-  description: "Valid flow",
-  steps: [{ id: "s1", name: "S1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "valid-for-json"
+name: "JSON IFlow as Flow"
+description: "Valid flow"
+steps: [{ id: "s1", name: "S1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(join(flowDir, "valid-for-json.flow.ts"), validFlow);
+    await Deno.writeTextFile(join(flowDir, "valid-for-json.flow.yaml"), validFlow);
 
     const commands = new FlowCommands(ctx);
     let out = "";
@@ -349,12 +295,9 @@ export default defineFlow({
 Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
-    await Deno.writeTextFile(join(flowDir, "bad.flow.ts"), "");
+    await Deno.writeTextFile(join(flowDir, "bad.flow.yaml"), "");
     const commands = new FlowCommands(ctx);
 
-    // To simulate a generic validation crash, we'll make Deno.readTextFile throw
-    // when flow loader tries to read the flow.
     const origReadText = Deno.readTextFile;
     Deno.readTextFile = (..._args: Parameters<typeof Deno.readTextFile>) => {
       return Promise.reject(new Error("uh-oh"));
@@ -389,7 +332,7 @@ Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
       console.log = origLog;
       console.error = origErr;
       Deno.readTextFile = origReadText;
-      ctx.exit = undefined; // Reset ctx.exit
+      ctx.exit = undefined;
     }
   });
 });
@@ -397,19 +340,14 @@ Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
 Deno.test("FlowCommands: validateFlow prints invalid and exits", async () => {
   const ctx = await createMockContext();
   await withFlowsDir(ctx, async (flowDir) => {
-    seedFlowModuleSupportFiles(ctx, flowDir);
-    // Create invalid flow (missing required step fields)
     const invalidFlow = `
-import { defineFlow } from "./define_flow.ts";
-export default defineFlow({
-  id: "bad",
-  name: "Bad IFlow as Flow",
-  description: "Invalid flow",
-  steps: [{ id: "s1", name: "bad", agent: "", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
-  output: { from: "s1", format: "markdown" },
-});
+id: "bad"
+name: "Bad IFlow as Flow"
+description: "Invalid flow"
+steps: [{ id: "s1", name: "bad", agent: "", input: { source: "request", transform: "passthrough" } }]
+output: { from: "s1", format: "markdown" }
 `;
-    await Deno.writeTextFile(join(flowDir, "bad.flow.ts"), invalidFlow);
+    await Deno.writeTextFile(join(flowDir, "bad.flow.yaml"), invalidFlow);
 
     const commands = new FlowCommands(ctx);
     ctx.exit = (_c?: number) => {
@@ -425,7 +363,7 @@ export default defineFlow({
       }
       assertEquals(caught, true);
     } finally {
-      // No cleanup needed for ctx.exit as it's part of the context
+      //
     }
   });
 });

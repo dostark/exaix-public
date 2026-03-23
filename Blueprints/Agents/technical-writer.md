@@ -183,7 +183,7 @@ The user needs API documentation for the user service. I need to:
 
 This agent is used by:
 
-- `code_review.flow.ts` - Final report generation
-- `documentation.flow.ts` - API docs, user guide, compilation
+- `code_review.flow.yaml` - Final report generation
+- `documentation.flow.yaml` - API docs, user guide, compilation
 - Direct documentation requests
 

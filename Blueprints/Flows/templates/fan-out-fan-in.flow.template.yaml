@@ -1,0 +1,81 @@
+id: fan-out-fan-in-template
+name: Fan-Out/Fan-In Flow Template
+description: Template for parallel processing with result aggregation
+version: 1.0.0
+steps:
+  - id: distribute
+    name: Distribute Work
+    type: agent
+    agent: coordinator-agent
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: worker-1
+    name: Worker 1 - First Perspective
+    type: agent
+    agent: specialist-agent-1
+    dependsOn:
+      - distribute
+    input:
+      source: step
+      stepId: distribute
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: worker-2
+    name: Worker 2 - Second Perspective
+    type: agent
+    agent: specialist-agent-2
+    dependsOn:
+      - distribute
+    input:
+      source: step
+      stepId: distribute
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: worker-3
+    name: Worker 3 - Third Perspective
+    type: agent
+    agent: specialist-agent-3
+    dependsOn:
+      - distribute
+    input:
+      source: step
+      stepId: distribute
+      transform: passthrough
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: aggregate
+    name: Aggregate Results
+    type: agent
+    agent: synthesizer-agent
+    dependsOn:
+      - worker-1
+      - worker-2
+      - worker-3
+    input:
+      source: aggregate
+      from:
+        - worker-1
+        - worker-2
+        - worker-3
+      transform: merge_as_context
+    retry:
+      maxAttempts: 2
+      backoffMs: 3000
+output:
+  from: aggregate
+  format: markdown
+settings:
+  maxParallelism: 3
+  failFast: false
+  timeout: 600000
+  includeRequestCriteria: false

@@ -1,0 +1,139 @@
+id: api-design
+name: API Design Flow
+description: Design and document APIs from requirements to OpenAPI specification
+version: 1.0.0
+steps:
+  - id: gather-requirements
+    name: Gather API Requirements
+    type: agent
+    agent: product-manager
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: design-architecture
+    name: Design API Architecture
+    type: agent
+    agent: software-architect
+    dependsOn:
+      - gather-requirements
+    input:
+      source: step
+      stepId: gather-requirements
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: define-endpoints
+    name: Define Endpoints & Routes
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - design-architecture
+    input:
+      source: step
+      stepId: design-architecture
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: design-schemas
+    name: Design Request/Response Schemas
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - design-architecture
+    input:
+      source: step
+      stepId: design-architecture
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: security-design
+    name: Design Authentication & Security
+    type: agent
+    agent: security-expert
+    dependsOn:
+      - design-architecture
+    input:
+      source: step
+      stepId: design-architecture
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: error-handling
+    name: Design Error Handling
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - define-endpoints
+      - design-schemas
+    input:
+      source: aggregate
+      from:
+        - define-endpoints
+        - design-schemas
+      transform: mergeAsContext
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: performance-considerations
+    name: Performance & Scalability Review
+    type: agent
+    agent: performance-engineer
+    dependsOn:
+      - define-endpoints
+      - design-schemas
+    input:
+      source: aggregate
+      from:
+        - design-architecture
+        - define-endpoints
+        - design-schemas
+      transform: mergeAsContext
+    timeout: 30000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: compile-api-spec
+    name: Compile API Specification
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - define-endpoints
+      - design-schemas
+      - security-design
+      - error-handling
+      - performance-considerations
+    input:
+      source: aggregate
+      from:
+        - gather-requirements
+        - design-architecture
+        - define-endpoints
+        - design-schemas
+        - security-design
+        - error-handling
+        - performance-considerations
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+output:
+  from: compile-api-spec
+  format: markdown
+settings:
+  maxParallelism: 3
+  failFast: false
+  timeout: 420000
+  includeRequestCriteria: false

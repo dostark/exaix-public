@@ -56,7 +56,7 @@ export class FlowValidatorImpl implements IFlowValidator {
   async validateFile(path: string): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
     try {
       // Simplistic ID extraction from path
-      const flowId = path.split("/").pop()?.replace(".flow.ts", "") || "unknown";
+      const flowId = path.split("/").pop()?.replace(".flow.yaml", "") || "unknown";
       const flow = await this.flowLoader.loadFlow(flowId);
       return await this.validate(flow);
     } catch (error) {

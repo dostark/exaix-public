@@ -1,0 +1,140 @@
+id: test-generation
+name: Test Suite Generation Flow
+description: >-
+  Generate comprehensive test suites including unit, integration, and edge case
+  tests
+version: 1.0.0
+steps:
+  - id: analyze-code-structure
+    name: Analyze Code Structure
+    type: agent
+    agent: code-analyst
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: identify-test-scenarios
+    name: Identify Test Scenarios
+    type: agent
+    agent: test-engineer
+    dependsOn:
+      - analyze-code-structure
+    input:
+      source: step
+      stepId: analyze-code-structure
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 2
+      backoffMs: 1000
+  - id: generate-unit-tests
+    name: Generate Unit Tests
+    type: agent
+    agent: test-engineer
+    dependsOn:
+      - identify-test-scenarios
+    input:
+      source: aggregate
+      from:
+        - analyze-code-structure
+        - identify-test-scenarios
+      transform: mergeAsContext
+    timeout: 90000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: generate-integration-tests
+    name: Generate Integration Tests
+    type: agent
+    agent: qa-engineer
+    dependsOn:
+      - identify-test-scenarios
+    input:
+      source: aggregate
+      from:
+        - analyze-code-structure
+        - identify-test-scenarios
+      transform: mergeAsContext
+    timeout: 90000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: identify-edge-cases
+    name: Identify Edge Cases
+    type: agent
+    agent: security-expert
+    dependsOn:
+      - analyze-code-structure
+    input:
+      source: step
+      stepId: analyze-code-structure
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: generate-edge-case-tests
+    name: Generate Edge Case Tests
+    type: agent
+    agent: test-engineer
+    dependsOn:
+      - identify-edge-cases
+      - generate-unit-tests
+    input:
+      source: aggregate
+      from:
+        - identify-edge-cases
+        - generate-unit-tests
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: review-test-quality
+    name: Review Test Quality
+    type: agent
+    agent: quality-judge
+    dependsOn:
+      - generate-unit-tests
+      - generate-integration-tests
+      - generate-edge-case-tests
+    input:
+      source: aggregate
+      from:
+        - generate-unit-tests
+        - generate-integration-tests
+        - generate-edge-case-tests
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: compile-test-suite
+    name: Compile Complete Test Suite
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - review-test-quality
+    input:
+      source: aggregate
+      from:
+        - generate-unit-tests
+        - generate-integration-tests
+        - generate-edge-case-tests
+        - review-test-quality
+      transform: mergeAsContext
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: compile-test-suite
+  format: markdown
+settings:
+  maxParallelism: 3
+  failFast: false
+  timeout: 480000
+  includeRequestCriteria: false

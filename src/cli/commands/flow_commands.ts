@@ -152,7 +152,7 @@ export class FlowCommands extends BaseCommand {
         this.config.system.root,
         this.config.paths.blueprints,
         this.config.paths.flows,
-        `${flowId}.flow.ts`,
+        `${flowId}.flow.yaml`,
       );
       const validation = this.context.flowValidator
         ? await this.context.flowValidator.validateFile(filePath)

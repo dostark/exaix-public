@@ -1,0 +1,148 @@
+id: security-audit
+name: Security Audit Flow
+description: >-
+  Comprehensive security audit with vulnerability assessment and remediation
+  plan
+version: 1.0.0
+steps:
+  - id: static-analysis
+    name: Static Security Analysis
+    type: agent
+    agent: security-expert
+    dependsOn: []
+    input:
+      source: request
+      transform: passthrough
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: dependency-audit
+    name: Dependency Vulnerability Check
+    type: agent
+    agent: security-expert
+    dependsOn: []
+    input:
+      source: request
+      transform: appendToRequest
+      transformArgs:
+        suffix: |-
+
+
+          Focus specifically on dependencies and third-party packages.
+    timeout: 45000
+    retry:
+      maxAttempts: 2
+      backoffMs: 1000
+  - id: auth-review
+    name: Authentication & Authorization Review
+    type: agent
+    agent: security-expert
+    dependsOn: []
+    input:
+      source: request
+      transform: appendToRequest
+      transformArgs:
+        suffix: |-
+
+
+          Focus on authentication, authorization, and access control patterns.
+    timeout: 45000
+    retry:
+      maxAttempts: 2
+      backoffMs: 1000
+  - id: data-protection
+    name: Data Protection Assessment
+    type: agent
+    agent: security-expert
+    dependsOn: []
+    input:
+      source: request
+      transform: appendToRequest
+      transformArgs:
+        suffix: |-
+
+
+          Focus on data encryption, PII handling, and sensitive data exposure.
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: consolidate-findings
+    name: Consolidate Security Findings
+    type: agent
+    agent: security-expert
+    dependsOn:
+      - static-analysis
+      - dependency-audit
+      - auth-review
+      - data-protection
+    input:
+      source: aggregate
+      from:
+        - static-analysis
+        - dependency-audit
+        - auth-review
+        - data-protection
+      transform: mergeAsContext
+    timeout: 45000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: risk-assessment
+    name: Risk Assessment & Prioritization
+    type: agent
+    agent: software-architect
+    dependsOn:
+      - consolidate-findings
+    input:
+      source: step
+      stepId: consolidate-findings
+      transform: mergeAsContext
+    timeout: 30000
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+  - id: remediation-plan
+    name: Create Remediation Plan
+    type: agent
+    agent: senior-coder
+    dependsOn:
+      - consolidate-findings
+      - risk-assessment
+    input:
+      source: aggregate
+      from:
+        - consolidate-findings
+        - risk-assessment
+      transform: mergeAsContext
+    timeout: 60000
+    retry:
+      maxAttempts: 2
+      backoffMs: 2000
+  - id: generate-report
+    name: Generate Security Report
+    type: agent
+    agent: technical-writer
+    dependsOn:
+      - consolidate-findings
+      - risk-assessment
+      - remediation-plan
+    input:
+      source: aggregate
+      from:
+        - consolidate-findings
+        - risk-assessment
+        - remediation-plan
+      transform: mergeAsContext
+    retry:
+      maxAttempts: 1
+      backoffMs: 1000
+output:
+  from: generate-report
+  format: markdown
+settings:
+  maxParallelism: 4
+  failFast: false
+  timeout: 480000
+  includeRequestCriteria: false

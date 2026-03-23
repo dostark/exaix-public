@@ -2344,7 +2344,7 @@ rm -f ~/ExoFrame/Memory/Context/test-context.md
 # Part A: Flow Definition Setup
 
 # Step 1: Create a test flow using defineFlow() helper
-cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts << 'EOF'
+cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml << 'EOF'
 import { defineFlow } from "./define_flow.ts";
 
 export default defineFlow({
@@ -2494,8 +2494,8 @@ exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1
 
 ```bash
 # Check flow definition exists and compiles
-ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
-deno check ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
+ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
+deno check ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
 
 # Verify CLI flow request creation
 exoctl request list | grep test-review-flow
@@ -2520,7 +2520,7 @@ exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=step.started
 
 ```bash
 # Remove flow definition
-rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
+rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.yaml
 
 # Remove test requests (find by flow name)
 for req_file in ~/ExoFrame/Workspace/Requests/*; do

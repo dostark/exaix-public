@@ -18,7 +18,7 @@ These examples are **reference implementations**. They often use specialized age
 
 **Before running an example:**
 
-1. **Check the code:** Open the `.flow.ts` file and look for the `agent:` fields.
+1. **Check the code:** Open the `.flow.yaml` file and look for the `agent:` fields.
 
 1.
 
@@ -28,33 +28,33 @@ These examples are **reference implementations**. They often use specialized age
 
 Code quality assurance, feature development, and software engineering processes.
 
-- **[Code Review Flow](development/code_review.flow.ts)** - Multi-stage code review with linting, security, and peer review
-- **[Feature Development Flow](development/feature_development.flow.ts)** - End-to-end feature development from requirements to documentation
-- **[Refactoring Flow](development/refactoring.flow.ts)** - Safe code refactoring with testing and validation
+- **[Code Review Flow](development/code_review.flow.yaml)** - Multi-stage code review with linting, security, and peer review
+- **[Feature Development Flow](development/feature_development.flow.yaml)** - End-to-end feature development from requirements to documentation
+- **[Refactoring Flow](development/refactoring.flow.yaml)** - Safe code refactoring with testing and validation
 
 ### 📝 Content Creation
 
 Documentation, technical writing, and content generation workflows.
 
-- **[API Documentation Flow](content/api_documentation.flow.ts)** - Automated API documentation generation
-- **[Technical Writing Flow](content/technical_writing.flow.ts)** - Structured technical content creation
-- **[Research Synthesis Flow](content/research_synthesis.flow.ts)** - Multi-perspective research with synthesis
+- **[API Documentation Flow](content/api_documentation.flow.yaml)** - Automated API documentation generation
+- **[Technical Writing Flow](content/technical_writing.flow.yaml)** - Structured technical content creation
+- **[Research Synthesis Flow](content/research_synthesis.flow.yaml)** - Multi-perspective research with synthesis
 
 ### 🔍 Analysis & Assessment
 
 Code analysis, security audits, and performance evaluations.
 
-- **[Security Audit Flow](analysis/security_audit.flow.ts)** - Comprehensive security assessment
-- **[Performance Review Flow](analysis/performance_review.flow.ts)** - Application performance analysis
-- **[Code Analysis Flow](analysis/code_analysis.flow.ts)** - Comprehensive codebase analysis
+- **[Security Audit Flow](analysis/security_audit.flow.yaml)** - Comprehensive security assessment
+- **[Performance Review Flow](analysis/performance_review.flow.yaml)** - Application performance analysis
+- **[Code Analysis Flow](analysis/code_analysis.flow.yaml)** - Comprehensive codebase analysis
 
 ### ⚙️ Operations & Maintenance
 
 System administration, deployment, and operational workflows.
 
-- **[Deployment Flow](operations/deployment.flow.ts)** - Safe application deployment
-- **[Monitoring Setup Flow](operations/monitoring.flow.ts)** - System monitoring configuration
-- **[Incident Response Flow](operations/incident_response.flow.ts)** - Automated incident handling
+- **[Deployment Flow](operations/deployment.flow.yaml)** - Safe application deployment
+- **[Monitoring Setup Flow](operations/monitoring.flow.yaml)** - System monitoring configuration
+- **[Incident Response Flow](operations/incident_response.flow.yaml)** - Automated incident handling
 
 ## Flow Patterns Demonstrated
 
@@ -121,7 +121,7 @@ const stagedFlow = defineFlow({
 1.
 
    ```bash
-   exoctl flow validate Blueprints/Flows/examples/development/code_review.flow.ts
+   exoctl flow validate Blueprints/Flows/examples/development/code_review.flow.yaml
    ```
 
 ### Using as Templates
@@ -129,7 +129,7 @@ const stagedFlow = defineFlow({
 1. **Copy an example:**
 
    ```bash
-   cp Blueprints/Flows/examples/development/code_review.flow.ts my_custom_flow.flow.ts
+   cp Blueprints/Flows/examples/development/code_review.flow.yaml my_custom_flow.flow.yaml
    ```
 
 1.
@@ -140,8 +140,8 @@ const stagedFlow = defineFlow({
 1.
 
    ```bash
-   exoctl flow validate my_custom_flow.flow.ts
-   exoctl flow run --file my_custom_flow.flow.ts --request "Your request here..."
+   exoctl flow validate my_custom_flow.flow.yaml
+   exoctl flow run --file my_custom_flow.flow.yaml --request "Your request here..."
    ```
 
 ## Flow Configuration

@@ -117,6 +117,6 @@ The user wants to audit the authentication system for security vulnerabilities. 
 
 This agent is used by:
 
-- `code_review.flow.ts` - Security review step
+- `code_review.flow.yaml` - Security review step
 - Direct security audits via request
 

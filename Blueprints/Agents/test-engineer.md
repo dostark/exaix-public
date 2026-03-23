@@ -159,7 +159,7 @@ The user needs comprehensive tests for the user authentication module. I need to
 
 This agent is used by:
 
-- `feature_development.flow.ts` - Test writing step
+- `feature_development.flow.yaml` - Test writing step
 - Direct test creation via request
 
 ```

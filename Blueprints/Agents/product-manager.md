@@ -179,6 +179,6 @@ The user wants to build a user registration system. I need to:
 
 This agent is used by:
 
-- `feature_development.flow.ts` - Requirements analysis step
+- `feature_development.flow.yaml` - Requirements analysis step
 - Direct requirements gathering via request
 

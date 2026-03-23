@@ -7,19 +7,14 @@
  * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
 
-import { dirname, join, resolve } from "@std/path";
+import { join } from "@std/path";
+import { parse as parseYaml } from "@std/yaml";
 import { IFlow } from "../shared/schemas/flow.ts";
 import { FlowSchema } from "../shared/schemas/flow.ts";
 
 /**
- * Dynamic import required for runtime module loading (documented in CODE_STYLE.md)
- * This must remain a dynamic import because the file path is determined at runtime.
- */
-const dynamicImport = (specifier: string) => import(specifier);
-
-/**
  * FlowLoader handles loading and managing flow definitions from the file system.
- * Loads TypeScript flow files from the /Blueprints/Flows/ directory.
+ * Loads YAML flow files from the /Blueprints/Flows/ directory.
  */
 export class FlowLoader {
   private flowsDir: string;
@@ -30,7 +25,7 @@ export class FlowLoader {
 
   /**
    * Load all flow files from the flows directory.
-   * Only loads files ending with .flow.ts and ignores invalid files.
+   * Only loads files ending with .flow.yaml and ignores invalid files.
    */
   async loadAllFlows(): Promise<IFlow[]> {
     const flows: IFlow[] = [];
@@ -39,7 +34,7 @@ export class FlowLoader {
       // Read all files in the flows directory
       const entries = [];
       for await (const entry of Deno.readDir(this.flowsDir)) {
-        if (entry.isFile && entry.name.endsWith(".flow.ts")) {
+        if (entry.isFile && entry.name.endsWith(".flow.yaml")) {
           entries.push(entry.name);
         }
       }
@@ -47,7 +42,7 @@ export class FlowLoader {
       // Load each flow file
       for (const fileName of entries) {
         try {
-          const flowId = fileName.replace(".flow.ts", "");
+          const flowId = fileName.replace(".flow.yaml", "");
           const flow = await this.loadFlow(flowId);
           flows.push(flow);
         } catch (error) {
@@ -68,53 +63,31 @@ export class FlowLoader {
 
   /**
    * Load a specific flow by its ID.
-   * The flow file should be named {flowId}.flow.ts
+   * The flow file should be named {flowId}.flow.yaml
    */
   async loadFlow(flowId: string): Promise<IFlow> {
-    const fileName = `${flowId}.flow.ts`;
+    const fileName = `${flowId}.flow.yaml`;
     const filePath = join(this.flowsDir, fileName);
 
     try {
-      // Read the original file content so we can rewrite imports that reference the project's src/
+      // Read the yaml file content
       const originalContent = await Deno.readTextFile(filePath);
 
-      // Rewrite imports that reference "src/" so they resolve to the repository's src directory
-      let rewrittenContent = originalContent.replace(/from\s+(['"])([^'"\n]*src\/[^'"\n]+)\1/g, (_m, q, spec) => {
-        const idx = spec.indexOf("src/");
-        const relAfterSrc = spec.slice(idx + 4); // path after src/
-        const absPath = join(Deno.cwd(), "src", relAfterSrc);
-        return `from ${q}file://${absPath}${q}`;
-      });
-
-      // Rewrite relative imports (./ or ../) to absolute file URLs so that they resolve from the temp file
-      const fileDir = dirname(filePath);
-      rewrittenContent = rewrittenContent.replace(/from\s+(['"])(\.{1,2}\/[^'"\n]+)\1/g, (_m, q, spec) => {
-        const resolvedPath = resolve(fileDir, spec);
-        return `from ${q}file://${resolvedPath}${q}`;
-      });
-
-      // Write rewritten content to a temp file so that imports resolve correctly during dynamic import
-      const tempDir = await Deno.makeTempDir({ prefix: "exo-flow-" });
-      const tempFilePath = join(tempDir, fileName);
-      await Deno.writeTextFile(tempFilePath, rewrittenContent);
-
-      const module: { default: unknown } = await dynamicImport(`file://${tempFilePath}`);
-
-      // Cleanup temp directory (best-effort)
+      let parsedYaml: unknown;
       try {
-        await Deno.remove(tempDir, { recursive: true });
-      } catch {
-        // ignore cleanup errors
+        parsedYaml = parseYaml(originalContent);
+      } catch (e) {
+        throw new Error(`Invalid YAML format in ${fileName}: ${e}`);
       }
 
-      if (!module.default) {
-        throw new Error(`Flow file ${fileName} does not export a default flow definition`);
+      if (!parsedYaml || typeof parsedYaml !== "object") {
+        throw new Error(`Flow file ${fileName} does not contain a valid flow definition object`);
       }
 
       // Validate and parse the flow using FlowSchema
       let flow: IFlow;
       try {
-        flow = FlowSchema.parse(module.default);
+        flow = FlowSchema.parse(parsedYaml);
       } catch (e) {
         throw new Error(`Flow file ${fileName} does not match Flow schema: ${e}`);
       }
@@ -128,7 +101,7 @@ export class FlowLoader {
     } catch (error) {
       // Normalize error messages so callers can assert on the standard message format
       if (error instanceof Deno.errors.NotFound) {
-        throw new Error(`Failed to load flow '${flowId}': ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`Failed to load flow '${flowId}': module not found`);
       }
       throw new Error(`Failed to load flow '${flowId}': ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -138,7 +111,7 @@ export class FlowLoader {
    * Check if a flow exists without loading it.
    */
   async flowExists(flowId: string): Promise<boolean> {
-    const fileName = `${flowId}.flow.ts`;
+    const fileName = `${flowId}.flow.yaml`;
     const filePath = join(this.flowsDir, fileName);
 
     try {
@@ -157,8 +130,8 @@ export class FlowLoader {
 
     try {
       for await (const entry of Deno.readDir(this.flowsDir)) {
-        if (entry.isFile && entry.name.endsWith(".flow.ts")) {
-          const flowId = entry.name.replace(".flow.ts", "");
+        if (entry.isFile && entry.name.endsWith(".flow.yaml")) {
+          const flowId = entry.name.replace(".flow.yaml", "");
           flowIds.push(flowId);
         }
       }

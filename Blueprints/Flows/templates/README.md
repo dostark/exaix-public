@@ -8,7 +8,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 
 ## Available Templates
 
-### 1. Pipeline (`pipeline.flow.template.ts`)
+### 1. Pipeline (`pipeline.flow.template.yaml`)
 
 **Pattern:** Linear sequence (Step 1 → Step 2 → Step 3).
 **Use Case:** Data processing, multi-stage validation.
@@ -17,7 +17,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 - Sequential dependencies
 - Data passing between steps
 
-### 2. Fan-out/Fan-in (`fan-out-fan-in.flow.template.ts`)
+### 2. Fan-out/Fan-in (`fan-out-fan-in.flow.template.yaml`)
 
 **Pattern:** Parallel execution followed by aggregation.
 **Use Case:** Comprehensive reviews, multi-perspective analysis.
@@ -26,7 +26,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 - Parallel step execution (`maxParallelism`)
 - Aggregation step using `input.source: "aggregate"`
 
-### 3. Staged Workflow (`staged.flow.template.ts`)
+### 3. Staged Workflow (`staged.flow.template.yaml`)
 
 **Pattern:** Grouped steps with dependencies between groups.
 **Use Case:** Complex processes with distinct phases (e.g., Plan → Execute → Verify).
@@ -35,7 +35,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 - Dependencies on multiple previous steps
 - Checkpoints between stages
 
-### 4. LLM-as-a-Judge (`llm-judge-code-review.flow.template.ts`)
+### 4. LLM-as-a-Judge (`llm-judge-code-review.flow.template.yaml`)
 
 **Pattern:** Multi-perspective analysis with judge evaluation.
 **Use Case:** Code review, content evaluation, quality assessment.
@@ -54,7 +54,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 - `quality-judge` - Final evaluation (see `Blueprints/Agents/quality-judge.md`)
 - `technical-writer` - Report generation
 
-### 5. Self-Correcting (`self-correcting.flow.template.ts`) ✨ NEW
+### 5. Self-Correcting (`self-correcting.flow.template.yaml`) ✨ NEW
 
 **Pattern:** Iterative improvement with feedback loops (Phase 15).
 **Use Case:** High-quality code generation, documentation that must meet standards.
@@ -90,7 +90,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 1. **Choose a pattern** that matches your needs.
 
    ```bash
-   cp templates/pipeline.flow.template.ts ../my-process.flow.ts
+   cp templates/pipeline.flow.template.yaml ../my-process.flow.yaml
    ```
 1.
    - **Update Metadata:** Change `id`, `name`, and `description`.
@@ -98,6 +98,6 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
    - **Define Inputs:** Configure how data flows into each step.
 1.
    ```bash
-   exoctl flow validate ../my-process.flow.ts
+   exoctl flow validate ../my-process.flow.yaml
    ```
 

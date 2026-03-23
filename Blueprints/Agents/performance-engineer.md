@@ -125,6 +125,6 @@ The user wants to optimize database queries. I need to:
 
 This agent is used by:
 
-- `code_review.flow.ts` - Performance review step
+- `code_review.flow.yaml` - Performance review step
 - Direct performance audits via request
 

@@ -102,8 +102,8 @@ The user needs to design a user management system. I need to:
 
 This agent is used by:
 
-- `feature_development.flow.ts` - Architecture design step
-- `documentation.flow.ts` - Architecture documentation step
+- `feature_development.flow.yaml` - Architecture design step
+- `documentation.flow.yaml` - Architecture documentation step
 - Direct architecture consultation via request
 
 ```
