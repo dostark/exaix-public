@@ -4,6 +4,8 @@ description: >-
   Comprehensive security audit with vulnerability assessment and remediation
   plan
 version: 1.0.0
+defaultSkills:
+  - security-first
 steps:
   - id: static-analysis
     name: Static Security Analysis

@@ -4,6 +4,8 @@ description: >-
   Generate comprehensive test suites including unit, integration, and edge case
   tests
 version: 1.0.0
+defaultSkills:
+  - testing-first
 steps:
   - id: analyze-code-structure
     name: Analyze Code Structure

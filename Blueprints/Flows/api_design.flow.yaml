@@ -2,6 +2,8 @@ id: api-design
 name: API Design Flow
 description: Design and document APIs from requirements to OpenAPI specification
 version: 1.0.0
+defaultSkills:
+  - api-first
 steps:
   - id: gather-requirements
     name: Gather API Requirements

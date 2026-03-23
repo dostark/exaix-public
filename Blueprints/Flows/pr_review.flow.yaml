@@ -4,6 +4,8 @@ description: >-
   Comprehensive PR review covering code quality, security, performance, and
   documentation
 version: 1.0.0
+defaultSkills:
+  - code-review
 steps:
   - id: diff-analysis
     name: Analyze PR Diff

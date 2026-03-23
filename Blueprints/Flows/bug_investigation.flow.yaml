@@ -4,6 +4,8 @@ description: >-
   Systematic bug investigation from report to root cause analysis and fix
   proposal
 version: 1.0.0
+defaultSkills:
+  - debugging
 steps:
   - id: analyze-bug-report
     name: Analyze Bug Report

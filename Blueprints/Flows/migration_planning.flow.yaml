@@ -4,6 +4,8 @@ description: >-
   Plan code migrations with impact analysis, risk assessment, and step-by-step
   execution plan
 version: 1.0.0
+defaultSkills:
+  - planning-driven
 steps:
   - id: gather-requirements
     name: Gather Migration Requirements

@@ -2,6 +2,8 @@ id: onboarding-docs
 name: Onboarding Documentation Flow
 description: Generate comprehensive onboarding documentation for a codebase
 version: 1.0.0
+defaultSkills:
+  - documentation-driven
 steps:
   - id: analyze-project-structure
     name: Analyze Project Structure
