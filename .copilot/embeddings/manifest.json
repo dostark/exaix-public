@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-31T17:00:11.951Z",
+  "generated_at": "2026-03-23T16:03:32.471Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -76,6 +76,11 @@
       "embeddingFile": ".copilot/embeddings/tdd-workflow.md.json"
     },
     {
+      "path": ".copilot/prompts/gap-analysis.md",
+      "title": "Planning Document Gap Analysis (#gap-analysis)",
+      "embeddingFile": ".copilot/embeddings/gap-analysis.md.json"
+    },
+    {
       "path": ".copilot/prompts/security.md",
       "title": "Security Patch Template (#security)",
       "embeddingFile": ".copilot/embeddings/security.md.json"
@@ -101,6 +106,11 @@
       "embeddingFile": ".copilot/embeddings/fix.md.json"
     },
     {
+      "path": ".copilot/prompts/tdd-phase-steps.md",
+      "title": "TDD Red-Green-Refactor Phase Steps (#next-steps)",
+      "embeddingFile": ".copilot/embeddings/tdd-phase-steps.md.json"
+    },
+    {
       "path": ".copilot/prompts/review.md",
       "title": "Code Review Template (#review)",
       "embeddingFile": ".copilot/embeddings/review.md.json"
@@ -124,6 +134,11 @@
       "path": ".copilot/prompts/refactor.md",
       "title": "Refactoring Template (#refactor)",
       "embeddingFile": ".copilot/embeddings/refactor.md.json"
+    },
+    {
+      "path": ".copilot/prompts/duplication.md",
+      "title": "Reduce Code Duplication (#duplication)",
+      "embeddingFile": ".copilot/embeddings/duplication.md.json"
     },
     {
       "path": ".copilot/prompts/doc.md",
@@ -171,6 +186,10 @@
       "embeddingFile": ".copilot/embeddings/agent-content-schema.md.json"
     },
     {
+      "path": ".copilot/planning/phase-51-versioning.md",
+      "embeddingFile": ".copilot/embeddings/phase-51-versioning.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-21-magic-numbers-centralization.md",
       "embeddingFile": ".copilot/embeddings/phase-21-magic-numbers-centralization.md.json"
     },
@@ -179,17 +198,22 @@
       "embeddingFile": ".copilot/embeddings/phase-24-addressing-security-issues.md.json"
     },
     {
-      "path": ".copilot/planning/phase-05-obsidian-setup.md",
-      "embeddingFile": ".copilot/embeddings/phase-05-obsidian-setup.md.json"
+      "path": ".copilot/planning/phase-44-cli-core-separation.md",
+      "embeddingFile": ".copilot/embeddings/phase-44-cli-core-separation.md.json"
     },
     {
-      "path": ".copilot/planning/phase-35-enterprise-provider-support.md",
-      "embeddingFile": ".copilot/embeddings/phase-35-enterprise-provider-support.md.json"
+      "path": ".copilot/planning/phase-05-obsidian-setup.md",
+      "embeddingFile": ".copilot/embeddings/phase-05-obsidian-setup.md.json"
     },
     {
       "path": ".copilot/planning/phase-33-code-duplication-refactoring.md",
       "title": "Phase 33: Code Duplication Refactoring & Architecture Improvement",
       "embeddingFile": ".copilot/embeddings/phase-33-code-duplication-refactoring.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-36-changeset-to-review-rename.md",
+      "title": "Phase 36: Rename 'changeset' to 'review' for Unified Artifact Workflow",
+      "embeddingFile": ".copilot/embeddings/phase-36-changeset-to-review-rename.md.json"
     },
     {
       "path": ".copilot/planning/phase-08-third-party-llm-provider.md",
@@ -201,6 +225,11 @@
       "embeddingFile": ".copilot/embeddings/phase-30-cli-flow-request.md.json"
     },
     {
+      "path": ".copilot/planning/phase-38-tool-expansion.md",
+      "title": "Phase 38: Core Tool Expansion & Grounding",
+      "embeddingFile": ".copilot/embeddings/phase-38-tool-expansion.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-22-architecture-and-quality-improvement.md",
       "title": "Extended Code Review - Additional Architecture & Quality Issues (v2)",
       "embeddingFile": ".copilot/embeddings/phase-22-architecture-and-quality-improvement.md.json"
@@ -208,6 +237,10 @@
     {
       "path": ".copilot/planning/phase-07-flow-orchestration.md",
       "embeddingFile": ".copilot/embeddings/phase-07-flow-orchestration.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-47-request-quality-gate.md",
+      "embeddingFile": ".copilot/embeddings/phase-47-request-quality-gate.md.json"
     },
     {
       "path": ".copilot/planning/phase-02-events-and-state.md",
@@ -231,6 +264,18 @@
       "embeddingFile": ".copilot/embeddings/phase-34-code-complexity-reduction.md.json"
     },
     {
+      "path": ".copilot/planning/phase-52-structured-commit-messages.md",
+      "embeddingFile": ".copilot/embeddings/phase-52-structured-commit-messages.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-48-acceptance-criteria-propagation.md",
+      "embeddingFile": ".copilot/embeddings/phase-48-acceptance-criteria-propagation.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-50-scenarios-test-framework.md",
+      "embeddingFile": ".copilot/embeddings/phase-50-scenarios-test-framework.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-15-flow-orchestration-improvements.md",
       "embeddingFile": ".copilot/embeddings/phase-15-flow-orchestration-improvements.md.json"
     },
@@ -249,6 +294,14 @@
     {
       "path": ".copilot/planning/phase-11-testing-quality-assurance.md",
       "embeddingFile": ".copilot/embeddings/phase-11-testing-quality-assurance.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-42-entity-subject-field.md",
+      "embeddingFile": ".copilot/embeddings/phase-42-entity-subject-field.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-46-portal-knowledge-gathering.md",
+      "embeddingFile": ".copilot/embeddings/phase-46-portal-knowledge-gathering.md.json"
     },
     {
       "path": ".copilot/planning/phase-27-magic-number-and-word-externaliztion.md",
@@ -280,13 +333,34 @@
       "embeddingFile": ".copilot/embeddings/phase-14-code-deduplication.md.json"
     },
     {
+      "path": ".copilot/planning/phase-37-portal-target-branch-and-worktree-execution.md",
+      "title": "Phase 37: Portal Target Branches + Git Worktree Execution",
+      "embeddingFile": ".copilot/embeddings/phase-37-portal-target-branch-and-worktree-execution.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-45-request-intent-analysis.md",
+      "embeddingFile": ".copilot/embeddings/phase-45-request-intent-analysis.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-60-enterprise-provider-support.md",
+      "embeddingFile": ".copilot/embeddings/phase-60-enterprise-provider-support.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-32-dynamic-skills-injection.md",
       "title": "Phase 32: Dynamic Skills Injection for Requests and Plans",
       "embeddingFile": ".copilot/embeddings/phase-32-dynamic-skills-injection.md.json"
     },
     {
+      "path": ".copilot/planning/phase-41-typescript-refactoring.md",
+      "embeddingFile": ".copilot/embeddings/phase-41-typescript-refactoring.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-09-ux-improvement.md",
       "embeddingFile": ".copilot/embeddings/phase-09-ux-improvement.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-40-architecture-validation.md",
+      "embeddingFile": ".copilot/embeddings/phase-40-architecture-validation.md.json"
     },
     {
       "path": ".copilot/planning/phase-03-intelligence-and-agency.md",
@@ -295,6 +369,10 @@
     {
       "path": ".copilot/planning/phase-16-agent-orchestration-improvements.md",
       "embeddingFile": ".copilot/embeddings/phase-16-agent-orchestration-improvements.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-43-tui-core-separation.md",
+      "embeddingFile": ".copilot/embeddings/phase-43-tui-core-separation.md.json"
     },
     {
       "path": ".copilot/planning/phase-12-obsidian-retirement.md",
@@ -315,8 +393,21 @@
       "embeddingFile": ".copilot/embeddings/phase-31-agent-blueprint-json-migration.md.json"
     },
     {
+      "path": ".copilot/planning/phase-35-portal-workspace-integration.md",
+      "title": "Phase 35: Portal Workspace Integration & Git Changeset Architecture",
+      "embeddingFile": ".copilot/embeddings/phase-35-portal-workspace-integration.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-49-quality-pipeline-hardening.md",
+      "embeddingFile": ".copilot/embeddings/phase-49-quality-pipeline-hardening.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-01-runtime-and-storage.md",
       "embeddingFile": ".copilot/embeddings/phase-01-runtime-and-storage.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-39-architecture-knowledge-base.md",
+      "embeddingFile": ".copilot/embeddings/phase-39-architecture-knowledge-base.md.json"
     },
     {
       "path": ".copilot/planning/phase-17-skills-architecture.md",
@@ -341,6 +432,11 @@
       "path": ".copilot/copilot/summary.md",
       "title": "Exaix Quick Summary",
       "embeddingFile": ".copilot/embeddings/summary.md.json"
+    },
+    {
+      "path": ".copilot/process/specification-driven-development.md",
+      "title": "Specification-Driven Development in Exaix",
+      "embeddingFile": ".copilot/embeddings/specification-driven-development.md.json"
     },
     {
       "path": ".copilot/process/self-improvement.md",
@@ -393,6 +489,10 @@
       "embeddingFile": ".copilot/embeddings/jscpd-guide.md.json"
     },
     {
+      "path": ".copilot/issues/027_plan_failure_request_duplication.md",
+      "embeddingFile": ".copilot/embeddings/027_plan_failure_request_duplication.md.json"
+    },
+    {
       "path": ".copilot/issues/plan-changeset-approval-bug.md",
       "title": "Plan/Changeset Approval Not Reflected in List Commands",
       "embeddingFile": ".copilot/embeddings/plan-changeset-approval-bug.md.json"
@@ -401,6 +501,11 @@
       "path": ".copilot/issues/request-processing-failure-test-provider.md",
       "title": "Request Processing Fails with Test Provider and Plan Validation Error",
       "embeddingFile": ".copilot/embeddings/request-processing-failure-test-provider.md.json"
+    },
+    {
+      "path": ".copilot/issues/003_technical_writer_plan_validation_no_saved_plan.md",
+      "title": "Technical Writer Agent Plan Validation Failure - No Plan Saved for Review",
+      "embeddingFile": ".copilot/embeddings/003_technical_writer_plan_validation_no_saved_plan.md.json"
     },
     {
       "path": ".copilot/issues/002_security_expert_no_changeset.md",
@@ -412,8 +517,18 @@
       "embeddingFile": ".copilot/embeddings/plan-show-missing-request-context.md.json"
     },
     {
+      "path": ".copilot/issues/security-expert-artifact-duplicates-plan.md",
+      "title": "Read-only security-expert artifacts duplicate plan content",
+      "embeddingFile": ".copilot/embeddings/security-expert-artifact-duplicates-plan.md.json"
+    },
+    {
       "path": ".copilot/issues/001_daemon_plan_lifecycle.md",
       "embeddingFile": ".copilot/embeddings/001_daemon_plan_lifecycle.md.json"
+    },
+    {
+      "path": ".copilot/issues/test-engineer-request-frontmatter-missing.md",
+      "title": "Test-engineer request plan missing frontmatter",
+      "embeddingFile": ".copilot/embeddings/test-engineer-request-frontmatter-missing.md.json"
     },
     {
       "path": ".copilot/issues/execution-failure-no-changeset.md",
@@ -445,9 +560,19 @@
       "embeddingFile": ".copilot/embeddings/changeset-show-missing-request-context.md.json"
     },
     {
+      "path": ".copilot/issues/review-reject-worktree-conflict.md",
+      "title": "Cannot reject review when branch is used by worktree",
+      "embeddingFile": ".copilot/embeddings/review-reject-worktree-conflict.md.json"
+    },
+    {
       "path": ".copilot/issues/database-changeset-table-missing.md",
       "title": "Database changeset table not created during migration",
       "embeddingFile": ".copilot/embeddings/database-changeset-table-missing.md.json"
+    },
+    {
+      "path": ".copilot/issues/code-analyst-ignores-portal-context.md",
+      "title": "Code-analyst ignores portal context and hallucinates stack",
+      "embeddingFile": ".copilot/embeddings/code-analyst-ignores-portal-context.md.json"
     },
     {
       "path": ".copilot/issues/llm-provider-env-vars-ignored.md",
@@ -460,9 +585,9 @@
       "embeddingFile": ".copilot/embeddings/plan-validation-failure-senior-coder.md.json"
     },
     {
-      "path": ".copilot/issues/changeset-reject-worktree-conflict.md",
-      "title": "Cannot reject changeset when branch is used by worktree",
-      "embeddingFile": ".copilot/embeddings/changeset-reject-worktree-conflict.md.json"
+      "path": ".copilot/issues/phase46-cli-commands-missing.md",
+      "title": "Phase 46 Portal Knowledge Commands Missing in CLI Wiring",
+      "embeddingFile": ".copilot/embeddings/phase46-cli-commands-missing.md.json"
     },
     {
       "path": ".copilot/issues/changeset-show-diff-option-not-implemented.md",
@@ -470,9 +595,24 @@
       "embeddingFile": ".copilot/embeddings/changeset-show-diff-option-not-implemented.md.json"
     },
     {
+      "path": ".copilot/issues/execution-bug-data-loss-git-root.md",
+      "title": "Critical Data Loss: Git Repository Scope Mismatch in Runtime Root",
+      "embeddingFile": ".copilot/embeddings/execution-bug-data-loss-git-root.md.json"
+    },
+    {
+      "path": ".copilot/issues/exa-bin-path-changes.md",
+      "title": "Support for Independent Exactl Installations via EXA_BIN_PATH",
+      "embeddingFile": ".copilot/embeddings/exa-bin-path-changes.md.json"
+    },
+    {
       "path": ".copilot/issues/plan-reject-after-changeset-rejection.md",
       "title": "Cannot reject plan after changeset rejection",
       "embeddingFile": ".copilot/embeddings/plan-reject-after-changeset-rejection.md.json"
+    },
+    {
+      "path": ".copilot/issues/code-analyst-execution-artifact-empty.md",
+      "title": "Code-analyst execution artifact contains only placeholder summary",
+      "embeddingFile": ".copilot/embeddings/code-analyst-execution-artifact-empty.md.json"
     },
     {
       "path": ".copilot/issues/execution-folder-wrong-location.md",
@@ -483,6 +623,11 @@
       "path": ".copilot/issues/event-journal-token-tracking-missing.md",
       "title": "Event Journal Missing Token Usage Tracking in Payload",
       "embeddingFile": ".copilot/embeddings/event-journal-token-tracking-missing.md.json"
+    },
+    {
+      "path": ".copilot/issues/plan-validation-dependencies-strings-and-token-stats-missing.md",
+      "title": "Plan validation rejects string dependencies and plan show lacks token stats",
+      "embeddingFile": ".copilot/embeddings/plan-validation-dependencies-strings-and-token-stats-missing.md.json"
     }
   ]
 }

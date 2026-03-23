@@ -62,8 +62,8 @@ export class DaemonCommands extends BaseCommand {
       }
 
       // Ensure log file directory exists
-      const exoDir = join(workspaceRoot, this.config.paths.runtime!);
-      await ensureDir(exoDir);
+      const exaDir = join(workspaceRoot, this.config.paths.runtime!);
+      await ensureDir(exaDir);
 
       // Start daemon process in background using shell for true detachment
       // This allows the CLI to exit while daemon continues running
@@ -74,11 +74,11 @@ export class DaemonCommands extends BaseCommand {
         env.EXA_CONFIG_PATH = this.context.config.getConfigPath();
       }
 
-      const exoEnvVars = Object.entries(env)
+      const exaEnvVars = Object.entries(env)
         .filter(([k]) => k.startsWith("EXA_"))
         .map(([k, v]) => `${k}=${v}`)
         .join(" ");
-      const envPrefix = exoEnvVars ? `${exoEnvVars} ` : "";
+      const envPrefix = exaEnvVars ? `${exaEnvVars} ` : "";
       const cmd = new this.Command("bash", {
         args: [
           "-c",

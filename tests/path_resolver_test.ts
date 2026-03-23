@@ -273,7 +273,7 @@ Deno.test("PathResolver: resolves all valid aliases", async () => {
     // Create all directories
     const workspaceDir = join(tempDir, "Workspace");
     const memoryDir = join(tempDir, "Memory");
-    const runtimeDir = join(tempDir, ".exo");
+    const runtimeDir = join(tempDir, ".exa");
     const blueprintsDir = join(tempDir, "Blueprints");
 
     await Deno.mkdir(workspaceDir);

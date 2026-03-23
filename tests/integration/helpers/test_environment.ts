@@ -157,7 +157,7 @@ export class TestEnvironment {
       // Create initial commit with .gitignore to prevent collateral damage from git reset --hard
       await Deno.writeTextFile(
         join(tempDir, ".gitignore"),
-        "Workspace/\n.exo/journal.db*\n.exo/daemon.*\ndeno.lock\n",
+        "Workspace/\n.exa/journal.db*\n.exa/daemon.*\ndeno.lock\n",
       );
       await Deno.writeTextFile(join(tempDir, ".gitkeep"), "");
 
@@ -185,7 +185,7 @@ root = "${tempDir}"
 [paths]
 memory = "./Memory"
 blueprints = "./Blueprints"
-runtime = "./.exo"
+runtime = "./.exa"
 workspace = "./Workspace"
 portals = "./Portals"
 active = "Active"

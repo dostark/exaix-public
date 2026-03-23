@@ -171,7 +171,7 @@ templates/
 
 ```text
 Exaix/
-├── .exo/                    # Runtime state (gitignored except structure)
+├── .exa/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
 │   ├── daemon.log
 │   ├── journal.db
@@ -225,7 +225,7 @@ Exaix/
 
 | Domain          | Folder        | Responsibility                   |
 | --------------- | ------------- | -------------------------------- |
-| **Runtime**     | `.exo/`       | Ephemeral daemon state, caches   |
+| **Runtime**     | `.exa/`       | Ephemeral daemon state, caches   |
 | **Definitions** | `Blueprints/` | Static templates (agents, flows) |
 | **Lifecycle**   | `Workspace/`  | Request processing pipeline      |
 | **Knowledge**   | `Memory/`     | Persistent learnings, skills     |
@@ -247,7 +247,7 @@ New Flow:
 | ------------ | ------------------------------ | -------------------------------------------- |
 | `agents/`    | `.copilot/`                    | Indicates AI dev tooling, dotfile convention |
 | `Inbox/`     | `Workspace/`                   | Better conveys active work area              |
-| `System/`    | `.exo/`                        | Standard runtime dir, clearly gitignored     |
+| `System/`    | `.exa/`                        | Standard runtime dir, clearly gitignored     |
 | `templates/` | `Blueprints/Agents/templates/` | Integrated with definitions                  |
 
 ---
@@ -286,7 +286,7 @@ New Flow:
   ],
   "rollback": {
     "enabled": true,
-    "backupDir": ".exo/migration-backup/"
+    "backupDir": ".exa/migration-backup/"
   }
 }
 ```text
@@ -309,13 +309,13 @@ New Flow:
 
 ---
 
-### Step 19.2: Create .exo/ Runtime Directory ❌ NOT STARTED
+### Step 19.2: Create .exa/ Runtime Directory ❌ NOT STARTED
 
-**Goal:** Move runtime artifacts to dedicated .exo/ directory.
+**Goal:** Move runtime artifacts to dedicated .exa/ directory.
 
 **Deliverables:**
 
-1. Create `.exo/` directory structure
+1. Create `.exa/` directory structure
 
 1.
 1.
@@ -326,30 +326,30 @@ New Flow:
 - `src/config/service.ts` - Database path
 - `src/cli/daemon_commands.ts` - PID and log paths
 - `src/services/db.ts` - Database path resolution
-- `.gitignore` - Add `.exo/` patterns
+- `.gitignore` - Add `.exa/` patterns
 
 **Path Changes:**
 
 | Old Path            | New Path          |
 | ------------------- | ----------------- |
-| `System/journal.db` | `.exo/journal.db` |
-| `System/daemon.pid` | `.exo/daemon.pid` |
-| `System/daemon.log` | `.exo/daemon.log` |
+| `System/journal.db` | `.exa/journal.db` |
+| `System/daemon.pid` | `.exa/daemon.pid` |
+| `System/daemon.log` | `.exa/daemon.log` |
 
 **Success Criteria:**
 
-- [ ] `.exo/` directory created on daemon start
+- [ ] `.exa/` directory created on daemon start
 - [ ] Database operations use new path
 - [ ] Daemon PID/log use new paths
 - [ ] Old paths create deprecation warning
-- [ ] `.gitignore` properly excludes `.exo/`
+- [ ] `.gitignore` properly excludes `.exa/`
 
 **Projected Tests:** `tests/services/db_test.ts`, `tests/cli/daemon_commands_test.ts`
 
 ```text
-❌ Database: uses .exo/journal.db path
-❌ Daemon: writes PID to .exo/daemon.pid
-❌ Daemon: writes logs to .exo/daemon.log
+❌ Database: uses .exa/journal.db path
+❌ Daemon: writes PID to .exa/daemon.pid
+❌ Daemon: writes logs to .exa/daemon.log
 ❌ Config: warns on deprecated System/ paths
 ```text
 
@@ -647,7 +647,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 
 ```text
 Exaix/
-├── .exo/                    # Runtime state (gitignored except structure)
+├── .exa/                    # Runtime state (gitignored except structure)
 │   ├── daemon.pid
 │   ├── daemon.log
 │   ├── journal.db
@@ -697,7 +697,7 @@ Exaix/
 
 **Rationale:**
 
-- `.exo/`: All runtime and ephemeral state, clearly separated and gitignored.
+- `.exa/`: All runtime and ephemeral state, clearly separated and gitignored.
 - `Blueprints/`: All static agent and flow definitions, including templates and examples.
 - `Workspace/`: All user-facing lifecycle content, with a clear flow from Requests → Plans → Active → Archive.
 - `Memory/`: Persistent, structured knowledge and learnings, including skills and execution traces.
@@ -877,7 +877,7 @@ Workspace/Archive/
 
 **Deliverables:**
 
-1. Add `.exo/` runtime directory patterns
+1. Add `.exa/` runtime directory patterns
 
 1.
 1.
@@ -917,20 +917,20 @@ cov_profile/
 !.copilot/coverage/coverage-summary.md
 
 # --------------------------------------------
-# Runtime State (.exo/)
+# Runtime State (.exa/)
 # --------------------------------------------
 # Database files
-.exo/*.db
-.exo/*.db-shm
-.exo/*.db-wal
+.exa/*.db
+.exa/*.db-shm
+.exa/*.db-wal
 
 # Daemon state
-.exo/daemon.pid
-.exo/daemon.log
-.exo/cache/
+.exa/daemon.pid
+.exa/daemon.log
+.exa/cache/
 
 # Migration backups (temporary)
-.exo/migration-backup/
+.exa/migration-backup/
 
 # --------------------------------------------
 # Workspace (User Content)
@@ -975,9 +975,9 @@ exaix
 
 | Old Pattern          | New Pattern                               | Status      |
 | -------------------- | ----------------------------------------- | ----------- |
-| `/System/*.db*`      | `.exo/*.db*`                              | New primary |
-| `/System/daemon.pid` | `.exo/daemon.pid`                         | New primary |
-| `/System/*.log`      | `.exo/daemon.log`                         | New primary |
+| `/System/*.db*`      | `.exa/*.db*`                              | New primary |
+| `/System/daemon.pid` | `.exa/daemon.pid`                         | New primary |
+| `/System/*.log`      | `.exa/daemon.log`                         | New primary |
 | `/Inbox/`            | `Workspace/Requests/`, `Workspace/Plans/` | New primary |
 | (none)               | `Workspace/Active/`                       | New         |
 | (none)               | `Workspace/Archive/`                      | New         |
@@ -986,7 +986,7 @@ exaix
 
 **Success Criteria:**
 
-- [ ] `.exo/` directory fully ignored
+- [ ] `.exa/` directory fully ignored
 - [ ] `Workspace/` subdirectories properly ignored
 - [ ] Old patterns kept with deprecation comments
 - [ ] Clear section organization
@@ -995,7 +995,7 @@ exaix
 **Projected Tests:** `tests/scripts/migrate_folders_test.ts`
 
 ```text
-❌ Gitignore: .exo/ files not tracked
+❌ Gitignore: .exa/ files not tracked
 ❌ Gitignore: Workspace/ user content not tracked
 ❌ Gitignore: Portals/ symlinks not tracked
 ❌ Gitignore: .copilot/coverage/ exception works
@@ -1025,7 +1025,7 @@ exaix
 # exa.config.toml
 [paths]
 workspace = "Workspace"      # Lifecycle folder
-runtime = ".exo"             # Runtime artifacts
+runtime = ".exa"             # Runtime artifacts
 memory = "Memory"            # Knowledge storage
 portals = "Portals"          # External projects
 blueprints = "Blueprints"    # Definitions
@@ -1042,7 +1042,7 @@ blueprints = "Blueprints"    # Definitions
 
 ```text
 ❌ Config: resolves Workspace path
-❌ Config: resolves .exo runtime path
+❌ Config: resolves .exa runtime path
 ❌ Config: warns on deprecated Inbox path
 ❌ Config: supports custom path overrides
 ```text
@@ -1089,7 +1089,7 @@ exactl archive stats             # Archive statistics
 ```text
 ❌ Request: uses Workspace/Requests/ path
 ❌ Plan: uses Workspace/Plans/ path
-❌ Daemon: uses .exo/ path
+❌ Daemon: uses .exa/ path
 ❌ Archive: list shows archived plans
 ❌ Archive: search finds by query
 ```text
@@ -1742,7 +1742,7 @@ exactl migrate folders --rollback   # Restore if needed
 
 | Week | Steps      | Deliverables                         |
 | ---- | ---------- | ------------------------------------ |
-| 1    | 19.1-19.3  | Migration tooling, .exo/, Workspace/ |
+| 1    | 19.1-19.3  | Migration tooling, .exa/, Workspace/ |
 | 2    | 19.4-19.6  | .copilot/, templates, ConfigService  |
 | 3    | 19.7-19.10 | CLI, docs, archive, testing          |
 

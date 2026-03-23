@@ -13,26 +13,26 @@ The easiest way to deploy a fully configured validation sandbox is using the aut
 cd "$HOME/git/Exaix"
 
 # Define your sandbox root directory
-export EXOFFRAME_VALIDATION_ROOT="$HOME/exo-validation-sandbox"
+export EXAIX_VALIDATION_ROOT="$HOME/exa-validation-sandbox"
 
 # Option A: Fast Local Testing (Mock Provider)
 # Set up a sandbox locally without making external API calls
-deno run -A scripts/setup_sandbox.ts --dir "$EXOFFRAME_VALIDATION_ROOT" --provider "mock" --model "test"
+deno run -A scripts/setup_sandbox.ts --dir "$EXAIX_VALIDATION_ROOT" --provider "mock" --model "test"
 
 # Option B: Real LLM Validation (Google Gemini Flash)
 # To test real agent behaviors, provide your API key and configure the model
 export GOOGLE_API_KEY="your-api-key-here"
-deno run -A scripts/setup_sandbox.ts --dir "$EXOFFRAME_VALIDATION_ROOT" --provider "google" --model "gemini-1.5-flash"
+deno run -A scripts/setup_sandbox.ts --dir "$EXAIX_VALIDATION_ROOT" --provider "google" --model "gemini-1.5-flash"
 ```
 
 Once the script completes, it will output the necessary environment variables to export to interact with the sandbox.
 
 ```bash
 # Export the binary path so the sandbox exactl takes precedence
-export PATH="$EXOFFRAME_VALIDATION_ROOT/bin:$PATH"
+export PATH="$EXAIX_VALIDATION_ROOT/bin:$PATH"
 
 # Export the config path so the daemon uses the sandbox configuration
-export EXA_CONFIG_PATH="$EXOFFRAME_VALIDATION_ROOT/workspace/exa.config.toml"
+export EXA_CONFIG_PATH="$EXAIX_VALIDATION_ROOT/workspace/exa.config.toml"
 
 # Set API keys if necessary (e.g., if using a real provider)
 # export ANTHROPIC_API_KEY="your-key-here"
@@ -53,18 +53,18 @@ Create a dedicated directory for your validation work to ensure isolation from y
 
 ```bash
 # Define your sandbox root
-export EXOFFRAME_VALIDATION_ROOT="$HOME/exo-validation-sandbox"
-export WORKSPACE_DIR="$EXOFFRAME_VALIDATION_ROOT/workspace"
-export FRAMEWORK_DIR="$EXOFFRAME_VALIDATION_ROOT/framework"
-export EVIDENCE_DIR="$EXOFFRAME_VALIDATION_ROOT/evidence"
+export EXAIX_VALIDATION_ROOT="$HOME/exa-validation-sandbox"
+export WORKSPACE_DIR="$EXAIX_VALIDATION_ROOT/workspace"
+export FRAMEWORK_DIR="$EXAIX_VALIDATION_ROOT/framework"
+export EVIDENCE_DIR="$EXAIX_VALIDATION_ROOT/evidence"
 
 # Optional: Install the sandbox exactl binary to a dedicated folder instead of
 # overwriting the global ~/.deno/bin/exactl. Downstream steps use EXA_BIN_PATH
 # to resolve exactl and EXA_CONFIG_PATH to pin the config file.
-export EXA_BIN_PATH="$EXOFFRAME_VALIDATION_ROOT/bin"
+export EXA_BIN_PATH="$EXAIX_VALIDATION_ROOT/bin"
 export EXA_CONFIG_PATH="$WORKSPACE_DIR/exa.config.toml"
 
-mkdir -p "$EXOFFRAME_VALIDATION_ROOT"
+mkdir -p "$EXAIX_VALIDATION_ROOT"
 ```
 
 ### 2.2. Deploy a Clean Exaix Workspace
@@ -175,13 +175,13 @@ The framework captures full evidence for every execution.
 
 - **Run Manifest**: Check `${EVIDENCE_DIR}/run_manifest.json` for the overall outcome and per-step status.
 - **Evidence Files**: Each step captures stdout/stderr and any generated artifacts (like `_analysis.json`) in `${EVIDENCE_DIR}/scenarios/<scenario-id>/<step-id>/`.
-- **Journal**: Inspect the workspace journal at `${WORKSPACE_DIR}/.exo/journal.ndjson` for internal execution traces.
+- **Journal**: Inspect the workspace journal at `${WORKSPACE_DIR}/.exa/journal.ndjson` for internal execution traces.
 
 ---
 
 ## Troubleshooting
 
-- **Daemon Issues**: Check `${WORKSPACE_DIR}/.exo/daemon.log` if the daemon fails to start or process requests.
+- **Daemon Issues**: Check `${WORKSPACE_DIR}/.exa/daemon.log` if the daemon fails to start or process requests.
 - **Portal Boundary Errors**: Ensure the `portal-mounted` criterion is passed in your scenario if it depends on external code references.
 - **LLM Failures**: Verify your API keys and check that your `exa.config.toml` matches the requirements for the agent being tested.
 - **Wrong exactl version**: Run `which exactl` to confirm the binary path. If `EXA_BIN_PATH` is set, ensure `$EXA_BIN_PATH` appears before `~/.deno/bin` in your `$PATH`. If not, re-export: `export PATH="$EXA_BIN_PATH:$PATH"`.

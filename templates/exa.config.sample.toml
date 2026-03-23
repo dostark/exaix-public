@@ -60,7 +60,7 @@ root = "./"
 # Top-level workspace directory name under the deployed root
 workspace = "Workspace"
 # Runtime directory for DB, logs, pid files (formerly System/)
-runtime = ".exo"
+runtime = ".exa"
 # Memory banks directory (copied to deployed workspaces)
 memory = "Memory"
 # Portals directory (symlinks to external project repos)
@@ -76,7 +76,7 @@ batch_flush_ms = 100
 batch_max_size = 100
 # Optional explicit path for the Activity Journal DB (overrides runtime path)
 # If unspecified, code resolves to <root>/<paths.runtime>/journal.db
-path = "./.exo/journal.db"
+path = "./.exa/journal.db"
 
 [database.sqlite]
 # SQLite-specific performance tuning
@@ -108,7 +108,7 @@ target_path = "/home/me/projects/my-repo"
 
 # Optional: execution strategy for write-capable changes
 # - "branch"   : create feature branches in the portal checkout (default)
-# - "worktree" : create per-request worktrees under .exo/worktrees (opt-in)
+# - "worktree" : create per-request worktrees under .exa/worktrees (opt-in)
 #               : Exaix also creates a discoverability pointer under Memory/Execution/<traceId>/worktree/
 # execution_strategy = "branch"
 

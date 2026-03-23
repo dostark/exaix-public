@@ -398,7 +398,7 @@ export class GitService implements IGitService {
         message += `\n\n${options.description}`;
       }
 
-      message += `\n\n[ExoTrace: ${options.traceId}]`;
+      message += `\n\n[ExaTrace: ${options.traceId}]`;
 
       // Commit
       await this.runGitCommand(["commit", "-m", message]);

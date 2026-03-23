@@ -118,7 +118,7 @@ git submodule update --init --recursive
 deno task cache
 
 # Scaffold runtime directories and configuration
-# This creates Workspace, Memory, .exo, Portals and copies exa.config.toml
+# This creates Workspace, Memory, .exa, Portals and copies exa.config.toml
 ./scripts/scaffold.sh .
 
 # Initialize the database
@@ -205,7 +205,7 @@ Notes specific to WSL2:
 
 - Verify Deno version: `deno --version` (should match project `deno.json` expectations)
 - Verify git config: `git config --list` (ensure `user.name` and `user.email` set)
-- Verify DB exists: `ls -la .exo/*.db` or run `sqlite3 .exo/exo.db 'SELECT count(*) FROM activity;'`
+- Verify DB exists: `ls -la .exa/*.db` or run `sqlite3 .exa/exa.db 'SELECT count(*) FROM activity;'`
 - Run smoke test: `deno test --allow-read --allow-write` and confirm core tests pass.
 - Create a test portal and verify watcher triggers:
 
@@ -396,7 +396,7 @@ Recommended workflow:
 - Developers edit code and push to the development repo (`/path/to/exaix-repo`).
 - From the development repo you produce a _deployed workspace_ using `./scripts/deploy_workspace.sh /target/path` (see
   `docs/Exaix_Repository_Build.md` for details).
-- The deployed workspace is intended for running the daemon, storing `.exo/journal.db`, and housing user content
+- The deployed workspace is intended for running the daemon, storing `.exa/journal.db`, and housing user content
   (`Memory`). It should not be used as a primary development checkout (no tests, no CI config required there).
 
 Planned automation (Phase 1 deliverable):
@@ -428,6 +428,6 @@ deno task start
 Notes:
 
 - The deployed workspace is a runtime instance and should not be treated as a development checkout. It contains only
-  runtime artifacts (configs, minimal src, scripts) and user data (Memory, .exo/journal.db).
+  runtime artifacts (configs, minimal src, scripts) and user data (Memory, .exa/journal.db).
 - Keep migration SQL and schema under `migrations/` or `sql/` in the development repo rather than committing `.db`
   files.

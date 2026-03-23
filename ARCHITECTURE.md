@@ -75,13 +75,13 @@ graph TB
     end
 
     subgraph Storage["💾 Storage"]
-        DB[(SQLite DB<br/>.exo/journal.db)]
+        DB[(SQLite DB<br/>.exa/journal.db)]
         FS[/File System<br/>~/Exaix/]
         Workspace[Workspace/<br/>Requests & Plans/]
         Blueprint[Blueprints/<br/>Agents & Flows/]
         Memory[Memory/<br/>Memory Banks/]
         Portals[Portals/<br/>External Projects/]
-        Runtime[/.exo/<br/>Active & Archive/]
+        Runtime[/.exa/<br/>Active & Archive/]
     end
 
     subgraph AI["🤖 AI Providers"]
@@ -994,7 +994,7 @@ graph TB
         Blueprint["Blueprints<br/>Agents & Flows"]
         Memory["Memory<br/>Memory Banks"]
         Portals["Portals<br/>Symlinks"]
-        Runtime[".exo/<br/>Active & Archive"]
+        Runtime[".exa/<br/>Active & Archive"]
     end
 
     subgraph Database["Activity Journal (Edition-Tiered)"]
@@ -1788,7 +1788,6 @@ graph LR
 
 - Every action logged to Activity Journal (tiered by edition)
 - Trace ID links: request → plan → review → commit
-- Git commit footers with `Exo-Trace` metadata
 - Immutable event stream for compliance (🟣 Enterprise: WORM storage)
 - Explicit approval gates: plans and reviews require human authorization
 

@@ -34,7 +34,7 @@ cd ~/Exaix && deno run --allow-all src/cli/exactl.ts daemon logs --lines 20
 - Database migration reports "up to date"
 - Plan approval succeeds
 - Execution fails with: `ExecutionError: no such table: changesets`
-- SQLite database file exists at `./.exo/journal.db`
+- SQLite database file exists at `./.exa/journal.db`
 
 ## Expected Behavior
 

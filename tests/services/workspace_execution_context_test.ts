@@ -18,7 +18,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
   let workspaceDir: string;
 
   beforeEach(async () => {
-    tempDir = await Deno.makeTempDir({ prefix: "exo_test_context_" });
+    tempDir = await Deno.makeTempDir({ prefix: "exa_test_context_" });
     portalDir = join(tempDir, "portal");
     workspaceDir = join(tempDir, "workspace");
 

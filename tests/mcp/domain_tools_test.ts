@@ -11,7 +11,7 @@ import { ensureDir } from "@std/fs";
 import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "../../src/mcp/domain_tools.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import type { Config } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
 
@@ -23,7 +23,7 @@ const createMockConfig = (rootDir: string): Config => ({
     version: "1.0.0",
   },
   paths: {
-    ...ExoPathDefaults,
+    ...ExaPathDefaults,
   },
   database: {
     batch_flush_ms: 100,

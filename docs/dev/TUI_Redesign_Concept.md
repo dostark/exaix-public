@@ -993,7 +993,7 @@ A view for repository-level git operations. Accessible via `[Views] > Git`.
 - **`F3` View Diff**: Show diff between the selected branch and its base branch.
 - **`F5` Checkout**: Checkout the selected branch (with confirmation dialog).
 - **`F7` Log by Trace**: Enter a trace_id to find all commits referencing it across all branches.
-- **`F9` Filter**: Filter branches by pattern (glob) — e.g., `feat/*`, `exo-*`.
+- **`F9` Filter**: Filter branches by pattern (glob) — e.g., `feat/*`, `exa-*`.
 - **Status Bar**: Shows current branch, modified/added/deleted/untracked file counts (from `git status`).
 - **Traceability**: `Alt+L` jumps to the Request/Plan linked to the branch's trace_id.
 
@@ -1173,7 +1173,7 @@ The **Lifecycle Explorer** (`Alt+L`) resolves linked entities by querying the **
 
 ### Log Correlation
 
-The **Correlated Log View** (`Alt+G`) reuses the existing `StructuredLogService` with a `trace_id` filter parameter, reading structured JSON log entries from the `.exo/` directory.
+The **Correlated Log View** (`Alt+G`) reuses the existing `StructuredLogService` with a `trace_id` filter parameter, reading structured JSON log entries from the `.exa/` directory.
 
 ### Cost Tracking
 

@@ -160,7 +160,7 @@ await new Promise(() => {});
   });
 
   describe("start", () => {
-    it("should write PID file to .exo/daemon.pid", async () => {
+    it("should write PID file to .exa/daemon.pid", async () => {
       await daemonCommands.start();
 
       // Verify PID file exists
@@ -596,7 +596,7 @@ describe("DaemonCommands - Edge Cases", () => {
     configService = result.configService!;
     cleanup = result.cleanup;
 
-    pidFile = join(tempDir, ".exo", "daemon.pid");
+    pidFile = join(tempDir, ".exa", "daemon.pid");
 
     daemonCommands = new TestDaemonCommands(createStubContext({ config: configService, db }));
   });
@@ -612,7 +612,7 @@ describe("DaemonCommands - Edge Cases", () => {
   });
 
   it("status() should return not running when PID file contains invalid number", async () => {
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, "not-a-number");
 
     const status = await daemonCommands.status();
@@ -623,7 +623,7 @@ describe("DaemonCommands - Edge Cases", () => {
 
   it("status() should clean up PID file for dead process", async () => {
     // Use a PID that definitely doesn't exist (999999)
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, "999999");
 
     const status = await daemonCommands.status();
@@ -651,7 +651,7 @@ describe("DaemonCommands - Edge Cases", () => {
   it("start() should return early when daemon already running", async () => {
     // Use current Deno process PID (which is definitely running)
     const currentPid = Deno.pid;
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, currentPid.toString());
 
     // Should return without error (early return)
@@ -729,7 +729,7 @@ describe("DaemonCommands - Edge Cases", () => {
 
   it("status() should handle process check exception", async () => {
     // Use a negative PID to potentially trigger exception in kill -0
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, "-1");
 
     const status = await daemonCommands.status();
@@ -741,7 +741,7 @@ describe("DaemonCommands - Edge Cases", () => {
   it("status() should return uptime for running process", async () => {
     // Use current Deno process PID
     const currentPid = Deno.pid;
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, currentPid.toString());
 
     const status = await daemonCommands.status();
@@ -785,7 +785,7 @@ await new Promise(() => {}); // Run forever
 
     // Get the PID and write to file
     const stubbornPid = startProcess.pid;
-    await Deno.mkdir(join(tempDir, ".exo"), { recursive: true });
+    await Deno.mkdir(join(tempDir, ".exa"), { recursive: true });
     await Deno.writeTextFile(pidFile, stubbornPid.toString());
 
     // Try to stop it - this should trigger force kill after timeout

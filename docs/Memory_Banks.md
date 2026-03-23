@@ -172,7 +172,7 @@ Some portal executions use an isolated Git worktree checkout. In those cases, Ex
 
 - `Memory/Execution/{trace-id}/worktree`
 
-This is typically a symlink (preferred) or a small directory containing `PATH.txt`, and it points to the actual worktree directory (commonly under `.exo/worktrees/...`).
+This is typically a symlink (preferred) or a small directory containing `PATH.txt`, and it points to the actual worktree directory (commonly under `.exa/worktrees/...`).
 
 You can also inspect worktrees directly with `exactl git worktrees list --portal <alias>` (or `--repo <path>`).
 

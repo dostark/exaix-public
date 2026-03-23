@@ -14,7 +14,7 @@ import { encodeHex } from "@std/encoding/hex";
 import { Config, ConfigSchema } from "../shared/schemas/config.ts";
 import { PortalExecutionStrategy } from "../shared/enums.ts";
 import { logInfo } from "../services/structured_logger.ts";
-import { ExoPathDefaults } from "../shared/constants.ts";
+import { ExaPathDefaults } from "../shared/constants.ts";
 
 export class ConfigService {
   private readonly configPath: string;
@@ -80,25 +80,25 @@ version = "1.0.0"
 log_level = "info"
 
 [paths]
-memory = "${ExoPathDefaults.memory}"
-blueprints = "${ExoPathDefaults.blueprints}"
-runtime = "${ExoPathDefaults.runtime}"
-workspace = "${ExoPathDefaults.workspace}"
-portals = "${ExoPathDefaults.portals}"
-active = "${ExoPathDefaults.active}"
-archive = "${ExoPathDefaults.archive}"
-plans = "${ExoPathDefaults.plans}"
-requests = "${ExoPathDefaults.requests}"
-rejected = "${ExoPathDefaults.rejected}"
-agents = "${ExoPathDefaults.agents}"
-flows = "${ExoPathDefaults.flows}"
-memoryProjects = "${ExoPathDefaults.memoryProjects}"
-memoryExecution = "${ExoPathDefaults.memoryExecution}"
-memoryIndex = "${ExoPathDefaults.memoryIndex}"
-memorySkills = "${ExoPathDefaults.memorySkills}"
-memoryPending = "${ExoPathDefaults.memoryPending}"
-memoryTasks = "${ExoPathDefaults.memoryTasks}"
-memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
+memory = "${ExaPathDefaults.memory}"
+blueprints = "${ExaPathDefaults.blueprints}"
+runtime = "${ExaPathDefaults.runtime}"
+workspace = "${ExaPathDefaults.workspace}"
+portals = "${ExaPathDefaults.portals}"
+active = "${ExaPathDefaults.active}"
+archive = "${ExaPathDefaults.archive}"
+plans = "${ExaPathDefaults.plans}"
+requests = "${ExaPathDefaults.requests}"
+rejected = "${ExaPathDefaults.rejected}"
+agents = "${ExaPathDefaults.agents}"
+flows = "${ExaPathDefaults.flows}"
+memoryProjects = "${ExaPathDefaults.memoryProjects}"
+memoryExecution = "${ExaPathDefaults.memoryExecution}"
+memoryIndex = "${ExaPathDefaults.memoryIndex}"
+memorySkills = "${ExaPathDefaults.memorySkills}"
+memoryPending = "${ExaPathDefaults.memoryPending}"
+memoryTasks = "${ExaPathDefaults.memoryTasks}"
+memoryGlobal = "${ExaPathDefaults.memoryGlobal}"
 
 [watcher]
 debounce_ms = 200

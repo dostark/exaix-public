@@ -525,7 +525,7 @@ exactl review reject <review-id> --reason "Needs revision"
 1. **Backup database:**
 
    ```bash
-   cp ~/.exo/journal.db ~/.exo/journal.db.backup
+   cp ~/.exa/journal.db ~/.exa/journal.db.backup
    ```
 
 1.
@@ -537,7 +537,7 @@ exactl review reject <review-id> --reason "Needs revision"
 1.
 
    ```bash
-   sqlite3 ~/.exo/journal.db < migrations/007_rename_changesets_to_reviews.sql
+   sqlite3 ~/.exa/journal.db < migrations/007_rename_changesets_to_reviews.sql
    ```
 
 1.
@@ -556,7 +556,7 @@ exactl review reject <review-id> --reason "Needs revision"
 
 ```bash
 exactl daemon stop
-sqlite3 ~/.exo/journal.db < migrations/009_rollback_reviews_rename.sql
+sqlite3 ~/.exa/journal.db < migrations/009_rollback_reviews_rename.sql
 exactl daemon start
 ```
 

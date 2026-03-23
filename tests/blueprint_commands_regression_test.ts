@@ -9,7 +9,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import type { IBlueprintMetadata } from "../src/shared/schemas/blueprint.ts";
 import { createStubConfig, createStubContext } from "./test_helpers.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
@@ -50,7 +50,7 @@ async function createTestBlueprintsDir(baseDir: string): Promise<string> {
 function createTestConfig(root: string) {
   return {
     system: { root },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
   } as Partial<Config> as Config;
 }
 
@@ -62,7 +62,7 @@ const stubDb = createStubDb();
 // ============================================================================
 
 Deno.test("[regression] Blueprint list works with YAML frontmatter (---)", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);
@@ -104,7 +104,7 @@ This agent uses YAML frontmatter format.
 });
 
 Deno.test("[regression] Blueprint list works with TOML frontmatter (+++)", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);
@@ -143,7 +143,7 @@ This agent uses TOML frontmatter format.
 });
 
 Deno.test("[regression] Blueprint show works with YAML frontmatter", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);
@@ -185,7 +185,7 @@ System prompt content here.
 });
 
 Deno.test("[regression] Blueprint validate works with YAML frontmatter", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);
@@ -227,7 +227,7 @@ You are a test agent. Use <thought> tags for reasoning and <content> tags for re
 });
 
 Deno.test("[regression] Blueprint list finds both YAML and TOML formats in same directory", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);
@@ -274,7 +274,7 @@ TOML content.
 });
 
 Deno.test("[regression] YAML frontmatter parses arrays correctly", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_blueprint_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_blueprint_regression_" });
 
   try {
     const blueprintsDir = await createTestBlueprintsDir(tempDir);

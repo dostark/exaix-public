@@ -4,7 +4,7 @@
 
 ### Test Mode Impact
 
-- [x] EXA_TEST_MODE not set (confirmed via `env | grep EXO`)
+- [x] EXA_TEST_MODE not set (confirmed via `env | grep EXA`)
 - [x] Test mode settings commented out in exa.config.toml
 - [x] isTestMode() function exists but not used in provider selection
 - [x] Test mode does not affect this bug

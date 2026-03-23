@@ -7,7 +7,7 @@
 
 import { AiConfig, AiConfigSchema } from "../../../src/shared/schemas/ai_config.ts";
 import { Config } from "../../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../../src/shared/constants.ts";
 import {
   LogLevel,
   McpTransportType,
@@ -49,7 +49,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       root: "/tmp/exaix-test",
       log_level: LogLevel.INFO,
     },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
     database: {
       batch_flush_ms: 100,
       batch_max_size: 50,

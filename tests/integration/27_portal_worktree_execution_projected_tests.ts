@@ -102,8 +102,8 @@ Deno.test(
       assertMatch(branchA, /^feat\/request-[0-9a-f]{8}-/);
       assertMatch(branchB, /^feat\/request-[0-9a-f]{8}-/);
 
-      const wtA = join(env.tempDir, ".exo", "worktrees", portalAlias, traceA);
-      const wtB = join(env.tempDir, ".exo", "worktrees", portalAlias, traceB);
+      const wtA = join(env.tempDir, ".exa", "worktrees", portalAlias, traceA);
+      const wtB = join(env.tempDir, ".exa", "worktrees", portalAlias, traceB);
 
       assertEquals(await pathExists(wtA), true);
       assertEquals(await pathExists(wtB), true);
@@ -178,7 +178,7 @@ Deno.test(
       assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
 
       // The canonical worktree path should not exist (worktree add failed).
-      const canonicalWorktreePath = join(env.tempDir, ".exo", "worktrees", portalAlias, traceId);
+      const canonicalWorktreePath = join(env.tempDir, ".exa", "worktrees", portalAlias, traceId);
       assertEquals(await pathExists(canonicalWorktreePath), false);
     } finally {
       await env.cleanup();

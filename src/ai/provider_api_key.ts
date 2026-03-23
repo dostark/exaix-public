@@ -10,7 +10,7 @@
 import { SecureCredentialStore } from "../helpers/credential_security.ts";
 
 /** Extended globalThis shape used when EXA_PERSIST_ENV_CREDENTIALS is set by the host process. */
-interface ExoGlobal {
+interface ExaGlobal {
   EXA_PERSIST_ENV_CREDENTIALS?: boolean;
 }
 

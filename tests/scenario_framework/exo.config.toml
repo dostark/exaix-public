@@ -6,7 +6,7 @@ log_level = "info"
 [paths]
 memory = "Memory"
 blueprints = "Blueprints"
-runtime = ".exo"
+runtime = ".exa"
 workspace = "Workspace"
 portals = "Portals"
 active = "Active"

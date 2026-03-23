@@ -273,7 +273,7 @@ deno task start
 
 - **Workspace/**: Drop requests here.
 - **Memory/**: Memory Banks for execution history and project knowledge.
-- **.exo/**: Database and logs (do not touch manually).
+- **.exa/**: Database and logs (do not touch manually).
 - **Portals/**: Symlinks to your projects.
 
 ### 3.2 Memory Banks
@@ -1985,13 +1985,13 @@ exactl git branches
 exactl daemon stop
 
 # Check integrity
-sqlite3 ~/Exaix/.exo/journal.db "PRAGMA integrity_check;"
+sqlite3 ~/Exaix/.exa/journal.db "PRAGMA integrity_check;"
 
 # If corrupted, restore from backup
-cp ~/backups/journal.db ~/Exaix/.exo/journal.db
+cp ~/backups/journal.db ~/Exaix/.exa/journal.db
 
 # If no backup, rebuild empty database
-rm ~/Exaix/.exo/journal.db
+rm ~/Exaix/.exa/journal.db
 deno task setup --db-only
 
 # Restart daemon
@@ -2010,7 +2010,7 @@ exactl daemon logs
 
 # Verify workspace paths are accessible
 ls -la ~/Exaix/Workspace
-ls -la ~/Exaix/.exo
+ls -la ~/Exaix/.exa
 
 # Restart with correct permissions
 exactl daemon restart
@@ -3005,10 +3005,10 @@ For advanced analysis, you can query the SQLite database directly:
 
 ```bash
 # View the database schema
-sqlite3 ~/Exaix/.exo/journal.db ".schema activity"
+sqlite3 ~/Exaix/.exa/journal.db ".schema activity"
 
 # Complex queries not available via CLI
-sqlite3 ~/Exaix/.exo/journal.db "
+sqlite3 ~/Exaix/.exa/journal.db "
   SELECT action_type, COUNT(*) as count,
          MIN(timestamp) as first_seen,
          MAX(timestamp) as last_seen
@@ -3019,7 +3019,7 @@ sqlite3 ~/Exaix/.exo/journal.db "
 "
 
 # Find requests with the most steps
-sqlite3 ~/Exaix/.exo/journal.db "
+sqlite3 ~/Exaix/.exa/journal.db "
   SELECT trace_id, COUNT(*) as steps
   FROM activity
   WHERE action_type LIKE 'step.%'
@@ -3033,13 +3033,13 @@ sqlite3 ~/Exaix/.exo/journal.db "
 
 ```bash
 # Check database integrity
-sqlite3 ~/Exaix/.exo/journal.db "PRAGMA integrity_check;"
+sqlite3 ~/Exaix/.exa/journal.db "PRAGMA integrity_check;"
 
 # Vacuum database to reclaim space
-sqlite3 ~/Exaix/.exo/journal.db "VACUUM;"
+sqlite3 ~/Exaix/.exa/journal.db "VACUUM;"
 
 # Backup journal before maintenance
-cp ~/Exaix/.exo/journal.db ~/backups/journal_$(date +%Y%m%d).db
+cp ~/Exaix/.exa/journal.db ~/backups/journal_$(date +%Y%m%d).db
 ```
 
 ## 11. Cost Tracking (Beta)

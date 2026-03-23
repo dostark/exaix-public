@@ -261,7 +261,7 @@ If you have an existing Exaix database, run:
 
 ```bash
 # Backup current database
-cp .exo/journal.db .exo/journal.db.backup
+cp .exa/journal.db .exa/journal.db.backup
 
 # Re-run migration (will add new column)
 deno task migrate

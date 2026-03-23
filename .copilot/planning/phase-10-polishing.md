@@ -721,8 +721,8 @@ topics: ["navigation", "quick-reference", "task-mapping"]
 
 1.
 
-- ❌ Bad: `"/home/user/Exaix/.exo/Active"`
-- ✅ Good: `join(workspaceRoot, ".exo", "Active")` (use PathResolver)
+- ❌ Bad: `"/home/user/Exaix/.exa/Active"`
+- ✅ Good: `join(workspaceRoot, ".exa", "Active")` (use PathResolver)
 
 1.
    - ❌ Bad: Side effects (file writes, executions) without EventLogger calls

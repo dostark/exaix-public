@@ -10,7 +10,7 @@ import { EventLogger } from "../src/services/event_logger.ts";
 import { createStubConfig, createStubContext, createStubDb } from "./test_helpers.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import type { IDatabaseService } from "../src/services/db.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { RequestCommands } from "../src/cli/commands/request_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
@@ -194,7 +194,7 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
 
 Deno.test("[regression] BlueprintCommands works with stub db", async () => {
   // Create minimal config
-  const config = createMockConfig(Deno.cwd(), { paths: { ...ExoPathDefaults } });
+  const config = createMockConfig(Deno.cwd(), { paths: { ...ExaPathDefaults } });
 
   // Create stub db with required methods
   const stubDb = createStubDb();
@@ -242,7 +242,7 @@ Deno.test("[regression] RequestCommands works with stub db", async () => {
 
 Deno.test("[regression] PlanCommands works with stub db", async () => {
   // Create minimal config with all required paths
-  const config = createMockConfig(Deno.cwd(), { paths: { ...ExoPathDefaults } });
+  const config = createMockConfig(Deno.cwd(), { paths: { ...ExaPathDefaults } });
 
   // Create stub db with required methods
   const stubDb = createStubDb();

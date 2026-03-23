@@ -6,76 +6,76 @@
  */
 
 import { join } from "@std/path";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 
 export function getWorkspaceDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace);
+  return join(argDir, ExaPathDefaults.workspace);
 }
 
 export function getWorkspaceActiveDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace, ExoPathDefaults.active);
+  return join(argDir, ExaPathDefaults.workspace, ExaPathDefaults.active);
 }
 
 export function getWorkspacePlansDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace, ExoPathDefaults.plans);
+  return join(argDir, ExaPathDefaults.workspace, ExaPathDefaults.plans);
 }
 
 export function getWorkspaceRequestsDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace, ExoPathDefaults.requests);
+  return join(argDir, ExaPathDefaults.workspace, ExaPathDefaults.requests);
 }
 
 export function getWorkspaceArchiveDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace, ExoPathDefaults.archive);
+  return join(argDir, ExaPathDefaults.workspace, ExaPathDefaults.archive);
 }
 
 export function getWorkspaceRejectedDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.workspace, ExoPathDefaults.rejected);
+  return join(argDir, ExaPathDefaults.workspace, ExaPathDefaults.rejected);
 }
 
 export function getRuntimeDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.runtime);
+  return join(argDir, ExaPathDefaults.runtime);
 }
 
 export function getMemoryDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memory);
+  return join(argDir, ExaPathDefaults.memory);
 }
 
 export function getBlueprintsAgentsDir(argDir: string) {
   // agents is "Agents", blueprints is "Blueprints"
   // The original code was join(argDir, "Blueprints", "Agents")
-  // In ExoPathDefaults, we have agents: "Agents", blueprints: "Blueprints"
-  // So join(argDir, ExoPathDefaults.blueprints, ExoPathDefaults.agents)
-  return join(argDir, ExoPathDefaults.blueprints, ExoPathDefaults.agents);
+  // In ExaPathDefaults, we have agents: "Agents", blueprints: "Blueprints"
+  // So join(argDir, ExaPathDefaults.blueprints, ExaPathDefaults.agents)
+  return join(argDir, ExaPathDefaults.blueprints, ExaPathDefaults.agents);
 }
 
 export function getMemoryExecutionDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryExecution);
+  return join(argDir, ExaPathDefaults.memoryExecution);
 }
 
 export function getMemoryProjectsDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryProjects);
+  return join(argDir, ExaPathDefaults.memoryProjects);
 }
 
 export function getMemoryGlobalDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryGlobal);
+  return join(argDir, ExaPathDefaults.memoryGlobal);
 }
 
 export function getMemoryIndexDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryIndex);
+  return join(argDir, ExaPathDefaults.memoryIndex);
 }
 
 export function getMemorySkillsDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memorySkills);
+  return join(argDir, ExaPathDefaults.memorySkills);
 }
 
 export function getMemoryPendingDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryPending);
+  return join(argDir, ExaPathDefaults.memoryPending);
 }
 
 export function getMemoryTasksDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.memoryTasks);
+  return join(argDir, ExaPathDefaults.memoryTasks);
 }
 
 export function getPortalsDir(argDir: string) {
-  return join(argDir, ExoPathDefaults.portals);
+  return join(argDir, ExaPathDefaults.portals);
 }

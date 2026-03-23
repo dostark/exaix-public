@@ -8,7 +8,7 @@ import { Database } from "@db/sqlite";
 import { MigrationDirection } from "../src/shared/enums.ts";
 
 const ROOT = Deno.cwd();
-const RUNTIME_DIR = join(ROOT, ".exo");
+const RUNTIME_DIR = join(ROOT, ".exa");
 const DB_PATH = join(RUNTIME_DIR, "journal.db");
 const MIGRATIONS_DIR = join(ROOT, "migrations");
 

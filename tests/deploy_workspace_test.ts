@@ -179,7 +179,7 @@ Deno.test({
       // If daemon is not running, check the log file for errors
       if (!statusResult.stdout.includes("Running")) {
         try {
-          const logPath = join(workspace, ".exo", "daemon.log");
+          const logPath = join(workspace, ".exa", "daemon.log");
           const logContent = await Deno.readTextFile(logPath);
           console.log("Daemon log content:", logContent);
         } catch (error) {

@@ -46,7 +46,7 @@ async function setup() {
   testDir = dbService.tempDir;
   blueprintsDir = join(testDir, "Blueprints", "Agents");
   portalDir = join(testDir, "TestPortal");
-  runtimeDir = join(testDir, ".exo");
+  runtimeDir = join(testDir, ".exa");
 
   // Setup test environment
   await Deno.mkdir(blueprintsDir, { recursive: true });
@@ -93,7 +93,7 @@ async function setup() {
     ...testConfig.paths,
     workspace: join(testDir, "Workspace"),
     memory: join(testDir, "Memory"),
-    runtime: join(testDir, ".exo"),
+    runtime: join(testDir, ".exa"),
     blueprints: join(testDir, "Blueprints"),
   };
   testConfig.portals = [

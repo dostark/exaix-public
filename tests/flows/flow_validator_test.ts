@@ -12,7 +12,7 @@ import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 
 // Utility: create isolated temp dir for each test
 async function setupTestDir() {
-  return await Deno.makeTempDir({ prefix: "exo-flow-" });
+  return await Deno.makeTempDir({ prefix: "exa-flow-" });
 }
 
 /**
@@ -67,7 +67,7 @@ Deno.test("FlowValidatorImpl: validates existing flow with valid structure", asy
 });
 
 Deno.test("FlowValidatorImpl: fails for missing flow", async () => {
-  const dir = await Deno.makeTempDir({ prefix: "exo-flow-" });
+  const dir = await Deno.makeTempDir({ prefix: "exa-flow-" });
   try {
     const loader = new FlowLoader(dir);
     const validator = new FlowValidatorImpl(loader, "unused-blueprints-path");

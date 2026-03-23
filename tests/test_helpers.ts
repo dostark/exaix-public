@@ -15,7 +15,7 @@ import type { IDisplayService } from "../src/shared/interfaces/i_display_service
 import type { IConfigService, IPortalConfigEntry } from "../src/shared/interfaces/i_config_service.ts";
 import type { PortalExecutionStrategy } from "../src/shared/enums.ts";
 import { JSONObject, type JSONValue, type LogMetadata } from "../src/shared/types/json.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import { LogLevel } from "../src/shared/enums.ts";
 import { createGitServiceStub } from "../src/shared/helpers/stub_factories.ts";
 
@@ -200,10 +200,10 @@ export function createStubDisplay(db?: IDatabaseService): IDisplayService {
  * Create a stub ICliApplicationContext for tests.
  */
 export function createStubContext(overrides: Partial<ICliApplicationContext> = {}): ICliApplicationContext {
-  const root = "/tmp/exo-test";
+  const root = "/tmp/exa-test";
   const config: Config = ConfigSchema.parse({
     system: { root, log_level: LogLevel.INFO },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
   });
 
   const base: ICliApplicationContext = {

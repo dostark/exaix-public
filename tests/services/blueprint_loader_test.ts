@@ -23,7 +23,7 @@ let testDir: string;
 let blueprintsPath: string;
 
 async function setup() {
-  testDir = await Deno.makeTempDir({ prefix: "exo_blueprint_test_" });
+  testDir = await Deno.makeTempDir({ prefix: "exa_blueprint_test_" });
   blueprintsPath = join(testDir, "Blueprints");
   const agentsDir = join(blueprintsPath, "Agents");
   await Deno.mkdir(agentsDir, { recursive: true });

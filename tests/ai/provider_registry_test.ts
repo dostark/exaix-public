@@ -13,7 +13,7 @@ import { MockProviderFactory } from "../../src/ai/factories/mock_factory.ts";
 import { IResolvedProviderOptions } from "../../src/ai/types.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";
 
 // ============================================================================
@@ -227,7 +227,7 @@ Deno.test("ProviderFactory: uses registry for mock provider", async () => {
       portals: "Portals",
       workspace: "Workspace",
       memory: "Memory",
-      runtime: ".exo",
+      runtime: ".exa",
       blueprints: "Blueprints",
     },
     ai: {
@@ -247,7 +247,7 @@ Deno.test("ProviderFactory: maintains backward compatibility for ollama", async 
       root: "/tmp/test",
       log_level: "info" as const,
     },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
     ai: {
       provider: "ollama",
       model: "llama3.2",

@@ -1037,7 +1037,7 @@ review:
   files_changed: 320 # All workspace files
   commits: 1
   diff: |
-    +++ .exo/.gitkeep (new file)
+    +++ .exa/.gitkeep (new file)
     +++ Blueprints/Agents/README.md (new file)
     +++ (318 more files...)
 ```

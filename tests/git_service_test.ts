@@ -136,7 +136,7 @@ Deno.test("GitService: commits with trace_id footer", async () => {
 
     const commitMsg = await helper.getLastCommitMessage();
     assertEquals(commitMsg.includes("Add test file"), true);
-    assertEquals(commitMsg.includes("[ExoTrace: 550e8400-e29b-41d4-a716-446655440000]"), true);
+    assertEquals(commitMsg.includes("[ExaTrace: 550e8400-e29b-41d4-a716-446655440000]"), true);
   } finally {
     await cleanup();
   }
@@ -230,7 +230,7 @@ Deno.test("GitService: commit message format is correct", async () => {
     const commitMsg = await helper.getLastCommitMessage();
     assertEquals(commitMsg.includes("Implement feature X"), true);
     assertEquals(commitMsg.includes("Added function to handle user input"), true);
-    assertEquals(commitMsg.includes("[ExoTrace: trace-123]"), true);
+    assertEquals(commitMsg.includes("[ExaTrace: trace-123]"), true);
   } finally {
     await cleanup();
   }
@@ -454,7 +454,7 @@ Deno.test("GitService: commit - includes description in commit message", async (
 
     assertEquals(commitMsg.includes("Add file"), true);
     assertEquals(commitMsg.includes("This is a longer description"), true);
-    assertEquals(commitMsg.includes("ExoTrace: trace-789"), true);
+    assertEquals(commitMsg.includes("ExaTrace: trace-789"), true);
   } finally {
     await cleanup();
   }

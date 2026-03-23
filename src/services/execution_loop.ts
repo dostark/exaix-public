@@ -392,7 +392,7 @@ export class ExecutionLoop {
   }
 
   private buildPortalWorktreePath(portalAlias: string, traceId: string): string {
-    return join(this.config.system.root, ".exo", "worktrees", portalAlias, traceId, traceId);
+    return join(this.config.system.root, ".exa", "worktrees", portalAlias, traceId, traceId);
   }
 
   private async addWorktreeOrThrow(
@@ -427,7 +427,7 @@ export class ExecutionLoop {
     worktreePath: string;
   }> {
     const worktreePath = this.buildPortalWorktreePath(args.portalAlias, args.traceId);
-    await Deno.mkdir(join(this.config.system.root, ".exo", "worktrees", args.portalAlias), { recursive: true });
+    await Deno.mkdir(join(this.config.system.root, ".exa", "worktrees", args.portalAlias), { recursive: true });
     await this.createWorktreeExecutionPointer(args.traceId, worktreePath);
     await this.addWorktreeOrThrow(args.portalGitService, worktreePath, args.baseBranch);
 

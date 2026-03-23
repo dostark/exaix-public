@@ -27,7 +27,7 @@ export async function withTestMod<T>(fn: (mod: typeof ExaCtlModule, ctx: ExaCtlT
   Deno.env.set("EXA_TEST_CLI_MODE", "1");
   Deno.env.set("EXA_TEST_MODE", "1");
   let ctx: ExaCtlTestContext | undefined;
-  const tempDir: string = await Deno.makeTempDir({ prefix: "exo-test-" });
+  const tempDir: string = await Deno.makeTempDir({ prefix: "exa-test-" });
   await ensureDir(tempDir);
   const configPath: string = join(tempDir, "exa.config.toml");
   const configContent = `
@@ -35,7 +35,7 @@ export async function withTestMod<T>(fn: (mod: typeof ExaCtlModule, ctx: ExaCtlT
 root = "./"
 
 [paths]
-runtime = "./.exo"
+runtime = "./.exa"
 
 [database]
 batch_flush_ms = 10

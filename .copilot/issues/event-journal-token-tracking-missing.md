@@ -14,7 +14,7 @@ The event journal's activity table payloads contain provider and model informati
 ## Reproduction Steps
 
 ```bash
-sqlite3 .exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%google%' ORDER BY timestamp DESC;"
+sqlite3 .exa/journal.db "SELECT payload FROM activity WHERE payload LIKE '%google%' ORDER BY timestamp DESC;"
 ```
 
 ## Observed Behavior

@@ -9,7 +9,7 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubConfig, createStubContext, createStubDb } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { ConfigSchema } from "../src/shared/schemas/config.ts";
 
@@ -21,7 +21,7 @@ const SKILL_TS = "typescript";
 const SKILL_DENO = "deno";
 
 Deno.test("[regression] YAML multi-line array format parses correctly", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_multiline_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_multiline_regression_" });
 
   try {
     const blueprintsDir = join(tempDir, "Blueprints", "Agents");
@@ -53,7 +53,7 @@ This blueprint uses multi-line YAML array format.
     // Use ConfigSchema to create a valid config object with defaults
     const config = ConfigSchema.parse({
       system: { root: tempDir, log_level: "info" },
-      paths: { ...ExoPathDefaults },
+      paths: { ...ExaPathDefaults },
     });
 
     const stubDb = createStubDb();

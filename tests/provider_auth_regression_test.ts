@@ -97,10 +97,10 @@ async function testEnvToStoreSync({
   // Persist if opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  interface ExoGlobal {
+  interface ExaGlobal {
     EXA_PERSIST_ENV_CREDENTIALS?: boolean;
   }
-  const globalWithPersistence = globalThis as typeof globalThis & ExoGlobal;
+  const globalWithPersistence = globalThis as typeof globalThis & ExaGlobal;
   globalWithPersistence[PERSIST_ENV_VAR] = true;
   try {
     await factory.create(options);

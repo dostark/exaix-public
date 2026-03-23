@@ -810,7 +810,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     authorizedFiles: string[],
   ): Promise<{ reverted: string[]; failed: string[] }> {
     // 1. Acquire lock to prevent concurrent access
-    const lockFile = join(portalPath, ".exo-git-lock");
+    const lockFile = join(portalPath, ".exa-git-lock");
     const lock = await this.acquireLock(lockFile);
 
     try {
@@ -843,7 +843,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
         const filename = line.slice(3).trim();
 
         // Skip the lock file we created
-        if (filename === ".exo-git-lock") continue;
+        if (filename === ".exa-git-lock") continue;
 
         // Consider any change as potentially unauthorized (modified, added, deleted, untracked)
         // Untracked files (??) are unauthorized new files

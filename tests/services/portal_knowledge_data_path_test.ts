@@ -10,7 +10,7 @@ import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { PortalService } from "../../src/services/portal.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { createStubConfig, createStubDisplay } from "../test_helpers.ts";
 import type { IContextCardGeneratorService } from "../../src/shared/interfaces/i_context_card_generator_service.ts";
@@ -30,8 +30,8 @@ async function makePortalKnowledgePathEnv() {
     makeMockContextCardGenerator(),
     createStubDisplay(),
   );
-  const projectsDir = join(tempDir, ExoPathDefaults.memoryProjects);
-  const portalsDir = join(tempDir, ExoPathDefaults.portals);
+  const projectsDir = join(tempDir, ExaPathDefaults.memoryProjects);
+  const portalsDir = join(tempDir, ExaPathDefaults.portals);
   await ensureDir(projectsDir);
   await ensureDir(portalsDir);
 

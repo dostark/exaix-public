@@ -276,7 +276,7 @@ Modify README.md with additional content
 
 Deno.test("Integration Test 15.3: Plan Detection - Invalid YAML", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "test-exo-" });
+  const testDir = await Deno.makeTempDir({ prefix: "test-exa-" });
 
   try {
     const activePath = getWorkspaceActiveDir(testDir);
@@ -499,7 +499,7 @@ Deno.test("Integration Test 15.6: Review Filtering", async () => {
 
 Deno.test("Integration Test 15.7: Plan Parsing Errors", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "test-exo-" });
+  const testDir = await Deno.makeTempDir({ prefix: "test-exa-" });
 
   try {
     const activePath = getWorkspaceActiveDir(testDir);
@@ -591,7 +591,7 @@ This step has no title
 
 Deno.test("Integration Test 15.8: MCP Server Security", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "test-exo-" });
+  const testDir = await Deno.makeTempDir({ prefix: "test-exa-" });
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
@@ -637,7 +637,7 @@ Deno.test("Integration Test 15.8: MCP Server Security", async () => {
 
 Deno.test("Integration Test 15.9: Agent Orchestration Errors", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "test-exo-" });
+  const testDir = await Deno.makeTempDir({ prefix: "test-exa-" });
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
@@ -756,7 +756,7 @@ Deno.test("Integration Test 15.10: Review Query Methods", async () => {
 
 Deno.test("Integration Test 15.11: Multi-Step Plan Execution", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
-  const testDir = await Deno.makeTempDir({ prefix: "test-exo-" });
+  const testDir = await Deno.makeTempDir({ prefix: "test-exa-" });
 
   try {
     const activePath = getWorkspaceActiveDir(testDir);

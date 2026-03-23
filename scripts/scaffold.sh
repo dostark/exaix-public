@@ -10,7 +10,7 @@ TARGET=${1:-$PWD}
 echo "Scaffolding runtime workspace at: $TARGET"
 
 # Ensure base folders
-mkdir -p "$TARGET/.exo" \
+mkdir -p "$TARGET/.exa" \
   "$TARGET/Blueprints/Agents" \
   "$TARGET/Blueprints/Flows" \
   "$TARGET/Workspace/Requests" \
@@ -31,7 +31,7 @@ touch "$TARGET/Memory/.gitkeep" || true
 touch "$TARGET/Memory/Index/.gitkeep" || true
 touch "$TARGET/Memory/Reports/.gitkeep" || true
 touch "$TARGET/Portals/.gitkeep" || true
-touch "$TARGET/.exo/.gitkeep" || true
+touch "$TARGET/.exa/.gitkeep" || true
 
 
 if [ -f "$ROOT_DIR/templates/exa.config.sample.toml" ] && [ ! -f "$TARGET/exa.config.sample.toml" ]; then

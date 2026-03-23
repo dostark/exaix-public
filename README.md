@@ -25,10 +25,10 @@ git clone https://github.com/dostark/exaix.git
 cd exaix
 
 # Deploy a runtime workspace (copies Memory/, Blueprints/, top-level docs; does not copy templates/)
-./scripts/deploy_workspace.sh ~/MyExoWorkspace
+./scripts/deploy_workspace.sh ~/MyExaixWorkspace
 
 # Start the daemon inside the deployed workspace
-cd ~/MyExoWorkspace
+cd ~/MyExaixWorkspace
 deno task start
 ```
 
@@ -38,7 +38,7 @@ Core components & runtime layout
 - `Portals/` — Symlinks to project repositories (multi-repo context).
 - `Memory/` — Persistent memory banks (copied to deployed workspaces; used for search and recall).
 - `Blueprints/` — Agent blueprints and templates (copied on deploy).
-- `.exo/` — Runtime state (database, logs, pid files). This replaces the legacy `System/` folder.
+- `.exa/` — Runtime state (database, logs, pid files). This replaces the legacy `System/` folder.
 
 Operator features
 

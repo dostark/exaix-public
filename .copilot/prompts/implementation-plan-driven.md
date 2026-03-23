@@ -119,7 +119,7 @@ Implementation Plan workflow:
 
    **Success Criteria:**
    - [ ] export() method returns JSON array of events
-   - [ ] CLI command `exo export-activity --format json` works
+   - [ ] CLI command `exa export-activity --format json` works
    - [ ] Tests verify export format matches schema
    - [ ] Large logs handled efficiently (streaming)
 
@@ -135,7 +135,7 @@ Implementation Plan workflow:
 5. VERIFY:
    - All success criteria met
    - Run: deno test tests/event_logger_test.ts
-   - Manual test: exo export-activity --format json
+   - Manual test: exactl export-activity --format json
 
 6. MARK COMPLETE:
    - Update Implementation Plan step 7.5 checkboxes

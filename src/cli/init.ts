@@ -13,7 +13,7 @@ import { GitService } from "../services/git_service.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
 import { FlowLoader } from "../flows/flow_loader.ts";
-import { ExoPathDefaults } from "../shared/constants.ts";
+import { ExaPathDefaults } from "../shared/constants.ts";
 import type { Config } from "../shared/schemas/config.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
@@ -206,7 +206,7 @@ export async function initializeServices(
     // Fallback minimal stubs (same as runtime fallback)
     const cfg = {
       system: { root: Deno.cwd() },
-      paths: { ...ExoPathDefaults },
+      paths: { ...ExaPathDefaults },
       agents: { default_model: "mock:test" },
     } as Config;
 

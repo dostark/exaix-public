@@ -33,7 +33,7 @@ type CoverageRow = {
 
 function filterKnownNoisyCoverageWarnings(stderrText: string): string {
   // Deno can emit a non-fatal warning when coverage data references temp files
-  // created/deleted during tests (e.g., /tmp/exo-flow-*/my-flow.flow.ts).
+  // created/deleted during tests (e.g., /tmp/exa-flow-*/my-flow.flow.ts).
   // The run still succeeds, so we filter this message to keep output clean.
   return stderrText
     .split("\n")

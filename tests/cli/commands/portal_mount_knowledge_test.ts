@@ -15,7 +15,7 @@ import type { IPortalKnowledgeService } from "../../../src/shared/interfaces/i_p
 import type { IPortalKnowledge } from "../../../src/shared/schemas/portal_knowledge.ts";
 import { PortalAnalysisMode } from "../../../src/shared/enums.ts";
 import { initPortalTest } from "../helpers/test_setup.ts";
-import { ExoPathDefaults } from "../../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../../src/shared/constants.ts";
 
 // ---------------------------------------------------------------------------
 // Mock helpers
@@ -177,7 +177,7 @@ Deno.test(
 
       const knowledgePath = join(
         tempRoot,
-        ExoPathDefaults.memoryProjects,
+        ExaPathDefaults.memoryProjects,
         "PersistPortal",
         "knowledge.json",
       );

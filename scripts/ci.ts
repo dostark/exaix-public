@@ -514,7 +514,7 @@ const scenariosCommand = new Command()
   .option("--workspace <path:string>", "Optional workspace override")
   .action(async (options) => {
     // 1. Prepare temp directories
-    const tempDir = await Deno.makeTempDir({ prefix: "exo-ci-scenario-" });
+    const tempDir = await Deno.makeTempDir({ prefix: "exa-ci-scenario-" });
     const frameworkDest = join(tempDir, "framework");
     const workspaceDest = options.workspace ?? join(tempDir, "workspace");
     const outputDest = join(tempDir, "output");
@@ -545,7 +545,7 @@ log_level = "info"
 
 [paths]
 workspace = "Workspace"
-runtime = ".exo"
+runtime = ".exa"
 memory = "Memory"
 portals = "Portals"
 blueprints = "Blueprints"
@@ -692,7 +692,7 @@ strategy = "pattern"
   });
 
 await new Command()
-  .name("exo-ci")
+  .name("exa-ci")
   .version("0.1.0")
   .description("Exaix Unified CI Pipeline Pipeline")
   .option("--dry-run", "Show what would be executed without running commands", {

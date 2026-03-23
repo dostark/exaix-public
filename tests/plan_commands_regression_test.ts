@@ -10,7 +10,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubContext, createStubDb } from "./test_helpers.ts";
 import { createStubConfig } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import type { IPlanMetadata } from "../src/shared/types/plan.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
@@ -66,7 +66,7 @@ async function createTestWorkspace(baseDir: string): Promise<{
 function initPlanTest(tempDir: string) {
   const config = ConfigSchema.parse({
     system: { root: tempDir, log_level: LogLevel.INFO },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
   });
   const stubDb = createStubDb();
   const context = createStubContext({
@@ -81,7 +81,7 @@ function initPlanTest(tempDir: string) {
 // ============================================================================
 
 Deno.test("[regression] Plan list finds approved plans in Active directory", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_regression_" });
 
   try {
     const { activeDir } = await createTestWorkspace(tempDir);
@@ -107,7 +107,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
 });
 
 Deno.test("[regression] Plan list finds rejected plans in Rejected directory", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_regression_" });
 
   try {
     const { rejectedDir } = await createTestWorkspace(tempDir);
@@ -130,7 +130,7 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
 });
 
 Deno.test("[regression] Plan list finds review plans in Plans directory", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_regression_" });
 
   try {
     const { plansDir } = await createTestWorkspace(tempDir);
@@ -152,7 +152,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
 });
 
 Deno.test("[regression] Plan list without filter scans all directories", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_regression_" });
 
   try {
     const { plansDir, activeDir, rejectedDir } = await createTestWorkspace(tempDir);
@@ -178,7 +178,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
 });
 
 Deno.test("[regression] Plan list handles empty directories gracefully", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_regression_" });
 
   try {
     await createTestWorkspace(tempDir);
@@ -209,7 +209,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
  * Fix: Updated reject() to search all directories like show() and list() methods
  */
 Deno.test("[regression] Plan reject finds plans in any directory", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_reject_regression_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_reject_regression_" });
 
   try {
     const { activeDir, rejectedDir } = await createTestWorkspace(tempDir);
@@ -255,7 +255,7 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
  * Fix: Enhanced PlanCommands to load and display request context (agent, portal, priority, etc.)
  */
 Deno.test("[regression] Plan list and show include request context information", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_request_context_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_plan_request_context_" });
 
   try {
     const { plansDir } = await createTestWorkspace(tempDir);

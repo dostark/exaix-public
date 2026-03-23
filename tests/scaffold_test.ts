@@ -8,7 +8,7 @@
 import { assert, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { dirname, fromFileUrl, join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { exists } from "https://deno.land/std@0.201.0/fs/mod.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
@@ -47,15 +47,15 @@ Deno.test("scaffold.sh creates required directory structure", async () => {
 
     // Verify all required directories exist
     const requiredDirs = [
-      ExoPathDefaults.runtime,
-      join(ExoPathDefaults.blueprints, ExoPathDefaults.agents),
-      ExoPathDefaults.flows,
-      join(ExoPathDefaults.workspace, ExoPathDefaults.requests),
-      join(ExoPathDefaults.workspace, ExoPathDefaults.plans),
-      ExoPathDefaults.memoryProjects,
-      ExoPathDefaults.memoryExecution,
-      ExoPathDefaults.memoryIndex,
-      ExoPathDefaults.portals,
+      ExaPathDefaults.runtime,
+      join(ExaPathDefaults.blueprints, ExaPathDefaults.agents),
+      ExaPathDefaults.flows,
+      join(ExaPathDefaults.workspace, ExaPathDefaults.requests),
+      join(ExaPathDefaults.workspace, ExaPathDefaults.plans),
+      ExaPathDefaults.memoryProjects,
+      ExaPathDefaults.memoryExecution,
+      ExaPathDefaults.memoryIndex,
+      ExaPathDefaults.portals,
       "scripts",
     ];
 
@@ -79,14 +79,14 @@ Deno.test("scaffold.sh creates .gitkeep files", async () => {
 
     // Verify .gitkeep files exist
     const gitkeepPaths = [
-      join(ExoPathDefaults.runtime, ".gitkeep"),
-      join(ExoPathDefaults.blueprints, ExoPathDefaults.agents, ".gitkeep"),
-      join(ExoPathDefaults.flows, ".gitkeep"),
-      join(ExoPathDefaults.workspace, ExoPathDefaults.requests, ".gitkeep"),
-      join(ExoPathDefaults.workspace, ExoPathDefaults.plans, ".gitkeep"),
-      join(ExoPathDefaults.memory, ".gitkeep"),
-      join(ExoPathDefaults.memoryIndex, ".gitkeep"),
-      join(ExoPathDefaults.portals, ".gitkeep"),
+      join(ExaPathDefaults.runtime, ".gitkeep"),
+      join(ExaPathDefaults.blueprints, ExaPathDefaults.agents, ".gitkeep"),
+      join(ExaPathDefaults.flows, ".gitkeep"),
+      join(ExaPathDefaults.workspace, ExaPathDefaults.requests, ".gitkeep"),
+      join(ExaPathDefaults.workspace, ExaPathDefaults.plans, ".gitkeep"),
+      join(ExaPathDefaults.memory, ".gitkeep"),
+      join(ExaPathDefaults.memoryIndex, ".gitkeep"),
+      join(ExaPathDefaults.portals, ".gitkeep"),
     ];
 
     for (const path of gitkeepPaths) {
@@ -144,7 +144,7 @@ Deno.test("scaffold.sh creates Memory/Projects directory and README placeholder"
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
 
-    const projectsPath = join(tmp, ExoPathDefaults.memoryProjects);
+    const projectsPath = join(tmp, ExaPathDefaults.memoryProjects);
     assert(
       await exists(projectsPath),
       "Memory/Projects should be created",
@@ -197,7 +197,7 @@ Deno.test("scaffold.sh is idempotent", async () => {
 
     // Verify structure is still correct
     const requiredDirs = [
-      ".exo",
+      ".exa",
       "Blueprints/Agents",
       "Workspace/Requests",
       "Memory/Reports",
@@ -252,8 +252,8 @@ Deno.test("scaffold.sh uses current directory if no target provided", async () =
 
     // Verify structure was created in current directory
     assert(
-      await exists(join(tmp, ".exo")),
-      ".exo directory should be created in current directory",
+      await exists(join(tmp, ".exa")),
+      ".exa directory should be created in current directory",
     );
   } finally {
     await Deno.remove(tmp, { recursive: true }).catch(() => {});

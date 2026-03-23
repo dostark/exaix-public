@@ -15,7 +15,7 @@ import { analyzeDirectory } from "../../../src/services/portal_knowledge/directo
 // ---------------------------------------------------------------------------
 
 async function makeTempDir(): Promise<string> {
-  return await Deno.makeTempDir({ prefix: "exo_dir_analyzer_test_" });
+  return await Deno.makeTempDir({ prefix: "exa_dir_analyzer_test_" });
 }
 
 async function writeFile(dir: string, relPath: string, content = ""): Promise<void> {

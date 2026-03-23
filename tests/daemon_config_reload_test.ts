@@ -9,7 +9,7 @@ import { assert, assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
-import { ExoPathDefaults } from "../src/shared/constants.ts";
+import { ExaPathDefaults } from "../src/shared/constants.ts";
 import type { ConfigReloadLogger } from "../src/config/config_reload_handler.ts";
 import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
 import { LogLevel } from "../src/shared/enums.ts";
@@ -30,26 +30,26 @@ version = "1.0.0"
 log_level = "info"
 
 [paths]
-workspace = "${ExoPathDefaults.workspace}"
-portals = "${ExoPathDefaults.portals}"
+workspace = "${ExaPathDefaults.workspace}"
+portals = "${ExaPathDefaults.portals}"
 # ... minimal required paths
-runtime = "${ExoPathDefaults.runtime}"
-memory = "${ExoPathDefaults.memory}"
-blueprints = "${ExoPathDefaults.blueprints}"
-active = "${ExoPathDefaults.active}"
-requests = "${ExoPathDefaults.requests}"
-archive = "${ExoPathDefaults.archive}"
-plans = "${ExoPathDefaults.plans}"
-rejected = "${ExoPathDefaults.rejected}"
-agents = "${ExoPathDefaults.agents}"
-flows = "${ExoPathDefaults.flows}"
-memoryProjects = "${ExoPathDefaults.memoryProjects}"
-memoryExecution = "${ExoPathDefaults.memoryExecution}"
-memoryIndex = "${ExoPathDefaults.memoryIndex}"
-memorySkills = "${ExoPathDefaults.memorySkills}"
-memoryPending = "${ExoPathDefaults.memoryPending}"
-memoryTasks = "${ExoPathDefaults.memoryTasks}"
-memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
+runtime = "${ExaPathDefaults.runtime}"
+memory = "${ExaPathDefaults.memory}"
+blueprints = "${ExaPathDefaults.blueprints}"
+active = "${ExaPathDefaults.active}"
+requests = "${ExaPathDefaults.requests}"
+archive = "${ExaPathDefaults.archive}"
+plans = "${ExaPathDefaults.plans}"
+rejected = "${ExaPathDefaults.rejected}"
+agents = "${ExaPathDefaults.agents}"
+flows = "${ExaPathDefaults.flows}"
+memoryProjects = "${ExaPathDefaults.memoryProjects}"
+memoryExecution = "${ExaPathDefaults.memoryExecution}"
+memoryIndex = "${ExaPathDefaults.memoryIndex}"
+memorySkills = "${ExaPathDefaults.memorySkills}"
+memoryPending = "${ExaPathDefaults.memoryPending}"
+memoryTasks = "${ExaPathDefaults.memoryTasks}"
+memoryGlobal = "${ExaPathDefaults.memoryGlobal}"
 
 [watcher]
 debounce_ms = 50

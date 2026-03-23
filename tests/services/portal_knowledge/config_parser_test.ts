@@ -15,7 +15,7 @@ import { parseConfigFiles } from "../../../src/services/portal_knowledge/config_
 // ---------------------------------------------------------------------------
 
 async function makeTempDir(): Promise<string> {
-  return await Deno.makeTempDir({ prefix: "exo_config_parser_test_" });
+  return await Deno.makeTempDir({ prefix: "exa_config_parser_test_" });
 }
 
 async function writeFile(dir: string, relPath: string, content: string): Promise<void> {

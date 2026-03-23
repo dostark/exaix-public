@@ -9,7 +9,7 @@
 
 import { assertEquals } from "@std/assert";
 import { ConfigSchema } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { LogLevel, QualityGateMode } from "../../src/shared/enums.ts";
 import {
   DEFAULT_MAX_CLARIFICATION_ROUNDS,
@@ -20,8 +20,8 @@ import {
 
 function baseConfig() {
   return {
-    system: { root: "/tmp/exo-test", log_level: LogLevel.INFO },
-    paths: { ...ExoPathDefaults },
+    system: { root: "/tmp/exa-test", log_level: LogLevel.INFO },
+    paths: { ...ExaPathDefaults },
   };
 }
 

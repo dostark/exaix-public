@@ -111,7 +111,7 @@ Result: All tests green on first full run.
    - Auto-configure bot identity
    - Branch naming: `feat/{requestId}-{traceId}`
    - Handle duplicate branches (append timestamp)
-   - Commit format with `[ExoTrace: {id}]` footer
+   - Commit format with `[ExaTrace: {id}]` footer
    - Reject empty commits
    - Activity logging for all git operations
    - Error handling for git command failures
@@ -2773,7 +2773,7 @@ export async function initTestDbService(): Promise<{
   tempDir: string;
   cleanup: () => Promise<void>;
 }> {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo-test-" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa-test-" });
   const config = createMockConfig(tempDir);
   const db = new DatabaseService(config);
 
@@ -2951,7 +2951,7 @@ The "Export Pattern." Create a script that periodically (or on-demand) exports t
 // scripts/export_activity.ts
 const logs = await db.getRecentActivity(100);
 const markdown = formatAsDataviewTable(logs);
-await Deno.writeTextFile(".exo/activity_export.md", markdown);
+await Deno.writeTextFile(".exa/activity_export.md", markdown);
 ```text
 
 **The Lesson**: You don't always need a custom Web UI. If your users already use a tool, export your data into their format. It's faster to build and provides a better user experience. (Note: Exaix v1.1+ uses a real-time TUI dashboard instead of this export approach.)
@@ -3682,8 +3682,8 @@ for (const target of targets) {
 We don't just build artifacts—we **test** them:
 
 ```typescript
-Deno.test("compiled exo binary is executable", async () => {
-  const binary = "./artifacts/exo";
+Deno.test("compiled exa binary is executable", async () => {
+  const binary = "./artifacts/exa";
 
   // Can we run it?
   const process = new Deno.Command(binary, {

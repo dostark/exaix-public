@@ -36,7 +36,7 @@ if [ -f "$REPO_ROOT/scripts/scaffold.sh" ]; then
   bash "$REPO_ROOT/scripts/scaffold.sh" "$DEST"
 else
   echo "Warning: scaffold script not found; falling back to minimal layout"
-  mkdir -p "$DEST/.exo" "$DEST/Memory/Projects" "$DEST/Memory/Execution" "$DEST/Workspace/Requests" "$DEST/Workspace/Plans" "$DEST/Portals"
+  mkdir -p "$DEST/.exa" "$DEST/Memory/Projects" "$DEST/Memory/Execution" "$DEST/Workspace/Requests" "$DEST/Workspace/Plans" "$DEST/Portals"
 fi
 
 # Copy runtime artifacts needed for an installed workspace (configs, tasks)

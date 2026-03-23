@@ -17,7 +17,7 @@ describe("AgentExecutor with IWorkspaceExecutionContext", () => {
   let portalDir: string;
   let workspaceDir: string;
   beforeEach(async () => {
-    tempDir = await Deno.makeTempDir({ prefix: "exo_test_agent_exec_" });
+    tempDir = await Deno.makeTempDir({ prefix: "exa_test_agent_exec_" });
     portalDir = join(tempDir, "portal");
     workspaceDir = join(tempDir, "workspace");
 

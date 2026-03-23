@@ -337,7 +337,7 @@ Exaix uses a **hybrid format strategy** optimized for different use cases:
 | **Memory Banks**     | Markdown + JSON             | `.md`, `.json` | `Memory/`                                | Execution history and project context      |
 | **Project Memory**   | Markdown                    | `.md`          | `Memory/Projects/`                       | Auto-generated project context             |
 | **Portal Knowledge** | JSON                        | `.json`        | `Memory/Projects/{alias}/knowledge.json` | Structured codebase analysis (Phase 46)    |
-| **Activity Journal** | SQLite                      | `.db`          | `.exo/exo.db`                            | Audit log & file locks                     |
+| **Activity Journal** | SQLite                      | `.db`          | `.exa/journal.db`                        | Audit log & file locks                     |
 | **Migrations**       | SQL                         | `.sql`         | `migrations/`                            | Database schema changes                    |
 
 ### YAML Frontmatter Format (Requests, Plans, Reports)
@@ -424,7 +424,7 @@ folders are treated as fatal errors during daemon startup so that watchers do no
 ├── deno.json                   <-- Project Config (Import Maps, Tasks)
 ├── lock.json                   <-- Dependency Integrity Hash
 ├── exa.config.toml             <-- System Physics (Paths, Models)
-├── /.exo
+├── /.exa
 │   ├── journal.db              <-- SQLite: Activity Log & Locks
 ├── /Blueprints                 <-- "Source Code" of the Swarm
 │   ├── /Agents                 <-- TOML definitions
@@ -441,7 +441,7 @@ folders are treated as fatal errors during daemon startup so that watchers do no
 ├── /Memory/README.md           <-- Memory Banks usage guide
 ├── /Portals                    <-- VIRTUAL OVERLAY (Symlinks)
 │   └── <Alias> -> /home/user/Dev/Project_X
-Note: the tree above describes the *deployed workspace* layout used at runtime. The *development repository* (the Git checkout developers work in) contains the same folders plus development-only artifacts such as `tests/`, `.github/`, `docs/`, and the full `src/` codebase. Do not treat your deployed workspace as a development checkout — deploy workspaces are intended for runtime and user data (Memory, .exo/journal.db) and are created from the development repo via the provided deploy script.
+Note: the tree above describes the *deployed workspace* layout used at runtime. The *development repository* (the Git checkout developers work in) contains the same folders plus development-only artifacts such as `tests/`, `.github/`, `docs/`, and the full `src/` codebase. Do not treat your deployed workspace as a development checkout — deploy workspaces are intended for runtime and user data (Memory, .exa/journal.db) and are created from the development repo via the provided deploy script.
 ```
 
 ---
@@ -470,12 +470,12 @@ deno run \
 **Impact:** If a rogue agent tries to `fetch('evil.com')` or `Deno.readTextFile('/etc/passwd')`, the Deno runtime throws
 a `PermissionDenied` error immediately. The agent code _cannot_ bypass this.
 
-### 4.2. Runtime Interface (`IExoRuntime`)
+### 4.2. Runtime Interface (`IExaRuntime`)
 
 Even though we use Deno, we abstract operations to allow for mocking in tests.
 
 ```typescript
-interface IExoRuntime {
+interface IExaRuntime {
   // Filesystem (Uses Deno.readTextFile)
   readText(path: string): Promise<string>;
   writeText(path: string, content: string): Promise<void>;
@@ -2111,7 +2111,7 @@ changing the core architecture:
  */
 class A2AAdapter {
   constructor(
-    private exoRoot: string,
+    private exaRoot: string,
     private port: number = 8080,
   ) {}
 
@@ -2129,7 +2129,7 @@ class A2AAdapter {
    * Translate A2A task to Exaix request file
    */
   private async ingestA2ATask(task: A2ATask): Promise<string> {
-    const requestPath = `${this.exoRoot}/Workspace/Requests/${task.id}.md`;
+    const requestPath = `${this.exaRoot}/Workspace/Requests/${task.id}.md`;
     const markdown = this.toExaixMarkdown(task);
     await Deno.writeTextFile(requestPath, markdown);
     return task.id;
@@ -2139,7 +2139,7 @@ class A2AAdapter {
    * Monitor for plan file and translate back to A2A response
    */
   private async pollForPlan(taskId: string): Promise<A2AResponse> {
-    const planPath = `${this.exoRoot}/Workspace/Plans/${taskId}_plan.md`;
+    const planPath = `${this.exaRoot}/Workspace/Plans/${taskId}_plan.md`;
     const watcher = Deno.watchFs(planPath);
     // Wait for file creation, parse, return A2A response
   }

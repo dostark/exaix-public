@@ -9,7 +9,7 @@ import "./helpers/set_test_mode.ts";
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { BINARY_VERSION } from "../../src/shared/version.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import {
   FlowInputSource,
   MemoryBankSource,
@@ -268,9 +268,9 @@ Deno.test("portal show prints details", async () => {
       Promise.resolve({
         alias: "MyPortal",
         targetPath: "/tmp/portal-target",
-        symlinkPath: join(ExoPathDefaults.portals, "MyPortal"),
+        symlinkPath: join(ExaPathDefaults.portals, "MyPortal"),
         status: PortalStatus.ACTIVE,
-        contextCardPath: join(ExoPathDefaults.memoryProjects, "MyPortal/portal.md"),
+        contextCardPath: join(ExaPathDefaults.memoryProjects, "MyPortal/portal.md"),
         permissions: "read",
         created: "now",
         lastVerified: "never",
@@ -320,7 +320,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.createFromFile = (_file: string, _opts?: { [key: string]: unknown }) =>
       Promise.resolve({
-        filename: "/tmp/exo-test/request-1.md",
+        filename: "/tmp/exa-test/request-1.md",
         trace_id: "trace-1234",
         priority: RequestPriority.NORMAL,
         agent: "default",
@@ -341,7 +341,7 @@ Deno.test("request --file prints human output when no --json", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.createFromFile = (_file: string, _opts?: { [key: string]: unknown }) =>
       Promise.resolve({
-        filename: "/tmp/exo-test/request-2.md",
+        filename: "/tmp/exa-test/request-2.md",
         trace_id: "trace-5678",
         priority: RequestPriority.HIGH,
         agent: "tester",
@@ -757,7 +757,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.createFromFile = (_file: string, _opts?: IRequestOptions) =>
       Promise.resolve({
-        filename: "/tmp/exo-test/request-file.md",
+        filename: "/tmp/exa-test/request-file.md",
         trace_id: "trace-file-1",
         priority: RequestPriority.NORMAL,
         agent: "file-agent",
@@ -778,7 +778,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.createFromFile = (_file: string, _opts?: IRequestOptions) =>
       Promise.resolve({
-        filename: "/tmp/exo-test/request-file2.md",
+        filename: "/tmp/exa-test/request-file2.md",
         trace_id: "trace-file-2",
         priority: RequestPriority.HIGH,
         agent: "file-agent",

@@ -1,5 +1,5 @@
 /**
- * @module IExoPaths
+ * @module IExaPaths
  * @path src/config/paths.ts
  * @description Defines the standard directory structure and path resolution logic for the Exaix workspace and memory banks.
  * @architectural-layer Config
@@ -9,7 +9,7 @@
 
 import * as DEFAULTS from "../shared/constants.ts";
 
-export interface IExoPaths {
+export interface IExaPaths {
   workspace: string;
   runtime: string;
   memory: string;
@@ -31,7 +31,7 @@ export interface IExoPaths {
   memoryGlobal: string;
 }
 
-export function getDefaultPaths(_root: string): IExoPaths {
+export function getDefaultPaths(_root: string): IExaPaths {
   return {
     workspace: DEFAULTS.DEFAULT_WORKSPACE_PATH,
     runtime: DEFAULTS.DEFAULT_RUNTIME_PATH,

@@ -25,7 +25,7 @@ import {
 } from "../../src/shared/enums.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
-  const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
+  const projectsDir = await Deno.makeTempDir({ prefix: "exatest-" });
   // create two project directories
   await Deno.mkdir(`${projectsDir}/projA`);
   await Deno.mkdir(`${projectsDir}/projB`);
@@ -111,7 +111,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
 });
 
 Deno.test("[regression] searchByTags returns matching items and learnings", async () => {
-  const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
+  const projectsDir = await Deno.makeTempDir({ prefix: "exatest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
   const deps: ISearchDeps = {
@@ -149,7 +149,7 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
 });
 
 Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results without duplicates", async () => {
-  const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
+  const projectsDir = await Deno.makeTempDir({ prefix: "exatest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
   const deps: ISearchDeps = {

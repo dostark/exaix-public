@@ -13,7 +13,7 @@ steps:
     command: "sh"
     args: [
       "-c",
-      "printf '# Exo-Test README for project features\\n\\nExo-Test README for project features.\\n\\n## Features\\n- Feature 1: This is a bullet points\\n- Feature 2: Another bullet points\\n- Feature 3: Final bullet points\\n' > README.md",
+      "printf '# Exa-Test README for project features\\n\\nExa-Test README for project features.\\n\\n## Features\\n- Feature 1: This is a bullet points\\n- Feature 2: Another bullet points\\n- Feature 3: Final bullet points\\n' > README.md",
     ]
     input_criteria: []
     output_criteria:
@@ -22,7 +22,7 @@ steps:
         path: "README.md"
         flags: "i"
         matches:
-          - "exo-test" # Should pass even if LLM writes "Exo-Test"
+          - "exa-test" # Should pass even if LLM writes "Exa-Test"
       - id: regex-dotall
         kind: text-matches
         path: "README.md"
@@ -32,5 +32,5 @@ steps:
       - id: fuzzy-body-match
         kind: text-contains
         path: "README.md"
-        contains: "Exo-Test README for project features"
+        contains: "Exa-Test README for project features"
         similarity_threshold: 0.7

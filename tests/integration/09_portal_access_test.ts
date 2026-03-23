@@ -43,7 +43,7 @@ export function main() {
 
       // Create secret files outside portals
       await env.writeFile(
-        ".exo/secrets.json",
+        ".exa/secrets.json",
         JSON.stringify({
           apiKey: "secret-key-12345",
           dbPassword: "supersecret",
@@ -95,7 +95,7 @@ export function main() {
       // that's done at a higher level by the execution loop's file access policies
       // This test validates that we can detect out-of-portal file access attempts
 
-      const secretPath = join(env.tempDir, ".exo/secrets.json");
+      const secretPath = join(env.tempDir, ".exa/secrets.json");
 
       // Log an access attempt (simulating what the security layer would do)
       // logActivity(actor, actionType, target, payload, traceId, agentId)
@@ -127,7 +127,7 @@ export function main() {
     await t.step("Test 3: Portal symlinks validated", async () => {
       // Create symlink inside portal pointing outside
       const symlinkPath = join(env.tempDir, "Portals/project-alpha/sneaky_link");
-      const targetPath = join(env.tempDir, ".exo/secrets.json");
+      const targetPath = join(env.tempDir, ".exa/secrets.json");
 
       try {
         await Deno.symlink(targetPath, symlinkPath);

@@ -717,7 +717,7 @@ Minimal content for show
     it("should create directory if Workspace/Requests does not exist", async () => {
       // Create a fresh workspace without the Requests dir
       const freshDir = join(tempDir, "fresh_workspace");
-      await ensureDir(join(freshDir, ".exo")); // Need runtime dir for db
+      await ensureDir(join(freshDir, ".exa")); // Need runtime dir for db
       const context: ICliApplicationContext = {
         config: createStubConfig(createMockConfig(freshDir)),
         db,

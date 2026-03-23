@@ -12,7 +12,7 @@
 
 **Success Criteria:**
    - [ ] export() method returns JSON array of events
-   - [ ] CLI command `exo export-activity --format json` works
+   - [ ] CLI command `exa export-activity --format json` works
    - [ ] Tests verify export format matches schema
    - [ ] Large logs handled efficiently (streaming)
 

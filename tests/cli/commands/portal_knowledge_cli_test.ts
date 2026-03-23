@@ -16,7 +16,7 @@ import type {
 } from "../../../src/shared/interfaces/i_portal_knowledge_service.ts";
 import type { IPortalKnowledge } from "../../../src/shared/schemas/portal_knowledge.ts";
 import { PortalAnalysisMode } from "../../../src/shared/enums.ts";
-import { ExoPathDefaults } from "../../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../../src/shared/constants.ts";
 import { initPortalTest } from "../helpers/test_setup.ts";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ async function writeKnowledge(
   alias: string,
   knowledge: IPortalKnowledge,
 ): Promise<void> {
-  const dir = join(tempRoot, ExoPathDefaults.memoryProjects, alias);
+  const dir = join(tempRoot, ExaPathDefaults.memoryProjects, alias);
   await Deno.mkdir(dir, { recursive: true });
   await Deno.writeTextFile(join(dir, "knowledge.json"), JSON.stringify(knowledge));
 }

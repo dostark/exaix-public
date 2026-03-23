@@ -168,7 +168,7 @@ Deno.test({
       plansDirectory: planDir,
       includeReasoning: true,
       generateWikiLinks: false,
-      runtimeRoot: join(tempDir, ".exo"),
+      runtimeRoot: join(tempDir, ".exa"),
       db,
     });
 

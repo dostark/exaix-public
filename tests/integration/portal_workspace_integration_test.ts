@@ -24,7 +24,7 @@ interface TestPortalSetup {
  * Setup a test portal with git repository
  */
 async function setupTestPortal(alias = "test-portal"): Promise<TestPortalSetup> {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_portal_test_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_portal_test_" });
   const portalPath = join(tempDir, "portal_repo");
   const workspacePath = join(tempDir, "workspace");
 
@@ -217,7 +217,7 @@ Deno.test("[integration] Multi-portal contexts are isolated", async () => {
 });
 
 Deno.test("[integration] Portal context validation fails for missing git repo", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo_no_git_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa_no_git_" });
 
   try {
     const { db, cleanup: dbCleanup } = await initTestDbService();

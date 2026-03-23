@@ -220,7 +220,7 @@ export type ExecutionMemory = z.infer<typeof ExecutionMemorySchema>;
 
 export class MemoryBankService {
   constructor(
-    private config: ExoConfig,
+    private config: ExaConfig,
     private logger: Logger,
     private git: GitService,
   ) {}

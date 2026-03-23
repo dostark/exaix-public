@@ -12,7 +12,7 @@ import { ensureDir, exists } from "@std/fs";
 import { Config } from "../shared/schemas/config.ts";
 import { PortalAnalysisMode, PortalExecutionStrategy, PortalStatus, VerificationStatus } from "../shared/enums.ts";
 import { IPortalDetails, IPortalInfo, IVerificationResult } from "../shared/types/portal.ts";
-import { ExoPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
+import { ExaPathDefaults, PORTAL_ALIAS_MAX_LENGTH } from "../shared/constants.ts";
 import type { IPortalKnowledge } from "../shared/schemas/portal_knowledge.ts";
 import { loadKnowledge, saveKnowledge } from "./portal_knowledge/knowledge_persistence.ts";
 import { IPortalKnowledgeConfig, IPortalKnowledgeService } from "../shared/interfaces/i_portal_knowledge_service.ts";
@@ -92,7 +92,7 @@ export class PortalService {
       // Trigger portal knowledge analysis post-mount (fire-and-forget on failure)
       if (this.portalKnowledge && this.portalKnowledgeConfig?.autoAnalyzeOnMount) {
         const sysRoot = this.config.system.root as string;
-        const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+        const projectsDir = join(sysRoot, ExaPathDefaults.memoryProjects);
         (async () => {
           try {
             const knowledge = await this.portalKnowledge!.analyze(alias, absoluteTarget);
@@ -387,7 +387,7 @@ export class PortalService {
 
     const projectsDir = join(
       this.config.system.root as string,
-      ExoPathDefaults.memoryProjects,
+      ExaPathDefaults.memoryProjects,
     );
     return loadKnowledge(portalAlias, projectsDir);
   }
@@ -415,7 +415,7 @@ export class PortalService {
 
     // Persist knowledge.json
     const sysRoot = this.config.system.root as string;
-    const projectsDir = join(sysRoot, ExoPathDefaults.memoryProjects);
+    const projectsDir = join(sysRoot, ExaPathDefaults.memoryProjects);
     await saveKnowledge(alias, knowledge, null, projectsDir);
 
     await this.display.info("portal.analyzed", alias, {

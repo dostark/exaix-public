@@ -133,7 +133,7 @@ This keeps the current simple workflow and is appropriate for single-user or low
 
 - Create a unique worktree for the trace/request:
   - Canonical location (runtime, safe to prune):
-    - `.exo/worktrees/<portalAlias>/<traceId>/`
+    - `.exa/worktrees/<portalAlias>/<traceId>/`
   - Execution pointer (discoverability; keeps “execution owns execution” mental model):
     - `Memory/Execution/<traceId>/worktree/` (symlink to canonical path, or a small text file containing the canonical path if symlinks are unavailable)
   - Add worktree from the portal repo root:
@@ -271,7 +271,7 @@ Projected tests
 - **Dependencies:** Step 37.5 (base branch resolution)
 - **Action:** If portal `execution_strategy = "worktree"`:
 - **Action:** If portal `execution_strategy = "worktree"`:
-  - Create a per-trace worktree under `.exo/worktrees/<portalAlias>/<traceId>/` (canonical runtime location).
+  - Create a per-trace worktree under `.exa/worktrees/<portalAlias>/<traceId>/` (canonical runtime location).
   - Create an execution pointer under `Memory/Execution/<traceId>/worktree/` for discoverability (symlink or path file).
   - Execute the plan in the canonical worktree path.
   - Record `worktree_path` on the review for observability + cleanup.
@@ -385,7 +385,7 @@ Rationale:
 
 ## Risks & Open Questions
 
-- Worktree directory location: canonical under `.exo/worktrees/` (prunable runtime) with a per-trace pointer under `Memory/Execution/` (discoverability).
+- Worktree directory location: canonical under `.exa/worktrees/` (prunable runtime) with a per-trace pointer under `Memory/Execution/` (discoverability).
 - Concurrency: multiple traces might target same portal+base; worktrees isolate checkouts.
 - Security: ensure no path traversal in worktree paths (strict join + validation).
 - UX: decide whether approve auto-checkouts target branch or requires user to do it.

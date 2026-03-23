@@ -59,13 +59,13 @@ export class TestEnvironmentFactory {
     const { db, cleanup: dbCleanup, tempDir, config: baseConfig } = await initTestDbService();
 
     // We already have a tempDir from initTestDbService, but if the caller implies
-    // a specific prefix semantic that initTestDbService (exo-test-) doesn't match,
+    // a specific prefix semantic that initTestDbService (exa-test-) doesn't match,
     // we might want to respect it. However, initTestDbService does a lot of heavy lifting.
     // For simplicity and reusing existing helpers, we'll stick with what initTestDbService provides
     // but we can potentially rename or move it if strictly needed.
     // For now, let's use the provided tempDir.
 
-    // Verify directory structure exists (initTestDbService creates .exo)
+    // Verify directory structure exists (initTestDbService creates .exa)
     // We need to ensure Memory directories exist as per tests
     await Deno.mkdir(getMemoryProjectsDir(tempDir), { recursive: true });
     await Deno.mkdir(getMemoryExecutionDir(tempDir), { recursive: true });

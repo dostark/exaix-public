@@ -144,7 +144,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       const { stdout } = await cmd.output();
       const log = new TextDecoder().decode(stdout);
 
-      // Check for ExoTrace footer in commits
+      // Check for ExaTrace footer in commits
       const fullLogCmd = new Deno.Command(PortalOperation.GIT, {
         args: ["log", "-n", "5", "--all"],
         cwd: env.tempDir,
@@ -157,8 +157,8 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       // Should have commits beyond initial
       assert(log.split("\n").length > 1, "Should have commits from execution");
 
-      // If execution succeeded, should have ExoTrace
-      if (fullLog.includes("ExoTrace")) {
+      // If execution succeeded, should have ExaTrace
+      if (fullLog.includes("ExaTrace")) {
         assertStringIncludes(fullLog, traceId.substring(0, 8));
       }
     });

@@ -7,7 +7,7 @@
 
 import { assert, assertEquals } from "@std/assert";
 import { PlanStatus } from "../../src/shared/status/plan_status.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { KEYS } from "../../src/tui/helpers/keyboard.ts";
 
 import {
@@ -79,7 +79,7 @@ async function setupPlanReviewerTest(options: {
   const db = new MockDB();
   const config = {
     system: { root: root },
-    paths: { ...ExoPathDefaults },
+    paths: { ...ExaPathDefaults },
   };
   const context: any = {
     config: {

@@ -42,7 +42,7 @@ For teams in regulated industries, this is not optional nice-to-have — it is a
 
 | Competitor Approach                                                                                                                                                        | Exaix Approach                                                                                                                                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **CrewAI / AutoGen / LangGraph**: have logging, but it is "logging as afterthought" — no structural audit chain linking every action back to a single originating request. | **Exaix**: every artifact in the system — the request file, the plan, the git commit, the review branch, the execution report — shares a UUID `traceid`. Git commits include `ExoTrace: <uuid>` in their footer. The Activity Journal logs every single event with actor identity and timestamp. |
+| **CrewAI / AutoGen / LangGraph**: have logging, but it is "logging as afterthought" — no structural audit chain linking every action back to a single originating request. | **Exaix**: every artifact in the system — the request file, the plan, the git commit, the review branch, the execution report — shares a UUID `traceid`. Git commits include `ExaTrace: <uuid>` in their footer. The Activity Journal logs every single event with actor identity and timestamp. |
 
 Running `exactl journal --trace 550e8400-...` reconstructs the complete forensic chain for any request. This is the **AI-BOM (AI Bill of Materials)** — analogous to a software SBOM but for agent actions.
 
@@ -298,7 +298,7 @@ Agents iterate up to `maxIterations` (default 3) until `targetScore` (default 0.
 | Immutability          | None          | SQLite (Solo) → PostgreSQL append-only (Team) → PostgreSQL + immudb WORM + cryptographic timestamps (Enterprise)       |
 | Compliance frameworks | None          | EU AI Act, SOX (7-year retention), HIPAA, FDA 21 CFR Part 11, FedRAMP, NIST 800-171                                    |
 | AI Bill of Materials  | None          | AI-BOM: complete audit trail of all agent actions, analogous to SBOM                                                   |
-| Git trace integration | None          | Trace IDs embedded in every git commit footer (`ExoTrace: <uuid>`)                                                     |
+| Git trace integration | None          | Trace IDs embedded in every git commit footer (`ExaTrace: <uuid>`)                                                     |
 | Governance dashboard  | None          | Enterprise: risk scoring, policy enforcement, compliance report export                                                 |
 | Forensic traceability | None          | Full trace chain: `exactl journal --trace <uuid>` reconstructs every action linked to a request                        |
 

@@ -52,7 +52,7 @@ Align all test files (e.g., `scaffold_test.ts`) with the new folder structure.
 - Ensure tests verify that all files and subfolders from `Memory/` are present in the scaffolded workspace.
 - Add/Update tests for idempotency and correct output messages.
 
-**Status:** ✅ Implemented — `tests/scaffold_test.ts` and related tests updated to expect `.exo` and the new folder layout; scaffold-related tests pass locally.
+**Status:** ✅ Implemented — `tests/scaffold_test.ts` and related tests updated to expect `.exa` and the new folder layout; scaffold-related tests pass locally.
 
 ---
 
@@ -67,7 +67,7 @@ Enforce clear separation between runtime, lifecycle, and memory domains.
 - Remove any code, scripts, or documentation referencing `Memory/Tasks/active` or similar.
 - Document the rationale for this separation in the planning docs.
 
-**Status:** Partial — Runtime folder `System/` retired in scaffolding (replaced with `.exo`) and references in scaffold/tests updated. Additional documentation and remaining code references still exist and are scheduled for cleanup in subsequent passes.
+**Status:** Partial — Runtime folder `System/` retired in scaffolding (replaced with `.exa`) and references in scaffold/tests updated. Additional documentation and remaining code references still exist and are scheduled for cleanup in subsequent passes.
 
 ---
 
@@ -98,7 +98,7 @@ Update planning and user documentation to reflect the actionable changes.
 
 - ✅ `scaffold.sh` does not create `Memory/Tasks` (verified)
 - ✅ `deploy_workspace.sh` only copies `Blueprints/` and `Memory/` content, not `templates/` (verified)
-- ✅ `scaffold_test.ts` passes with new structure; tests updated to reference `.exo` (verified)
+- ✅ `scaffold_test.ts` passes with new structure; tests updated to reference `.exa` (verified)
 - ✅ Idempotency: running scripts multiple times does not create extra or deprecated folders (verified)
 - ✅ Output: scripts print correct messages for new structure (verified)
 

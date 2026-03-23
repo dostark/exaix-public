@@ -186,7 +186,7 @@ export function initFullSchema(db: DatabaseService): void {
 export async function initTestDbService(): Promise<
   { db: DatabaseService; config: Config; tempDir: string; cleanup: () => Promise<void> }
 > {
-  const tempDir = await Deno.makeTempDir({ prefix: "exo-test-" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exa-test-" });
 
   const config = createMockConfig(tempDir);
 
@@ -202,7 +202,7 @@ log_level = "info"
 [paths]
 memory = "./Memory"
 blueprints = "./Blueprints"
-runtime = "./.exo"
+runtime = "./.exa"
 workspace = "./Workspace"
 portals = "./Portals"
 active = "Active"
@@ -237,7 +237,7 @@ timeout_ms = 30000
 `.trim();
   Deno.writeTextFileSync(configPath, configContent);
 
-  // Create runtime directory (.exo) for journal.db
+  // Create runtime directory (.exa) for journal.db
   await Deno.mkdir(`${tempDir}/${config.paths.runtime}`, { recursive: true });
 
   const db = new DatabaseService(config);
@@ -257,7 +257,7 @@ timeout_ms = 30000
       }
       try {
         // Only remove if it's clearly a temporary test directory
-        if (tempDir && tempDir.includes("exo-test-")) {
+        if (tempDir && tempDir.includes("exa-test-")) {
           await Deno.remove(tempDir, { recursive: true });
         }
       } catch (_e) {

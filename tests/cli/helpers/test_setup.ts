@@ -217,13 +217,13 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
 
   const { db, tempDir, config, cleanup } = await initTestDbService();
 
-  // Always create required Workspace and .exo directories for CLI tests
+  // Always create required Workspace and .exa directories for CLI tests
   const requiredDirs = [
     "Workspace/Plans",
     "Workspace/Active",
     "Workspace/Archive",
     "Workspace/Rejected",
-    ".exo",
+    ".exa",
     "Memory",
     "Portals",
     "Blueprints/Agents",

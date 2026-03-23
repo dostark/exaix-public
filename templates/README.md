@@ -56,7 +56,7 @@ exactl daemon restart  # Restart daemon
 - `Blueprints/` — Agent definitions and templates
 - `Workspace/` — Requests, Plans, and Changesets
 - `Memory/` — Persistent memory banks (copied during deploy)
-- `.exo/` — Runtime state: DB, logs, active tasks (replaces former `System/`)
+- `.exa/` — Runtime state: DB, logs, active tasks (replaces former `System/`)
 - `Portals/` — Symlinks to external project repositories
 
 ## Getting Help

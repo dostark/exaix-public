@@ -590,7 +590,7 @@ Everything is a file—requests, plans, blueprints, reports:
 │   ├── Context/          ← Knowledge base
 │   └── Portals/          ← Auto-generated context cards
 ├── Portals/              ← Symlinks to external projects
-└── .exo/
+└── .exa/
     ├── journal.db        ← Activity Journal (audit trail)
     └── config.toml       ← Global configuration
 ```
@@ -633,7 +633,7 @@ Request (trace_id: 550e8400...)
   ↓
 Plan (trace_id: 550e8400...)
   ↓
-Git Commits (footer: [ExoTrace: 550e8400...])
+Git Commits (footer: [ExaTrace: 550e8400...])
   ↓
 Review (trace_id: 550e8400...)
   ↓

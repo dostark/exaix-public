@@ -155,9 +155,9 @@ export function isTestMode(): boolean {
  */
 export function isCIMode(): boolean {
   // Prefer EXA_CI_MODE if set (more explicit)
-  const exoCiMode = safeEnvGet("EXA_CI_MODE");
-  if (exoCiMode !== undefined) {
-    return isTruthyValue(exoCiMode);
+  const exaCiMode = safeEnvGet("EXA_CI_MODE");
+  if (exaCiMode !== undefined) {
+    return isTruthyValue(exaCiMode);
   }
 
   // Fall back to standard CI env var

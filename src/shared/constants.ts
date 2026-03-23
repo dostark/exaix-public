@@ -13,7 +13,7 @@ import { LogLevel, McpTransportType, MockStrategy, ProviderCostTier, ProviderTyp
 // Path Configuration Defaults
 // ============================================================================
 export const DEFAULT_WORKSPACE_PATH = "Workspace";
-export const DEFAULT_RUNTIME_PATH = ".exo";
+export const DEFAULT_RUNTIME_PATH = ".exa";
 export const DEFAULT_MEMORY_PATH = "Memory";
 export const DEFAULT_PORTALS_PATH = "Portals";
 export const DEFAULT_BLUEPRINTS_PATH = "Blueprints";
@@ -34,7 +34,7 @@ export const DEFAULT_PENDING_MEMORY_PATH = "Pending";
 export const DEFAULT_TASKS_MEMORY_PATH = "Tasks";
 export const DEFAULT_GLOBAL_MEMORY_PATH = "Global";
 
-export const ExoPathDefaults = {
+export const ExaPathDefaults = {
   workspace: DEFAULT_WORKSPACE_PATH,
   runtime: DEFAULT_RUNTIME_PATH,
   memory: DEFAULT_MEMORY_PATH,

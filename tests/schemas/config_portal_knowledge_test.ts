@@ -9,7 +9,7 @@
 
 import { assertEquals } from "@std/assert";
 import { ConfigSchema } from "../../src/shared/schemas/config.ts";
-import { ExoPathDefaults } from "../../src/shared/constants.ts";
+import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { LogLevel, PortalAnalysisMode } from "../../src/shared/enums.ts";
 import * as DEFAULTS from "../../src/shared/constants.ts";
 
@@ -19,13 +19,13 @@ import * as DEFAULTS from "../../src/shared/constants.ts";
 
 interface IBaseConfig {
   system: { root: string; log_level: string };
-  paths: typeof ExoPathDefaults;
+  paths: typeof ExaPathDefaults;
 }
 
 function baseConfig(): IBaseConfig {
   return {
-    system: { root: "/tmp/exo-test", log_level: LogLevel.INFO },
-    paths: { ...ExoPathDefaults },
+    system: { root: "/tmp/exa-test", log_level: LogLevel.INFO },
+    paths: { ...ExaPathDefaults },
   };
 }
 

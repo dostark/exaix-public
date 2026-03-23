@@ -210,17 +210,17 @@ Deno.test("migrate_db.ts creates System directory if missing", async () => {
   const tmp = await setupTestWorkspace();
   try {
     // Ensure System doesn't exist
-    const exoDir = join(tmp, ".exo");
-    if (await exists(exoDir)) {
-      await Deno.remove(exoDir, { recursive: true });
+    const exaDir = join(tmp, ".exa");
+    if (await exists(exaDir)) {
+      await Deno.remove(exaDir, { recursive: true });
     }
 
     const result = await runMigrate(tmp, ["up"]);
 
     assertEquals(result.code, 0, `migrate up failed: ${result.stderr}`);
-    assert(await exists(exoDir), ".exo directory should be created");
+    assert(await exists(exaDir), ".exa directory should be created");
     assert(
-      await exists(join(exoDir, "journal.db")),
+      await exists(join(exaDir, "journal.db")),
       "journal.db should be created",
     );
   } finally {

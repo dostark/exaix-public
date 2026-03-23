@@ -288,7 +288,7 @@ T2: revertUnauthorizedChanges() reverts file.txt (now affects /etc/passwd!)
 **Implementation Summary**:
 
 - Created `auditAndRevertChanges()` method with atomic git audit and revert operations
-- Implemented file system locking with `.exo-git-lock` to prevent concurrent access
+- Implemented file system locking with `.exa-git-lock` to prevent concurrent access
 - Added symlink detection using `Deno.lstat()` before git operations
 - Path validation occurs immediately after git status, before any git commands
 - Lock files are created atomically and cleaned up properly

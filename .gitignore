@@ -27,16 +27,16 @@ cov_profile/
 !.copilot/coverage/coverage-summary.md
 
 # --------------------------------------------
-# Runtime State (.exo/)
+# Runtime State (.exa/)
 # --------------------------------------------
-.exo/*.db
-.exo/*.db-shm
-.exo/*.db-wal
-.exo/daemon.pid
-.exo/daemon.log
-.exo/cache/
-.exo/activity_export.md
-.exo/migration-backup/
+.exa/*.db
+.exa/*.db-shm
+.exa/*.db-wal
+.exa/daemon.pid
+.exa/daemon.log
+.exa/cache/
+.exa/activity_export.md
+.exa/migration-backup/
 
 # --------------------------------------------
 # Workspace (User Content)
