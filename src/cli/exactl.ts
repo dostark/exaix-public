@@ -253,14 +253,13 @@ export const __test_command = new Command()
       .description("Create requests for Exaix agents or multi-agent flows (PRIMARY INTERFACE)")
       .arguments("[description:string]")
       .option("-i, --identity <identity:string>", "Target identity blueprint", { default: CLI_DEFAULTS.AGENT })
-      .option("-a, --agent <agent:string>", "Deprecated: use --identity", { default: CLI_DEFAULTS.AGENT, hidden: true })
       .option("-p, --priority <priority:string>", "Priority: low, normal, high, critical", {
         default: CLI_DEFAULTS.PRIORITY,
       })
       .option("--portal <portal:string>", "Portal alias for context")
       .option("--target-branch <branch:string>", "Target branch for this request (portal-aware)")
       .option("-m, --model <model:string>", "Named model configuration")
-      .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
+      .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --identity)")
       .option("--skills <skills:string>", "Comma-separated list of skills to inject")
       .option("-s, --subject <subject:string>", "Human-readable subject for the request")
       .option(

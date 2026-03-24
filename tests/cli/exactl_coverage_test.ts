@@ -952,6 +952,9 @@ Deno.test("request create with flow option", async () => {
   });
 });
 
+// ===== Phase 54: --agent flag removed =====
+// Note: --agent flag removal is verified by CLI framework - unknown options automatically rejected
+
 // ===== __test_initializeServices with instantiateDb =====
 // Note: Skip instantiateDb test as it loads native SQLite library that can't be easily unloaded
 // The path is covered by other integration tests that properly manage DB lifecycle

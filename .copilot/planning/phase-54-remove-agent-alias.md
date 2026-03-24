@@ -144,9 +144,11 @@ incremented and the change documented in `docs/dev/Exaix_Technical_Spec.md`.
 
 **Success criteria:**
 
-- [ ] `exactl request "..." --agent senior-coder` prints an unknown-option error and exits non-zero
-- [ ] `exactl request "..." --identity senior-coder` continues to work
-- [ ] CLI help output no longer mentions `--agent`
+- [x] `exactl request "..." --agent senior-coder` prints an unknown-option error and exits non-zero
+- [x] `exactl request "..." --identity senior-coder` continues to work
+- [x] CLI help output no longer mentions `--agent`
+
+**✅ IMPLEMENTED** — `src/cli/exactl.ts`, `src/cli/command_builders/request_actions.ts`
 
 ---
 
