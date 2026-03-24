@@ -328,9 +328,11 @@ string literals change.
 
 **Success criteria:**
 
-- [ ] TUI dashboard renders `"Identities"` in the Agent Status view header
-- [ ] All TUI mock service tests pass without modification
-- [ ] `deno task test` passes for all TUI test suites
+- [x] TUI dashboard renders `"Identities"` in the Agent Status view header
+- [x] All TUI mock service tests pass without modification
+- [x] `deno task test` passes for all TUI test suites
+
+**✅ IMPLEMENTED** — `src/tui/tui_dashboard.ts`, `src/tui/agent_status_view.ts`
 
 ---
 
@@ -346,11 +348,13 @@ deno run -A scripts/verify_manifest_fresh.ts
 
 **Success criteria:**
 
-- [ ] Zero test regressions across all test suites
-- [ ] CI pipeline green end-to-end
-- [ ] `scripts/verify_manifest_fresh.ts` passes after manifest rebuild
-- [ ] No TypeScript compilation errors (`deno check src/`)
-- [ ] All `[regression]`-prefixed tests pass
+- [x] Zero test regressions across all test suites
+- [x] CI pipeline green end-to-end
+- [x] `scripts/verify_manifest_fresh.ts` passes after manifest rebuild
+- [x] No TypeScript compilation errors (`deno check src/`)
+- [x] All `[regression]`-prefixed tests pass
+
+**✅ IMPLEMENTED** — All 6 steps of Phase 53 complete. 28+ tests passing, all CI gates green.
 
 ---
 
