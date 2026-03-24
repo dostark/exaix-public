@@ -149,10 +149,10 @@ Deno.test("RequestParser: logs parse failure on invalid YAML", async () => {
 });
 
 // ============================================================================
-// Phase 53: Identity field with agent fallback tests
+// Phase 54: Identity field only (agent field removed) tests
 // ============================================================================
 
-Deno.test("RequestParser: parses identity field from frontmatter (canonical)", async () => {
+Deno.test("RequestParser: parses identity field from frontmatter", async () => {
   const errors: LoggedError[] = [];
   const parser = new RequestParser(createLogger(errors));
 
@@ -176,32 +176,17 @@ Deno.test("RequestParser: parses identity field from frontmatter (canonical)", a
   });
 });
 
-Deno.test("RequestParser: parses agent field as fallback (deprecated)", async () => {
+Deno.test("RequestParser: ignores agent field (Phase 54 removed)", async () => {
   const errors: LoggedError[] = [];
   const parser = new RequestParser(createLogger(errors));
 
   await withTempRequestFile(async (filePath) => {
-    await Deno.writeTextFile(filePath, buildFrontmatter(TEST_REQUEST_TRACE_ID, TEST_REQUEST_STATUS_VALID));
-
-    const result = await parser.parse(filePath);
-
-    assertEquals(errors.length, 0);
-    // agent field should still be parsed for backward compatibility
-    assertEquals(result?.frontmatter.agent, TEST_REQUEST_AGENT);
-  });
-});
-
-Deno.test("RequestParser: identity takes precedence over agent when both present", async () => {
-  const errors: LoggedError[] = [];
-  const parser = new RequestParser(createLogger(errors));
-
-  await withTempRequestFile(async (filePath) => {
+    // Request with only agent field (no identity) - should parse but identity will be undefined
     const frontmatter = [
       `trace_id: "${TEST_REQUEST_TRACE_ID}"`,
       `created: "${TEST_REQUEST_CREATED_AT}"`,
       `status: ${TEST_REQUEST_STATUS_VALID}`,
       `priority: ${TEST_REQUEST_PRIORITY}`,
-      `identity: "senior-coder"`,
       `agent: "code-reviewer"`,
       `source: ${TEST_REQUEST_SOURCE}`,
       `created_by: "${TEST_REQUEST_CREATED_BY}"`,
@@ -212,7 +197,7 @@ Deno.test("RequestParser: identity takes precedence over agent when both present
     const result = await parser.parse(filePath);
 
     assertEquals(errors.length, 0);
-    assertEquals(result?.frontmatter.identity, "senior-coder");
-    assertEquals(result?.frontmatter.agent, "code-reviewer");
+    // agent field is no longer recognized - identity should be undefined
+    assertEquals(result?.frontmatter.identity, undefined);
   });
 });

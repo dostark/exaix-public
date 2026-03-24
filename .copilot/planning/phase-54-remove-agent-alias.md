@@ -231,12 +231,14 @@ identity: z.string().optional(),
 
 **Success criteria:**
 
-- [ ] A request file with `agent: senior-coder` frontmatter produces a Zod validation warning
+- [x] A request file with `agent: senior-coder` frontmatter produces a Zod validation warning
   or is silently ignored (the `identity` field will be `undefined` and the default identity
   will be used — consistent with any other unrecognised frontmatter key)
-- [ ] `IRequestFrontmatter` no longer has an `agent` property (TypeScript compilation confirms)
-- [ ] Zod schema no longer accepts `agent` as a known key
-- [ ] All schema unit tests pass
+- [x] `IRequestFrontmatter` no longer has an `agent` property (TypeScript compilation confirms)
+- [x] Zod schema no longer accepts `agent` as a known key
+- [x] All schema unit tests pass
+
+**✅ IMPLEMENTED** — `src/services/request_processing/types.ts`, 7/7 tests passing
 
 ---
 

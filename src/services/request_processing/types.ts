@@ -13,9 +13,7 @@ export interface IRequestFrontmatter {
   created: string;
   status: RequestStatusType;
   priority: string;
-  /** @deprecated Use identity instead */
-  agent?: string;
-  /** Identity blueprint to use for this request (Phase 53 canonical field) */
+  /** Identity blueprint to use for this request (Phase 54 canonical field) */
   identity?: string;
   flow?: string;
   source: string;
