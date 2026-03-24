@@ -65,7 +65,7 @@ Follow these Exaix-specific patterns and conventions:
 
 ## 1. Project Structure
 
-```text
+````text
 src/
 ├── commands/        # CLI command implementations
 ├── config/          # Configuration schemas and loading
@@ -78,7 +78,7 @@ tests/               # Mirror of src/ structure
 tests_infra/         # Test infrastructure helpers
 
 Blueprints/          # Agent and Flow definitions
-├── Agents/          # Agent blueprints (markdown)
+├── Identities/          # Identity blueprints (markdown)
 └── Flows/           # Flow definitions (TypeScript)
 
 Memory/              # Memory Banks
@@ -318,6 +318,4 @@ export class FlowExecutionError extends ExaixError {
   }
 }
 ```text
-
-```
-
+````

@@ -16,4 +16,3 @@ Blueprints provide reusable templates that can be instantiated and customized fo
 ## Migration Notes
 
 - Skills were migrated from `Memory/Skills/core/` to `Blueprints/Skills/` to properly separate predefined blueprints from learned memory
-

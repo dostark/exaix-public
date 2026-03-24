@@ -118,4 +118,3 @@ The user wants a comprehensive security audit of the application. I need to:
 
 {{include:blueprint-best-practices}}
 ```
-

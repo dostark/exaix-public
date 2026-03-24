@@ -9,7 +9,7 @@ version: "2.0.0"
 
 # Agent Validation Scenario Framework
 
-This document provides an index of agent validation scenarios for the Exaix system. Each scenario tests an agent blueprint's core functionality using realistic prompts validated against real LLM providers.
+This document provides an index of agent validation scenarios for the Exaix system. Each scenario tests an identity blueprint's core functionality using realistic prompts validated against real LLM providers.
 
 ## Automated Validation
 
@@ -229,9 +229,9 @@ Implement comprehensive tests for Exaix's review registry system. Create:
 **Request Prompt**:
 
 ```text
-Generate comprehensive documentation for the Exaix agent blueprint schema. Document:
+Generate comprehensive documentation for the Exaix identity blueprint schema. Document:
 
-- Complete TOML schema specification for agent definitions in Blueprints/Agents/
+- Complete TOML schema specification for agent definitions in Blueprints/Identities/
 - All supported blueprint fields, types, and validation rules
 - Model configuration options for different AI providers (Claude, GPT, Ollama, Gemini)
 - Capability definitions and tool access permissions

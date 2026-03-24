@@ -648,7 +648,7 @@ exactl request analyze "Existing Request Subject" --engine llm
 
 | Option                  | Short | Description                                                                      |
 | ----------------------- | ----- | -------------------------------------------------------------------------------- |
-| `--agent`               | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
+| `--agent`               | `-a`  | Target identity blueprint (default: `default`, mutually exclusive with --flow)   |
 | `--flow`                |       | Target multi-agent flow (mutually exclusive with --agent)                        |
 | `--priority`            | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
 | `--portal`              |       | Portal alias for project context                                                 |
@@ -1144,7 +1144,7 @@ Continue? (y/N): y
 Blueprints define agent personas, capabilities, and system prompts. They are **required** for request processing - missing blueprints cause requests to fail.
 
 ```bash
-# Create a new agent blueprint
+# Create a new identity blueprint
 exactl blueprint create <agent-id> --name "Agent Name" --model <provider:model>
 exactl blueprint create senior-coder --name "Senior Coder" --model anthropic:claude-sonnet
 
@@ -1311,7 +1311,7 @@ System prompt with <thought> and <content> tags...
 $ exactl blueprint create my-agent \
   --name "My Custom Agent" \
   --model anthropic:claude-sonnet
-✓ Blueprint created: Blueprints/Agents/my-agent.md
+✓ Blueprint created: Blueprints/Identities/my-agent.md
 
 # 2. List all agents
 $ exactl blueprint list
@@ -2321,7 +2321,7 @@ The Reflexion pattern enables agents to critique and improve their own outputs i
 
 #### Configuration
 
-Enable reflexion in agent blueprint frontmatter:
+Enable reflexion in identity blueprint frontmatter:
 
 ```toml
 +++
@@ -2516,8 +2516,8 @@ Exaix provides templates for common agent patterns:
 
 ```bash
 # Copy template
-cp Blueprints/Agents/templates/reflexive-agent.md.template \
-   Blueprints/Agents/my-agent.md
+cp Blueprints/Identities/templates/reflexive-agent.md.template \
+   Blueprints/Identities/my-agent.md
 
 # Edit placeholders
 # Validate
@@ -2527,7 +2527,7 @@ exactl blueprint validate my-agent
 exactl request "Task" --agent my-agent
 ```
 
-See `Blueprints/Agents/templates/README.md` for detailed template documentation.
+See `Blueprints/Identities/templates/README.md` for detailed template documentation.
 
 ### 6.7 Troubleshooting
 

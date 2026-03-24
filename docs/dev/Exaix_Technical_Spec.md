@@ -311,7 +311,7 @@ execution = ["anthropic-claude-sonnet"]
 
 Exaix uses a **hybrid format strategy** optimized for different use cases:
 
-- **TOML** for system configuration and agent blueprints (token-efficient, robust)
+- **TOML** for system configuration and identity blueprints (token-efficient, robust)
 - **YAML** for markdown frontmatter
 
 ### Format Selection Rationale
@@ -325,20 +325,20 @@ Exaix uses a **hybrid format strategy** optimized for different use cases:
 
 ### Complete Format Reference
 
-| Category             | Format                      | Extension      | Location                                 | Purpose                                    |
-| -------------------- | --------------------------- | -------------- | ---------------------------------------- | ------------------------------------------ |
-| **System Config**    | TOML                        | `.toml`        | `exa.config.toml`                        | Main configuration                         |
-| **Deno Config**      | JSON                        | `.json`        | `deno.json`                              | Runtime, imports, tasks (Deno requirement) |
-| **Agent Blueprints** | TOML                        | `.toml`        | `Blueprints/Agents/`                     | Agent definitions                          |
-| **Flow Definitions** | TypeScript                  | `.ts`          | `Blueprints/Flows/`                      | Orchestration logic                        |
-| **Requests**         | Markdown + YAML frontmatter | `.md`          | `Workspace/Requests/`                    | User task requests                         |
-| **Plans**            | Markdown + YAML frontmatter | `.md`          | `Workspace/Plans/`                       | Agent proposals                            |
-| **Reports**          | Markdown + JSON metadata    | `.md`, `.json` | `Memory/Execution/`                      | Mission completion reports                 |
-| **Memory Banks**     | Markdown + JSON             | `.md`, `.json` | `Memory/`                                | Execution history and project context      |
-| **Project Memory**   | Markdown                    | `.md`          | `Memory/Projects/`                       | Auto-generated project context             |
-| **Portal Knowledge** | JSON                        | `.json`        | `Memory/Projects/{alias}/knowledge.json` | Structured codebase analysis (Phase 46)    |
-| **Activity Journal** | SQLite                      | `.db`          | `.exa/journal.db`                        | Audit log & file locks                     |
-| **Migrations**       | SQL                         | `.sql`         | `migrations/`                            | Database schema changes                    |
+| Category                | Format                      | Extension      | Location                                 | Purpose                                    |
+| ----------------------- | --------------------------- | -------------- | ---------------------------------------- | ------------------------------------------ |
+| **System Config**       | TOML                        | `.toml`        | `exa.config.toml`                        | Main configuration                         |
+| **Deno Config**         | JSON                        | `.json`        | `deno.json`                              | Runtime, imports, tasks (Deno requirement) |
+| **Identity Blueprints** | TOML                        | `.toml`        | `Blueprints/Identities/`                 | Agent definitions                          |
+| **Flow Definitions**    | TypeScript                  | `.ts`          | `Blueprints/Flows/`                      | Orchestration logic                        |
+| **Requests**            | Markdown + YAML frontmatter | `.md`          | `Workspace/Requests/`                    | User task requests                         |
+| **Plans**               | Markdown + YAML frontmatter | `.md`          | `Workspace/Plans/`                       | Agent proposals                            |
+| **Reports**             | Markdown + JSON metadata    | `.md`, `.json` | `Memory/Execution/`                      | Mission completion reports                 |
+| **Memory Banks**        | Markdown + JSON             | `.md`, `.json` | `Memory/`                                | Execution history and project context      |
+| **Project Memory**      | Markdown                    | `.md`          | `Memory/Projects/`                       | Auto-generated project context             |
+| **Portal Knowledge**    | JSON                        | `.json`        | `Memory/Projects/{alias}/knowledge.json` | Structured codebase analysis (Phase 46)    |
+| **Activity Journal**    | SQLite                      | `.db`          | `.exa/journal.db`                        | Audit log & file locks                     |
+| **Migrations**          | SQL                         | `.sql`         | `migrations/`                            | Database schema changes                    |
 
 ### YAML Frontmatter Format (Requests, Plans, Reports)
 
@@ -379,7 +379,7 @@ Implement user authentication for the API...
 
 ### TOML Format (Config & Blueprints)
 
-System configuration and agent blueprints use **TOML** for robustness and token efficiency:
+System configuration and identity blueprints use **TOML** for robustness and token efficiency:
 
 ```toml
 # exa.config.toml
@@ -873,7 +873,7 @@ Help me understand the project structure and architecture.
 - ✓ **Mutual Exclusion:** Request cannot specify both `flow` and `agent` fields
 - ✓ **Required Field:** Request must specify either `flow` or `agent` field
 - ✓ **Flow Existence:** Referenced flow must exist in `/Blueprints/Flows/`
-- ✓ **Agent Existence:** Referenced agent must exist in `/Blueprints/Agents/`
+- ✓ **Agent Existence:** Referenced agent must exist in `/Blueprints/Identities/`
 - ✓ **Schema Validity:** Flow must conform to expected structure
 - ✓ **Dependencies:** Flow dependencies (agents, transforms) must exist
 
@@ -1520,7 +1520,7 @@ All portal operations are logged to Activity Journal:
 
 ## 7. Agentic Architecture
 
-**Example Blueprint:** `/Blueprints/Agents/senior_coder.toml`
+**Example Blueprint:** `/Blueprints/Identities/senior_coder.toml`
 
 ```toml
 name = "Senior Coder"
@@ -1603,7 +1603,7 @@ Frontmatter Memory Bank Routing Tool Reflector Self-Critique
 
 #### 7.3.3 Blueprint Configuration
 
-Orchestration features are configured in agent blueprints:
+Orchestration features are configured in identity blueprints:
 
 ```toml
 +++

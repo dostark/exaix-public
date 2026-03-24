@@ -74,7 +74,7 @@ Follow the Conventional Commits specification for consistent, parseable commit h
 
 For medium/large commits, prefer this body shape:
 
-```text
+````text
 Context:
 <why this change is needed>
 
@@ -112,8 +112,7 @@ Validation:
 References:
 
 - <issue/plan step/breaking change note>
-
-```
+````
 
 ## Types
 

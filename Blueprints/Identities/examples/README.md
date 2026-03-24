@@ -4,7 +4,7 @@ This directory contains comprehensive example identity blueprints demonstrating 
 
 ## 📁 Directory Structure
 
-```text
+````text
 Blueprints/Identities/examples/
 ├── README.md                           # This file
 ├── code-reviewer.md                    # Code quality and security review
@@ -50,7 +50,7 @@ These examples are **reference implementations**. They demonstrate best practice
 | **security-auditor**     | Security vulnerability scanning and assessment | `read_file`, `list_directory`, `git_status` |
 | **research-synthesizer** | Multi-source research analysis and synthesis   | `read_file`, `write_file`, `list_directory` |
 
-## 📋 Agent Blueprint Format
+## 📋 Identity Blueprint Format
 
 All identity blueprints use YAML frontmatter with the following structure:
 
@@ -158,6 +158,4 @@ See `agents/tests/testing.md` for comprehensive testing guidelines.
 - `agents/source/exaix.md` - Blueprint creation guidelines
 - `agents/tests/testing.md` - Testing guidelines
 - `Blueprints/Flows/examples/` - Flow examples that use these agents
-
-```
-
+````

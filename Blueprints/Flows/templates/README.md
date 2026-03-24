@@ -51,7 +51,7 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
 - `code-analyzer` - Initial analysis
 - `security-reviewer` - Security-focused review
 - `quality-reviewer` - Code quality review
-- `quality-judge` - Final evaluation (see `Blueprints/Agents/quality-judge.md`)
+- `quality-judge` - Final evaluation (see `Blueprints/Identities/quality-judge.md`)
 - `technical-writer` - Report generation
 
 ### 5. Self-Correcting (`self-correcting.flow.template.yaml`) ✨ NEW
@@ -92,12 +92,13 @@ Unlike **Examples** (which are concrete, runnable use cases), **Templates** are 
    ```bash
    cp templates/pipeline.flow.template.yaml ../my-process.flow.yaml
    ```
-1.
+
+1. **Customize the template:**
    - **Update Metadata:** Change `id`, `name`, and `description`.
    - **Assign Agents:** Replace placeholder agent names (e.g., `coordinator-agent`) with your actual agents (e.g., `senior-coder`).
    - **Define Inputs:** Configure how data flows into each step.
-1.
+
+1. **Validate your flow:**
    ```bash
    exactl flow validate ../my-process.flow.yaml
    ```
-

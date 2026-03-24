@@ -8,7 +8,7 @@ capabilities:
 created: "2025-12-09T13:47:00Z"
 created_by: "exaix-test-suite"
 version: "1.0.0"
-description: "Agent blueprint for testing and CI/CD"
+description: "Identity blueprint for testing and CI/CD"
 default_skills: ["portal-grounding"]
 ---
 
@@ -75,4 +75,3 @@ Always respond with `<thought>` and `<content>` tags containing valid JSON:
 ```
 
 This blueprint is intentionally simple for testing basic plan generation and validation flows.
-

@@ -40,7 +40,7 @@ Core components & runtime layout
 - `Workspace/` — Requests, Plans, and Changesets (primary user-facing area).
 - `Portals/` — Symlinks to project repositories (multi-repo context).
 - `Memory/` — Persistent memory banks (copied to deployed workspaces; used for search and recall).
-- `Blueprints/` — Agent blueprints and templates (copied on deploy).
+- `Blueprints/` — Identity blueprints and templates (copied on deploy).
 - `.exa/` — Runtime state (database, logs, pid files). This replaces the legacy `System/` folder.
 
 Operator features
@@ -129,4 +129,3 @@ License
 - Proprietary © Exaix Development Team
 
 # **End Exaix overview**
-

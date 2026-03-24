@@ -1,6 +1,6 @@
 id: refactoring
 name: Code Refactoring Flow
-description: 'Safe code refactoring with analysis, implementation, and validation'
+description: "Safe code refactoring with analysis, implementation, and validation"
 version: 1.0.0
 defaultSkills:
   - clean-code

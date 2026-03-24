@@ -1,6 +1,6 @@
 # Blueprint Fragments
 
-This directory contains reusable markdown fragments that can be injected into agent blueprints using the fragment syntax.
+This directory contains reusable markdown fragments that can be injected into identity blueprints using the fragment syntax.
 
 ## Usage
 
@@ -28,4 +28,3 @@ Fragments can include other fragments. The `BlueprintLoader` resolves these recu
 
 > [!CAUTION]
 > Avoid circular inclusions as they will be detected and blocked by the loader.
-

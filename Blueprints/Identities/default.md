@@ -160,4 +160,3 @@ The user wants to add authentication. I need to:
 {{include:plan-schema-full}}
 
 {{include:blueprint-best-practices}}
-

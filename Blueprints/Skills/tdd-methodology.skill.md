@@ -75,7 +75,7 @@ You MUST follow the Red-Green-Refactor cycle for all code changes:
 1.
 1.
 
-```typescript
+````typescript
 // ✅ Good test name
 Deno.test("calculateTotal returns sum of items when cart has products");
 
@@ -129,6 +129,4 @@ function calculateTotal(items: Item[]): number {
 1.
 1.
 ```text
-
-```
-
+````

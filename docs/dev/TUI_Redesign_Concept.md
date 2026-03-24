@@ -197,7 +197,7 @@ The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with thre
 
 | Tab        | Content                              | Columns                             | Detail Section Shows                              |
 | ---------- | ------------------------------------ | ----------------------------------- | ------------------------------------------------- |
-| **Agents** | All registered agent blueprints      | Agent ID, Name, Model, Capabilities | Full TOML definition, system prompt preview       |
+| **Agents** | All registered identity blueprints      | Agent ID, Name, Model, Capabilities | Full TOML definition, system prompt preview       |
 | **Skills** | Core, project, and learned skills    | Skill ID, Name, Category, Triggers  | Full description, instructions, matched learnings |
 | **Tools**  | Available tools from MCP + built-ins | Tool Name, Source, Status           | Parameters, description, usage examples           |
 
@@ -1133,7 +1133,7 @@ The following components support the Linked Detail Mode (Master top/left, Detail
 - **Plans**: List and detailed execution plan content.
 - **Reviews**: List of pending reviews and their diff summary.
 - **Portals**: List of aliases and their full configuration + health status.
-- **Blueprints**: List of agent blueprints and their full TOML definition.
+- **Blueprints**: List of identity blueprints and their full TOML definition.
 - **Flows**: List of multi-agent flows and their dependency graph + step details.
 - **Memory** (tabbed): Pending proposals, Project memories, Executions, Global learnings, Skills.
 - **Agent Status**: List of agents and their health, current task, cost, and linked Trace IDs.

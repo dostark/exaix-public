@@ -114,15 +114,15 @@ const stagedFlow = defineFlow({
 
 1.
 
-   ```bash
-   exactl flow run --id code-review --request "Please review this TypeScript code for best practices..."
-   ```
+```bash
+exactl flow run --id code-review --request "Please review this TypeScript code for best practices..."
+```
 
 1.
 
-   ```bash
-   exactl flow validate Blueprints/Flows/examples/development/code_review.flow.yaml
-   ```
+```bash
+exactl flow validate Blueprints/Flows/examples/development/code_review.flow.yaml
+```
 
 ### Using as Templates
 
@@ -139,10 +139,10 @@ const stagedFlow = defineFlow({
 
 1.
 
-   ```bash
-   exactl flow validate my_custom_flow.flow.yaml
-   exactl flow run --file my_custom_flow.flow.yaml --request "Your request here..."
-   ```
+```bash
+exactl flow validate my_custom_flow.flow.yaml
+exactl flow run --file my_custom_flow.flow.yaml --request "Your request here..."
+```
 
 ## Flow Configuration
 
@@ -238,4 +238,3 @@ When adding new examples:
 - Check the [Exaix Documentation](../../docs/) for detailed guides
 - Review [FlowRunner Implementation](../../src/flows/) for technical details
 - Examine [Test Cases](../../tests/flows/) for usage examples
-

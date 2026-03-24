@@ -298,7 +298,7 @@ sequenceDiagram
         FR->>PA: Parse & Validate
         PA->>PS: Validate against Zod Schema
     else Agent Request
-        RR->>AR: Load agent blueprint
+        RR->>AR: Load identity blueprint
         AR->>AI: Generate plan
         AI-->>AR: Plan response (JSON)
         AR->>PA: Parse & Validate
@@ -1625,7 +1625,7 @@ graph TB
     end
 
     subgraph Usage["Runtime Usage"]
-        Request[exactl request --agent]
+        Request[exactl request --identity]
         Processor[Request Processor]
         Runner[Agent Runner]
     end

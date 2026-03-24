@@ -70,7 +70,7 @@ Write documentation first to clarify design before implementation:
 
 Before writing code, document what you're building:
 
-```markdown
+`````markdown
 # Feature Name
 
 ## Purpose
@@ -144,6 +144,7 @@ export class UserService {
   }
 }
 ````
+`````
 
 ## 3. JSDoc for Functions
 
@@ -239,6 +240,4 @@ Documentation debt is technical debt:
 1.
 1.
 1.
-
 ```
-

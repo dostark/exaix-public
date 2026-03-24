@@ -113,4 +113,3 @@ The user submitted a pull request for user authentication. I need to:
 
 {{include:blueprint-best-practices}}
 ```
-

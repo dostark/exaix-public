@@ -77,7 +77,7 @@ Before reviewing code:
 - [ ] **Error handling** - Are errors caught and handled appropriately?
 - [ ] **Input validation** - Are inputs validated before use?
 
-```typescript
+````typescript
 // Check for edge cases like:
 // - Empty arrays/strings
 // - Null/undefined values
@@ -156,6 +156,4 @@ Before reviewing code:
 - 🟠 **Major** - Should fix (bugs, significant issues)
 - 🟡 **Minor** - Nice to fix (style, minor improvements)
 - 💭 **Suggestion** - Optional (alternative approaches)
-
-```
-
+````

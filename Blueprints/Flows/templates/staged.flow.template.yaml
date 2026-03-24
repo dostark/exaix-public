@@ -4,7 +4,7 @@ description: Template for multi-stage processing workflows
 version: 1.0.0
 steps:
   - id: stage-1-planning
-    name: 'Stage 1: Planning & Analysis'
+    name: "Stage 1: Planning & Analysis"
     type: agent
     agent: planner-agent
     dependsOn: []
@@ -15,7 +15,7 @@ steps:
       maxAttempts: 1
       backoffMs: 1000
   - id: stage-2-development
-    name: 'Stage 2: Development & Implementation'
+    name: "Stage 2: Development & Implementation"
     type: agent
     agent: developer-agent
     dependsOn:
@@ -28,7 +28,7 @@ steps:
       maxAttempts: 2
       backoffMs: 2000
   - id: stage-3-validation
-    name: 'Stage 3: Validation & Testing'
+    name: "Stage 3: Validation & Testing"
     type: agent
     agent: tester-agent
     dependsOn:
@@ -43,7 +43,7 @@ steps:
       maxAttempts: 2
       backoffMs: 2000
   - id: stage-4-review
-    name: 'Stage 4: Review & Refinement'
+    name: "Stage 4: Review & Refinement"
     type: agent
     agent: reviewer-agent
     dependsOn:
@@ -59,7 +59,7 @@ steps:
       maxAttempts: 2
       backoffMs: 2000
   - id: stage-5-deployment
-    name: 'Stage 5: Deployment & Documentation'
+    name: "Stage 5: Deployment & Documentation"
     type: agent
     agent: deployer-agent
     dependsOn:

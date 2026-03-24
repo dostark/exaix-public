@@ -94,4 +94,3 @@ The user needs comprehensive API documentation for the user service. I need to:
 
 {{include:blueprint-best-practices}}
 ```
-

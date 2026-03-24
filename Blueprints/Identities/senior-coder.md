@@ -100,6 +100,4 @@ Your JSON will be validated against the schema. Common errors to avoid:
 - Non-sequential step numbers
 - Dependencies referencing non-existent steps
 - Malformed JSON syntax (missing quotes, trailing commas)
-
 ```
-

@@ -115,4 +115,3 @@ The user wants to implement user profile management. I need to:
 
 {{include:blueprint-best-practices}}
 ```
-

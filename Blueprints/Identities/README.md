@@ -12,7 +12,7 @@ This directory contains identity blueprint templates that define LLM personas, m
 
 All identities support `default_skills` for automatic procedural knowledge injection:
 
-```yaml
+`````yaml
 ---
 agent_id: "my-identity"
 name: "My Identity"
@@ -194,6 +194,4 @@ exactl request "Your test request" --identity my-identity
 ```text
 
 Check the generated plan in `Workspace/Plans/` - it should contain properly formatted markdown converted from JSON.
-
-```
-
+`````

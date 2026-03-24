@@ -364,7 +364,7 @@ exactl blueprint validate custom-test
 
 # Step 9: Create an invalid blueprint manually
 
-cat > ~/Exaix/Blueprints/Agents/invalid-test.md << 'EOF'
+cat > ~/Exaix/Blueprints/Identities/invalid-test.md << 'EOF'
 +++
 name = "Missing agent_id"
 model = "ollama:llama3.2"
@@ -419,7 +419,7 @@ exactl blueprint remove invalid-test --force
 **Step 2:**
 
 - Blueprint created successfully
-- File created at `~/Exaix/Blueprints/Agents/test-agent.md`
+- File created at `~/Exaix/Blueprints/Identities/test-agent.md`
 - Success message with path shown
 - Activity logged
 
@@ -492,22 +492,22 @@ exactl blueprint remove invalid-test --force
 **Step 15:**
 
 - All blueprints removed successfully
-- Files deleted from Blueprints/Agents/
+- Files deleted from Blueprints/Identities/
 - Activity logged for each removal
 
 ### Verification
 
 ```bash
 # Check blueprint files were created
-ls -la ~/Exaix/Blueprints/Agents/
+ls -la ~/Exaix/Blueprints/Identities/
 # Expected: test-agent.md, coder-test.md, custom-test.md, mock-agent.md, invalid-test.md
 
 # Check TOML frontmatter format
-head -20 ~/Exaix/Blueprints/Agents/test-agent.md
+head -20 ~/Exaix/Blueprints/Identities/test-agent.md
 # Expected: Starts with +++, has TOML fields, ends with +++
 
 # Check system prompt from file was loaded
-grep "Custom Test Agent" ~/Exaix/Blueprints/Agents/custom-test.md
+grep "Custom Test Agent" ~/Exaix/Blueprints/Identities/custom-test.md
 # Expected: Custom prompt content present
 
 # Check Activity Journal logged blueprint operations
@@ -516,7 +516,7 @@ exactl journal --filter action_type=blueprint.% --tail 10
 # Expected: blueprint.created, blueprint.edited, blueprint.removed entries
 
 # Verify blueprints were removed
-ls ~/Exaix/Blueprints/Agents/*.md 2>/dev/null | grep -E "(test-agent|coder-test|custom-test|mock-agent)" || echo "All test blueprints removed"
+ls ~/Exaix/Blueprints/Identities/*.md 2>/dev/null | grep -E "(test-agent|coder-test|custom-test|mock-agent)" || echo "All test blueprints removed"
 # Expected: No test blueprint files remain
 
 # Check request was created with custom agent
@@ -528,11 +528,11 @@ cat ~/Exaix/Workspace/Requests/request-*.md | grep "mock-agent"
 
 ```bash
 # Remove any remaining test blueprints
-rm -f ~/Exaix/Blueprints/Agents/test-agent.md
-rm -f ~/Exaix/Blueprints/Agents/coder-test.md
-rm -f ~/Exaix/Blueprints/Agents/custom-test.md
-rm -f ~/Exaix/Blueprints/Agents/mock-agent.md
-rm -f ~/Exaix/Blueprints/Agents/invalid-test.md
+rm -f ~/Exaix/Blueprints/Identities/test-agent.md
+rm -f ~/Exaix/Blueprints/Identities/coder-test.md
+rm -f ~/Exaix/Blueprints/Identities/custom-test.md
+rm -f ~/Exaix/Blueprints/Identities/mock-agent.md
+rm -f ~/Exaix/Blueprints/Identities/invalid-test.md
 
 # Remove custom prompt file
 rm -f /tmp/custom-prompt.txt

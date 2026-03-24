@@ -439,7 +439,7 @@ fallback = ["gpt-4-turbo", "ollama/deepseek"]
 | **Core Features**           |                                      |                                 |                                          |
 | Activity Journal            | ✅ Full audit trail                  | ✅ Full audit trail             | ✅ Enhanced with analytics               |
 | Portal System               | ✅ Unlimited                         | ✅ Unlimited                    | ✅ Unlimited + multi-tenancy             |
-| Agent Blueprints            | ✅ Basic templates                   | ✅ Team library                 | ✅ Enterprise templates + marketplace    |
+| Identity Blueprints         | ✅ Basic templates                   | ✅ Team library                 | ✅ Enterprise templates + marketplace    |
 | Git Integration             | ✅ Trace IDs in commits              | ✅ + team workflows             | ✅ + advanced branch policies            |
 | **MCP Support**             |                                      |                                 |                                          |
 | MCP Client                  | ✅ Connect to MCP servers            | ✅ Full                         | ✅ Full                                  |
@@ -805,7 +805,7 @@ Real-time compliance monitoring interface:
 ````bash
 # Morning: Create batch request
 
-  --agent senior-coder \
+  --identity senior-coder \
   --tags batch-refactor
 
 # Daemon generates plan while you work on other tasks

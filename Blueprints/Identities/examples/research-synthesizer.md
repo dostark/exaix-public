@@ -126,4 +126,3 @@ The user wants to analyze the current state of AI in software development. I nee
 
 {{include:blueprint-best-practices}}
 ```
-

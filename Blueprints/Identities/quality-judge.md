@@ -270,4 +270,3 @@ When multiple judges evaluate:
 - `confidence` enables weighted consensus
 - `metadata.criteria_evaluated` ensures comparable scope
 - Structured output enables automated comparison
-

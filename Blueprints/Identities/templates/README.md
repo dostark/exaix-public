@@ -156,8 +156,7 @@ Fragments are located in `Blueprints/Fragments/`.
    - **Define Persona:** Replace `{{placeholder}}` values.
    - **Customize Criteria:** Adjust confidence thresholds, evaluation criteria.
    - **Refine Capabilities:** Add/remove tools as needed.
-1.
-   ```bash
+1. ```bash
    exactl blueprint validate my-reviewer
    ```
 
@@ -195,7 +194,7 @@ default_skills: ["code-review", "security-first"] # Applied to all requests
 | `documentation-driven` | Technical writers, documenters |
 | `typescript-patterns`  | TypeScript developers          |
 | `commit-message`       | Git-aware agents               |
-| `exaix-conventions` | Exaix-specific development  |
+| `exaix-conventions`    | Exaix-specific development     |
 
 **Skill Resolution Priority:**
 
@@ -256,4 +255,3 @@ context_window: 10 # Turns to keep in context
 | Conversational | ✅ Complete   | ✅ Phase 16.6   |
 
 See [Phase 16: Agent Orchestration Improvements](../../../agents/planning/phase-16-agent-orchestration-improvements.md) for implementation details.
-

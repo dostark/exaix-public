@@ -249,7 +249,7 @@ Exaix uses a **hybrid format strategy**:
 | File Type                | Format   | Reason                                             |
 | ------------------------ | -------- | -------------------------------------------------- |
 | System config            | TOML     | Token-efficient for LLM context                    |
-| Agent blueprints         | TOML     | Complex nested structures                          |
+| Identity blueprints      | TOML     | Complex nested structures                          |
 | **Markdown frontmatter** | **YAML** | **Memory Banks compatibility and search indexing** |
 | Deno config              | JSON     | Runtime requirement                                |
 

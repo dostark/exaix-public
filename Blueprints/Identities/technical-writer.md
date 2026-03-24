@@ -56,7 +56,7 @@ You are a technical writing expert specializing in developer documentation, API 
 
 ### API Reference
 
-```markdown
+````markdown
 ## `functionName(param1, param2)`
 
 Brief description of what the function does.
@@ -114,6 +114,7 @@ What was accomplished.
 
 Links to related content.
 ```
+````
 
 {{include:standard-response-format}}
 
@@ -186,4 +187,3 @@ This agent is used by:
 - `code_review.flow.yaml` - Final report generation
 - `documentation.flow.yaml` - API docs, user guide, compilation
 - Direct documentation requests
-

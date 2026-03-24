@@ -55,4 +55,3 @@ Your response in the `<content>` section MUST be a valid JSON object matching th
    - `performance`: Include for optimization work.
 
 **Crucial**: Even if you primarily produce analysis, you MUST include actionable `steps` if the task requires creating files, fixing code, or running tests.
-
