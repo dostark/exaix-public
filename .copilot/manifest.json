@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-23T16:54:36.874Z",
+  "generated_at": "2026-03-24T13:02:00.547Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -844,6 +844,34 @@
       ]
     },
     {
+      "path": ".copilot/planning/phase-54-remove-agent-alias.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 54: Remove Deprecated 'agent' Aliases Introduced in Phase 53",
+      "short_summary": "Hard-remove all Phase 53 backward-compatibility shims: the --agent CLI flag alias, the Blueprints/Agents/ fallback path, the deprecated agent: frontmatter key, the agent? field in IRequestFrontmatter and Zod schemas, the BLUEPRINT_AGENTS_DIR constant, and the agent field from flow schemas (FlowStepSchema, GateEvaluateSchema).",
+      "version": "1.0",
+      "topics": [
+        "naming",
+        "cleanup",
+        "deprecation-removal",
+        "cli",
+        "blueprints",
+        "identities",
+        "flows",
+        "breaking-change"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk0.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk1.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk2.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk3.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk4.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk5.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk6.txt",
+        ".copilot/chunks/phase-54-remove-agent-alias.md.chunk7.txt"
+      ]
+    },
+    {
       "path": ".copilot/planning/phase-34-code-complexity-reduction.md",
       "agent": "claude",
       "scope": "dev",
@@ -867,6 +895,33 @@
         ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk5.txt",
         ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk6.txt",
         ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-53-rename-agents-to-identity.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 53: Rename 'Agents' to 'Identities' for Conceptual Clarity",
+      "short_summary": "Rename the Blueprint/Agents layer to Blueprint/Identities to accurately reflect that these definitions are LLM persona/identity definitions loaded by the AgentRunner runtime, not autonomous agents in the cognitive AI sense.",
+      "version": "1.0",
+      "topics": [
+        "naming",
+        "semantic-clarity",
+        "blueprints",
+        "identities",
+        "refactoring",
+        "cli",
+        "docs"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk0.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk1.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk2.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk3.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk4.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk5.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk6.txt",
+        ".copilot/chunks/phase-53-rename-agents-to-identity.md.chunk7.txt"
       ]
     },
     {
