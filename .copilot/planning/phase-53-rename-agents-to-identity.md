@@ -191,11 +191,13 @@ Modify `src/services/blueprint_loader.ts`:
 
 **Success criteria:**
 
-- [ ] `BlueprintLoader` resolves identities from the new `Identities/` path
-- [ ] Legacy `Agents/` fallback resolves and logs a deprecation warning to stderr
-- [ ] Unit test: loading `senior-coder` from `Identities/` succeeds
-- [ ] Unit test: loading from legacy `Agents/` path succeeds with deprecation warning
-- [ ] Unit test: loading a non-existent identity returns a clear `IdentityNotFoundError`
+- [x] `BlueprintLoader` resolves identities from the new `Identities/` path
+- [x] Legacy `Agents/` fallback resolves and logs a deprecation warning to stderr
+- [x] Unit test: loading `senior-coder` from `Identities/` succeeds
+- [x] Unit test: loading from legacy `Agents/` path succeeds with deprecation warning
+- [x] Unit test: loading a non-existent identity returns a clear `IdentityNotFoundError`
+
+**✅ IMPLEMENTED** — `src/services/blueprint_loader.ts`, 4/4 new tests passing
 
 ---
 

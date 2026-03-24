@@ -157,7 +157,16 @@ export class BlueprintLoader {
       return this.cache.get(agentId)!;
     }
 
-    const blueprintPath = this.resolvePath(agentId);
+    const resolved = this.resolvePath(agentId);
+    const blueprintPath = resolved.path;
+
+    // Emit deprecation warning if using legacy path
+    if (resolved.isLegacy) {
+      console.warn(
+        `[deprecation] Loading blueprint from legacy path '${blueprintPath}'. ` +
+          `Please move to Blueprints/Identities/ directory.`,
+      );
+    }
 
     if (!await exists(blueprintPath)) {
       return null;
@@ -189,10 +198,11 @@ export class BlueprintLoader {
   async loadOrThrow(agentId: string): Promise<ILoadedBlueprint> {
     const blueprint = await this.load(agentId);
     if (!blueprint) {
+      const resolved = this.resolvePath(agentId);
       throw new BlueprintLoadError(
-        `Blueprint not found: ${agentId}`,
+        `Blueprint not found: ${agentId}. Expected location: ${resolved.path}`,
         agentId,
-        this.resolvePath(agentId),
+        resolved.path,
       );
     }
     return blueprint;
@@ -371,26 +381,47 @@ export class BlueprintLoader {
   /**
    * Resolve agent ID to file path
    *
-   * Supports two modes:
-   * 1. blueprintsPath points to Blueprints/ → looks in Blueprints/Agents/{agentId}.md
-   * 2. blueprintsPath points to Blueprints/Agents/ → looks in {agentId}.md directly
+   * Phase 53: Supports Identities (canonical) and Agents (legacy) paths.
+   * 1. First checks Blueprints/Identities/{agentId}.md (canonical path)
+   * 2. Falls back to Blueprints/Agents/{agentId}.md (legacy path) with deprecation warning
+   * 3. If blueprintsPath already ends with 'Identities' or 'Agents', uses it directly
    *
-   * This maintains backward compatibility with existing code.
+   * @param agentId - The agent identifier
+   * @returns Object with path and isLegacy flag
    */
-  private resolvePath(agentId: string): string {
-    // If blueprintsPath already ends with 'Agents', don't add it again
-    if (this.options.blueprintsPath.endsWith("Agents")) {
-      return join(this.options.blueprintsPath, `${agentId}.md`);
+  private resolvePath(agentId: string): { path: string; isLegacy: boolean } {
+    // If blueprintsPath already ends with 'Identities' or 'Agents', use it directly
+    if (this.options.blueprintsPath.endsWith("Identities") || this.options.blueprintsPath.endsWith("Agents")) {
+      return {
+        path: join(this.options.blueprintsPath, `${agentId}.md`),
+        isLegacy: this.options.blueprintsPath.endsWith("Agents"),
+      };
     }
+
     // Otherwise, assume it's the Blueprints root
-    return join(this.options.blueprintsPath, "Agents", `${agentId}.md`);
+    // First try canonical Identities path
+    const identityPath = join(this.options.blueprintsPath, "Identities", `${agentId}.md`);
+
+    // Check if identity exists (use try-catch since statSync throws if not found)
+    try {
+      if (Deno.statSync(identityPath).isFile) {
+        return { path: identityPath, isLegacy: false };
+      }
+    } catch {
+      // File doesn't exist, continue to legacy path
+    }
+
+    // Fall back to legacy Agents path
+    const legacyPath = join(this.options.blueprintsPath, "Agents", `${agentId}.md`);
+    return { path: legacyPath, isLegacy: true };
   }
 
   /**
    * Check if a blueprint exists
    */
   async exists(agentId: string): Promise<boolean> {
-    return await exists(this.resolvePath(agentId));
+    const resolved = this.resolvePath(agentId);
+    return await exists(resolved.path);
   }
 
   /**

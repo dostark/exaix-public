@@ -25,9 +25,11 @@ let blueprintsPath: string;
 async function setup() {
   testDir = await Deno.makeTempDir({ prefix: "exa_blueprint_test_" });
   blueprintsPath = join(testDir, "Blueprints");
-  const agentsDir = join(blueprintsPath, "Agents");
+  const identitiesDir = join(blueprintsPath, "Identities");
+  const agentsDir = join(blueprintsPath, "Agents"); // Legacy path
+  await Deno.mkdir(identitiesDir, { recursive: true });
   await Deno.mkdir(agentsDir, { recursive: true });
-  return { testDir, blueprintsPath, agentsDir };
+  return { testDir, blueprintsPath, identitiesDir, agentsDir };
 }
 
 async function teardown(dir: string) {
@@ -441,6 +443,143 @@ Deno.test("[BlueprintLoader] derives name from agent ID correctly", async () => 
       assertExists(blueprint, `Blueprint ${id} should exist`);
       assertEquals(blueprint.name, expectedName, `Name for ${id} should be ${expectedName}`);
     }
+  } finally {
+    await teardown(testDir);
+  }
+});
+
+// ============================================================================
+// Phase 53: Identities Path Tests
+// ============================================================================
+
+Deno.test("[BlueprintLoader] loads from Identities path (canonical)", async () => {
+  const { blueprintsPath, identitiesDir, testDir } = await setup();
+
+  try {
+    const content = `---
+agent_id: "senior-coder"
+name: "Senior Coder"
+model: "anthropic:claude-sonnet-4-20250514"
+capabilities:
+  - read_file
+  - write_file
+version: "1.0.0"
+---
+
+# Senior Coder
+
+You are a senior coder.
+`;
+    await Deno.writeTextFile(join(identitiesDir, "senior-coder.md"), content);
+
+    const loader = new BlueprintLoader({ blueprintsPath });
+    const blueprint = await loader.load("senior-coder");
+
+    assertExists(blueprint);
+    assertEquals(blueprint.agentId, "senior-coder");
+    assertEquals(blueprint.name, "Senior Coder");
+    assertEquals(blueprint.path, join(identitiesDir, "senior-coder.md"));
+  } finally {
+    await teardown(testDir);
+  }
+});
+
+Deno.test("[BlueprintLoader] falls back to legacy Agents path with deprecation warning", async () => {
+  const { blueprintsPath, agentsDir, testDir } = await setup();
+
+  try {
+    const content = `---
+agent_id: "legacy-agent"
+name: "Legacy Agent"
+model: "anthropic:claude-sonnet-4-20250514"
+capabilities: []
+version: "1.0.0"
+---
+
+# Legacy Agent
+
+You are a legacy agent.
+`;
+    await Deno.writeTextFile(join(agentsDir, "legacy-agent.md"), content);
+
+    const loader = new BlueprintLoader({ blueprintsPath });
+
+    // Capture console.warn calls
+    const warnCalls: string[] = [];
+    const originalWarn = console.warn;
+    console.warn = (...args: string[]) => warnCalls.push(args.join(" "));
+
+    try {
+      const blueprint = await loader.load("legacy-agent");
+
+      assertExists(blueprint);
+      assertEquals(blueprint.agentId, "legacy-agent");
+      assertEquals(blueprint.path, join(agentsDir, "legacy-agent.md"));
+
+      // Verify deprecation warning was emitted
+      assertEquals(warnCalls.length, 1);
+      assertStringIncludes(warnCalls[0], "deprecation");
+      assertStringIncludes(warnCalls[0], "Blueprints/Identities");
+    } finally {
+      console.warn = originalWarn;
+    }
+  } finally {
+    await teardown(testDir);
+  }
+});
+
+Deno.test("[BlueprintLoader] prefers Identities path over legacy Agents path", async () => {
+  const { blueprintsPath, identitiesDir, agentsDir, testDir } = await setup();
+
+  try {
+    // Create same agent in both locations
+    const identityContent = `---
+agent_id: "dual-agent"
+name: "Identity Agent"
+model: "anthropic:claude-sonnet-4-20250514"
+capabilities: []
+version: "1.0.0"
+---
+
+# Identity Agent
+
+From Identities directory.
+`;
+    const legacyContent = `---
+agent_id: "dual-agent"
+name: "Legacy Agent"
+model: "anthropic:claude-sonnet-4-20250514"
+capabilities: []
+version: "1.0.0"
+---
+
+# Legacy Agent
+
+From Agents directory.
+`;
+    await Deno.writeTextFile(join(identitiesDir, "dual-agent.md"), identityContent);
+    await Deno.writeTextFile(join(agentsDir, "dual-agent.md"), legacyContent);
+
+    const loader = new BlueprintLoader({ blueprintsPath });
+    const blueprint = await loader.load("dual-agent");
+
+    assertExists(blueprint);
+    // Should load from Identities (canonical path)
+    assertEquals(blueprint.path, join(identitiesDir, "dual-agent.md"));
+    assertEquals(blueprint.name, "Identity Agent");
+  } finally {
+    await teardown(testDir);
+  }
+});
+
+Deno.test("[BlueprintLoader] throws error when agent not found in either path", async () => {
+  const { blueprintsPath, testDir } = await setup();
+
+  try {
+    const loader = new BlueprintLoader({ blueprintsPath });
+    const blueprint = await loader.load("non-existent");
+
+    assertEquals(blueprint, null);
   } finally {
     await teardown(testDir);
   }
