@@ -1,7 +1,7 @@
 ### Secondary Goals
 
-- [ ] Update TUI Agent Status view label from "Agents" to "Identities"
-- [ ] Update `exactl dashboard` Agent Status pane header
-- [ ] Update `.copilot/planning/` cross-reference index if present
+- [x] Update TUI Agent Status view label from "Agents" to "Identities"
+- [x] Update `exactl dashboard` Agent Status pane header
+- [x] Update `.copilot/planning/` cross-reference index if present
 
 ### Non-Goals

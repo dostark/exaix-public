@@ -183,8 +183,8 @@ EOF
 1.
 
 ```bash
-mkdir -p src scripts templates tests migrations System Blueprints/Agents Blueprints/Flows
-touch tests/.gitkeep migrations/.gitkeep Blueprints/Agents/.gitkeep Blueprints/Flows/.gitkeep
+mkdir -p src scripts templates tests migrations System Blueprints/Identities Blueprints/Flows
+touch tests/.gitkeep migrations/.gitkeep Blueprints/Identities/.gitkeep Blueprints/Flows/.gitkeep
 ```
 
 1.
