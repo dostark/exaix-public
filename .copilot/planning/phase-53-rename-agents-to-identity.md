@@ -224,12 +224,14 @@ if (opts.agent && !opts.identity) {
 
 **Success criteria:**
 
-- [ ] `exactl request "..." --identity senior-coder` works end-to-end
-- [ ] `exactl request "..." --agent senior-coder` works with deprecation warning on stderr
-- [ ] `exactl blueprint identity list` lists all identities from `Blueprints/Identities/`
-- [ ] `exactl blueprint agent list` resolves via alias with deprecation notice
-- [ ] `exactl blueprint identity create` scaffolds a new identity file in `Blueprints/Identities/`
-- [ ] All existing integration tests that use `--agent` continue to pass without modification
+- [x] `exactl request "..." --identity senior-coder` works end-to-end
+- [x] `exactl request "..." --agent senior-coder` works with deprecation warning on stderr
+- [x] `exactl blueprint identity list` lists all identities from `Blueprints/Identities/`
+- [x] `exactl blueprint agent list` resolves via alias with deprecation notice
+- [x] `exactl blueprint identity create` scaffolds a new identity file in `Blueprints/Identities/`
+- [x] All existing integration tests that use `--agent` continue to pass without modification
+
+**✅ IMPLEMENTED** — `src/cli/exactl.ts`, `src/cli/command_builders/request_actions.ts`, `src/cli/commands/blueprint_commands.ts`
 
 ---
 

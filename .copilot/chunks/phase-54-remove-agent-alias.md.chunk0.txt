@@ -1,0 +1,11 @@
+## Status: 🔵 PLANNED
+
+## Prerequisites
+
+**Phase 53 must be fully implemented and released** before this phase begins.
+This phase removes the backward-compatibility shims that Phase 53 introduced.
+Do not implement Phase 54 in the same release as Phase 53.
+
+---
+
+## Executive Summary

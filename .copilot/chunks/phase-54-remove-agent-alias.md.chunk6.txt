@@ -1,0 +1,20 @@
+### Secondary Goals
+
+- [ ] Update `CONTRIBUTING.md` migration note from Phase 53 to state removal is complete
+- [ ] Update `CHANGELOG` / release notes to mark `--agent` as removed (breaking change)
+- [ ] Update MCP tool API: rename `agent` parameter of `exaix_create_request` to `identity`
+  with a versioned MCP schema bump (see MCP section below)
+
+### Non-Goals
+
+- Renaming `agent_id` frontmatter field inside blueprint files — this stays unchanged forever
+- Renaming `AgentRunner`, `agent_runner.ts`, or any runtime-layer identifiers
+- Renaming journal event names (`agent.execution.started`, etc.)
+- Renaming database columns
+- Renaming `FlowStepType.AGENT` enum value (internal enum, not user-facing)
+
+---
+
+## Architecture
+
+### Surfaces Being Removed

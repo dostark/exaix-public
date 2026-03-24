@@ -1,7 +1,7 @@
 /**
  * @module BlueprintCommands
  * @path src/cli/commands/blueprint_commands.ts
- * @description Provides CLI commands for agent blueprint management, including creation from templates, listing, showing details, and validation.
+ * @description Provides CLI commands for identity blueprint management, including creation from templates, listing, showing details, and validation.
  * @architectural-layer CLI
  * @dependencies [fs, path, toml, base_command, validation_chain, error_strategy, command_utils, blueprint_schema]
  * @related-files [src/schemas/blueprint.ts, src/cli/main.ts]
@@ -300,9 +300,9 @@ Mock content based on test scenario
 
 ## Usage
 
-\`\`\`bash
-# Create test request using mock agent
-exactl request "Test request" --agent mock
+\`\`\`text
+# Create test request using mock identity
+exactl request "Test request" --identity mock
 \`\`\`
 
 ## Notes

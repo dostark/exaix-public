@@ -23,7 +23,9 @@ export interface IRequestActionContext {
 
 export interface RequestCreateOptions {
   file?: string;
+  /** @deprecated Use identity instead */
   agent?: string;
+  identity?: string;
   priority?: string | RequestPriority;
   portal?: string;
   targetBranch?: string;
@@ -105,8 +107,16 @@ export async function handleRequestCreate(
   const { requestCommands, display } = context;
 
   try {
+    // Phase 53: Support both identity (canonical) and agent (deprecated) with fallback
+    const identityId = options.identity ?? options.agent;
+
+    // Emit deprecation warning if using legacy agent flag
+    if (options.agent && !options.identity) {
+      console.warn("[deprecation] --agent is deprecated. Use --identity instead.");
+    }
+
     const createOptions = {
-      agent: options.flow ? undefined : options.agent,
+      agent: options.flow ? undefined : identityId,
       priority: options.priority as RequestPriority,
       portal: options.portal,
       target_branch: options.targetBranch,

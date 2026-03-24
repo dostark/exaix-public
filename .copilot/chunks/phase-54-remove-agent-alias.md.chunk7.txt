@@ -1,0 +1,15 @@
+| Surface | Location | Introduced in | Removal Action |
+| --- | --- | --- | --- |
+| `--agent <id>` CLI flag | `src/cli/request_commands.ts` | Phase 53 | Delete option declaration and handler branch |
+| `blueprint agent` subcommand alias | `src/cli/blueprint_commands.ts` | Phase 53 | Delete alias registration |
+| `Blueprints/Agents/` fallback lookup | `src/services/blueprint_loader.ts` | Phase 53 | Delete fallback branch |
+| `BLUEPRINT_AGENTS_DIR` constant | `src/services/blueprint_loader.ts` | Phase 53 | Delete constant |
+| `blueprint.legacy_path.used` event | `src/services/blueprint_loader.ts` | Phase 53 | Delete event emission |
+| `agent?` field | `src/services/request_processing/types.ts` | Phase 53 | Delete field |
+| `agent:` Zod schema key | `src/schemas/request.ts` | Phase 53 | Delete schema key |
+| `agent:` frontmatter parse fallback | `src/services/request_processing/request_parser.ts` | Phase 53 | Delete fallback branch |
+| `agent` field | `src/shared/schemas/flow.ts` (FlowStepSchema) | Phase 53 | Delete field from schema |
+| `agent` field | `src/shared/schemas/flow.ts` (GateEvaluateSchema) | Phase 53 | Rename to `identity` |
+| `agent` parameter | `src/flows/define_flow.ts` step config type | Phase 53 | Delete parameter |
+| `identity ?? agent` fallback | `src/flows/flow_runner.ts`, `flow_loader.ts` | Phase 53 | Delete fallback logic |
+| `agent:` in flow YAML steps | `Blueprints/Flows/*.yaml` | Phase 53 | Migrate to `identity:` |
