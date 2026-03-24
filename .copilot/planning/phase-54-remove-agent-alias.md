@@ -162,9 +162,11 @@ incremented and the change documented in `docs/dev/Exaix_Technical_Spec.md`.
 
 **Success criteria:**
 
-- [ ] `exactl blueprint agent list` prints an unknown-command error and exits non-zero
-- [ ] `exactl blueprint identity list` continues to work
-- [ ] CLI help output no longer lists `agent` as a subcommand or alias
+- [x] `exactl blueprint agent list` prints an unknown-command error and exits non-zero
+- [x] `exactl blueprint identity list` continues to work
+- [x] CLI help output no longer lists `agent` as a subcommand or alias
+
+**✅ IMPLEMENTED** — `src/cli/exactl.ts`
 
 ---
 

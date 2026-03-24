@@ -1285,64 +1285,6 @@ export const __test_command = new Command()
                 }
               }),
           ),
-      )
-      .command(
-        "agent",
-        new Command()
-          .description("Deprecated: use 'identity' instead")
-          .action(() => {
-            console.warn(
-              "[deprecation] 'exactl blueprint agent' is deprecated. Use 'exactl blueprint identity' instead.",
-            );
-          })
-          .command(
-            "create",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent create' is deprecated. Use 'exactl blueprint identity create' instead.",
-              );
-            }),
-          )
-          .command(
-            "list",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent list' is deprecated. Use 'exactl blueprint identity list' instead.",
-              );
-            }),
-          )
-          .command(
-            "show",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent show' is deprecated. Use 'exactl blueprint identity show' instead.",
-              );
-            }),
-          )
-          .command(
-            "validate",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent validate' is deprecated. Use 'exactl blueprint identity validate' instead.",
-              );
-            }),
-          )
-          .command(
-            "edit",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent edit' is deprecated. Use 'exactl blueprint identity edit' instead.",
-              );
-            }),
-          )
-          .command(
-            "remove",
-            new Command().action(() => {
-              console.warn(
-                "[deprecation] 'exactl blueprint agent remove' is deprecated. Use 'exactl blueprint identity remove' instead.",
-              );
-            }),
-          ),
       ),
   )
   // Flow commands
