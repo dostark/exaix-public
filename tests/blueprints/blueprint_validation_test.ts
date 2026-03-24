@@ -10,8 +10,8 @@ import { parse as parseYaml } from "https://deno.land/std@0.224.0/yaml/mod.ts";
 import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { BlueprintFrontmatterSchema } from "../../src/shared/schemas/blueprint.ts";
 
-const BLUEPRINTS_DIR = "./Blueprints/Agents";
-const EXAMPLES_DIR = "./Blueprints/Agents/examples";
+const BLUEPRINTS_DIR = "./Blueprints/Identities";
+const EXAMPLES_DIR = "./Blueprints/Identities/examples";
 
 interface BlueprintFrontmatter {
   agent_id: string;

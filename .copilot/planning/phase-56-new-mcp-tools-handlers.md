@@ -2,7 +2,7 @@
 agent: claude
 scope: dev
 title: "Phase 56: New MCP Tool Handlers — File and Directory Operations"
-short_summary: "Implement patch_file, delete_file, move_file, and create_directory MCP tool handlers to close critical gaps in Exaix's file operation toolset, enabling agents to perform refactoring, targeted edits, and directory management within portals."
+short*summary: "Implement patch*file, delete*file, move*file, and create_directory MCP tool handlers to close critical gaps in Exaix's file operation toolset, enabling agents to perform refactoring, targeted edits, and directory management within portals."
 version: "1.0"
 topics: ["mcp", "tools", "file-operations", "handlers", "schemas", "security", "portal"]
 ---
@@ -13,7 +13,7 @@ topics: ["mcp", "tools", "file-operations", "handlers", "schemas", "security", "
 > All tools operate within portal bounds, check `PortalOperation.WRITE` permissions, and log every
 > execution to the Activity Journal.
 >
-> **`run_command` / `run_script` are intentionally excluded** from this phase. Their power and risk
+> **`run*command` / `run*script` are intentionally excluded** from this phase. Their power and risk
 > profile require separate design consideration. See [Future Enhancements](#future-enhancements) below.
 >
 > **Prerequisite:** None. Builds on the existing MCP handler infrastructure established in prior phases.
@@ -29,12 +29,12 @@ operation toolset for a coding agent, using the exact same handler pattern as ex
 
 | Tool | MCP Name | Priority | Operation Type |
 | -------------- | -------------------- | -------- | -------------- |
-| `patch_file` | `patch_file` | P0 | Write (targeted) |
-| `delete_file` | `delete_file` | P1 | Write (destructive) |
-| `move_file` | `move_file` | P1 | Write (destructive) |
-| `create_directory` | `create_directory` | P1 | Write (safe) |
+| `patch*file` | `patch*file` | P0 | Write (targeted) |
+| `delete*file` | `delete*file` | P1 | Write (destructive) |
+| `move*file` | `move*file` | P1 | Write (destructive) |
+| `create*directory` | `create*directory` | P1 | Write (safe) |
 
-> **Not in this phase:** `delete_directory`, `run_command`, `run_script`.
+> **Not in this phase:** `delete*directory`, `run*command`, `run_script`.
 > `delete_directory` is deferred — recursive deletion is too destructive for the current
 > supervised model without additional confirmation gates.
 
@@ -43,10 +43,10 @@ operation toolset for a coding agent, using the exact same handler pattern as ex
 ## Goals
 
 - [ ] Add Zod schemas for all four new tools to `src/shared/schemas/mcp.ts`
-- [ ] Implement `PatchFileTool` in `src/mcp/handlers/patch_file_tool.ts`
-- [ ] Implement `DeleteFileTool` in `src/mcp/handlers/delete_file_tool.ts`
-- [ ] Implement `MoveFileTool` in `src/mcp/handlers/move_file_tool.ts`
-- [ ] Implement `CreateDirectoryTool` in `src/mcp/handlers/create_directory_tool.ts`
+- [ ] Implement `PatchFileTool` in `src/mcp/handlers/patch*file*tool.ts`
+- [ ] Implement `DeleteFileTool` in `src/mcp/handlers/delete*file*tool.ts`
+- [ ] Implement `MoveFileTool` in `src/mcp/handlers/move*file*tool.ts`
+- [ ] Implement `CreateDirectoryTool` in `src/mcp/handlers/create*directory*tool.ts`
 - [ ] Register all four tools in `src/mcp/tools.ts`
 - [ ] Update `McpToolName` enum in `src/shared/enums.ts` with new tool names
 - [ ] Write unit tests for all four handlers
@@ -56,7 +56,7 @@ operation toolset for a coding agent, using the exact same handler pattern as ex
 
 ## Design: `patch_file` in Depth
 
-`patch_file` is the most important tool in this phase and deserves careful design. Unlike `write_file`
+`patch*file` is the most important tool in this phase and deserves careful design. Unlike `write*file`
 which replaces entire file content, `patch_file` applies a targeted replacement — making it:
 
 - **More auditable** — the diff between before/after is small and meaningful
@@ -74,13 +74,13 @@ by most production coding agents is **exact string replacement**: the model prov
 - Deterministic — fails loudly if the search string isn't found (no silent misapplication)
 - What Claude Code and Cursor's edit tool use internally
 
-```
+```text
 patch_file args:
   portal: "my-project"
   path: "src/main.ts"
   search: "export function oldName("
   replace: "export function newName("
-```
+```text
 
 If `search` appears zero times → error (tool fails loudly, model must reconsider).
 If `search` appears more than once → error with count (ambiguous; model must make search more specific).
@@ -125,11 +125,12 @@ export const CreateDirectoryToolArgsSchema = z.object({
   path: z.string().min(1, "Directory path required"),
   agent_id: z.string().min(1, "Agent ID required").default("system"),
 });
-```
+```text
 
 Also update `MCPToolArgs` union type to include the four new schemas.
 
 **Success Criteria:**
+
 - [ ] All four schemas parse valid args correctly
 - [ ] TypeScript compilation succeeds
 
@@ -141,40 +142,41 @@ Also update `MCPToolArgs` union type to include the four new schemas.
 
 ```typescript
 export enum McpToolName {
-  READ_FILE = "read_file",
-  WRITE_FILE = "write_file",
-  LIST_DIRECTORY = "list_directory",
-  SEARCH_FILES = "search_files",
+  READ*FILE = "read*file",
+  WRITE*FILE = "write*file",
+  LIST*DIRECTORY = "list*directory",
+  SEARCH*FILES = "search*files",
   // New in Phase 56:
-  PATCH_FILE = "patch_file",
-  DELETE_FILE = "delete_file",
-  MOVE_FILE = "move_file",
-  CREATE_DIRECTORY = "create_directory",
+  PATCH*FILE = "patch*file",
+  DELETE*FILE = "delete*file",
+  MOVE*FILE = "move*file",
+  CREATE*DIRECTORY = "create*directory",
   // Reserved — not yet implemented (see Future Enhancements):
-  // RUN_COMMAND = "run_command",
-  // RUN_SCRIPT = "run_script",
-  // DELETE_DIRECTORY = "delete_directory",
+  // RUN*COMMAND = "run*command",
+  // RUN*SCRIPT = "run*script",
+  // DELETE*DIRECTORY = "delete*directory",
 }
-```
+```text
 
 **Success Criteria:**
+
 - [ ] Enum updated; existing references to `McpToolName` compile without changes
 
 ---
 
 ### Task 3: `PatchFileTool` Handler
 
-**File:** `src/mcp/handlers/patch_file_tool.ts` (new)
+**File:** `src/mcp/handlers/patch*file*tool.ts` (new)
 
 ```typescript
 /**
  * @module PatchFileTool
- * @path src/mcp/handlers/patch_file_tool.ts
+ * @path src/mcp/handlers/patch*file*tool.ts
  * @description MCP tool handler for applying targeted string replacements to portal files.
  * Preferred over write_file for code edits — produces minimal, auditable changes.
  * @architectural-layer MCP
  * @dependencies [ToolHandler, PatchFileToolArgsSchema, Path, FS]
- * @related-files [src/mcp/tool_handler.ts, src/mcp/handlers/write_file_tool.ts]
+ * @related-files [src/mcp/tool*handler.ts, src/mcp/handlers/write*file_tool.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse, PatchFileToolArgsSchema } from "../../shared/schemas/mcp.ts";
@@ -236,7 +238,7 @@ export class PatchFileTool extends ToolHandler {
       replace_length: replace.length,
       bytes_before: content.length,
       bytes_after: patched.length,
-      agent_id: agent_id ?? null,
+      agent*id: agent*id ?? null,
       success: true,
     });
   }
@@ -280,9 +282,10 @@ export class PatchFileTool extends ToolHandler {
     };
   }
 }
-```
+```text
 
 **Success Criteria:**
+
 - [ ] Replaces exactly one occurrence, writes back correctly
 - [ ] Throws descriptive error on zero matches
 - [ ] Throws descriptive error on multiple matches with the count
@@ -293,12 +296,12 @@ export class PatchFileTool extends ToolHandler {
 
 ### Task 4: `DeleteFileTool` Handler
 
-**File:** `src/mcp/handlers/delete_file_tool.ts` (new)
+**File:** `src/mcp/handlers/delete*file*tool.ts` (new)
 
 ```typescript
 /**
  * @module DeleteFileTool
- * @path src/mcp/handlers/delete_file_tool.ts
+ * @path src/mcp/handlers/delete*file*tool.ts
  * @description MCP tool handler for deleting a single file from a portal.
  * Destructive and irreversible at the filesystem level — git history preserves deleted files.
  * @architectural-layer MCP
@@ -322,7 +325,7 @@ import type { JSONValue } from "../../shared/types/json.ts";
  *
  * Note: File is deleted at the filesystem level. If the portal is a git repository,
  * the deletion is recoverable via git history after a subsequent git_commit.
- * Agents should follow delete_file with git_commit to register the deletion.
+ * Agents should follow delete*file with git*commit to register the deletion.
  */
 export class DeleteFileTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
@@ -353,7 +356,7 @@ export class DeleteFileTool extends ToolHandler {
     return this.formatSuccess("delete_file", portal, {
       path,
       bytes_deleted: stat.size,
-      agent_id: agent_id ?? null,
+      agent*id: agent*id ?? null,
       success: true,
     });
   }
@@ -378,15 +381,17 @@ export class DeleteFileTool extends ToolHandler {
     };
   }
 }
-```
+```text
 
 **Success Criteria:**
+
 - [ ] Deletes regular files successfully
-Here is the document from `**Success Criteria:** - [ ] Deletes regular files successfully` onwards:
+
 
 ***
 
 ```markdown
+
 - [ ] Deletes regular files successfully
 - [ ] Throws error if path not found
 - [ ] Throws error if path is a directory (not a file)
@@ -397,12 +402,12 @@ Here is the document from `**Success Criteria:** - [ ] Deletes regular files suc
 
 ### Task 5: `MoveFileTool` Handler
 
-**File:** `src/mcp/handlers/move_file_tool.ts` (new)
+**File:** `src/mcp/handlers/move*file*tool.ts` (new)
 
 ```typescript
 /**
  * @module MoveFileTool
- * @path src/mcp/handlers/move_file_tool.ts
+ * @path src/mcp/handlers/move*file*tool.ts
  * @description MCP tool handler for moving or renaming a file within a portal.
  * Used for rename/restructure tasks. Both source and destination must be within portal bounds.
  * @architectural-layer MCP
@@ -428,7 +433,7 @@ import type { JSONValue } from "../../shared/types/json.ts";
  * - Logs move to Activity Journal
  *
  * Note: This is a filesystem rename. In git repositories, agents should follow
- * move_file with git_commit so git tracks it as a rename (preserving history).
+ * move*file with git*commit so git tracks it as a rename (preserving history).
  */
 export class MoveFileTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
@@ -481,7 +486,7 @@ export class MoveFileTool extends ToolHandler {
       from,
       to,
       bytes: stat.size,
-      agent_id: agent_id ?? null,
+      agent*id: agent*id ?? null,
       success: true,
     });
   }
@@ -507,9 +512,10 @@ export class MoveFileTool extends ToolHandler {
     };
   }
 }
-```
+```text
 
 **Success Criteria:**
+
 - [ ] Moves file from source to destination correctly
 - [ ] Throws error if source not found
 - [ ] Throws error if source is a directory
@@ -522,12 +528,12 @@ export class MoveFileTool extends ToolHandler {
 
 ### Task 6: `CreateDirectoryTool` Handler
 
-**File:** `src/mcp/handlers/create_directory_tool.ts` (new)
+**File:** `src/mcp/handlers/create*directory*tool.ts` (new)
 
 ```typescript
 /**
  * @module CreateDirectoryTool
- * @path src/mcp/handlers/create_directory_tool.ts
+ * @path src/mcp/handlers/create*directory*tool.ts
  * @description MCP tool handler for creating a directory tree within a portal.
  * Low-risk altering operation — creates parent directories recursively.
  * @architectural-layer MCP
@@ -562,7 +568,7 @@ export class CreateDirectoryTool extends ToolHandler {
 
     return this.formatSuccess("create_directory", portal, {
       path,
-      agent_id: agent_id ?? null,
+      agent*id: agent*id ?? null,
       success: true,
     });
   }
@@ -585,7 +591,7 @@ export class CreateDirectoryTool extends ToolHandler {
     };
   }
 }
-```
+```text
 
 **Success Criteria:**
 
@@ -604,18 +610,18 @@ Add the four new handler imports and include them in the exported tools aggregat
 
 ```typescript
 // Existing imports
-import { ReadFileTool } from "./handlers/read_file_tool.ts";
-import { WriteFileTool } from "./handlers/write_file_tool.ts";
-import { ListDirectoryTool } from "./handlers/list_directory_tool.ts";
-import { GitCreateBranchTool } from "./handlers/git_create_branch_tool.ts";
-import { GitCommitTool } from "./handlers/git_commit_tool.ts";
-import { GitStatusTool } from "./handlers/git_status_tool.ts";
+import { ReadFileTool } from "./handlers/read*file*tool.ts";
+import { WriteFileTool } from "./handlers/write*file*tool.ts";
+import { ListDirectoryTool } from "./handlers/list*directory*tool.ts";
+import { GitCreateBranchTool } from "./handlers/git*create*branch_tool.ts";
+import { GitCommitTool } from "./handlers/git*commit*tool.ts";
+import { GitStatusTool } from "./handlers/git*status*tool.ts";
 
 // New in Phase 56:
-import { PatchFileTool } from "./handlers/patch_file_tool.ts";
-import { DeleteFileTool } from "./handlers/delete_file_tool.ts";
-import { MoveFileTool } from "./handlers/move_file_tool.ts";
-import { CreateDirectoryTool } from "./handlers/create_directory_tool.ts";
+import { PatchFileTool } from "./handlers/patch*file*tool.ts";
+import { DeleteFileTool } from "./handlers/delete*file*tool.ts";
+import { MoveFileTool } from "./handlers/move*file*tool.ts";
+import { CreateDirectoryTool } from "./handlers/create*directory*tool.ts";
 
 export function createToolHandlers(
   context: ICliApplicationContext,
@@ -635,9 +641,10 @@ export function createToolHandlers(
     new CreateDirectoryTool(context, permissions),
   ];
 }
-```
+```text
 
 **Success Criteria:**
+
 - [ ] All four tools appear in MCP `tools/list` response
 - [ ] Tool names match `McpToolName` enum values exactly
 
@@ -645,7 +652,7 @@ export function createToolHandlers(
 
 ### Task 8: Tests
 
-**File:** `tests/mcp/handlers/patch_file_tool_test.ts` (new)
+**File:** `tests/mcp/handlers/patch*file*tool_test.ts` (new)
 
 ```typescript
 it("replaces exactly one occurrence", async () => {
@@ -711,16 +718,16 @@ it("supports empty replace string (deletion)", async () => {
   const content = await Deno.readTextFile(join(portalPath, "src/main.ts"));
   expect(content).toBe("const x = 1;\n");
 });
-```
+```text
 
-**File:** `tests/mcp/handlers/delete_file_tool_test.ts` (new)
+**File:** `tests/mcp/handlers/delete*file*tool_test.ts` (new)
 
 ```typescript
 it("deletes an existing file", async () => {
   const { tool, portalPath } = await setupToolTest();
   await writeTestFile(portalPath, "src/old.ts", "// old content");
 
-  await tool.execute({ portal: TEST_PORTAL, path: "src/old.ts", agent_id: "test-identity" });
+  await tool.execute({ portal: TEST*PORTAL, path: "src/old.ts", agent*id: "test-identity" });
 
   await expect(Deno.stat(join(portalPath, "src/old.ts"))).rejects.toThrow();
 });
@@ -728,7 +735,7 @@ it("deletes an existing file", async () => {
 it("throws when file not found", async () => {
   const { tool } = await setupToolTest();
   await expect(
-    tool.execute({ portal: TEST_PORTAL, path: "src/ghost.ts", agent_id: "test-identity" }),
+    tool.execute({ portal: TEST*PORTAL, path: "src/ghost.ts", agent*id: "test-identity" }),
   ).rejects.toThrow("File not found");
 });
 
@@ -737,12 +744,12 @@ it("refuses to delete a directory", async () => {
   await Deno.mkdir(join(portalPath, "src/somedir"), { recursive: true });
 
   await expect(
-    tool.execute({ portal: TEST_PORTAL, path: "src/somedir", agent_id: "test-identity" }),
+    tool.execute({ portal: TEST*PORTAL, path: "src/somedir", agent*id: "test-identity" }),
   ).rejects.toThrow("is a directory");
 });
-```
+```text
 
-**File:** `tests/mcp/handlers/move_file_tool_test.ts` (new)
+**File:** `tests/mcp/handlers/move*file*tool_test.ts` (new)
 
 ```typescript
 it("moves a file to a new path", async () => {
@@ -750,7 +757,7 @@ it("moves a file to a new path", async () => {
   await writeTestFile(portalPath, "src/old.ts", "const x = 1;");
 
   await tool.execute({
-    portal: TEST_PORTAL, from: "src/old.ts", to: "src/new.ts", agent_id: "test-identity",
+    portal: TEST*PORTAL, from: "src/old.ts", to: "src/new.ts", agent*id: "test-identity",
   });
 
   await expect(Deno.stat(join(portalPath, "src/old.ts"))).rejects.toThrow();
@@ -765,7 +772,7 @@ it("throws if destination already exists", async () => {
 
   await expect(
     tool.execute({
-      portal: TEST_PORTAL, from: "src/a.ts", to: "src/b.ts", agent_id: "test-identity",
+      portal: TEST*PORTAL, from: "src/a.ts", to: "src/b.ts", agent*id: "test-identity",
     }),
   ).rejects.toThrow("Destination already exists");
 });
@@ -805,15 +812,15 @@ it("blocks path traversal on destination", async () => {
     }),
   ).rejects.toThrow();
 });
-```
+```text
 
-**File:** `tests/mcp/handlers/create_directory_tool_test.ts` (new)
+**File:** `tests/mcp/handlers/create*directory*tool_test.ts` (new)
 
 ```typescript
 it("creates a single directory", async () => {
   const { tool, portalPath } = await setupToolTest();
 
-  await tool.execute({ portal: TEST_PORTAL, path: "src/newdir", agent_id: "test-identity" });
+  await tool.execute({ portal: TEST*PORTAL, path: "src/newdir", agent*id: "test-identity" });
 
   const stat = await Deno.stat(join(portalPath, "src/newdir"));
   expect(stat.isDirectory).toBe(true);
@@ -822,7 +829,7 @@ it("creates a single directory", async () => {
 it("creates nested directories recursively", async () => {
   const { tool, portalPath } = await setupToolTest();
 
-  await tool.execute({ portal: TEST_PORTAL, path: "src/a/b/c", agent_id: "test-identity" });
+  await tool.execute({ portal: TEST*PORTAL, path: "src/a/b/c", agent*id: "test-identity" });
 
   const stat = await Deno.stat(join(portalPath, "src/a/b/c"));
   expect(stat.isDirectory).toBe(true);
@@ -833,7 +840,7 @@ it("is idempotent — succeeds if directory already exists", async () => {
   await Deno.mkdir(join(portalPath, "src/existing"), { recursive: true });
 
   await expect(
-    tool.execute({ portal: TEST_PORTAL, path: "src/existing", agent_id: "test-identity" }),
+    tool.execute({ portal: TEST*PORTAL, path: "src/existing", agent*id: "test-identity" }),
   ).resolves.toBeDefined();
 });
 
@@ -841,22 +848,23 @@ it("blocks path traversal", async () => {
   const { tool } = await setupToolTest();
 
   await expect(
-    tool.execute({ portal: TEST_PORTAL, path: "../../outside", agent_id: "test-identity" }),
+    tool.execute({ portal: TEST*PORTAL, path: "../../outside", agent*id: "test-identity" }),
   ).rejects.toThrow();
 });
-```
+```text
 
 **Test Summary:**
 
 | Test File | Cases |
 | ---------------------------------------------- | ----- |
-| `patch_file_tool_test.ts` | 4 |
-| `delete_file_tool_test.ts` | 3 |
-| `move_file_tool_test.ts` | 4 |
-| `create_directory_tool_test.ts` | 4 |
+| `patch*file*tool_test.ts` | 4 |
+| `delete*file*tool_test.ts` | 3 |
+| `move*file*tool_test.ts` | 4 |
+| `create*directory*tool_test.ts` | 4 |
 | **Total new tests** | **15** |
 
 **Success Criteria:**
+
 - [ ] All 15 tests pass
 - [ ] All existing MCP handler tests continue to pass (no regressions)
 
@@ -867,10 +875,10 @@ it("blocks path traversal", async () => {
 | Risk | Impact | Likelihood | Mitigation |
 | ------------------------------------------------ | -------- | ---------- | -------------------------------------------------------------------- |
 | **R1:** `patch_file` silently succeeds on wrong location | High | Medium | Exact-match-once invariant: zero or multiple matches both throw |
-| **R2:** `delete_file` used without prior `git_commit` | High | Medium | Tool description explicitly states "recoverable from git history"; agents instructed to commit after delete |
+| **R2:** `delete*file` used without prior `git*commit` | High | Medium | Tool description explicitly states "recoverable from git history"; agents instructed to commit after delete |
 | **R3:** `move_file` destination silently overwrites | High | Low | Pre-existence check throws before any rename is executed |
 | **R4:** `create_directory` used outside portal bounds | Low | Low | `resolvePortalPath` enforces portal bounds; traversal throws |
-| **R5:** `delete_directory` requested via `delete_file` | Low | Medium | Handler checks `stat.isFile` and throws descriptive error with guidance |
+| **R5:** `delete*directory` requested via `delete*file` | Low | Medium | Handler checks `stat.isFile` and throws descriptive error with guidance |
 
 ***
 
@@ -893,7 +901,7 @@ export const WRITE_TOOLS: ReadonlySet<McpToolName> = new Set([
   McpToolName.DELETE_FILE,       // Phase 56
   McpToolName.MOVE_FILE,         // Phase 56
   McpToolName.CREATE_DIRECTORY,  // Phase 56 — low-risk but state-altering
-  McpToolName.GIT_CREATE_BRANCH,
+  McpToolName.GIT*CREATE*BRANCH,
   McpToolName.GIT_COMMIT,
 ]);
 
@@ -901,13 +909,13 @@ export const WRITE_TOOLS: ReadonlySet<McpToolName> = new Set([
  * Read-only MCP tools — safe for dynamic step execution.
  * Unchanged from Phase 55.
  */
-export const READ_ONLY_TOOLS: ReadonlySet<McpToolName> = new Set([
+export const READ*ONLY*TOOLS: ReadonlySet<McpToolName> = new Set([
   McpToolName.READ_FILE,
   McpToolName.LIST_DIRECTORY,
   McpToolName.SEARCH_FILES,
   McpToolName.GIT_STATUS,
 ]);
-```
+```text
 
 ***
 
@@ -916,7 +924,7 @@ export const READ_ONLY_TOOLS: ReadonlySet<McpToolName> = new Set([
 > The following tools are explicitly **not implemented in this phase**. They are documented here
 > to preserve design intent for future consideration.
 
-### `run_command` / `run_script`
+### `run*command` / `run*script`
 
 **Capability:** Execute shell commands or named scripts within a portal working directory.
 
@@ -941,10 +949,11 @@ trigger irreversible side effects that extend beyond the filesystem.
   distinct from `PortalOperation.WRITE`, allowing portals to grant execution rights independently.
 
 **Recommended implementation sequence when the time comes:**
+
 1. Add `PortalOperation.EXECUTE` to the `PortalOperation` enum
-2. Implement `run_script` with a named-script map declared per portal in config (e.g., `scripts.test`, `scripts.build`, `scripts.lint`)
-3. Add `run_command` later, scoped to an explicit allowlist of approved binary names per portal
-4. Every invocation logged to Activity Journal with full command string, exit code, stdout/stderr summary, and duration
+1.
+1.
+1.
 
 ### `delete_directory`
 
@@ -955,6 +964,7 @@ proportional to the directory tree size. A single path construction error can de
 portion of a portal codebase.
 
 **Design considerations before implementation:**
+
 - Require explicit `recursive: true` parameter — no default — to make destructive intent unambiguous in the plan step
 - Consider requiring the directory to be non-empty only when `recursive: true` is set (empty directories allowed unconditionally)
 - The portal should ideally have an active git tracking state (at least one committed file in the target directory) so deletion is recoverable from history
@@ -965,6 +975,7 @@ portion of a portal codebase.
 ## Success Criteria
 
 ### Functional Requirements
+
 - [ ] `patch_file` applies exact single-occurrence string replacements; fails loudly on zero or multiple matches
 - [ ] `delete_file` removes regular files only; refuses directories with descriptive error
 - [ ] `move_file` renames/moves files within portal bounds; refuses to overwrite existing destination
@@ -974,6 +985,7 @@ portion of a portal codebase.
 - [ ] All four tools block path traversal via `resolvePortalPath`
 
 ### Quality Requirements
+
 - [ ] TypeScript compilation: zero errors
 - [ ] All 15 new tests pass
 - [ ] All existing MCP handler tests pass (no regressions)
@@ -1002,15 +1014,17 @@ portion of a portal codebase.
 
 ## Related Work
 
-- **Phase 55:** Hybrid Dynamic Tool Selection — defines `WRITE_TOOLS` / `READ_ONLY_TOOLS` constants and `permitted_tools` step enforcement; updated by this phase to reflect accurate tool inventory
+- **Phase 55:** Hybrid Dynamic Tool Selection — defines `WRITE*TOOLS` / `READ*ONLY*TOOLS` constants and `permitted*tools` step enforcement; updated by this phase to reflect accurate tool inventory
 - **Phase 53:** Identity rename — `agent_id` field naming conventions used by all tool handlers remain unchanged per Phase 53 decision
 
 ***
 
 ## References
 
-- [`src/mcp/tool_handler.ts`](../../src/mcp/tool_handler.ts) — base class with `validatePermission`, `resolvePortalPath`, `formatSuccess`, `logToolExecution`
-- [`src/mcp/handlers/write_file_tool.ts`](../../src/mcp/handlers/write_file_tool.ts) — canonical reference pattern for write tool handlers
+- [`src/mcp/tool*handler.ts`](../../src/mcp/tool*handler.ts) — base class with `validatePermission`, `resolvePortalPath`, `formatSuccess`, `logToolExecution`
+- [`src/mcp/handlers/write*file*tool.ts`](../../src/mcp/handlers/write*file*tool.ts) — canonical reference pattern for write tool handlers
 - [`src/shared/schemas/mcp.ts`](../../src/shared/schemas/mcp.ts) — Zod schemas for all tool args
 - [`src/shared/enums.ts`](../../src/shared/enums.ts) — `McpToolName`, `PortalOperation`
-- [`src/shared/constants.ts`](../../src/shared/constants.ts) — `WRITE_TOOLS`, `READ_ONLY_TOOLS`
+- [`src/shared/constants.ts`](../../src/shared/constants.ts) — `WRITE*TOOLS`, `READ*ONLY_TOOLS`
+
+```

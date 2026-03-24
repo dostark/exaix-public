@@ -4,7 +4,7 @@
 > All tools operate within portal bounds, check `PortalOperation.WRITE` permissions, and log every
 > execution to the Activity Journal.
 >
-> **`run_command` / `run_script` are intentionally excluded** from this phase. Their power and risk
+> **`run*command` / `run*script` are intentionally excluded** from this phase. Their power and risk
 > profile require separate design consideration. See [Future Enhancements](#future-enhancements) below.
 >
 > **Prerequisite:** None. Builds on the existing MCP handler infrastructure established in prior phases.

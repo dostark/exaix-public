@@ -708,8 +708,8 @@ Deno.test("AgentStatusTuiSession: getViewName", () => {
   const view = new AgentStatusView(service);
   const session = view.createTuiSession(false);
 
-  if (session.getViewName() !== "Agent Status") {
-    throw new Error(`Expected "Agent Status" but got "${session.getViewName()}"`);
+  if (session.getViewName() !== "Identities") {
+    throw new Error(`Expected "Identities" but got "${session.getViewName()}"`);
   }
 });
 

@@ -882,7 +882,8 @@ Deno.test("request create with all options", async () => {
       _source?: RequestSource,
     ) => {
       assertEquals(desc, "Do task");
-      assertEquals(opts?.agent, "custom-agent");
+      // Phase 53: --agent is deprecated alias, test uses --identity
+      assertEquals(opts?.agent || opts?.identity, "custom-agent");
       assertEquals(opts?.priority, "high" as IRequestOptions["priority"]);
       assertEquals(opts?.portal, "my-portal");
       assertEquals(opts?.model, TEST_MODEL_OPENAI);
@@ -902,7 +903,7 @@ Deno.test("request create with all options", async () => {
       await mod.__test_command.parse([
         FlowInputSource.REQUEST,
         "Do task",
-        "-a",
+        "--identity",
         "custom-agent",
         "-p",
         "high",

@@ -81,7 +81,7 @@ Deno.test("AgentStatusTuiSession.showAgentDetail: handles missing agent and rend
   // Missing agent path
   session.setSelectedAgentId("missing");
   await session.showAgentDetail();
-  assertStringIncludes(session.getDetailContent(), "Agent not found");
+  assertStringIncludes(session.getDetailContent(), "Identity not found");
 });
 
 Deno.test("AgentStatusTuiSession.toggleGrouping: cycles and rebuilds", async () => {

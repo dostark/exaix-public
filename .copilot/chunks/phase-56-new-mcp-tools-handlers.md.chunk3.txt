@@ -1,8 +1,8 @@
 - [ ] Add Zod schemas for all four new tools to `src/shared/schemas/mcp.ts`
-- [ ] Implement `PatchFileTool` in `src/mcp/handlers/patch_file_tool.ts`
-- [ ] Implement `DeleteFileTool` in `src/mcp/handlers/delete_file_tool.ts`
-- [ ] Implement `MoveFileTool` in `src/mcp/handlers/move_file_tool.ts`
-- [ ] Implement `CreateDirectoryTool` in `src/mcp/handlers/create_directory_tool.ts`
+- [ ] Implement `PatchFileTool` in `src/mcp/handlers/patch*file*tool.ts`
+- [ ] Implement `DeleteFileTool` in `src/mcp/handlers/delete*file*tool.ts`
+- [ ] Implement `MoveFileTool` in `src/mcp/handlers/move*file*tool.ts`
+- [ ] Implement `CreateDirectoryTool` in `src/mcp/handlers/create*directory*tool.ts`
 - [ ] Register all four tools in `src/mcp/tools.ts`
 - [ ] Update `McpToolName` enum in `src/shared/enums.ts` with new tool names
 - [ ] Write unit tests for all four handlers

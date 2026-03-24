@@ -6,10 +6,10 @@ by most production coding agents is **exact string replacement**: the model prov
 - Deterministic — fails loudly if the search string isn't found (no silent misapplication)
 - What Claude Code and Cursor's edit tool use internally
 
-```
+```text
 patch_file args:
   portal: "my-project"
   path: "src/main.ts"
   search: "export function oldName("
   replace: "export function newName("
-```
+```text

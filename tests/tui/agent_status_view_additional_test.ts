@@ -52,7 +52,7 @@ class DetailedAgentService implements IAgentService {
 Deno.test("AgentStatusView: renders empty agent list message", async () => {
   const view = new AgentStatusView(new EmptyAgentService());
   const out = await view.renderAgentList();
-  assertStringIncludes(out, "No agents registered.");
+  assertStringIncludes(out, "No identities registered.");
 });
 
 Deno.test("AgentStatusView: render details after select shows issues and logs", async () => {

@@ -37,7 +37,10 @@ export interface IRequestSkills {
  * Options for creating a request
  */
 export interface IRequestOptions {
+  /** @deprecated Use identity instead */
   agent?: string;
+  /** Identity blueprint to use (Phase 53 canonical field) */
+  identity?: string;
   priority?: RequestPriority;
   portal?: string;
   target_branch?: string;

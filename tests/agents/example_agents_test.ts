@@ -15,8 +15,8 @@ import { BlueprintFrontmatterSchema } from "../../src/shared/schemas/blueprint.t
 const paths = getDefaultPaths(".");
 
 Deno.test("Agent Examples - Files Exist", async () => {
-  const examplesDir = join(paths.blueprints, "Agents", "examples");
-  const templatesDir = join(paths.blueprints, "Agents", "templates");
+  const examplesDir = join(paths.blueprints, "Identities", "examples");
+  const templatesDir = join(paths.blueprints, "Identities", "templates");
 
   // Check example files
   const exampleFiles = [
@@ -46,7 +46,7 @@ Deno.test("Agent Examples - Files Exist", async () => {
 });
 
 Deno.test("Agent Examples - Validate Blueprints", async () => {
-  const examplesDir = join(paths.blueprints, "Agents", "examples");
+  const examplesDir = join(paths.blueprints, "Identities", "examples");
   const exampleFiles = [
     "code-reviewer.md",
     "feature-developer.md",
