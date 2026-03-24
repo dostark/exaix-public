@@ -182,11 +182,13 @@ incremented and the change documented in `docs/dev/Exaix_Technical_Spec.md`.
 
 **Success criteria:**
 
-- [ ] Loading an identity from `Blueprints/Agents/` path no longer works
-- [ ] `BLUEPRINT_AGENTS_DIR` does not appear in source (`grep -r BLUEPRINT_AGENTS_DIR src/`)
-- [ ] `blueprint.legacy_path.used` does not appear in source
-- [ ] Unit test: loading a missing identity throws `IdentityNotFoundError` with a clear message
+- [x] Loading an identity from `Blueprints/Agents/` path no longer works
+- [x] `BLUEPRINT_AGENTS_DIR` does not appear in source (`grep -r BLUEPRINT_AGENTS_DIR src/`)
+- [x] `blueprint.legacy_path.used` does not appear in source
+- [x] Unit test: loading a missing identity throws `IdentityNotFoundError` with a clear message
   referencing `Blueprints/Identities/`
+
+**✅ IMPLEMENTED** — `src/services/blueprint_loader.ts`, 17/17 tests passing
 
 ---
 

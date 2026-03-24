@@ -344,3 +344,327 @@ ExaIx and Ruflo represent two fundamentally different bets about where intellige
 - **ExaIx** bets on **structured delegation** — humans remain the authority on goals and plans; identities execute within approved boundaries. Intelligence is in the planning and quality layers, not in autonomous self-organization.
 
 Neither is wrong. They are optimized for different risk profiles: Ruflo for speed and adaptability, ExaIx for auditability and compliance. The adaptations above are carefully chosen to import Ruflo's _execution infrastructure_ (parallel runners, shared memory, vector storage, incremental learning) without importing its _governance philosophy_ (autonomous consensus, dynamic spawning, self-directed task assignment). ExaIx should remain the supervisor. Ruflo's machinery can make ExaIx's identities significantly more capable within that supervisory frame.
+
+## Corrected ExaIx vs. Ruflo Comparative Analysis
+
+_Based on direct source code review of `execution_loop.ts`, `reflexive_agent.ts`, `flow_runner.ts`, `blueprint_loader.ts`, and `memory_bank.ts`_
+
+---
+
+### 1. Architectural Overview
+
+| Dimension               | ExaIx (verified)                                                                      | Ruflo (verified)                                        |
+| ----------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Runtime**             | Deno + TypeScript                                                                     | Node.js / Bun + TypeScript                              |
+| **Primary abstraction** | Identity (formerly Agent) + Portal                                                    | Agent + Flow                                            |
+| **Execution model**     | Reflexive loop with self-critique + linear lease-gated execution                      | Multi-step DAG flows with wave-based parallel execution |
+| **Memory system**       | Structured hierarchical Memory Banks (Project / Execution / Global) with file-locking | Session-level in-memory context + external tool calls   |
+| **Orchestration**       | `ExecutionLoop` (sequential, lease-managed)                                           | `FlowRunner` (wave-parallel, gate-evaluated)            |
+| **Blueprint format**    | YAML with frontmatter → `BlueprintLoader` validates via Zod                           | YAML agent definitions with tool declarations           |
+| **Persistence layer**   | SQLite (`IDatabaseService`) + Markdown/JSON Memory Banks                              | No built-in persistence; relies on tools                |
+
+---
+
+### 2. Verified Corrections to Prior Comparative Analysis
+
+#### 2.1 ExaIx Flow Execution — NOT purely sequential
+
+The original comparative doc suggested ExaIx has only sequential execution. **Correction:** `flow_runner.ts` implements **wave-based parallel execution** — steps without dependencies run concurrently in the same wave, while steps with declared dependencies wait for their wave. This is architecturally closer to Ruflo's DAG model than previously stated. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
+
+```
+// Verified in flow_runner.ts: steps grouped into waves by dependency resolution
+// Steps in same wave execute in parallel via Promise.all()
+```
+
+#### 2.2 Blueprint Loader — Identities path with Agents fallback
+
+The prior analysis described a clean migration to Identities. **Correction:** `blueprint_loader.ts` confirms the actual path resolution checks `src/identities/` **first**, then falls back to `src/agents/` for backward compatibility. This is a transitional dual-path, not a completed migration: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
+
+```typescript
+// Verified: tries identities/ first, falls back to agents/
+// DEFAULT_BLUEPRINT_VERSION from shared/constants.ts used for versioning
+```
+
+#### 2.3 Memory Bank — File-locking IS implemented (not described in original doc)
+
+The original analysis did not mention concurrency control. **Correction:** `memory_bank.ts` implements a robust **file-based locking mechanism** (`withFileLock`) with exponential backoff and configurable retry (`LOCK_ACQUIRE_TIMEOUT_MS` from constants). All write operations (pattern add, decision add, learning add, project update) acquire locks before mutation. This is a significant production-readiness feature absent in Ruflo. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
+
+#### 2.4 Global Memory — Promote/Demote learning lifecycle (not in original doc)
+
+The original analysis described memory as project-scoped only. **Correction:** ExaIx implements a **full learning lifecycle** with:
+
+- `promoteLearning()` — elevates a project-level pattern/decision to `MemoryScope.GLOBAL`
+- `demoteLearning()` — moves a global learning back to a project as a pattern
+- `rebuildIndicesWithEmbeddings()` — integrates `IMemoryEmbeddingService` for vector search on approved learnings
+
+#### 2.5 Reflexive Agent — Self-critique loop is real and bounded
+
+Confirmed in `reflexive_agent.ts`: the self-critique loop runs up to a configurable `maxIterations`, evaluates its own output quality each cycle, and exits early if quality threshold is met. This is not present in Ruflo at all.
+
+#### 2.6 IActivity Journal — Pervasive, not optional
+
+Every memory operation (`createProjectMemory`, `addPattern`, `addDecision`, `createExecutionRecord`, `promoteLearning`, `rebuildIndices`, etc.) calls `this.logActivity()` which writes to `IDatabaseService`. This journal is structural to ExaIx's observability — it is not an add-on. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
+
+---
+
+### 3. Detailed Feature Comparison (Corrected)
+
+| Feature                          | ExaIx                                                                                   | Ruflo                           | Notes                                                                        |
+| -------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------- |
+| **Parallel step execution**      | ✅ Wave-based                                                                           | ✅ Wave-based                   | Both support parallel flows — more similar than originally stated            |
+| **Gate/condition evaluation**    | ✅ `GateEvaluator` with static + dynamic criteria from `IRequestAnalysis`               | ✅ Condition evaluator per step | ExaIx gates can include request analysis criteria (`includeRequestCriteria`) |
+| **Self-critique loop**           | ✅ `ReflexiveAgent` with bounded iterations                                             | ❌ Not present                  | ExaIx unique advantage                                                       |
+| **Memory persistence**           | ✅ Hierarchical (Project/Execution/Global) + SQLite journal                             | ❌ Session-only                 | ExaIx unique advantage                                                       |
+| **Memory concurrency**           | ✅ File-lock with exponential backoff                                                   | N/A                             | ExaIx production-grade                                                       |
+| **Cross-project learning**       | ✅ Global learnings with promote/demote                                                 | ❌ Not present                  | ExaIx unique advantage                                                       |
+| **Embedding/vector search**      | ✅ `IMemoryEmbeddingService` interface + `rebuildIndicesWithEmbeddings`                 | ❌ Not present                  | ExaIx has interface; implementation is pluggable                             |
+| **Blueprint validation**         | ✅ Zod schemas, dual path (identities/agents)                                           | ✅ Zod schemas                  | Similar approach                                                             |
+| **Observability**                | ✅ IActivity Journal on every operation                                                 | ⚠️ Partial (flow-level only)    | ExaIx more granular                                                          |
+| **Portal isolation**             | ✅ Per-portal memory namespacing                                                        | ❌ No equivalent                | ExaIx multi-tenant by design                                                 |
+| **Transform pipeline**           | ✅ `appendToRequest`, `extractSection`, `mergeAsContext`, `templateFill`, `passthrough` | ✅ Similar transforms           | Both support context manipulation between steps                              |
+| **Request analysis integration** | ✅ `IRequestAnalysis` fed into gate evaluation                                          | ❌ Not present                  | ExaIx Phase 45 feature                                                       |
+| **Lease management**             | ✅ Lease-gated execution in `ExecutionLoop`                                             | ❌ Not present                  | ExaIx prevents concurrent execution conflicts                                |
+| **Git worktree isolation**       | ✅ Per-execution worktrees in `ExecutionLoop`                                           | ❌ Not present                  | ExaIx unique for code generation safety                                      |
+
+---
+
+### 4. What ExaIx Can Adopt from Ruflo (Revised Recommendations)
+
+Given verified source code, the following Ruflo capabilities have adoption value **without breaking ExaIx's concept**:
+
+#### 4.1 ✅ `includeRequestCriteria` Pattern (already partially in ExaIx)
+
+ExaIx's `FlowRunner` already accepts `requestAnalysis?: IRequestAnalysis` and passes it to gate evaluation when `includeRequestCriteria: true`. The pattern of **dynamic gate criteria derived from request analysis** is Ruflo-inspired and already adopted. Completion: extend the fallback warning (currently just a debug log) to surface this to the `FlowReporter`.
+
+#### 4.2 ✅ Agent YAML capability declarations
+
+Ruflo's agent YAMLs explicitly declare `capabilities: []` arrays. ExaIx's `ILoadedBlueprint` already has `capabilities: string[]` — but it is unclear if capabilities are used for routing. Adopting Ruflo's **capability-based Identity routing** in `DependencyResolver` would allow dynamic Identity selection per flow step. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
+
+#### 4.3 ✅ Flow-level transform composability
+
+Ruflo's `passthrough`, `templateFill`, and `mergeAsContext` transforms are already present in ExaIx's `transforms.ts`. Consider adopting Ruflo's **named transform chains** (reusable transform sequences defined in YAML) to reduce per-flow boilerplate.
+
+#### 4.4 ⚠️ Ruflo's sub-agent spawning (adapt carefully)
+
+Ruflo supports spawning sub-agents within a flow step. ExaIx could add this as a `FlowStepType.SPAWN` without breaking the wave model — spawned flows would run as child waves, inheriting portal context. **Risk:** must propagate lease and memory scope to child flows.
+
+#### 4.5 ❌ Ruflo's stateless memory model — do NOT adopt
+
+Ruflo relies on tools for all persistence. This conflicts fundamentally with ExaIx's Memory Bank architecture (project/execution/global scopes, file-locking, IActivity Journal). No adoption recommended.
+
+---
+
+### 5. ExaIx Unique Strengths Not Present in Ruflo
+
+1. **Reflexive self-critique** (`ReflexiveAgent`) — quality-gated iteration
+2. **Hierarchical Memory Banks** with file-locking — production-safe concurrent writes
+3. **Cross-project learning promotion/demotion** — organizational knowledge accumulation
+4. **Git worktree isolation** — safe parallel code generation
+5. **Lease management** — prevents execution conflicts in multi-identity scenarios
+6. **IActivity Journal** — full auditability across all memory and execution events
+7. **Portal namespacing** — true multi-tenancy at memory and execution level
+8. **Pluggable embedding service** (`IMemoryEmbeddingService`) — vector search readiness
+
+---
+
+### Summary Verdict
+
+The original comparative analysis **underestimated ExaIx's parallelism** (wave-based execution was not documented) and **missed key production features** (file-locking, learning lifecycle, embedding integration). Ruflo's primary contribution to ExaIx adoption is its **declarative flow YAML patterns** and **capability-based routing** — both of which align with ExaIx's architecture and can be adopted incrementally. ExaIx's Memory Bank system and reflexive loop are architectural differentiators with no Ruflo equivalent.
+
+Now I have the complete picture from `ARCHITECTURE.md` and the full `src/services/` listing. Here is the new round of comparative analysis. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+---
+
+## ExaIx vs. Ruflo — Round 3 Comparative Analysis
+
+---
+
+### 1. Complete ExaIx Services Inventory
+
+The full `src/services/` directory contains **53 files / modules** (including subdirectories). These are grouped below by functional cluster — many of which were absent from the previous comparative analysis: [api.github](https://api.github.com/repos/dostark/exaix-public/contents/src/services)
+
+| Cluster                  | Services                                                                                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Request pipeline**     | `request.ts`, `request_processor.ts` (38 KB!), `request_router.ts`, `request_common.ts`, `request_processing/` (dir), `request_analysis/` (dir) |
+| **Quality & validation** | `quality_gate/` (dir), `output_validator.ts`, `json_repair.ts`, `flow_validator.ts`, `criteria_generator.ts`                                    |
+| **Agent orchestration**  | `agent_runner.ts`, `agent_executor.ts`, `agent_capabilities.ts`, `reflexive_agent.ts`, `tool_reflector.ts`                                      |
+| **Memory system**        | `memory_bank.ts`, `memory_bank/` (dir), `memory_embedding.ts`, `memory_extractor.ts`, `memory_search.ts`, `session_memory.ts`, `memory/` (dir)  |
+| **Plan lifecycle**       | `plan.ts`, `plan_adapter.ts`, `plan_executor.ts`, `plan_writer.ts`, `structured_plan_parser.ts`                                                 |
+| **Portal system**        | `portal.ts`, `portal_permissions.ts`, `portal_knowledge/` (dir), `context_card_generator.ts`, `path_resolver.ts`                                |
+| **Execution infra**      | `execution_loop.ts` (40 KB), `workspace_execution_context.ts`, `archive_service.ts`, `artifact_registry.ts`                                     |
+| **Flow support**         | `flow_reporter.ts`, `flow_validator.ts`                                                                                                         |
+| **AI/Quality**           | `confidence_scorer.ts`, `skills.ts`                                                                                                             |
+| **Observability**        | `event_logger.ts`, `audit_logger.ts`, `structured_logger.ts`, `mission_reporter.ts`, `notification.ts`                                          |
+| **Reliability**          | `retry_policy.ts`, `health_check_service.ts`, `graceful_shutdown.ts`, `database_connection_pool.ts`                                             |
+| **Data**                 | `db.ts`, `git_service.ts` (24 KB), `cost_tracker.ts`                                                                                            |
+| **Review**               | `review_registry.ts`                                                                                                                            |
+| **Prompting**            | `prompt_context.ts`, `code_parser.ts`                                                                                                           |
+| **Infrastructure dirs**  | `adapters/`, `common/`, `decorators/`, `middleware/`                                                                                            |
+| **TUI**                  | `tui_service_factory.ts`                                                                                                                        |
+| **Daemon**               | `watcher.ts`, `blueprint_loader.ts`                                                                                                             |
+
+---
+
+### 2. New Architectural Insights from ARCHITECTURE.md
+
+#### 2.1 Three-tier Edition Model — Not Previously Analyzed
+
+ExaIx has a commercial edition model (Solo/Team/Enterprise) with explicit feature differentiation: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- **Solo** (all editions): SQLite journal, CLI+TUI, local Ollama + cloud LLMs, MCP client
+- **Team+**: PostgreSQL (append-only), Web UI, MCP server mode, full-text memory search
+- **Enterprise**: immudb (WORM), Azure/Bedrock/Vertex LLMs, compliance (EU AI Act, HIPAA, SOX), RBAC
+
+Ruflo has **no edition model** — it is a single open-source tool. This is a fundamental product-level difference.
+
+#### 2.2 Request Quality Gate — Entirely New Service Cluster (Phase 47)
+
+`src/services/quality_gate/` is a complete pre-execution filtering subsystem with: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- **Heuristic assessor** — zero-cost fast signal analysis
+- **LLM assessor** — deep semantic quality scoring
+- **Hybrid mode** — escalate to LLM only for borderline scores (default threshold: 80)
+- **4 recommendations**: PROCEED / AUTO_ENRICH / NEEDS_CLARIFICATION / REJECT
+- **Clarification Engine** — multi-round Q&A loop that pauses the request (`status: refining`) until user satisfaction, with structured `IRequestSpecification` output
+- Score thresholds all configurable in `[quality_gate]` TOML section
+
+Ruflo has **no equivalent** — requests are directly routed without quality gating or clarification loops.
+
+#### 2.3 Request Analysis Layer (Phase 45/49) — Deeply Integrated
+
+`src/services/request_analysis/` directory provides three analysis modes (heuristic / LLM / hybrid). Phase 49 hardening adds: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- `SessionMemoryService.enhanceRequest()` pre-loads relevant memory context **before** analysis
+- YAML frontmatter fields (`acceptance_criteria`, `expected_outcomes`, `scope`) are promoted into request context
+- Multi-signal complexity scoring using content signals, not just agent-ID heuristics
+
+The resulting `IRequestAnalysis` then flows into **gate evaluation**, **reflexive critique**, **confidence scoring**, and **criteria generation** — creating a fully integrated quality pipeline.
+
+Ruflo has **no equivalent semantic pre-analysis layer**.
+
+#### 2.4 Acceptance Criteria Propagation (Phase 48) — Three-Layer Artifact Verification
+
+A key architectural pattern not visible from source alone is the **three-layer artifact verification pipeline**: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+| Layer | Service            | When                       | Blocking?                       |
+| ----- | ------------------ | -------------------------- | ------------------------------- |
+| 1     | `GateEvaluator`    | Post-step (GATE step type) | ✅ Yes — blocks flow            |
+| 2     | `ReflexiveAgent`   | In-flight (each iteration) | Corrective (not blocking)       |
+| 3     | `ConfidenceScorer` | Post-execution             | ❌ No — signals confidence only |
+
+The `CriteriaGenerator` (`src/services/criteria_generator.ts`) dynamically produces `EvaluationCriterion[]` from `IRequestAnalysis`, capped at 10 (`MAX_DYNAMIC_CRITERIA`), with weights: primary goals (2.0), secondary goals (1.0), acceptance criteria (1.5). Static criteria always win on name collision.
+
+`ConfidenceScorer` blends goal-alignment at 30% weight: `finalScore = rawScore × 0.7 + goalAlignmentScore × 100 × 0.3`.
+
+Ruflo's quality assessment is **flow-step scoped only** — there is no cross-layer propagation of request intent into execution evaluation.
+
+#### 2.5 Skills Service — Procedural Memory (Not Previously Documented)
+
+`src/services/skills.ts` (19 KB) implements **procedural memory**: reusable task procedures that agents can learn and invoke. This is separate from:
+
+- Project memory (facts, patterns, decisions)
+- Global memory (cross-project learnings)
+- Session memory (runtime context injection)
+- Execution memory (trace records)
+
+This adds a **fifth memory dimension** — how to do things (skills) — alongside what was known (declarative memory). Ruflo has no procedural memory concept.
+
+#### 2.6 Portal Knowledge Pipeline (Phase 46) — Automated Codebase Analysis
+
+`src/services/portal_knowledge/` implements a 6-strategy codebase analysis pipeline: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+1. Directory Census
+2. Key File Identification (entry points, configs)
+3. Config File Parsing (package.json, deno.json, tsconfig)
+4. Pattern Detection (naming/test conventions)
+5. Architecture Inference (layer inference from directory names + import graph)
+6. Symbol Extraction (`deno doc --json`, TS/JS only)
+
+The analysis runs automatically on portal mount (quick mode), with staleness-driven re-analysis (default: 168h/1 week). Results feed into `knowledge.json` and are consumed by `ContextLoader` before agent execution.
+
+Ruflo has **no automated codebase analysis** — context is entirely manual or tool-driven at runtime.
+
+#### 2.7 Artifact Registry + Review Registry — Production Workflow Services
+
+`src/services/artifact_registry.ts` and `src/services/review_registry.ts` implement a complete code review lifecycle: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- Feature branch creation → execution in `branch` or `worktree` mode
+- Review record with `base_branch`, `worktree_path`, `commit_sha`, `trace_id`
+- Approve: merge to `base_branch` → worktree cleanup → branch delete
+- Reject: branch delete (best-effort if checked out in worktree)
+- Merge conflict handling: abort + worktree cleanup + branch preserved for human resolution
+
+Ruflo delegates all Git operations to tools without a registry abstraction.
+
+#### 2.8 Daemon Architecture — Full Process Lifecycle Management
+
+ExaIx runs as a **background daemon** (`main.ts`) with: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- `watcher.ts`: dual file watchers (Workspace/Requests + Workspace/Active)
+- `graceful_shutdown.ts`: SIGTERM → 10s timeout → SIGKILL
+- `health_check_service.ts` (19 KB): resource monitoring
+- `database_connection_pool.ts`: connection management for PostgreSQL (Team+)
+- State transitions: Stopped → Starting → Running → {Stopping/Crashed/Restarting}
+
+Ruflo is a **CLI-invoked process**, not a daemon — it exits after task completion. No persistent watcher or health monitoring.
+
+#### 2.9 TUI Dashboard — 7-9 View Interactive Terminal UI
+
+ExaIx has a full terminal UI (`src/tui/`, `src/services/tui_service_factory.ts`) with: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- 7 views (Solo): Portal Manager, Plan Reviewer, Monitor, Daemon Control, Agent Status, Request Manager, Memory View
+- Multi-pane split layout with independent focus, persist/restore to `~/.exaix/tui_layout.json`
+- 591+ TUI tests
+- Raw mode keyboard handling, accessibility (high-contrast, screen-reader support)
+
+Ruflo has **no TUI** — interaction is entirely CLI/YAML-file driven.
+
+#### 2.10 MCP Integration — Both Client and Server
+
+ExaIx implements: [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/ARCHITECTURE.md)
+
+- **MCP Client** (all editions): connects to external MCP servers for tool execution
+- **MCP Server** (Team+ only): `stdio` (JSON-RPC 2.0) + HTTP/SSE transports; full CSP/security headers; tools include `read_file`, `write_file`, `git_*`, and domain tools (`exaix_create_request`, `exaix_list_plans`, `exaix_approve_plan`, `exaix_query_journal`)
+- Portal-scoped permissions enforced by `PortalPermissionsService`
+
+Ruflo has MCP tool invocation at runtime but **no MCP server mode** — it cannot act as a tool provider for other agents.
+
+---
+
+### 3. Updated Full Comparative Table
+
+| Feature / Dimension                 | ExaIx                                                                 | Ruflo                               | Winner                     |
+| ----------------------------------- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------- |
+| **Runtime**                         | Deno + TypeScript                                                     | Node.js/Bun + TypeScript            | Tie                        |
+| **Orchestration model**             | Daemon + file watcher + wave-parallel flows                           | CLI-invoked + wave-parallel flows   | ExaIx (daemon persistence) |
+| **Request input**                   | Markdown files dropped into Workspace/Requests                        | YAML flow definitions + tool-driven | Different paradigms        |
+| **Request quality gate**            | ✅ 3-mode (heuristic/LLM/hybrid) + Q&A loop                           | ❌ None                             | ExaIx                      |
+| **Semantic request analysis**       | ✅ `request_analysis/` — goals, requirements, constraints, complexity | ❌ None                             | ExaIx                      |
+| **Acceptance criteria propagation** | ✅ 3-layer: gate → critique → confidence scoring                      | ❌ None                             | ExaIx                      |
+| **Self-critique loop**              | ✅ `ReflexiveAgent` (bounded iterations, structured requirements)     | ❌ None                             | ExaIx                      |
+| **Tool reflection**                 | ✅ `ToolReflector` (evaluate result, retry with alt params, parallel) | ❌ None                             | ExaIx                      |
+| **Confidence scoring**              | ✅ `ConfidenceScorer` with goal-alignment weighting                   | ❌ None                             | ExaIx                      |
+| **Criteria generator**              | ✅ Dynamic `EvaluationCriterion[]` from `IRequestAnalysis`            | ❌ None                             | ExaIx                      |
+| **Memory system**                   | ✅ 5 dimensions: Project/Execution/Global/Session/Skills              | ❌ Session-only                     | ExaIx                      |
+| **Memory search**                   | ✅ Keyword, tag, advanced; vector (Team+ / Enterprise)                | ❌ None                             | ExaIx                      |
+| **Memory concurrency**              | ✅ File-lock with exponential backoff                                 | N/A                                 | ExaIx                      |
+| **Cross-project learnings**         | ✅ Promote/demote lifecycle + global index                            | ❌ None                             | ExaIx                      |
+| **Procedural memory (skills)**      | ✅ `skills.ts`                                                        | ❌ None                             | ExaIx                      |
+| **Portal codebase analysis**        | ✅ 6-strategy pipeline, auto on mount, staleness-driven               | ❌ None                             | ExaIx                      |
+| **Portal permission scoping**       | ✅ `portal_permissions.ts` + Deno security model                      | ❌ None                             | ExaIx                      |
+| **Git integration depth**           | ✅ Full service: branches, worktrees, commits, cleanup                | ⚠️ Tool-level only                  | ExaIx                      |
+| **Code review lifecycle**           | ✅ `review_registry.ts` (branch/worktree, merge, reject, conflict)    | ❌ None                             | ExaIx                      |
+| **Artifact registry**               | ✅ `artifact_registry.ts`                                             | ❌ None                             | ExaIx                      |
+| **Plan lifecycle**                  | ✅ Generate → Approve → Execute → Archive (human gated)               | ✅ Generate → Execute (automated)   | ExaIx (auditability)       |
+| **Daemon architecture**             | ✅ Background daemon + dual watchers + health + graceful shutdown     | ❌ CLI process only                 | ExaIx                      |
+| **TUI dashboard**                   | ✅ 7-9 views, multi-pane, 591+ tests                                  | ❌ None                             | ExaIx                      |
+| **MCP server**                      | ✅ Team+ (stdio + HTTP/SSE)                                           | ❌ None                             | ExaIx                      |
+| **MCP client**                      | ✅ All editions                                                       | ✅ Yes                              | Tie                        |
+| **Activity Journal**                | ✅ Every operation logged, tiered (SQLite/PostgreSQL/immudb)          | ⚠️ Partial                          | ExaIx                      |
+| **Audit compliance**                | ✅ WORM (Enterprise: immudb), EU AI Act/HIPAA/SOX                     | ❌ None                             | ExaIx                      |
+| **Edition model**                   | ✅ Solo/Team/Enterprise with clear feature tiers                      | ❌ Single OSS release               | ExaIx (commercial)         |
+| **Cost tracking**                   | ✅ `cost_tracker.ts` (basic → budgets → forecasting by edition)       | ❌ None                             | ExaIx                      |
+| **Provider diversity**              | ✅ Ollama, Claude, GPT, Gemini + Azure/Bedrock/Vertex (Enterprise)    | ✅ Similar set                      | Tie                        |
+| **Circuit breaker**                 | ✅ Per provider                                                       | ⚠️ Partial                          | ExaIx                      |
+| **Retry policy**                    | ✅ Exponential backoff + jitter + circuit breaker                     | ✅ Present                          | ExaIx (more detailed)      |
+| **Output validator**                |                                                                       |                                     |                            |
