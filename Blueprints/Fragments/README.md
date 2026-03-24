@@ -4,7 +4,7 @@ This directory contains reusable markdown fragments that can be injected into ag
 
 ## Usage
 
-In any agent blueprint (`Blueprints/Agents/*.md`), use the following syntax:
+In any agent blueprint (`Blueprints/Identities/*.md`), use the following syntax:
 
 `{{include:fragment_name}}`
 

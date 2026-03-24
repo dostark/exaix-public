@@ -1610,7 +1610,7 @@ graph TB
         Gemini[gemini<br/>Gemini 2.0 Flash]
     end
 
-    subgraph Storage["Blueprints/Agents"]
+    subgraph Storage["Blueprints/Identities"]
         Files[/agent_id.md<br/>TOML frontmatter/]
         Validation[Zod Schema<br/>Validation]
     end

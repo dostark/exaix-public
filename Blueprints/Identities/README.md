@@ -1,21 +1,21 @@
-# Blueprint Templates - JSON Plan Schema
+# Identity Blueprints
 
-This directory contains agent blueprint templates that instruct LLMs to output JSON-formatted execution plans.
+This directory contains identity blueprint templates that define LLM personas, models, and capabilities for Exaix.
 
 ## Directory Structure
 
-- `examples/`: **Reference Implementations**. Comprehensive, ready-to-use agent blueprints (e.g., `code-reviewer`, `security-auditor`). Use these to learn best practices or as a base for custom agents.
+- `examples/`: **Reference Implementations**. Comprehensive, ready-to-use identity blueprints (e.g., `code-reviewer`, `security-auditor`). Use these to learn best practices or as a base for custom identities.
 - `templates/`: **Abstract Patterns**. Reusable templates (e.g., `pipeline-agent`, `collaborative-agent`) with placeholders. Use these when you need a specific behavioral pattern but want to define the persona from scratch.
-- `*.md`: **Active Blueprints**. Agents available for immediate use in your workspace (e.g., `default.md`, `senior-coder.md`).
+- `*.md`: **Active Identities**. Identity blueprints available for immediate use in your workspace (e.g., `default.md`, `senior-coder.md`).
 
 ## Skills Integration (Phase 17)
 
-All blueprints support `default_skills` for automatic procedural knowledge injection:
+All identities support `default_skills` for automatic procedural knowledge injection:
 
 ```yaml
 ---
-agent_id: "my-agent"
-name: "My Agent"
+agent_id: "my-identity"
+name: "My Identity"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]
 default_skills: ["code-review", "error-handling", "portal-grounding"]  # NEW
@@ -28,12 +28,12 @@ See `Blueprints/Skills/` for skill definitions.
 
 ## Usage Guide
 
-### Using Active Blueprints
+### Using Active Identities
 
-Active blueprints are ready to use:
+Active identities are ready to use:
 
 ```bash
-exactl request "Task description" --agent senior-coder
+exactl request "Task description" --identity senior-coder
 ```text
 
 ### Using Examples
@@ -46,36 +46,36 @@ Examples in `examples/` are for learning. To use one:
 
 ### Using Templates
 
-Templates in `templates/` are for creating new agents:
+Templates in `templates/` are for creating new identities:
 
-1. Copy a template: `cp templates/pipeline-agent.md.template my-agent.md`
+1. Copy a template: `cp templates/pipeline-agent.md.template my-identity.md`
 
 1.
 1.
 
-Each blueprint file contains:
+Each identity blueprint file contains:
 
 1. **YAML Frontmatter** (between `---` delimiters)
    - agent_id, name, model, capabilities, default_skills, etc.
 
 1.
-   - Agent persona and capabilities
+   - Identity persona and capabilities
    - **JSON Plan Schema** with examples
    - Response format instructions
 
-## Available Blueprints
+## Available Identities
 
-### Core Agents
+### Core Identities
 
-| Agent           | Model                          | Skills                                                 | Use Case                  |
+| Identity        | Model                          | Skills                                                 | Use Case                  |
 | --------------- | ------------------------------ | ------------------------------------------------------ | ------------------------- |
 | `default`       | `ollama:codellama:13b`         | `error-handling`                                       | General-purpose coding    |
 | `senior-coder`  | `ollama:codellama:7b-instruct` | `typescript-patterns`, `error-handling`, `code-review` | Complex implementations   |
 | `quality-judge` | `anthropic:claude-3-5-sonnet`  | `code-review`                                          | LLM-as-a-Judge evaluation |
 
-### Specialist Agents
+### Specialist Identities
 
-| Agent                  | Skills                                        | Use Case                        |
+| Identity             | Skills                                        | Use Case                        |
 | ---------------------- | --------------------------------------------- | ------------------------------- |
 | `security-expert`      | `security-first`, `code-review`               | Security vulnerability analysis |
 | `performance-engineer` | `code-review`                                 | Performance optimization        |
@@ -112,7 +112,7 @@ See `docs/Plan_Format_Reference.md` for the complete schema reference.
 
 ## Available Tools
 
-The following tools are available for agents to use in their plans:
+The following tools are available for identities to use in their plans:
 
 | Tool               | Description                        | Why/When to Use                                                                                    |
 | ------------------ | ---------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -131,14 +131,14 @@ The following tools are available for agents to use in their plans:
 | `deno_task`        | Run standard Deno tasks            | Use `test`, `lint`, or `fmt` to verify code quality and adherence to standards.                    |
 | `patch_file`       | Apply precision text edits         | Use for making targeted changes to **large** files to save tokens and reduce risk.                 |
 
-## Creating New Blueprints
+## Creating New Identities
 
-Use `exactl blueprint create` or manually create following this template:
+Use `exactl blueprint identity create` or manually create following this template:
 
 ````markdown
 +++
-agent_id = "my-agent"
-name = "My Custom Agent"
+agent_id = "my-identity"
+name = "My Custom Identity"
 model = "provider:model-name"
 capabilities = ["capability1", "capability2"]
 created = "2025-12-09T00:00:00Z"
@@ -146,13 +146,13 @@ created_by = "your-email@example.com"
 version = "1.0.0"
 +++
 
-# Agent Name
+# Identity Name
 
-Agent description and persona...
+Identity description and persona...
 
 ## Shared fragments (new)
 
-To reduce code duplication in blueprints, use the `{{include:fragment_name}}` syntax. This will inject the contents of `Blueprints/Fragments/fragment_name.md` into the agent's system prompt during loading.
+To reduce code duplication in identities, use the `{{include:fragment_name}}` syntax. This will inject the contents of `Blueprints/Fragments/fragment_name.md` into the identity's system prompt during loading.
 
 ### Example Usage:
 
@@ -187,11 +187,11 @@ The system will:
 
 ## Testing
 
-Test your blueprint with:
+Test your identity with:
 
 ```bash
-exactl request "Your test request" --agent my-agent
-````text
+exactl request "Your test request" --identity my-identity
+```text
 
 Check the generated plan in `Workspace/Plans/` - it should contain properly formatted markdown converted from JSON.
 

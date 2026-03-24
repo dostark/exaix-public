@@ -1,11 +1,11 @@
 # Exaix Agent Examples
 
-This directory contains comprehensive example agent blueprints demonstrating real-world patterns and capabilities for Exaix. These examples serve as templates and starting points for creating custom agents.
+This directory contains comprehensive example identity blueprints demonstrating real-world patterns and capabilities for Exaix. These examples serve as templates and starting points for creating custom agents.
 
 ## 📁 Directory Structure
 
 ```text
-Blueprints/Agents/examples/
+Blueprints/Identities/examples/
 ├── README.md                           # This file
 ├── code-reviewer.md                    # Code quality and security review
 ├── feature-developer.md                # End-to-end feature implementation
@@ -13,7 +13,7 @@ Blueprints/Agents/examples/
 ├── security-auditor.md                 # Security vulnerability assessment
 └── research-synthesizer.md             # Research analysis and synthesis
 
-Blueprints/Agents/templates/
+Blueprints/Identities/templates/
 ├── pipeline-agent.md.template          # Template for systematic processing
 └── collaborative-agent.md.template     # Template for multi-agent workflows
 ```text
@@ -24,7 +24,7 @@ These examples are **reference implementations**. They demonstrate best practice
 
 **To use an example agent:**
 
-1. **Copy it** to the parent directory (`Blueprints/Agents/`).
+1. **Copy it** to the parent directory (`Blueprints/Identities/`).
 
 1.
 
@@ -52,7 +52,7 @@ These examples are **reference implementations**. They demonstrate best practice
 
 ## 📋 Agent Blueprint Format
 
-All agent blueprints use YAML frontmatter with the following structure:
+All identity blueprints use YAML frontmatter with the following structure:
 
 ```yaml
 ---
