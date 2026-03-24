@@ -147,3 +147,72 @@ Deno.test("RequestParser: logs parse failure on invalid YAML", async () => {
     assertEquals(errors[0].target, filePath);
   });
 });
+
+// ============================================================================
+// Phase 53: Identity field with agent fallback tests
+// ============================================================================
+
+Deno.test("RequestParser: parses identity field from frontmatter (canonical)", async () => {
+  const errors: LoggedError[] = [];
+  const parser = new RequestParser(createLogger(errors));
+
+  await withTempRequestFile(async (filePath) => {
+    const frontmatter = [
+      `trace_id: "${TEST_REQUEST_TRACE_ID}"`,
+      `created: "${TEST_REQUEST_CREATED_AT}"`,
+      `status: ${TEST_REQUEST_STATUS_VALID}`,
+      `priority: ${TEST_REQUEST_PRIORITY}`,
+      `identity: "senior-coder"`,
+      `source: ${TEST_REQUEST_SOURCE}`,
+      `created_by: "${TEST_REQUEST_CREATED_BY}"`,
+    ].join("\n");
+
+    await Deno.writeTextFile(filePath, `---\n${frontmatter}\n---\n\n${TEST_REQUEST_BODY}\n`);
+
+    const result = await parser.parse(filePath);
+
+    assertEquals(errors.length, 0);
+    assertEquals(result?.frontmatter.identity, "senior-coder");
+  });
+});
+
+Deno.test("RequestParser: parses agent field as fallback (deprecated)", async () => {
+  const errors: LoggedError[] = [];
+  const parser = new RequestParser(createLogger(errors));
+
+  await withTempRequestFile(async (filePath) => {
+    await Deno.writeTextFile(filePath, buildFrontmatter(TEST_REQUEST_TRACE_ID, TEST_REQUEST_STATUS_VALID));
+
+    const result = await parser.parse(filePath);
+
+    assertEquals(errors.length, 0);
+    // agent field should still be parsed for backward compatibility
+    assertEquals(result?.frontmatter.agent, TEST_REQUEST_AGENT);
+  });
+});
+
+Deno.test("RequestParser: identity takes precedence over agent when both present", async () => {
+  const errors: LoggedError[] = [];
+  const parser = new RequestParser(createLogger(errors));
+
+  await withTempRequestFile(async (filePath) => {
+    const frontmatter = [
+      `trace_id: "${TEST_REQUEST_TRACE_ID}"`,
+      `created: "${TEST_REQUEST_CREATED_AT}"`,
+      `status: ${TEST_REQUEST_STATUS_VALID}`,
+      `priority: ${TEST_REQUEST_PRIORITY}`,
+      `identity: "senior-coder"`,
+      `agent: "code-reviewer"`,
+      `source: ${TEST_REQUEST_SOURCE}`,
+      `created_by: "${TEST_REQUEST_CREATED_BY}"`,
+    ].join("\n");
+
+    await Deno.writeTextFile(filePath, `---\n${frontmatter}\n---\n\n${TEST_REQUEST_BODY}\n`);
+
+    const result = await parser.parse(filePath);
+
+    assertEquals(errors.length, 0);
+    assertEquals(result?.frontmatter.identity, "senior-coder");
+    assertEquals(result?.frontmatter.agent, "code-reviewer");
+  });
+});

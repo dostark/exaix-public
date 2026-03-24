@@ -264,11 +264,13 @@ agent:    z.string().optional(), // deprecated
 
 **Success criteria:**
 
-- [ ] Requests with `identity: senior-coder` frontmatter route to the correct identity
-- [ ] Requests with `agent: senior-coder` frontmatter still work with a deprecation log entry
-- [ ] Zod schema updated and validated by existing schema tests
-- [ ] `RequestParser` unit tests cover both `identity:` and `agent:` keys
-- [ ] Activity Journal records the `identity` field on all new requests
+- [x] Requests with `identity: senior-coder` frontmatter route to the correct identity
+- [x] Requests with `agent: senior-coder` frontmatter still work with a deprecation log entry
+- [x] Zod schema updated and validated by existing schema tests
+- [x] `RequestParser` unit tests cover both `identity:` and `agent:` keys
+- [x] Activity Journal records the `identity` field on all new requests
+
+**✅ IMPLEMENTED** — `src/services/request_processing/types.ts`, 3/3 new tests passing
 
 ---
 
