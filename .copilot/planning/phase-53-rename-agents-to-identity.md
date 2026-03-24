@@ -7,7 +7,7 @@ version: "1.0"
 topics: ["naming", "semantic-clarity", "blueprints", "identities", "refactoring", "cli", "docs"]
 ---
 
-## Status: 🔵 PLANNED
+## Status: ✅ COMPLETE (All steps implemented)
 
 ## Executive Summary
 
@@ -63,27 +63,27 @@ frontmatter key `agent_id` comment in docs, and all human-facing documentation u
 
 ### Primary Goals
 
-- [ ] Move `Blueprints/Agents/` → `Blueprints/Identities/` (rename directory)
-- [ ] Move `Blueprints/Agents/examples/` → `Blueprints/Identities/examples/`
-- [ ] Move `Blueprints/Agents/templates/` → `Blueprints/Identities/templates/`
-- [ ] Update CLI flag: `--agent <id>` → `--identity <id>` (with `--agent` kept as a
+- [x] Move `Blueprints/Agents/` → `Blueprints/Identities/` (rename directory)
+- [x] Move `Blueprints/Agents/examples/` → `Blueprints/Identities/examples/`
+- [x] Move `Blueprints/Agents/templates/` → `Blueprints/Identities/templates/`
+- [x] Update CLI flag: `--agent <id>` → `--identity <id>` (with `--agent` kept as a
   deprecated alias for one release cycle)
-- [ ] Update all request frontmatter docs: `agent: senior-coder` → `identity: senior-coder`
+- [x] Update all request frontmatter docs: `agent: senior-coder` → `identity: senior-coder`
   (with backward-compatible parsing of the legacy `agent:` key)
-- [ ] Update `BlueprintLoader` path resolution to look in `Blueprints/Identities/`
-- [ ] Update `exactl blueprint` subcommands: `blueprint agent` → `blueprint identity`
-- [ ] Update `ARCHITECTURE.md`, `README.md`, `TOOLS.md`, `CLAUDE.md`, `.cursorrules`,
+- [x] Update `BlueprintLoader` path resolution to look in `Blueprints/Identities/`
+- [x] Update `exactl blueprint` subcommands: `blueprint agent` → `blueprint identity`
+- [x] Update `ARCHITECTURE.md`, `README.md`, `TOOLS.md`, `CLAUDE.md`, `.cursorrules`,
   `.agents`, `.copilot/` docs, and all phase planning docs that reference "agent blueprint"
-- [ ] Update `Blueprints/Agents/README.md` → `Blueprints/Identities/README.md` with revised
+- [x] Update `Blueprints/Agents/README.md` → `Blueprints/Identities/README.md` with revised
   conceptual framing
-- [ ] Add migration note to `CONTRIBUTING.md` explaining the rename rationale
-- [ ] Regression tests: all existing `--agent` tests continue to pass via the alias
+- [x] Add migration note to `CONTRIBUTING.md` explaining the rename rationale
+- [x] Regression tests: all existing `--agent` tests continue to pass via the alias
 
 ### Secondary Goals
 
-- [ ] Update TUI Agent Status view label from "Agents" to "Identities"
-- [ ] Update `exactl dashboard` Agent Status pane header
-- [ ] Update `.copilot/planning/` cross-reference index if present
+- [x] Update TUI Agent Status view label from "Agents" to "Identities"
+- [x] Update `exactl dashboard` Agent Status pane header
+- [x] Update `.copilot/planning/` cross-reference index if present
 
 ### Non-Goals
 
@@ -376,7 +376,7 @@ deno run -A scripts/verify_manifest_fresh.ts
 
 ## Future Considerations
 
-- **Phase 55:** Remove deprecated `--agent` flag, `Blueprints/Agents/` fallback path, and
+- **Phase 54:** Remove deprecated `--agent` flag, `Blueprints/Agents/` fallback path, and
   `agent:` frontmatter key after one full release cycle.
 - **MCP API alignment:** Update the `exaix_create_request` MCP tool's `agent` parameter to
   `identity` in a coordinated breaking-change release with a versioned MCP schema bump.

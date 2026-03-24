@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24T16:53:08.889Z",
+  "generated_at": "2026-03-24T17:09:43.923Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -869,6 +869,33 @@
         ".copilot/chunks/phase-55-dynamic-toolsets.md.chunk5.txt",
         ".copilot/chunks/phase-55-dynamic-toolsets.md.chunk6.txt",
         ".copilot/chunks/phase-55-dynamic-toolsets.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-56-new-mcp-tools-handlers.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 56: New MCP Tool Handlers — File and Directory Operations",
+      "short_summary": "Implement patch_file, delete_file, move_file, and create_directory MCP tool handlers to close critical gaps in Exaix's file operation toolset, enabling agents to perform refactoring, targeted edits, and directory management within portals.",
+      "version": "1.0",
+      "topics": [
+        "mcp",
+        "tools",
+        "file-operations",
+        "handlers",
+        "schemas",
+        "security",
+        "portal"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk0.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk1.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk2.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk3.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk4.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk5.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk6.txt",
+        ".copilot/chunks/phase-56-new-mcp-tools-handlers.md.chunk7.txt"
       ]
     },
     {
