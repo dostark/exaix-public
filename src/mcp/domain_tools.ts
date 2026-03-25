@@ -26,24 +26,23 @@ import { RequestSource } from "../shared/enums.ts";
 export class CreateRequestTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = CreateRequestToolArgsSchema.parse(args);
-    const { description, agent, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
+    const { description, agent, identity, agent_id } = validatedArgs;
 
     try {
       const requestCmd = new RequestCommands(this.context);
 
-      // Note: context support might need to be added to RequestCommands or handled here if important.
-      // CLI create() takes options: agent, priority, portal, model. Context files are usually passed in creating context cards or implicit.
-      // For now we map basic fields.
+      // Phase 54: Use identity (canonical) with agent fallback for backward compatibility
+      const identityId = identity ?? agent;
 
       const result = await requestCmd.create(
         description,
-        { agent },
-        RequestSource.MCP, // marking source as MCP
+        { identity: identityId },
+        RequestSource.MCP,
       );
 
       this.logToolExecution("create_request", "system", {
         description,
-        agent,
+        identity: identityId,
         agent_id,
         request_id: result.filename.replace(".md", ""),
         trace_id: result.trace_id,
@@ -75,11 +74,14 @@ export class CreateRequestTool extends ToolHandler {
             type: "string",
             description: "Detailed description of the request",
           },
+          identity: {
+            type: "string",
+            description: "Identity to assign (default: default)",
+          },
           agent: {
             type: "string",
-            description: "Agent to assign (default: default)",
+            description: "Deprecated: use identity instead",
           },
-          // context: { ... } - Context not fully supported in create() yet, removing to avoid confusion or we can keep for future
           agent_id: {
             type: "string",
             description: "Agent identifier for permission checks",

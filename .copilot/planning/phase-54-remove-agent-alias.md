@@ -7,7 +7,7 @@ version: "1.0"
 topics: ["naming", "cleanup", "deprecation-removal", "cli", "blueprints", "identities", "flows", "breaking-change"]
 ---
 
-## Status: 🔵 PLANNED
+## Status: � IN PROGRESS (Steps 1-4 complete)
 
 ## Prerequisites
 
@@ -65,11 +65,11 @@ Phase 54 enforces the Phase 53 rename as the only supported interface.
 
 ### Primary Goals
 
-- [ ] Remove `--agent` flag from `src/cli/request_commands.ts`
-- [ ] Remove `agent` alias subcommand from `src/cli/blueprint_commands.ts`
-- [ ] Remove `Blueprints/Agents/` legacy fallback path from `src/services/blueprint_loader.ts`
+- [x] Remove `--agent` flag from `src/cli/request_commands.ts`
+- [x] Remove `agent` alias subcommand from `src/cli/blueprint_commands.ts`
+- [x] Remove `Blueprints/Agents/` legacy fallback path from `src/services/blueprint_loader.ts`
 - [ ] Remove `BLUEPRINT_AGENTS_DIR` constant
-- [ ] Remove `agent?` field from `IRequestFrontmatter` interface in
+- [x] Remove `agent?` field from `IRequestFrontmatter` interface in
   `src/services/request_processing/types.ts`
 - [ ] Remove `agent` key from Zod schema in `src/schemas/request.ts`
 - [ ] Remove `agent:` frontmatter parsing fallback from `src/services/request_processing/request_parser.ts`
@@ -87,8 +87,10 @@ Phase 54 enforces the Phase 53 rename as the only supported interface.
 
 - [ ] Update `CONTRIBUTING.md` migration note from Phase 53 to state removal is complete
 - [ ] Update `CHANGELOG` / release notes to mark `--agent` as removed (breaking change)
-- [ ] Update MCP tool API: rename `agent` parameter of `exaix_create_request` to `identity`
+- [x] Update MCP tool API: rename `agent` parameter of `exaix_create_request` to `identity`
   with a versioned MCP schema bump (see MCP section below)
+
+**✅ IMPLEMENTED** — `src/mcp/domain_tools.ts`, `src/shared/schemas/mcp.ts`
 
 ### Non-Goals
 

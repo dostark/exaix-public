@@ -69,7 +69,10 @@ export const GitStatusToolArgsSchema = z.object({
 
 export const CreateRequestToolArgsSchema = z.object({
   description: z.string().min(1, "Description required"),
+  /** @deprecated Use identity instead */
   agent: z.string().default("default"),
+  /** Identity to assign (Phase 54 canonical field) */
+  identity: z.string().default("default"),
   context: z.array(z.string()).optional(),
   agent_id: z.string().min(1, "Agent ID required").default("system"),
 });
