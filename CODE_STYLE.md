@@ -127,27 +127,23 @@ export { Baz }; // ❌ Explicit re-export
 
 ### Multi-line Named Imports
 
-When importing **5 or more** named bindings from a single module, the import **must** use multi-line format with one binding per line. This improves readability and makes diffs cleaner.
+The style checker does not enforce a specific format for named imports. Use your judgment to balance readability and conciseness. `deno fmt` will automatically format imports according to its configured line width.
 
-**Prohibited:**
-
-```ts
-import { FooService, BarService, BazService, QuxService, QuuxService } from "./services.ts"; // ❌ 5+ names, single line
-```
-
-**Required:**
+**Example:**
 
 ```ts
+// Single-line for a few imports
+import { FooService, BarService } from "./services.ts";
+
+// Multi-line for many imports (optional, for readability)
 import {
   FooService,
   BarService,
   BazService,
   QuxService,
   QuuxService,
-} from "./services.ts"; // ✅ Multi-line
+} from "./services.ts";
 ```
-
-Imports with 1–4 named bindings may remain on a single line. The style checker reports this as a **warning** (`import-multiline` rule). Note that `deno fmt` may collapse a multi-line import back to a single line if it fits within the configured `lineWidth` (120); write new imports in multi-line form and treat any warning as a reminder.
 
 ### Dynamic Imports
 
