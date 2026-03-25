@@ -274,18 +274,16 @@ identity: z.string().optional(),
 **`src/shared/schemas/flow.ts`:**
 
 ```typescript
-// BEFORE
+// BEFORE (Phase 53)
 export const FlowStepSchema = z.object({
   id: z.string().min(1, "Step ID cannot be empty"),
   name: z.string().min(1, "Step name cannot be empty"),
   type: z.nativeEnum(FlowStepType).optional().default(FlowStepType.AGENT),
-  /** @deprecated Use `identity` instead. Will be removed in Phase 55. */
-  agent: z.string().optional(),
-  identity: z.string().min(1, "Identity reference cannot be empty"),
+  agent: z.string().min(1, "Agent reference cannot be empty"),
   // ...
 });
 
-// AFTER
+// AFTER (Phase 54)
 export const FlowStepSchema = z.object({
   id: z.string().min(1, "Step ID cannot be empty"),
   name: z.string().min(1, "Step name cannot be empty"),
@@ -297,9 +295,11 @@ export const FlowStepSchema = z.object({
 
 **Success criteria:**
 
-- [ ] `FlowStepSchema` has no `agent` field
-- [ ] TypeScript types `IFlowStep`, `IFlowStepInput` infer correctly
-- [ ] Zod validation rejects flow YAML with `agent:` step key
+- [x] `FlowStepSchema` has no `agent` field
+- [x] TypeScript types `IFlowStep`, `IFlowStepInput` infer correctly
+- [x] Zod validation rejects flow YAML with `agent:` step key
+
+**✅ IMPLEMENTED** — `src/shared/schemas/flow.ts`, 14/14 tests passing
 
 ---
 
@@ -308,7 +308,7 @@ export const FlowStepSchema = z.object({
 **`src/shared/schemas/flow.ts`:**
 
 ```typescript
-// BEFORE
+// BEFORE (Phase 53)
 export const GateEvaluateSchema = z.object({
   /** Judge agent ID */
   agent: z.string(),
@@ -316,7 +316,7 @@ export const GateEvaluateSchema = z.object({
   // ...
 });
 
-// AFTER
+// AFTER (Phase 54)
 export const GateEvaluateSchema = z.object({
   /** Judge identity ID */
   identity: z.string(),
@@ -327,9 +327,11 @@ export const GateEvaluateSchema = z.object({
 
 **Success criteria:**
 
-- [ ] `GateEvaluateSchema` uses `identity` for judge reference
-- [ ] TypeScript type `IGateEvaluate` infers correctly
-- [ ] Zod validation rejects gate evaluate block with `agent:` key
+- [x] `GateEvaluateSchema` uses `identity` for judge reference
+- [x] TypeScript type `IGateEvaluate` infers correctly
+- [x] Zod validation rejects gate evaluate block with `agent:` key
+
+**✅ IMPLEMENTED** — `src/shared/schemas/flow.ts` (combined with Step 6)
 
 ---
 

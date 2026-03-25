@@ -2,8 +2,10 @@
 
 - [ ] Update `CONTRIBUTING.md` migration note from Phase 53 to state removal is complete
 - [ ] Update `CHANGELOG` / release notes to mark `--agent` as removed (breaking change)
-- [ ] Update MCP tool API: rename `agent` parameter of `exaix_create_request` to `identity`
+- [x] Update MCP tool API: rename `agent` parameter of `exaix_create_request` to `identity`
   with a versioned MCP schema bump (see MCP section below)
+
+**✅ IMPLEMENTED** — `src/mcp/domain_tools.ts`, `src/shared/schemas/mcp.ts`
 
 ### Non-Goals
 
@@ -14,7 +16,3 @@
 - Renaming `FlowStepType.AGENT` enum value (internal enum, not user-facing)
 
 ---
-
-## Architecture
-
-### Surfaces Being Removed

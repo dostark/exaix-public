@@ -14,8 +14,8 @@ import { DEFAULT_FLOW_VERSION } from "../constants.ts";
 
 // Gate evaluation configuration schema
 export const GateEvaluateSchema = z.object({
-  /** Judge agent ID */
-  agent: z.string(),
+  /** Judge identity ID */
+  identity: z.string(),
   /** Criteria to evaluate (names from built-in library or custom) */
   criteria: z.array(z.string()),
   /** Score threshold for passing (0.0 - 1.0) */
@@ -62,8 +62,8 @@ export const FlowStepSchema = z.object({
   name: z.string().min(1, "Step name cannot be empty"),
   /** Step type: standard agent step, gate, branch, or consensus. Defaults to "agent" */
   type: z.nativeEnum(FlowStepType).optional().default(FlowStepType.AGENT),
-  /** Agent reference (required for agent type, optional for others) */
-  agent: z.string().min(1, "Agent reference cannot be empty"),
+  /** Identity reference (required for agent type, optional for others) */
+  identity: z.string().min(1, "Identity reference cannot be empty"),
   dependsOn: z.array(z.string()).default([]),
   input: z.object({
     source: z.nativeEnum(FlowInputSource).default(FlowInputSource.REQUEST),

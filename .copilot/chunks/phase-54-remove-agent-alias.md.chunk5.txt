@@ -1,8 +1,8 @@
-- [ ] Remove `--agent` flag from `src/cli/request_commands.ts`
-- [ ] Remove `agent` alias subcommand from `src/cli/blueprint_commands.ts`
-- [ ] Remove `Blueprints/Agents/` legacy fallback path from `src/services/blueprint_loader.ts`
+- [x] Remove `--agent` flag from `src/cli/request_commands.ts`
+- [x] Remove `agent` alias subcommand from `src/cli/blueprint_commands.ts`
+- [x] Remove `Blueprints/Agents/` legacy fallback path from `src/services/blueprint_loader.ts`
 - [ ] Remove `BLUEPRINT_AGENTS_DIR` constant
-- [ ] Remove `agent?` field from `IRequestFrontmatter` interface in
+- [x] Remove `agent?` field from `IRequestFrontmatter` interface in
   `src/services/request_processing/types.ts`
 - [ ] Remove `agent` key from Zod schema in `src/schemas/request.ts`
 - [ ] Remove `agent:` frontmatter parsing fallback from `src/services/request_processing/request_parser.ts`
