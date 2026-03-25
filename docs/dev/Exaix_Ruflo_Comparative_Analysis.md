@@ -37,7 +37,7 @@ This is the highest-value section. Each ExaIx weakness is mapped to the most rel
 
 Introduce a **Plan Amendment Gate** — a lightweight mid-execution checkpoint that fires only when a tool result crosses a confidence threshold below X or returns a non-nominal status code. The amendment is a diff against the existing approved plan (only the affected remaining steps), not a full re-plan. This preserves ExaIx's mandatory approval model while granting the identity dynamic adaptability within bounded scope.
 
-```
+```text
 Request → Plan → [Approve Gate] → ExecLoop
                                        ↓
                                tool_result ← tool call
@@ -247,19 +247,19 @@ Taking the full picture — Ruflo's architecture plus ExaIx's documented strengt
 
 ### Priority 2 — Design Phase (Architecture Decision Needed)
 
-5. **Plan Amendment Gate** — Bounded mid-execution re-planning triggered by low-confidence tool results. Preserves mandatory approval, adds adaptive reasoning. The key design decision: what confidence threshold triggers an amendment, and is the amendment approval synchronous (blocks execution) or async (continues with rollback if rejected)?
+1. **Plan Amendment Gate** — Bounded mid-execution re-planning triggered by low-confidence tool results. Preserves mandatory approval, adds adaptive reasoning. The key design decision: what confidence threshold triggers an amendment, and is the amendment approval synchronous (blocks execution) or async (continues with rollback if rejected)?
 
-6. **RoutingPolicy Layer** — Blueprint version selection and traffic splitting driven by Activity Journal statistics. The journal data already exists — only a policy engine is needed. Start simple: weighted success rate per (capability, complexity, identity_version) tuple.
+2. **RoutingPolicy Layer** — Blueprint version selection and traffic splitting driven by Activity Journal statistics. The journal data already exists — only a policy engine is needed. Start simple: weighted success rate per (capability, complexity, identity_version) tuple.
 
-7. **Bounded Delegation Tool** — `delegate_to_identity` as a declarable plan step. Sub-identity output returned as tool result, linked to parent trace_id. Requires careful audit schema extension to preserve trace integrity.
+3. **Bounded Delegation Tool** — `delegate_to_identity` as a declarable plan step. Sub-identity output returned as tool result, linked to parent trace_id. Requires careful audit schema extension to preserve trace integrity.
 
 ### Priority 3 — Consider for ExaIx Enterprise (Complex, High Reward)
 
-8. **Multi-provider Identity Coordination (Dual-Mode Pattern)** — Ruflo's `collaboration` namespace shared between Claude and Codex workers is the right model for an ExaIx Enterprise scenario where different LLM providers are assigned by task type (e.g., Claude identities for architecture and security review, Gemini identities for bulk code generation or translation tasks). The Flow Namespace from Priority 1 is the prerequisite — once that exists, adding a `provider:` field to identity blueprints is straightforward.
+1. **Multi-provider Identity Coordination (Dual-Mode Pattern)** — Ruflo's `collaboration` namespace shared between Claude and Codex workers is the right model for an ExaIx Enterprise scenario where different LLM providers are assigned by task type (e.g., Claude identities for architecture and security review, Gemini identities for bulk code generation or translation tasks). The Flow Namespace from Priority 1 is the prerequisite — once that exists, adding a `provider:` field to identity blueprints is straightforward.
 
-9. **3-Tier Cost Routing within ExecLoop** — Ruflo's Tier 1/2/3 model (WASM → Haiku → Sonnet/Opus) is directly applicable to ExaIx's plan step execution. Each plan step has a declared tool set and complexity signal. Simple deterministic steps (file rename, import sort, type annotation) can be tagged `tier: 1` and executed without an LLM call at all — using a TypeScript AST transformer (ts-morph) as the WASM-equivalent zero-cost executor. Medium steps use a fast/cheap model. Complex reasoning steps use the full model. The plan approval step is where the user would see the tier assignments, maintaining full transparency.
+2. **3-Tier Cost Routing within ExecLoop** — Ruflo's Tier 1/2/3 model (WASM → Haiku → Sonnet/Opus) is directly applicable to ExaIx's plan step execution. Each plan step has a declared tool set and complexity signal. Simple deterministic steps (file rename, import sort, type annotation) can be tagged `tier: 1` and executed without an LLM call at all — using a TypeScript AST transformer (ts-morph) as the WASM-equivalent zero-cost executor. Medium steps use a fast/cheap model. Complex reasoning steps use the full model. The plan approval step is where the user would see the tier assignments, maintaining full transparency.
 
-10. **Background Worker Pattern for Autonomous Housekeeping** — Ruflo's 12 background workers (`audit`, `testgaps`, `document`, `map`, etc.) run autonomously triggered by file events. ExaIx can introduce a narrow version of this: a **Portal Maintenance Worker** that re-runs knowledge gathering (directory census, symbol extraction) on a file-change trigger, keeping portal context fresh without requiring a manual refresh command. This worker never has plan approval authority — it only updates read-only context files. It's a pure ExaIx-native pattern that borrows only the triggering mechanism from Ruflo.
+3. **Background Worker Pattern for Autonomous Housekeeping** — Ruflo's 12 background workers (`audit`, `testgaps`, `document`, `map`, etc.) run autonomously triggered by file events. ExaIx can introduce a narrow version of this: a **Portal Maintenance Worker** that re-runs knowledge gathering (directory census, symbol extraction) on a file-change trigger, keeping portal context fresh without requiring a manual refresh command. This worker never has plan approval authority — it only updates read-only context files. It's a pure ExaIx-native pattern that borrows only the triggering mechanism from Ruflo.
 
 ---
 
@@ -281,7 +281,7 @@ The critical insight is that ExaIx already has all the pieces to implement a bla
 
 The resulting ExaIx Flow execution model with a blackboard looks like this:
 
-```
+```text
 Flow starts
     │
     ▼
@@ -371,7 +371,7 @@ _Based on direct source code review of `execution_loop.ts`, `reflexive_agent.ts`
 
 The original comparative doc suggested ExaIx has only sequential execution. **Correction:** `flow_runner.ts` implements **wave-based parallel execution** — steps without dependencies run concurrently in the same wave, while steps with declared dependencies wait for their wave. This is architecturally closer to Ruflo's DAG model than previously stated. [raw.githubusercontent](https://raw.githubusercontent.com/dostark/exaix-public/main/src/services/memory_bank.ts)
 
-```
+```text
 // Verified in flow_runner.ts: steps grouped into waves by dependency resolution
 // Steps in same wave execute in parallel via Promise.all()
 ```
