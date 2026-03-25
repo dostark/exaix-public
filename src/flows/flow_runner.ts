@@ -208,7 +208,7 @@ const BUILT_IN_TRANSFORM_HANDLERS: Record<string, BuiltInTransformHandler> = {
  */
 export function toGateConfig(evaluate: IGateEvaluate): GateConfig {
   return {
-    agent: evaluate.agent,
+    identity: evaluate.identity,
     criteria: evaluate.criteria,
     threshold: evaluate.threshold,
     onFail: evaluate.onFail,
@@ -678,7 +678,7 @@ export class FlowRunner implements IFlowRunner {
     await this.eventLogger.log("flow.step.queued", {
       flowRunId,
       stepId,
-      agent: step.agent,
+      agent: step.identity,
       dependencies: step.dependsOn,
       inputSource: step.input.source,
       traceId: request.traceId,
@@ -689,8 +689,8 @@ export class FlowRunner implements IFlowRunner {
     await this.eventLogger.log("flow.step.started", {
       flowRunId,
       stepId,
-      agent: step.agent,
-      agentId: step.agent, // for backward compatibility
+      agent: step.identity,
+      agentId: step.identity, // for backward compatibility
       traceId: request.traceId,
       requestId: request.requestId,
     });
@@ -747,7 +747,7 @@ export class FlowRunner implements IFlowRunner {
         };
       }
 
-      const result = await this.agentExecutor.run(step.agent, stepRequest);
+      const result = await this.agentExecutor.run(step.identity, stepRequest);
 
       const completedAt = new Date();
       const duration = completedAt.getTime() - startedAt.getTime();
@@ -756,7 +756,7 @@ export class FlowRunner implements IFlowRunner {
       await this.eventLogger.log("flow.step.completed", {
         flowRunId,
         stepId,
-        agent: step.agent,
+        agent: step.identity,
         success: true,
         duration,
         outputLength: result.content.length,
@@ -781,7 +781,7 @@ export class FlowRunner implements IFlowRunner {
       await this.eventLogger.log("flow.step.failed", {
         flowRunId,
         stepId,
-        agent: step.agent,
+        agent: step.identity,
         error: error instanceof Error ? error.message : String(error),
         errorType: error instanceof Error ? error.constructor.name : "Unknown",
         duration,

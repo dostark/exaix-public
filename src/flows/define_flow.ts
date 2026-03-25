@@ -17,7 +17,7 @@ export function defineFlow(config: {
   steps: Array<{
     id: string;
     name: string;
-    agent: string;
+    identity: string;
     dependsOn?: string[];
     input?: {
       source?: FlowInputSource;
@@ -61,7 +61,7 @@ export function defineFlow(config: {
       id: step.id,
       name: step.name,
       type: FlowStepType.AGENT, // Default step type
-      agent: step.agent,
+      identity: step.identity,
       dependsOn: step.dependsOn ?? [],
       input: {
         source: (step.input?.source as FlowInputSource) ?? FlowInputSource.REQUEST,

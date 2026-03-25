@@ -58,8 +58,8 @@ export interface JudgeInvoker {
  * Gate configuration schema
  */
 export const GateConfigSchema = z.object({
-  /** Judge agent to use for evaluation */
-  agent: z.string(),
+  /** Judge identity to use for evaluation */
+  identity: z.string(),
   /** Criteria names or objects to evaluate against */
   criteria: z.array(z.union([z.string(), EvaluationCriterionSchema])),
   /** Score threshold for passing (0.0 - 1.0) */
@@ -118,9 +118,9 @@ export class GateEvaluator {
         }
       }
 
-      // Invoke judge agent
+      // Invoke judge identity
       const evaluation = await this.judgeInvoker.evaluate(
-        config.agent,
+        config.identity,
         contentToEvaluate,
         allCriteria,
         context,

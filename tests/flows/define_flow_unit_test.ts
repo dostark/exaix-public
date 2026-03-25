@@ -90,7 +90,7 @@ Deno.test("defineFlow: applies sensible defaults", () => {
     steps: [{
       id: "step1",
       name: "Step 1",
-      agent: "agent-1",
+      identity: "agent-1",
     }],
     output: { from: "step1" },
   });
@@ -115,7 +115,7 @@ Deno.test("defineFlow: accepts custom configurations", () => {
     steps: [{
       id: "s1",
       name: "S1",
-      agent: "ag1",
+      identity: "ag1",
       dependsOn: ["other"],
       input: {
         source: FlowInputSource.STEP,
