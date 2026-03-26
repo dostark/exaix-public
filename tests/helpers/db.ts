@@ -20,7 +20,10 @@ export const ACTIVITY_TABLE_SQL = `
     id TEXT PRIMARY KEY,
     trace_id TEXT NOT NULL,
     actor TEXT NOT NULL,
+    actor_type TEXT,
     agent_id TEXT,
+    agent_kind TEXT,
+    identity_id TEXT,
     action_type TEXT NOT NULL,
     target TEXT,
     payload TEXT NOT NULL,
@@ -28,6 +31,9 @@ export const ACTIVITY_TABLE_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_activity_trace ON activity(trace_id);
   CREATE INDEX IF NOT EXISTS idx_activity_agent ON activity(agent_id);
+  CREATE INDEX IF NOT EXISTS idx_activity_identity ON activity(identity_id);
+  CREATE INDEX IF NOT EXISTS idx_activity_actor_type ON activity(actor_type);
+  CREATE INDEX IF NOT EXISTS idx_activity_agent_kind ON activity(agent_kind);
 `;
 
 /**
@@ -41,7 +47,10 @@ export function initTestDb(): Database {
       id TEXT PRIMARY KEY,
       trace_id TEXT NOT NULL,
       actor TEXT NOT NULL,
+      actor_type TEXT,
       agent_id TEXT,
+      agent_kind TEXT,
+      identity_id TEXT,
       action_type TEXT NOT NULL,
       target TEXT,
       payload TEXT NOT NULL,
