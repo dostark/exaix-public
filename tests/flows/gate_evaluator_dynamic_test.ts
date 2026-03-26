@@ -19,7 +19,7 @@ import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluatio
 import { ANALYZER_VERSION } from "../../src/shared/constants.ts";
 
 const BASE_CONFIG: GateConfig = {
-  agent: "judge-agent",
+  identity: "judge-agent",
   criteria: ["CODE_CORRECTNESS"],
   threshold: 0.05,
   onFail: FlowGateOnFail.HALT,

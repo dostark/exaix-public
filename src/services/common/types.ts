@@ -3,10 +3,10 @@
  * @path src/services/common/types.ts
  * @description Shared type definitions for services, including ILogEvent and IServiceContext.
  * @architectural-layer Services
- * @dependencies [LogLevel]
+ * @dependencies [LogLevel, ActorType, AgentKind]
  * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
  */
-import { LogLevel } from "../../shared/enums.ts";
+import { ActorType, AgentKind, LogLevel } from "../../shared/enums.ts";
 import { JSONValue } from "../../shared/types/json.ts";
 
 /**
@@ -30,14 +30,23 @@ export interface ILogEvent {
   /** Additional context as key-value pairs */
   payload?: Record<string, JSONValue>;
 
-  /** Actor performing the action */
+  /** Who triggered this event — maps to journal actor field */
   actor?: Actor;
+
+  /** Category of actor */
+  actorType?: ActorType | null;
 
   /** Trace ID for correlation */
   traceId?: string;
 
-  /** Agent ID for agent-specific events */
+  /** Runtime agent handling this event, e.g. "agent-runner" — NOT an identity id */
   agentId?: string;
+
+  /** Category of runtime agent */
+  agentKind?: AgentKind | null;
+
+  /** LLM identity blueprint used for this event, e.g. "senior-coder" */
+  identityId?: string;
 
   /** Log level for console output */
   level?: LogLevel;
@@ -53,6 +62,14 @@ export interface ILogEvent {
  */
 export interface IServiceContext {
   traceId?: string;
-  agentId?: string;
+  /** Who initiated the enclosing request */
   actor?: Actor;
+  /** Category of actor */
+  actorType?: ActorType | null;
+  /** Runtime agent handling this service call — NOT an identity id */
+  agentId?: string;
+  /** Category of runtime agent */
+  agentKind?: AgentKind | null;
+  /** LLM identity blueprint being executed */
+  identityId?: string;
 }

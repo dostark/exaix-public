@@ -12,7 +12,7 @@ import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluatio
 import { IStepResult } from "../../src/flows/flow_runner.ts";
 
 const DEFAULT_CONFIG: GateConfig = {
-  agent: "judge-agent",
+  identity: "judge-agent",
   criteria: ["CODE_CORRECTNESS"],
   threshold: 0.8,
   onFail: FlowGateOnFail.HALT,
@@ -173,7 +173,7 @@ Deno.test("GateEvaluator: fails if required criteria fail even when overallScore
 
   const evaluator = new GateEvaluator(judgeInvoker);
   const config: GateConfig = {
-    agent: "judge-agent",
+    identity: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,
@@ -198,7 +198,7 @@ Deno.test("GateEvaluator: supports criteria objects in config.criteria", async (
   };
 
   const config: GateConfig = {
-    agent: "judge-agent",
+    identity: "judge-agent",
     criteria: [customCriterion],
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,
@@ -225,7 +225,7 @@ Deno.test("GateEvaluator: handles judge errors and returns halted by default", a
 
   const evaluator = new GateEvaluator(judgeInvoker);
   const config: GateConfig = {
-    agent: "judge-agent",
+    identity: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
     onFail: FlowGateOnFail.HALT,

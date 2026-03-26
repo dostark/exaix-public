@@ -11,7 +11,7 @@ import { GateConfigSchema } from "../../src/flows/gate_evaluator.ts";
 import { FlowGateOnFail } from "../../src/shared/enums.ts";
 
 const BASE_GATE_EVALUATE = {
-  agent: "judge-agent",
+  identity: "judge-agent",
   criteria: ["CORRECTNESS", "COMPLETENESS"],
   threshold: 0.8,
   onFail: FlowGateOnFail.HALT,
@@ -19,7 +19,7 @@ const BASE_GATE_EVALUATE = {
 };
 
 const BASE_GATE_CONFIG = {
-  agent: "judge-agent",
+  identity: "judge-agent",
   criteria: ["CORRECTNESS", "COMPLETENESS"],
   threshold: 0.8,
   onFail: FlowGateOnFail.HALT,
@@ -41,7 +41,7 @@ Deno.test("[GateEvaluateSchema] defaults includeRequestCriteria to false", () =>
 
 Deno.test("[GateEvaluateSchema] backward compatible with existing YAML configs", () => {
   const result = GateEvaluateSchema.parse(BASE_GATE_EVALUATE);
-  assertEquals(result.agent, BASE_GATE_EVALUATE.agent);
+  assertEquals(result.identity, BASE_GATE_EVALUATE.identity);
   assertEquals(result.criteria, BASE_GATE_EVALUATE.criteria);
   assertEquals(result.threshold, BASE_GATE_EVALUATE.threshold);
   assertEquals(result.onFail, FlowGateOnFail.HALT);

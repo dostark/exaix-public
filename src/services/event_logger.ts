@@ -357,11 +357,14 @@ export class EventLogger implements IEventLogger {
       try {
         await this.activityRepo.logActivity({
           actor: event.actor ?? this.defaultActor,
+          actorType: event.actorType ?? null,
           actionType: event.action,
           target: event.target,
           payload: event.payload ?? {},
           traceId: event.traceId,
           agentId: event.agentId ?? null,
+          agentKind: event.agentKind ?? null,
+          identityId: event.identityId ?? null,
         });
       } catch (error) {
         // Database write failed - log warning but don't crash
@@ -377,6 +380,9 @@ export class EventLogger implements IEventLogger {
           event.payload ?? {},
           event.traceId,
           event.agentId ?? null,
+          event.actorType ?? null,
+          event.agentKind ?? null,
+          event.identityId ?? null,
         );
       } catch (error) {
         // Database write failed - log warning but don't crash

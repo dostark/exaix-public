@@ -12,7 +12,7 @@ import { DependencyResolver, FlowValidationError } from "../../src/flows/depende
 import { IFlowStep, IFlowStepInput } from "../../src/shared/schemas/flow.ts";
 
 const defaultStepProps = {
-  agent: "agent1",
+  identity: "agent1",
   input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
   retry: { maxAttempts: 1, backoffMs: 1000 },
 };

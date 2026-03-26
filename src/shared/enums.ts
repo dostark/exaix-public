@@ -48,6 +48,28 @@ export enum CircuitState {
 }
 
 /**
+ * Actor type categories per GLOSSARY.md.
+ * Defines who can initiate, receive, or process a request or event in Exaix.
+ */
+export enum ActorType {
+  USER = "user",
+  SERVICE = "service",
+  MCP_CLIENT = "mcp-client",
+  IDENTITY = "identity",
+}
+
+/**
+ * Agent kind categories per GLOSSARY.md.
+ * Identifies which runtime agent implementation handled an action.
+ */
+export enum AgentKind {
+  AGENT_RUNNER = "agent-runner",
+  FLOW_AGENT = "flow-agent",
+  TOOL_AGENT = "tool-agent",
+  REQUEST_ROUTER = "request-router",
+}
+
+/**
  * MCP transport types.
  */
 export enum McpTransportType {

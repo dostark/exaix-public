@@ -34,7 +34,7 @@ steps: ${
     overrides.steps ?? `
   - id: "s1"
     name: "Step 1"
-    agent: "agent1"
+    identity: "agent1"
     dependsOn: []
     input:
       source: "request"
@@ -108,7 +108,7 @@ Deno.test("FlowValidatorImpl: fails for flow with dependency cycle", async () =>
     const cyclicSteps = `
   - id: "a"
     name: "A"
-    agent: "agentA"
+    identity: "agentA"
     dependsOn: ["b"]
     input:
       source: "request"
@@ -118,7 +118,7 @@ Deno.test("FlowValidatorImpl: fails for flow with dependency cycle", async () =>
       backoffMs: 1000
   - id: "b"
     name: "B"
-    agent: "agentB"
+    identity: "agentB"
     dependsOn: ["a"]
     input:
       source: "request"
@@ -147,13 +147,13 @@ Deno.test("FlowValidatorImpl: fails for flow with dependency cycle", async () =>
   }
 });
 
-Deno.test("FlowValidatorImpl: fails for flow with invalid agent field", async () => {
+Deno.test("FlowValidatorImpl: fails for flow with invalid identity field", async () => {
   const dir = await setupTestDir();
   try {
     const badAgentSteps = `
   - id: "s1"
     name: "Step 1"
-    agent: ""
+    identity: ""
     dependsOn: []
     input:
       source: "request"
@@ -171,7 +171,8 @@ Deno.test("FlowValidatorImpl: fails for flow with invalid agent field", async ()
     const result = await validator.validateFlow("bad-agent");
     if (!result.valid) console.error("bad-agent debug:", result.error ?? "(no error)");
     assertEquals(result.valid, false);
-    assertEquals(typeof result.error === "string" && (result.error ?? "").includes("invalid agent"), true);
+    // Error comes from Zod schema validation for empty identity
+    assertEquals(typeof result.error === "string" && (result.error ?? "").includes("identity"), true);
   } finally {
     await Deno.remove(dir, { recursive: true });
   }
