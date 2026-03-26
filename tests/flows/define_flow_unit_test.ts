@@ -149,3 +149,54 @@ Deno.test("defineFlow: accepts custom configurations", () => {
   assertEquals(flow.settings.failFast, false);
   assertEquals(flow.settings.timeout, 60000);
 });
+
+Deno.test("defineFlow: rejects deprecated 'agent' field in step config (Phase 54)", () => {
+  // TypeScript should not accept 'agent' field - only 'identity' is valid
+  // This test verifies the type system rejects agent-only configs
+  let thrown = false;
+  try {
+    // Using cast to bypass TypeScript check - runtime should still work
+    // but the type system should not accept 'agent' as a valid field
+    defineFlow(cast({
+      id: "test",
+      name: "Test",
+      description: "Test",
+      steps: [{
+        id: "s1",
+        name: "S1",
+        agent: "old-agent", // deprecated - should use identity
+      }],
+      output: { from: "s1" },
+    }));
+    // If we reach here, agent field was accepted (should not happen in Phase 54)
+    thrown = false;
+  } catch (err) {
+    // Expected: FlowSchema validation should reject steps without identity
+    thrown = true;
+    assertEquals((err as Error).message.includes("identity"), true);
+  }
+  assertEquals(thrown, true);
+});
+
+Deno.test("defineFlow: requires 'identity' field in step config (Phase 54)", () => {
+  // Verify that identity field is required and works correctly
+  let thrown = false;
+  try {
+    defineFlow(cast({
+      id: "test",
+      name: "Test",
+      description: "Test",
+      steps: [{
+        id: "s1",
+        name: "S1",
+        // missing identity field
+      }],
+      output: { from: "s1" },
+    }));
+  } catch (err) {
+    thrown = true;
+    // Should fail validation due to missing identity
+    assertEquals((err as Error).message.includes("identity"), true);
+  }
+  assertEquals(thrown, true);
+});

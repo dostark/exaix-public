@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-24T18:01:04.271Z",
+  "generated_at": "2026-03-26T13:21:46.263Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -903,7 +903,7 @@
       "agent": "claude",
       "scope": "dev",
       "title": "Phase 54: Remove Deprecated 'agent' Aliases Introduced in Phase 53",
-      "short_summary": "Hard-remove all Phase 53 backward-compatibility shims: the --agent CLI flag alias, the Blueprints/Agents/ fallback path, the deprecated agent: frontmatter key, the agent? field in IRequestFrontmatter and Zod schemas, the BLUEPRINT_AGENTS_DIR constant, and the agent field from flow schemas (FlowStepSchema, GateEvaluateSchema).",
+      "short_summary": "",
       "version": "1.0",
       "topics": [
         "naming",

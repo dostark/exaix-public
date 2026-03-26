@@ -363,45 +363,45 @@ steps: Array<{
 
 **Success criteria:**
 
-- [ ] No `agent` parameter in step config type
-- [ ] TypeScript compilation succeeds
-- [ ] All `defineFlow()` call sites pass `identity:` (not `agent:`)
+- [x] No `agent` parameter in step config type
+- [x] TypeScript compilation succeeds
+- [x] All `defineFlow()` call sites pass `identity:` (not `agent:`)
+
+**✅ IMPLEMENTED** — `src/flows/define_flow.ts`, `tests/flows/define_flow_unit_test.ts`, 6/6 tests passing
 
 ---
 
 ### Step 9 — Remove Runtime Fallback Logic
 
-**Files:** `src/flows/flow*runner.ts`, `src/flows/flow*loader.ts`
+**Files:** `src/flows/flow_runner.ts`, `src/flows/flow_loader.ts`, `tests/flows/flow_runner_test.ts`
 
-Search for all patterns of:
+Per GLOSSARY.md, ensure proper separation of concerns:
+- **Actor**: Who initiates the request (user, MCP client, service)
+- **Agent**: Runtime execution unit that orchestrates identities
+- **Identity**: LLM persona/blueprint that performs the actual work
 
-```typescript
-// Patterns to remove
-step.identity ?? step.agent
-step.agent ?? step.identity
-s.agent
-config.agent
-```
+**Patterns removed:**
+- No `step.identity ?? step.agent` fallback patterns found (already clean)
+- No `step.agent` access in flow execution code
 
-Replace with direct `step.identity` / `s.identity` access.
+**Logging updated to use proper Actor/Agent/Identity terminology:**
+- `flow.step.queued`: `agent` → `identity`
+- `flow.step.started`: `agent`/`agentId` → `identity`/`identityId`
+- `flow.step.completed`: `agent` → `identity`
+- `flow.step.failed`: `agent` → `identity`
 
-**Example:**
-
-```typescript
-// BEFORE
-const identityId = step.identity ?? step.agent;
-if (!identityId) throw new Error(`Step ${step.id} has no identity`);
-
-// AFTER
-const identityId = step.identity;
-if (!identityId) throw new Error(`Step ${step.id} has no identity`);
-```
+**Test file migration:**
+- All `agent:` step definitions in `flow_runner_test.ts` → `identity:` (63 occurrences)
 
 **Success criteria:**
 
-- [ ] No `step.agent` access in flow execution code
-- [ ] Error messages reference "identity" not "agent"
-- [ ] No silent fallback behavior remains
+- [x] No `step.agent` access in flow execution code
+- [x] Error messages reference "identity" not "agent"
+- [x] No silent fallback behavior remains
+- [x] Journal events use `identity` for identity references
+- [x] All flow_runner tests pass: 39/39
+
+**✅ IMPLEMENTED** — `src/flows/flow_runner.ts`, `tests/flows/flow_runner_test.ts`, 39/39 tests passing
 
 ---
 

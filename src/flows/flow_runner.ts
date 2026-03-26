@@ -678,7 +678,7 @@ export class FlowRunner implements IFlowRunner {
     await this.eventLogger.log("flow.step.queued", {
       flowRunId,
       stepId,
-      agent: step.identity,
+      identity: step.identity,
       dependencies: step.dependsOn,
       inputSource: step.input.source,
       traceId: request.traceId,
@@ -689,8 +689,8 @@ export class FlowRunner implements IFlowRunner {
     await this.eventLogger.log("flow.step.started", {
       flowRunId,
       stepId,
-      agent: step.identity,
-      agentId: step.identity, // for backward compatibility
+      identity: step.identity,
+      identityId: step.identity, // for backward compatibility
       traceId: request.traceId,
       requestId: request.requestId,
     });
@@ -756,7 +756,7 @@ export class FlowRunner implements IFlowRunner {
       await this.eventLogger.log("flow.step.completed", {
         flowRunId,
         stepId,
-        agent: step.identity,
+        identity: step.identity,
         success: true,
         duration,
         outputLength: result.content.length,
@@ -781,7 +781,7 @@ export class FlowRunner implements IFlowRunner {
       await this.eventLogger.log("flow.step.failed", {
         flowRunId,
         stepId,
-        agent: step.identity,
+        identity: step.identity,
         error: error instanceof Error ? error.message : String(error),
         errorType: error instanceof Error ? error.constructor.name : "Unknown",
         duration,
