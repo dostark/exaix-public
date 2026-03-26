@@ -131,7 +131,7 @@ export function createMinimalProposal(overrides: Partial<IMemoryUpdateProposal> 
   return createBaseProposal({
     learning: createBaseLearning(overrides.learning),
     reason: overrides.reason ?? "Extracted from successful execution",
-    agent: overrides.agent ?? "senior-coder",
+    identity_id: overrides.identity_id ?? "senior-coder",
     ...overrides,
   });
 }
@@ -159,7 +159,7 @@ export function createGlobalProposal(overrides: Partial<IMemoryUpdateProposal> =
     }),
     reason: overrides.reason ?? "IPattern observed across multiple projects",
 
-    agent: overrides.agent ?? "architect",
+    identity_id: overrides.identity_id ?? "architect",
 
     status: overrides.status ?? MemoryStatus.PENDING,
     ...overrides,
@@ -187,7 +187,7 @@ export function createApprovedProposal(overrides: Partial<IMemoryUpdateProposal>
       ...overrides.learning,
     }),
     reason: overrides.reason ?? "User requested",
-    agent: overrides.agent ?? "user-cli",
+    identity_id: overrides.identity_id ?? "user-cli",
     status: overrides.status ?? MemoryStatus.APPROVED,
     reviewed_at: overrides.reviewed_at ?? "2026-01-04T13:00:00Z",
     reviewed_by: overrides.reviewed_by ?? ReviewSource.USER,
@@ -267,7 +267,7 @@ function createBaseProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMe
     target_project: overrides.target_project ?? "my-app",
     learning: overrides.learning ?? createBaseLearning(),
     reason: overrides.reason ?? "Test proposal",
-    agent: overrides.agent ?? "test-agent",
+    identity_id: overrides.identity_id ?? "test-agent",
     execution_id: overrides.execution_id ?? "trace-123",
     status: overrides.status ?? MemoryStatus.PENDING,
     ...overrides,

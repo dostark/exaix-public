@@ -17,7 +17,7 @@ export function formatExecutionSummary(exec: IExecutionMemory): string {
   md += `**Trace ID:** ${exec.trace_id}\n`;
   md += `**Request ID:** ${exec.request_id}\n`;
   md += `**Portal:** ${exec.portal}\n`;
-  md += `**Agent:** ${exec.agent}\n`;
+  md += `**Identity:** ${exec.identity_id}\n`;
   md += `**Status:** ${exec.status}\n`;
   md += `**Started:** ${exec.started_at}\n`;
   if (exec.completed_at) {

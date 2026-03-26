@@ -125,7 +125,8 @@ export const ExecutionMemorySchema = z.object({
   completed_at: z.string().optional().describe("ISO timestamp when execution completed (if finished)"),
   status: z.nativeEnum(ExecutionStatus).describe("Current execution status"),
   portal: z.string().describe("Portal this execution ran against"),
-  agent: z.string().describe("Agent that performed the execution"),
+  identity_id: z.string().describe("Identity (blueprint name) that performed the execution"),
+  agent_id: z.string().optional().describe("Runtime agent instance ID, if available"),
   summary: z.string().describe("Human-readable summary of what was done"),
 
   context_files: z.array(z.string()).describe("Files provided as context"),
@@ -287,7 +288,7 @@ export const MemoryUpdateProposalSchema = z.object({
   learning: ProposalLearningSchema.describe("The proposed learning content"),
 
   reason: z.string().describe("Why this update is proposed"),
-  agent: z.string().describe("Agent that proposed the update"),
+  identity_id: z.string().describe("Identity (blueprint name) that proposed the update"),
   execution_id: z.string().optional().describe("Related execution trace_id"),
 
   status: z.enum(MEMORY_STATUS_VALUES)

@@ -401,7 +401,7 @@ export class MemoryBankService implements IMemoryBankService {
       trace_id: execution.trace_id,
       metadata: {
         status: execution.status,
-        identity_id: execution.agent,
+        identity_id: execution.identity_id,
         files_changed: (execution.changes?.files_created?.length || 0) +
           (execution.changes?.files_modified?.length || 0),
       },
