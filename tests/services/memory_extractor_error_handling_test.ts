@@ -45,7 +45,7 @@ Deno.test("MemoryExtractorService: logActivity errors do not break createProposa
         references: [],
       } as IProposalLearning,
       { trace_id: "trace" } as Partial<IExecutionMemory> as IExecutionMemory,
-      "agent",
+      "identityId",
     );
 
     assertEquals(typeof proposalId, "string");

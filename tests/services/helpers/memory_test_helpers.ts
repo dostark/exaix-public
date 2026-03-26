@@ -27,7 +27,7 @@ export function createSuccessfulExecutionMemory(portal: string, traceId: string)
     completed_at: "2026-01-04T10:30:00Z",
     status: ExecutionStatus.COMPLETED,
     portal,
-    identity: "senior-coder",
+    identity_id: "senior-coder",
     summary:
       "Implemented repository pattern for database access. Created UserRepository with CRUD operations. Added proper error handling with typed exceptions.",
     context_files: ["src/services/user.ts", "src/types/errors.ts"],
@@ -52,7 +52,7 @@ export function createFailedExecutionMemory(portal: string, traceId: string): IE
     completed_at: "2026-01-04T11:15:00Z",
     status: ExecutionStatus.FAILED,
     portal,
-    identity: "senior-coder",
+    identity_id: "senior-coder",
     summary: "Failed to implement feature due to missing dependency configuration.",
     context_files: ["src/config.ts"],
     context_portals: [portal],
@@ -204,7 +204,7 @@ export function createInvalidProposal(overrides: Partial<IMemoryUpdateProposal> 
     operation: MemoryOperation.ADD, // placeholder
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
-    identity: "test",
+    identity_id: "test",
     status: MemoryStatus.PENDING,
   });
 
@@ -224,7 +224,7 @@ export function createInvalidStatusProposal(overrides: Partial<IMemoryUpdateProp
     operation: MemoryOperation.ADD,
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
-    identity: "test",
+    identity_id: "test",
     status: MemoryStatus.PENDING,
   });
 

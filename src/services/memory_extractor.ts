@@ -62,13 +62,13 @@ export class MemoryExtractorService {
    *
    * @param learning - The learning to propose
    * @param execution - Source execution
-   * @param agent - Agent that created the learning
+   * @param identityId - Identity that created the learning
    * @returns Proposal ID
    */
   async createProposal(
     learning: IProposalLearning,
     execution: IExecutionMemory,
-    agent: string,
+    identityId: string,
   ): Promise<string> {
     await ensureDir(this.pendingDir);
 
@@ -80,7 +80,7 @@ export class MemoryExtractorService {
       target_project: learning.project,
       learning,
       reason: `Extracted from execution ${execution.trace_id}`,
-      agent,
+      identity_id: identityId,
       execution_id: execution.trace_id,
       status: MemoryStatus.PENDING,
     };
@@ -100,7 +100,7 @@ export class MemoryExtractorService {
         proposal_id: proposal.id,
         learning_title: learning.title,
         category: learning.category,
-        agent,
+        identity_id: identityId,
       },
     });
 

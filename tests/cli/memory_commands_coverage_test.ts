@@ -20,7 +20,6 @@ import { SkillsService } from "../../src/services/skills.ts";
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
 import { ExecutionMemoryBuilder, LearningBuilder, ProjectMemoryBuilder } from "../fixtures/memory_builder.ts";
 import {
-  TEST_AGENT_NAME,
   TEST_DERIVED_SKILL_DESCRIPTION,
   TEST_DERIVED_SKILL_ID,
   TEST_DERIVED_SKILL_INSTRUCTIONS,
@@ -542,7 +541,7 @@ Deno.test("MemoryCommands: pendingList and pendingShow return proposal details",
   const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const execution = new ExecutionMemoryBuilder("PendingProject").build();
-    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, "test-identity");
 
     const listResult = await commands.pendingList(UIOutputFormat.TABLE);
     assertStringIncludes(listResult, "Pending Memory Update Proposals");
@@ -562,7 +561,7 @@ Deno.test("MemoryCommands: pendingApprove approves global proposal", async () =>
     await memoryBank.initGlobalMemory();
 
     const execution = new ExecutionMemoryBuilder("GlobalProject").build();
-    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, "test-identity");
 
     const result = await commands.pendingApprove(proposalId);
     assertStringIncludes(result, "Proposal approved successfully");
@@ -578,7 +577,7 @@ Deno.test("MemoryCommands: pendingReject rejects proposal with reason", async ()
   const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const execution = new ExecutionMemoryBuilder("RejectProject").build();
-    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, TEST_AGENT_NAME);
+    const proposalId = await extractor.createProposal(buildTestProposalData(), execution, "test-identity");
 
     const result = await commands.pendingReject(proposalId, TEST_PENDING_REASON);
     assertStringIncludes(result, "Proposal rejected");
@@ -595,13 +594,13 @@ Deno.test("MemoryCommands: pendingApproveAll approves multiple proposals", async
     await memoryBank.createProjectMemory(new ProjectMemoryBuilder("PendingProject").build());
 
     const globalExecution = new ExecutionMemoryBuilder("GlobalProject").build();
-    await extractor.createProposal(buildTestProposalData(), globalExecution, TEST_AGENT_NAME);
+    await extractor.createProposal(buildTestProposalData(), globalExecution, "test-identity");
 
     const projectExecution = new ExecutionMemoryBuilder("PendingProject").build();
     await extractor.createProposal(
       buildTestProposalData(MemoryScope.PROJECT, "PendingProject"),
       projectExecution,
-      TEST_AGENT_NAME,
+      "test-identity",
     );
 
     const result = await commands.pendingApproveAll();

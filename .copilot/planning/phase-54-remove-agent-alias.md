@@ -1845,8 +1845,8 @@ Both should return zero results after the change.
 
 **Success criteria:**
 
-- `execution.agent` reference replaced with `execution.identity_id` in all metadata calls
-- `deno check src/services/memory_bank.ts` passes
+- [x] `execution.agent` reference replaced with `execution.identity_id` in all metadata calls
+  - [x] `deno check src/services/memory_bank.ts` passes
 
 ### Step 26 — Update `MemoryExtractorService.createProposal()` to use `identity_id` instead of `agent`
 
@@ -1938,10 +1938,10 @@ For each call site, rename the third argument variable from `agent` to the appro
 
 **Success criteria:**
 
-- `createProposal` parameter renamed from `agent` to `identityId`
-- `proposal.agent` assignment replaced with `proposal.identity_id = identityId`
+  - [x] `createProposal` parameter renamed from `agent` to `identityId`
+  - [x] `proposal.agent` assignment replaced with `proposal.identity_id = identityId`
 - All call sites updated to pass identity name as third argument
-- `deno check src/services/memory_extractor.ts` passes
+  - [x] `deno check src/services/memory_extractor.ts` passes
 
 ### Step 27 — Audit `NotificationService` actor semantics and fix logActivity calls
 

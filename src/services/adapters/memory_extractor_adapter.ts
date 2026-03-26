@@ -21,9 +21,9 @@ export class MemoryExtractorAdapter implements IMemoryExtractorService {
   async createProposal(
     learning: IProposalLearning,
     execution: IExecutionMemory,
-    agent: string,
+    identityId: string,
   ): Promise<string> {
-    return await this.inner.createProposal(learning, execution, agent);
+    return await this.inner.createProposal(learning, execution, identityId);
   }
 
   async listPending(): Promise<IMemoryUpdateProposal[]> {
