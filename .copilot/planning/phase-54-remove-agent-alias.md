@@ -1681,9 +1681,9 @@ deno task test -- --filter memory_bank
 
 **Success criteria:**
 
-- [ ] `logActivity` helper uses `"service:memory-bank"` as actor
-- [ ] `db.logActivity` signature accepts `agentKind`, `actorType`, `identityId`
-- [ ] Metadata key `"agent"` in `memory.execution.recorded` renamed to
+- [x] `logActivity` helper uses `"service:memory-bank"` as actor
+- [x] `db.logActivity` signature accepts `agentKind`, `actorType`, `identityId`
+- [x] Metadata key `"agent"` in `memory.execution.recorded` renamed to
   `"identity_id"`
 - [x] Zero TypeScript errors
 
@@ -1733,9 +1733,9 @@ Both should return zero results after the change.
 
 **Success criteria:**
 
-- `IExecutionMemory.agent` no longer exists
-- `IExecutionMemory.identity_id` is `string` (required)
-- `IExecutionMemory.agent_id` is `string | undefined` (optional)
+- [x] `IExecutionMemory.agent` no longer exists
+- [x] `IExecutionMemory.identity_id` is `string` (required)
+- [x] `IExecutionMemory.agent_id` is `string | undefined` (optional)
 - `deno check src/shared/schemas/memory_bank.ts` passes
 
 ### Step 24 — Fix `MemoryUpdateProposalSchema.agent` → `identity_id` in shared schema
@@ -1778,9 +1778,9 @@ Should return zero results after the change.
 
 **Success criteria:**
 
-- `IMemoryUpdateProposal.agent` no longer exists
-- `IMemoryUpdateProposal.identity_id` is `string` (required)
-- `deno check src/shared/schemas/memory_bank.ts` passes
+  - [x] `IMemoryUpdateProposal.agent` no longer exists
+  - [x] `IMemoryUpdateProposal.identity_id` is `string` (required)
+  - [x] `deno check src/shared/schemas/memory_bank.ts` passes
 
 ### Step 25 — Update `MemoryBankService` to use `identity_id` in execution records and activity logging
 
