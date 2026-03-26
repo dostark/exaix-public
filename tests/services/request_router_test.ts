@@ -31,7 +31,7 @@ Deno.test("RequestRouter: routes flow requests to FlowRunner", async () => {
 Deno.test("RequestRouter: routes agent requests to AgentRunner", async () => {
   const { mockAgentRunner, mockLogger, router } = createRouterTestContext();
 
-  const request = sampleRouterRequest({ frontmatter: { agent: "senior-coder" } });
+  const request = sampleRouterRequest({ frontmatter: { identity: "senior-coder" } });
 
   const result = await router.route(request);
 
@@ -74,7 +74,7 @@ Deno.test("RequestRouter: throws error for conflicting flow and agent fields", a
   const { router } = createRouterTestContext();
 
   const request = sampleRouterRequest({
-    frontmatter: { flow: "code-review", agent: "senior-coder" },
+    frontmatter: { flow: "code-review", identity: "senior-coder" },
   });
 
   await assertRejects(
@@ -104,7 +104,7 @@ Deno.test("RequestRouter: flow takes priority over agent when both present (shou
     return await router.routeToDefaultAgent(request);
   };
 
-  const request = sampleRouterRequest({ frontmatter: { flow: "code-review", agent: "senior-coder" } });
+  const request = sampleRouterRequest({ frontmatter: { flow: "code-review", identity: "senior-coder" } });
 
   const result = await router.route(request);
 

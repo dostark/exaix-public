@@ -64,7 +64,7 @@ export function createTestProposal(idOrOverrides?: string | Partial<IMemoryUpdat
       ...overrides.learning,
     },
     reason: "Extracted from execution",
-    agent: "senior-coder",
+    identity: "senior-coder",
     execution_id: "trace-123",
     status: MemoryStatus.PENDING,
     ...overrides,

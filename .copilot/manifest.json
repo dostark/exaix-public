@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-26T13:21:46.263Z",
+  "generated_at": "2026-03-26T18:06:28.866Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -904,7 +904,7 @@
       "scope": "dev",
       "title": "Phase 54: Remove Deprecated 'agent' Aliases Introduced in Phase 53",
       "short_summary": "",
-      "version": "1.0",
+      "version": "2.0",
       "topics": [
         "naming",
         "cleanup",

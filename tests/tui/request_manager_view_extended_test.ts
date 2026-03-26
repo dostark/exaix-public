@@ -827,7 +827,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       plans: "Plans",
       requests: "Requests",
       rejected: "Rejected",
-      agents: "Agents",
+      identies: "Identities",
       flows: "Flows",
       memoryProjects: "MemoryProjects",
       memoryExecution: "MemoryExecution",

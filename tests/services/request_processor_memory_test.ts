@@ -73,7 +73,7 @@ async function makeEnv() {
   const workspacePath = join(tempDir, config.paths.workspace);
   const requestsDir = join(workspacePath, config.paths.requests);
   const plansDir = join(workspacePath, config.paths.plans);
-  const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
+  const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.identities);
 
   await Deno.mkdir(requestsDir, { recursive: true });
   await Deno.mkdir(plansDir, { recursive: true });

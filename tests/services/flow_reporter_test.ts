@@ -6,7 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { FlowInputSource, FlowOutputFormat, MemoryBankSource } from "../../src/shared/enums.ts";
+import { FlowInputSource, FlowOutputFormat } from "../../src/shared/enums.ts";
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
@@ -71,7 +71,7 @@ describe("FlowReporter", () => {
           {
             id: "step1",
             name: "First Step",
-            agent: "test-agent",
+            identity: "test-agent",
             dependsOn: [],
             input: {
               source: FlowInputSource.REQUEST,
@@ -85,7 +85,7 @@ describe("FlowReporter", () => {
           {
             id: "step2",
             name: "Second Step",
-            agent: "test-agent",
+            identity: "test-agent",
             dependsOn: ["step1"],
             input: {
               source: FlowInputSource.REQUEST,
@@ -200,7 +200,7 @@ describe("FlowReporter", () => {
           {
             id: "step1",
             name: "Failing Step",
-            agent: "test-agent",
+            identity: "test-agent",
             dependsOn: [],
             input: {
               source: FlowInputSource.REQUEST,
@@ -267,7 +267,7 @@ describe("FlowReporter", () => {
         steps: [{
           id: "step1",
           name: "Step 1",
-          agent: MemoryBankSource.AGENT,
+          identity: "test-agent",
           dependsOn: [],
           input: {
             source: FlowInputSource.REQUEST,

@@ -55,7 +55,7 @@ function makeRequestFile(
     `created: "2026-01-01T00:00:00.000Z"`,
     `status: "${status}"`,
     `priority: "normal"`,
-    `agent: "senior-coder"`,
+    `identity: "senior-coder"`,
     `source: ${RequestSource.CLI}`,
     `created_by: "tester"`,
     extras,
@@ -78,7 +78,7 @@ async function setupProcessorTestEnv(
 }> {
   const workspacePath = join(tempDir, config.paths.workspace);
   const requestsDir = join(workspacePath, config.paths.requests);
-  const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
+  const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.identities);
   await Deno.mkdir(requestsDir, { recursive: true });
   await Deno.mkdir(blueprintsPath, { recursive: true });
   const processorConfig = { workspacePath, requestsDir, blueprintsPath, includeReasoning: false };
@@ -98,7 +98,7 @@ function writeTestRequestFile(
       `created: "2026-01-01T00:00:00.000Z"`,
       `status: "${status}"`,
       `priority: "${priority}"`,
-      `agent: "${agent}"`,
+      `identity: "${agent}"`,
       `source: ${RequestSource.CLI}`,
       `created_by: "tester"`,
       "---",
@@ -320,7 +320,7 @@ Deno.test(
     try {
       const workspacePath = join(tempDir, config.paths.workspace);
       const requestsDir = join(workspacePath, config.paths.requests);
-      const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.agents);
+      const blueprintsPath = join(tempDir, config.paths.blueprints, config.paths.identities);
       await Deno.mkdir(requestsDir, { recursive: true });
       await Deno.mkdir(blueprintsPath, { recursive: true });
       const processorConfig = { workspacePath, requestsDir, blueprintsPath, includeReasoning: false };
@@ -334,7 +334,7 @@ Deno.test(
           `created: "2026-01-01T00:00:00.000Z"`,
           `status: "${RequestStatus.PENDING}"`,
           `priority: "normal"`,
-          `agent: "nonexistent-agent"`,
+          `identity: "nonexistent-agent"`,
           `source: ${RequestSource.CLI}`,
           `created_by: "tester"`,
           `assessed_at: "2026-01-01T00:00:00.000Z"`,

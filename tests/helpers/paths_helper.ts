@@ -44,8 +44,7 @@ export function getBlueprintsAgentsDir(argDir: string) {
   // agents is "Agents", blueprints is "Blueprints"
   // The original code was join(argDir, "Blueprints", "Agents")
   // In ExaPathDefaults, we have agents: "Agents", blueprints: "Blueprints"
-  // So join(argDir, ExaPathDefaults.blueprints, ExaPathDefaults.agents)
-  return join(argDir, ExaPathDefaults.blueprints, ExaPathDefaults.agents);
+  return join(argDir, ExaPathDefaults.blueprints, ExaPathDefaults.identities);
 }
 
 export function getMemoryExecutionDir(argDir: string) {

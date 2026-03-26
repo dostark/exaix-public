@@ -7,10 +7,8 @@
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { MemoryStatus } from "../src/shared/status/memory_status.ts";
-
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
-
 import { type IRequestProcessorConfig, RequestProcessor } from "../src/services/request_processor.ts";
 import { IModelProvider } from "../src/ai/types.ts";
 import { ProviderRegistry } from "../src/ai/provider_registry.ts";
@@ -42,7 +40,7 @@ function createTestRequestPath(tempDir: string): { traceId: string; requestPath:
  */
 function createRequestContent(opts: {
   traceId: string;
-  agent?: string;
+  identity?: string;
   flow?: string;
   status?: string;
   priority?: string;
@@ -53,7 +51,7 @@ function createRequestContent(opts: {
     `created: "${new Date().toISOString()}"`,
     `status: ${opts.status || MemoryStatus.PENDING}`,
     `priority: ${opts.priority || "normal"}`,
-    opts.flow ? null : `agent: ${opts.agent || "default"}`, // Only include agent if no flow
+    opts.flow ? null : `agent: ${opts.identity || "default"}`, // Only include agent if no flow
     opts.flow ? `flow: ${opts.flow}` : null,
     `source: cli`,
     `created_by: "test@example.com"`,
@@ -164,7 +162,7 @@ describe("RequestProcessor", () => {
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "default",
+        identity: "default",
         body: "Add a hello world function to utils.ts",
       });
 
@@ -211,9 +209,7 @@ Do something
 `;
 
       await Deno.writeTextFile(requestPath, invalidContent);
-
       const processor = createProcessor();
-
       const result = await processor.process(requestPath);
 
       assertEquals(result, null, "Should return null for missing trace_id");
@@ -229,9 +225,7 @@ Do something
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       const planPath = await processor.process(requestPath);
 
       assert(planPath !== null, "Plan path should not be null");
@@ -249,9 +243,7 @@ Do something
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       const planPath = await processor.process(requestPath);
 
       assert(planPath !== null);
@@ -267,9 +259,7 @@ Do something
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       const planPath = await processor.process(requestPath);
       assert(planPath !== null);
 
@@ -292,9 +282,7 @@ Do something
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       await processor.process(requestPath);
 
       // Re-read request file to check status update
@@ -312,9 +300,7 @@ Do something
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       await processor.process(requestPath);
 
       // Wait for activity logs to be flushed
@@ -346,9 +332,7 @@ Do something
         id: "failing-mock",
         errorMessage: "Simulated LLM failure",
       });
-
       const processor = createProcessor(failingProvider);
-
       const result = await processor.process(requestPath);
 
       // Should return null on error (not throw)
@@ -363,14 +347,12 @@ Do something
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "nonexistent-agent",
+        identity: "nonexistent-agent",
         body: "Use a missing blueprint",
       });
 
       await Deno.writeTextFile(requestPath, requestContent);
-
       const processor = createProcessor();
-
       const result = await processor.process(requestPath);
 
       // Should return null when blueprint doesn't exist
@@ -398,7 +380,7 @@ Do something
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "data-analyzer",
+        identity: "data-analyzer",
         body: "Analyze this dataset",
       });
 
@@ -422,7 +404,7 @@ Do something
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "senior-coder",
+        identity: "senior-coder",
         body: "Implement a complex algorithm",
       });
 
@@ -446,7 +428,7 @@ Do something
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "content-writer",
+        identity: "content-writer",
         body: "Write an article about AI",
       });
 
@@ -478,7 +460,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "code-reviewer",
+        identity: "code-reviewer",
         body: "Review my pull request",
       });
 
@@ -495,7 +477,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        agent: "default",
+        identity: "default",
         body: "Use the default blueprint",
       });
 

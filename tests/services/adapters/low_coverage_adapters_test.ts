@@ -111,7 +111,10 @@ Deno.test("JournalServiceAdapter query and distinct-values handling", async () =
     id: "1",
     trace_id: TEST_TRACE_ID,
     actor: "cli",
+    actor_type: null,
     agent_id: TEST_AGENT_ID,
+    agent_kind: null,
+    identity_id: null,
     action_type: "run",
     target: "target",
     payload: "{}",
@@ -157,7 +160,7 @@ Deno.test("AgentServiceAdapter list/health/log helpers", async () => {
   const existingDirRoot = await Deno.makeTempDir({ prefix: "agent-adapter-existing-" });
   try {
     const existingConfig = createMockConfig(existingDirRoot);
-    const agentsDir = join(existingDirRoot, existingConfig.paths.workspace, existingConfig.paths.agents);
+    const agentsDir = join(existingDirRoot, existingConfig.paths.workspace, existingConfig.paths.identities);
     await Deno.mkdir(agentsDir, { recursive: true });
     await Deno.writeTextFile(join(agentsDir, "alpha.json"), "{}");
     await Deno.mkdir(join(agentsDir, "beta"), { recursive: true });

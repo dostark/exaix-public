@@ -48,7 +48,7 @@ Deno.test("scaffold.sh creates required directory structure", async () => {
     // Verify all required directories exist
     const requiredDirs = [
       ExaPathDefaults.runtime,
-      join(ExaPathDefaults.blueprints, ExaPathDefaults.agents),
+      join(ExaPathDefaults.blueprints, ExaPathDefaults.identities),
       ExaPathDefaults.flows,
       join(ExaPathDefaults.workspace, ExaPathDefaults.requests),
       join(ExaPathDefaults.workspace, ExaPathDefaults.plans),
@@ -80,7 +80,7 @@ Deno.test("scaffold.sh creates .gitkeep files", async () => {
     // Verify .gitkeep files exist
     const gitkeepPaths = [
       join(ExaPathDefaults.runtime, ".gitkeep"),
-      join(ExaPathDefaults.blueprints, ExaPathDefaults.agents, ".gitkeep"),
+      join(ExaPathDefaults.blueprints, ExaPathDefaults.identities, ".gitkeep"),
       join(ExaPathDefaults.flows, ".gitkeep"),
       join(ExaPathDefaults.workspace, ExaPathDefaults.requests, ".gitkeep"),
       join(ExaPathDefaults.workspace, ExaPathDefaults.plans, ".gitkeep"),

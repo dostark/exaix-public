@@ -42,7 +42,7 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       plans: DEFAULTS.DEFAULT_PLANS_PATH,
       requests: DEFAULTS.DEFAULT_REQUESTS_PATH,
       rejected: DEFAULTS.DEFAULT_REJECTED_PATH,
-      agents: DEFAULTS.DEFAULT_AGENTS_PATH,
+      identities: DEFAULTS.DEFAULT_IDENTITIES_PATH,
       flows: DEFAULTS.DEFAULT_FLOWS_PATH,
       memoryProjects: DEFAULTS.DEFAULT_PROJECTS_MEMORY_PATH,
       memoryExecution: DEFAULTS.DEFAULT_EXECUTION_MEMORY_PATH,
@@ -101,7 +101,7 @@ archive = "${DEFAULTS.ExaPathDefaults.archive}"
 plans = "${DEFAULTS.ExaPathDefaults.plans}"
 requests = "${DEFAULTS.ExaPathDefaults.requests}"
 rejected = "${DEFAULTS.ExaPathDefaults.rejected}"
-agents = "${DEFAULTS.ExaPathDefaults.agents}"
+agents = "${DEFAULTS.ExaPathDefaults.identities}"
 flows = "${DEFAULTS.ExaPathDefaults.flows}"
 memoryProjects = "${DEFAULTS.ExaPathDefaults.memoryProjects}"
 memoryExecution = "${DEFAULTS.ExaPathDefaults.memoryExecution}"
