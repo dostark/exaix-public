@@ -84,7 +84,7 @@ trace_id: "trace-123"
 created: "${new Date().toISOString()}"
 status: "${RequestStatus.PENDING}"
 priority: "normal"
-agent: "test-agent"
+identity: "test-agent"
 source: RequestSource.CLI
 created_by: "test-user"
 ---

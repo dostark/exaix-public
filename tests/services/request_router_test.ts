@@ -80,7 +80,7 @@ Deno.test("RequestRouter: throws error for conflicting flow and agent fields", a
   await assertRejects(
     () => router.route(request),
     RoutingError,
-    "Request cannot specify both 'flow' and 'agent' fields",
+    "Request cannot specify both 'flow' and 'identity' fields",
   );
 });
 

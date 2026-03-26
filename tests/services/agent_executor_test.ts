@@ -332,7 +332,7 @@ Deno.test({
           await executor.executeStep(context, options);
         },
         Error,
-        "Agent not allowed",
+        "Identity not allowed",
       );
     } finally {
       await cleanup();
@@ -601,7 +601,8 @@ Deno.test({
       assert(activities.length > 0);
       const startActivity = activities.find((a) => a.action_type === "agent.execution_started");
       assertExists(startActivity);
-      assertEquals(startActivity.agent_id, "test-agent");
+      assertEquals(startActivity.agent_id, "agent-executor");
+      assertEquals(startActivity.identity_id, "test-agent");
     } finally {
       await cleanup();
     }
@@ -643,7 +644,8 @@ Deno.test({
       assert(activities.length > 0);
       const completeActivity = activities.find((a) => a.action_type === "agent.execution_completed");
       assertExists(completeActivity);
-      assertEquals(completeActivity.agent_id, "test-agent");
+      assertEquals(completeActivity.agent_id, "agent-executor");
+      assertEquals(completeActivity.identity_id, "test-agent");
     } finally {
       await cleanup();
     }
@@ -682,7 +684,8 @@ Deno.test({
       assert(activities.length > 0);
       const errorActivity = activities.find((a) => a.action_type === "agent.execution_failed");
       assertExists(errorActivity);
-      assertEquals(errorActivity.agent_id, "test-agent");
+      assertEquals(errorActivity.agent_id, "agent-executor");
+      assertEquals(errorActivity.identity_id, "test-agent");
       assertStringIncludes(
         errorActivity.payload,
         "timeout",

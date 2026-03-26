@@ -58,20 +58,20 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
       return Promise.resolve(null);
     },
     getExecutionHistory: (_portal?: string, _limit?: number) => {
-      return Promise.resolve([
-        {
-          trace_id: "550e8400-e29b-41d4-a716-446655440009",
-          portal: "projA",
-          summary: "Execution mentioning X in summary",
-          started_at: new Date().toISOString(),
-          request_id: "req-1",
-          status: ExecutionStatus.COMPLETED,
-          agent: "test",
-          context_files: [],
-          context_portals: [],
-          changes: { files_created: [], files_modified: [], files_deleted: [] },
-        },
-      ]);
+      const execMemory: IExecutionMemory = {
+        trace_id: "550e8400-e29b-41d4-a716-446655440009",
+        portal: "projA",
+        summary: "Execution mentioning X in summary",
+        started_at: new Date().toISOString(),
+        request_id: "req-1",
+        status: ExecutionStatus.COMPLETED,
+        identity_id: "test",
+        context_files: [],
+        context_portals: [],
+        changes: { files_created: [], files_modified: [], files_deleted: [] },
+        lessons_learned: [],
+      };
+      return Promise.resolve([execMemory]);
     },
     loadLearningsFromFile: () =>
       Promise.resolve([

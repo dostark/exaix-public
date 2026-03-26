@@ -362,7 +362,7 @@ export class DatabaseService implements IDatabaseService {
    */
   getActivitiesByTrace(traceId: string): ActivityRecord[] {
     const stmt = this.db.prepare(
-      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+      `SELECT id, trace_id, actor, actor_type, agent_id, agent_kind, identity_id, action_type, target, payload, timestamp
        FROM activity
        WHERE trace_id = ?
        ORDER BY timestamp`,
@@ -384,7 +384,7 @@ export class DatabaseService implements IDatabaseService {
    */
   getActivitiesByActionType(actionType: string): ActivityRecord[] {
     const stmt = this.db.prepare(
-      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+      `SELECT id, trace_id, actor, actor_type, agent_id, agent_kind, identity_id, action_type, target, payload, timestamp
        FROM activity
        WHERE action_type = ?
        ORDER BY timestamp`,
@@ -408,7 +408,7 @@ export class DatabaseService implements IDatabaseService {
     await this.flushPendingLogs("getRecentActivity");
 
     const stmt = this.db.prepare(
-      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+      `SELECT id, trace_id, actor, actor_type, agent_id, agent_kind, identity_id, action_type, target, payload, timestamp
        FROM activity
        ORDER BY timestamp DESC
        LIMIT ?`,
@@ -434,7 +434,8 @@ export class DatabaseService implements IDatabaseService {
     } else if (filter.count) {
       selectClause += `action_type, COUNT(*) as count`;
     } else {
-      selectClause += `id, trace_id, actor, agent_id, action_type, target, payload, timestamp`;
+      selectClause +=
+        `id, trace_id, actor, actor_type, agent_id, agent_kind, identity_id, action_type, target, payload, timestamp`;
     }
 
     // Build WHERE clause

@@ -30,7 +30,7 @@ async function withSubjectPropagationEnv(
   const plansDir = join(workspaceDir, "Plans");
   const runtimeDir = join(tempDir, "Runtime");
   const blueprintsDir = join(tempDir, "Blueprints");
-  const agentsDir = join(blueprintsDir, "Agents");
+  const agentsDir = join(blueprintsDir, "Identities");
 
   await Deno.mkdir(requestsDir, { recursive: true });
   await Deno.mkdir(plansDir, { recursive: true });
@@ -139,7 +139,7 @@ trace_id: "trace-123"
 created: "${new Date().toISOString()}"
 status: "pending"
 priority: "normal"
-agent: "test-agent"
+identity: "test-agent"
 source: RequestSource.CLI
 created_by: "user"
 subject: "${initialSubject}"
@@ -198,7 +198,7 @@ trace_id: "trace-456"
 created: "${new Date().toISOString()}"
 status: "pending"
 priority: "normal"
-agent: "test-agent"
+identity: "test-agent"
 source: RequestSource.CLI
 created_by: "user"
 subject: "${explicitSubject}"

@@ -98,11 +98,11 @@ async function makeRequestProcessorEnv() {
 function makeAgentRequestFile(requestsDir: string, options: {
   requestId?: string;
   body?: string;
-  agent?: string;
+  identity?: string;
 } = {}): string {
   const requestId = options.requestId ?? "req-001";
   const body = options.body ?? "Fix the login bug in the auth module";
-  const agent = options.agent ?? "nonexistent-agent";
+  const identity = options.identity ?? "nonexistent-agent";
   const filePath = join(requestsDir, `${requestId}.md`);
 
   const content = `---
@@ -110,7 +110,7 @@ trace_id: "trace-${requestId}"
 created: "${new Date().toISOString()}"
 status: "${RequestStatus.PENDING}"
 priority: "normal"
-agent: "${agent}"
+identity: "${identity}"
 source: RequestSource.CLI
 created_by: "test-user"
 ---
@@ -359,7 +359,7 @@ Deno.test("[RequestProcessor] plan metadata contains request analysis", async ()
   const fakeAnalyzer = makeFakeAnalyzer(testAnalysis);
 
   try {
-    const filePath = makeAgentRequestFile(env.requestsDir, { agent: "test-agent" });
+    const filePath = makeAgentRequestFile(env.requestsDir, { identity: "test-agent" });
     // Write a dummy blueprint
     await Deno.writeTextFile(join(env.blueprintsPath, "test-agent.md"), "Test prompt");
 
