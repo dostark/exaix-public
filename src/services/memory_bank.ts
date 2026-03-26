@@ -1124,8 +1124,8 @@ export class MemoryBankService implements IMemoryBankService {
         event.metadata || {},
         event.trace_id,
         null,
-        "memory-bank",
         "service",
+        "memory-bank",
         null,
       );
     } catch (error) {

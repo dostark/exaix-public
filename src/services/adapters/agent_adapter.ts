@@ -23,7 +23,7 @@ export class AgentServiceAdapter extends BaseCommand implements IAgentService {
     this.agentsDir = join(
       this.config.system.root!,
       this.config.paths.workspace!,
-      this.config.paths.agents!,
+      this.config.paths.identities!,
     );
   }
 

@@ -20,7 +20,7 @@ export interface IExaPaths {
   plans: string;
   requests: string;
   rejected: string;
-  agents: string;
+  identities: string;
   flows: string;
   memoryProjects: string;
   memoryExecution: string;
@@ -43,7 +43,7 @@ export function getDefaultPaths(_root: string): IExaPaths {
     plans: DEFAULTS.DEFAULT_PLANS_PATH,
     requests: DEFAULTS.DEFAULT_REQUESTS_PATH,
     rejected: DEFAULTS.DEFAULT_REJECTED_PATH,
-    agents: DEFAULTS.DEFAULT_AGENTS_PATH,
+    identities: DEFAULTS.DEFAULT_IDENTITIES_PATH,
     flows: DEFAULTS.DEFAULT_FLOWS_PATH,
     memoryProjects: DEFAULTS.DEFAULT_PROJECTS_MEMORY_PATH,
     memoryExecution: DEFAULTS.DEFAULT_EXECUTION_MEMORY_PATH,
