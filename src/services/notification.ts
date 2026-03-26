@@ -98,6 +98,7 @@ export class NotificationService implements INotificationService {
       target: proposal.target_project || "global",
       metadata: {
         proposal_id: proposal.id,
+        identity_id: proposal.identity_id,
         learning_title: proposal.learning?.title || "Untitled",
         reason: proposal.reason,
       },

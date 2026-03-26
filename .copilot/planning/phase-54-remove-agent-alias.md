@@ -1991,9 +1991,9 @@ Both should return zero results.
 
 **Success criteria:**
 
-- `notifyMemoryUpdate` metadata includes `identity_id` from proposal
+  - [x] `notifyMemoryUpdate` metadata includes `identity_id` from proposal
 - No `agent` field references in `notification.ts`
-- `deno check src/services/notification.ts` passes
+  - [x] `deno check src/services/notification.ts` passes
 
 ### Cross-cutting Final Audit (Step 28 — Optional cleanup pass)
 
@@ -2022,7 +2022,7 @@ deno check \
   src/services/notification.ts
 
 # Run tests:
-deno test src/services/ --allow-all
+deno test tests/services/ --allow-all
 ```
 
 **Summary of what changed in Steps 23–27:**
