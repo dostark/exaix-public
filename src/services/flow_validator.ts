@@ -130,8 +130,8 @@ export class FlowValidatorImpl implements IFlowValidator {
 
   private validateStepAgents(flowId: string, steps: IFlowStep[]): string | null {
     for (const step of steps) {
-      if (!step.agent || typeof step.agent !== "string" || step.agent === "") {
-        return `IFlow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`;
+      if (!step.identity || typeof step.identity !== "string" || step.identity === "") {
+        return `IFlow '${flowId}' step '${step.id}' has invalid identity: ${step.identity}`;
       }
     }
     return null;

@@ -138,7 +138,7 @@ export class FeedbackLoop {
       // Evaluate current content
       const gateResult = await this.gateEvaluator.evaluate(
         {
-          agent: config.evaluator,
+          identity: config.evaluator,
           criteria: config.criteria,
           threshold: config.targetScore,
           onFail: FlowGateOnFail.CONTINUE_WITH_WARNING,

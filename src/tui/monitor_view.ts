@@ -24,7 +24,10 @@ export interface ILogEntry {
   id: string;
   trace_id: string;
   actor: string | null;
+  actor_type: string | null;
   agent_id: string | null;
+  agent_kind: string | null;
+  identity_id: string | null;
   action_type: string;
   target: string | null;
   payload: JSONObject;
@@ -345,6 +348,9 @@ export class MinimalLogServiceMock implements IJournalService {
     return Promise.resolve([...filtered.map((log) => ({
       ...log,
       payload: JSON.stringify(log.payload),
+      actor_type: log.actor_type ?? null,
+      agent_kind: log.agent_kind ?? null,
+      identity_id: log.identity_id ?? null,
     }))]);
   }
 

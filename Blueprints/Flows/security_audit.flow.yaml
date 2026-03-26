@@ -10,7 +10,7 @@ steps:
   - id: static-analysis
     name: Static Security Analysis
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn: []
     input:
       source: request
@@ -22,7 +22,7 @@ steps:
   - id: dependency-audit
     name: Dependency Vulnerability Check
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn: []
     input:
       source: request
@@ -39,7 +39,7 @@ steps:
   - id: auth-review
     name: Authentication & Authorization Review
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn: []
     input:
       source: request
@@ -56,7 +56,7 @@ steps:
   - id: data-protection
     name: Data Protection Assessment
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn: []
     input:
       source: request
@@ -73,7 +73,7 @@ steps:
   - id: consolidate-findings
     name: Consolidate Security Findings
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn:
       - static-analysis
       - dependency-audit
@@ -94,7 +94,7 @@ steps:
   - id: risk-assessment
     name: Risk Assessment & Prioritization
     type: agent
-    agent: software-architect
+    identity: software-architect
     dependsOn:
       - consolidate-findings
     input:
@@ -108,7 +108,7 @@ steps:
   - id: remediation-plan
     name: Create Remediation Plan
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - consolidate-findings
       - risk-assessment
@@ -125,7 +125,7 @@ steps:
   - id: generate-report
     name: Generate Security Report
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - consolidate-findings
       - risk-assessment

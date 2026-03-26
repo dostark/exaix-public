@@ -8,7 +8,7 @@ steps:
   - id: analyze-requirements
     name: Analyze Requirements
     type: agent
-    agent: product-manager
+    identity: product-manager
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: design-architecture
     name: Design Architecture
     type: agent
-    agent: software-architect
+    identity: software-architect
     dependsOn:
       - analyze-requirements
     input:
@@ -32,7 +32,7 @@ steps:
   - id: implement-feature
     name: Implement Feature
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - design-architecture
     input:
@@ -46,7 +46,7 @@ steps:
   - id: write-tests
     name: Write Unit Tests
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - implement-feature
     input:
@@ -59,7 +59,7 @@ steps:
   - id: code-review
     name: Code Review
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - implement-feature
       - write-tests
@@ -72,7 +72,7 @@ steps:
   - id: integration-test
     name: Integration Testing
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - code-review
     input:

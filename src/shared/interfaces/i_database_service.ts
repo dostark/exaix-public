@@ -21,6 +21,9 @@ export interface IDatabaseService {
     payload: Record<string, JSONValue>,
     traceId?: string,
     agentId?: string | null,
+    actorType?: string | null,
+    agentKind?: string | null,
+    identityId?: string | null,
   ): void;
 
   /**

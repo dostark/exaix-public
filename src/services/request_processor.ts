@@ -186,7 +186,7 @@ export class RequestProcessor {
 
     traceLogger.info("request.processing", filePath, {
       flow: frontmatter.flow ?? null,
-      agent: frontmatter.agent ?? null,
+      agent: frontmatter.identity ?? null,
       priority: frontmatter.priority ?? null,
     });
 
@@ -236,7 +236,7 @@ export class RequestProcessor {
     const analysisMode = (this.config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE) as AnalysisMode;
     const analysis = analysisEnabled
       ? await this.analyzer.analyze(assessedBody, {
-        agentId: frontmatter.agent ?? frontmatter.flow,
+        agentId: frontmatter.identity ?? frontmatter.flow,
         priority: frontmatter.priority,
         mode: analysisMode,
         memories: memoryContext,
@@ -398,7 +398,7 @@ export class RequestProcessor {
     const { frontmatter, filePath, traceLogger } = args;
 
     const hasFlow = !!frontmatter.flow;
-    const hasAgent = !!frontmatter.agent;
+    const hasAgent = !!frontmatter.identity;
 
     if (hasFlow && hasAgent) {
       traceLogger.error("request.invalid", filePath, {
@@ -560,19 +560,19 @@ export class RequestProcessor {
     specification?: IRequestSpecification,
     memoryContext?: EnhancedRequest,
   ): Promise<string | null> {
-    const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
+    const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.identity!, traceLogger);
 
     if (!loadedBlueprint) {
-      traceLogger.error("blueprint.not_found", frontmatter.agent!, {
+      traceLogger.error("blueprint.not_found", frontmatter.identity!, {
         request: filePath,
       });
       await this.statusManager.updateStatus(
         filePath,
         RequestStatus.FAILED,
-        `Blueprint not found: ${frontmatter.agent}`,
+        `Blueprint not found: ${frontmatter.identity}`,
       );
       traceLogger.error("request.failed", filePath, {
-        error: `Blueprint not found: ${frontmatter.agent}`,
+        error: `Blueprint not found: ${frontmatter.identity}`,
       });
       return null;
     }
@@ -648,7 +648,7 @@ export class RequestProcessor {
       createdAt: new Date(frontmatter.created),
       contextFiles: [],
       contextWarnings: [],
-      agentId: frontmatter.agent,
+      agentId: frontmatter.identity,
       model: frontmatter.model,
       portal: frontmatter.portal,
       targetBranch: frontmatter.target_branch,

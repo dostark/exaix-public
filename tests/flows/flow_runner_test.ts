@@ -1678,7 +1678,10 @@ class MockDatabaseService {
       payload: JSON.stringify(a.payload),
       timestamp: new Date().toISOString(),
       actor: "test",
+      actor_type: null,
       agent_id: null,
+      agent_kind: null,
+      identity_id: null,
       target: null,
     }));
   }

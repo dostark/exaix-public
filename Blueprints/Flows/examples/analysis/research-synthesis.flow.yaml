@@ -8,7 +8,7 @@ steps:
   - id: literature-review
     name: Literature Review & Academic Research
     type: agent
-    agent: literature-researcher
+    identity: literature-researcher
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: data-analysis
     name: Data Analysis & Quantitative Research
     type: agent
-    agent: data-researcher
+    identity: data-researcher
     dependsOn: []
     input:
       source: request
@@ -30,7 +30,7 @@ steps:
   - id: expert-insights
     name: Expert Insights & Qualitative Analysis
     type: agent
-    agent: expert-consultant
+    identity: expert-consultant
     dependsOn: []
     input:
       source: request
@@ -41,7 +41,7 @@ steps:
   - id: methodology-assessment
     name: Methodology Assessment
     type: agent
-    agent: methodology-expert
+    identity: methodology-expert
     dependsOn: []
     input:
       source: request
@@ -52,7 +52,7 @@ steps:
   - id: gap-analysis
     name: Research Gaps & Future Directions
     type: agent
-    agent: strategic-analyst
+    identity: strategic-analyst
     dependsOn:
       - literature-review
       - data-analysis
@@ -70,7 +70,7 @@ steps:
   - id: comprehensive-synthesis
     name: Comprehensive Synthesis & Recommendations
     type: agent
-    agent: synthesis-analyst
+    identity: synthesis-analyst
     dependsOn:
       - literature-review
       - data-analysis

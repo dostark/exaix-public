@@ -6,7 +6,7 @@ steps:
   - id: security-analysis
     name: Security Analysis
     type: agent
-    agent: security-reviewer
+    identity: security-reviewer
     dependsOn: []
     input:
       source: request
@@ -17,7 +17,7 @@ steps:
   - id: performance-analysis
     name: Performance Analysis
     type: agent
-    agent: performance-reviewer
+    identity: performance-reviewer
     dependsOn: []
     input:
       source: request
@@ -28,7 +28,7 @@ steps:
   - id: maintainability-analysis
     name: Maintainability Analysis
     type: agent
-    agent: maintainability-reviewer
+    identity: maintainability-reviewer
     dependsOn: []
     input:
       source: request
@@ -39,7 +39,7 @@ steps:
   - id: best-practices-analysis
     name: Best Practices Analysis
     type: agent
-    agent: best-practices-reviewer
+    identity: best-practices-reviewer
     dependsOn: []
     input:
       source: request
@@ -50,7 +50,7 @@ steps:
   - id: synthesis-review
     name: Synthesis and Final Review
     type: agent
-    agent: senior-reviewer
+    identity: senior-reviewer
     dependsOn:
       - security-analysis
       - performance-analysis

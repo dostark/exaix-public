@@ -6,7 +6,7 @@ steps:
   - id: stage-1-planning
     name: "Stage 1: Planning & Analysis"
     type: agent
-    agent: planner-agent
+    identity: planner-agent
     dependsOn: []
     input:
       source: request
@@ -17,7 +17,7 @@ steps:
   - id: stage-2-development
     name: "Stage 2: Development & Implementation"
     type: agent
-    agent: developer-agent
+    identity: developer-agent
     dependsOn:
       - stage-1-planning
     input:
@@ -30,7 +30,7 @@ steps:
   - id: stage-3-validation
     name: "Stage 3: Validation & Testing"
     type: agent
-    agent: tester-agent
+    identity: tester-agent
     dependsOn:
       - stage-2-development
     input:
@@ -45,7 +45,7 @@ steps:
   - id: stage-4-review
     name: "Stage 4: Review & Refinement"
     type: agent
-    agent: reviewer-agent
+    identity: reviewer-agent
     dependsOn:
       - stage-3-validation
     input:
@@ -61,7 +61,7 @@ steps:
   - id: stage-5-deployment
     name: "Stage 5: Deployment & Documentation"
     type: agent
-    agent: deployer-agent
+    identity: deployer-agent
     dependsOn:
       - stage-4-review
     input:

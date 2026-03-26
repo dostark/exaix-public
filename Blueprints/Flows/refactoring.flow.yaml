@@ -8,7 +8,7 @@ steps:
   - id: analyze-current-code
     name: Analyze Current Code
     type: agent
-    agent: code-analyst
+    identity: code-analyst
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: identify-improvements
     name: Identify Improvement Opportunities
     type: agent
-    agent: software-architect
+    identity: software-architect
     dependsOn:
       - analyze-current-code
     input:
@@ -32,7 +32,7 @@ steps:
   - id: assess-risks
     name: Assess Refactoring Risks
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - identify-improvements
     input:
@@ -46,7 +46,7 @@ steps:
   - id: write-safety-tests
     name: Write Safety Tests
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - analyze-current-code
     input:
@@ -59,7 +59,7 @@ steps:
   - id: implement-refactoring
     name: Implement Refactoring
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - identify-improvements
       - assess-risks
@@ -78,7 +78,7 @@ steps:
   - id: validate-refactoring
     name: Validate Refactoring
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - implement-refactoring
     input:
@@ -93,7 +93,7 @@ steps:
   - id: final-review
     name: Final Code Review
     type: agent
-    agent: quality-judge
+    identity: quality-judge
     dependsOn:
       - validate-refactoring
     input:

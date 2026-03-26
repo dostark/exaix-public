@@ -24,7 +24,10 @@ interface LogEntry {
   activityId: string;
   traceId: string;
   actor: string;
+  actorType: string | null;
   agentId: string | null;
+  agentKind: string | null;
+  identityId: string | null;
   actionType: string;
   target: string | null;
   payload: string;
@@ -36,7 +39,10 @@ export const ActivityRecordSchema = z.object({
   id: z.string(),
   trace_id: z.string(),
   actor: z.string().nullable(),
+  actor_type: z.string().nullable(),
   agent_id: z.string().nullable(),
+  agent_kind: z.string().nullable(),
+  identity_id: z.string().nullable(),
   action_type: z.string(),
   target: z.string().nullable(),
   payload: z.string(),
@@ -107,6 +113,9 @@ export class DatabaseService implements IDatabaseService {
     payload: Record<string, JSONValue>,
     traceId?: string,
     agentId?: string | null,
+    actorType?: string | null,
+    agentKind?: string | null,
+    identityId?: string | null,
   ) {
     if (this.isClosing) {
       console.warn("Cannot log activity: DatabaseService is closing");
@@ -117,7 +126,10 @@ export class DatabaseService implements IDatabaseService {
       activityId: crypto.randomUUID(),
       traceId: traceId || crypto.randomUUID(),
       actor,
+      actorType: actorType || null,
       agentId: agentId || null,
+      agentKind: agentKind || null,
+      identityId: identityId || null,
       actionType,
       target,
       payload: JSON.stringify(payload),
@@ -253,13 +265,16 @@ export class DatabaseService implements IDatabaseService {
         this.retryTransaction(() => {
           for (const entry of batch) {
             this.db.exec(
-              `INSERT INTO activity (id, trace_id, actor, agent_id, action_type, target, payload, timestamp)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT INTO activity (id, trace_id, actor, actor_type, agent_id, agent_kind, identity_id, action_type, target, payload, timestamp)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
               [
                 entry.activityId ?? null,
                 entry.traceId ?? null,
                 entry.actor ?? null,
+                entry.actorType ?? null,
                 entry.agentId ?? null,
+                entry.agentKind ?? null,
+                entry.identityId ?? null,
                 entry.actionType ?? null,
                 entry.target ?? null,
                 entry.payload ?? null,

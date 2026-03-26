@@ -17,7 +17,10 @@ export interface IActivity {
   id: string;
   traceId: string;
   actor: string | null;
+  actorType: string | null;
   agentId: string | null;
+  agentKind: string | null;
+  identityId: string | null;
   actionType: string;
   target: string | null;
   payload: Record<string, JSONValue>;
@@ -34,6 +37,9 @@ export interface LogActivityRequest {
   payload?: Record<string, JSONValue>;
   traceId?: string;
   agentId?: string | null;
+  actorType?: string | null;
+  agentKind?: string | null;
+  identityId?: string | null;
 }
 
 /**
@@ -75,6 +81,9 @@ export class DatabaseActivityRepository implements ActivityRepository {
       request.payload ?? {},
       request.traceId,
       request.agentId,
+      request.actorType,
+      request.agentKind,
+      request.identityId,
     );
 
     // Wait for the activity to be flushed to ensure it's persisted
@@ -113,7 +122,10 @@ export class DatabaseActivityRepository implements ActivityRepository {
       id: record.id,
       traceId: record.trace_id,
       actor: record.actor,
+      actorType: record.actor_type,
       agentId: record.agent_id,
+      agentKind: record.agent_kind,
+      identityId: record.identity_id,
       actionType: record.action_type,
       target: record.target,
       payload,

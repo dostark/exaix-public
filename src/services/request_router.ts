@@ -111,7 +111,7 @@ export class RequestRouter {
   async route(request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId, frontmatter } = request;
     const flowId = frontmatter.flow;
-    const agentId = frontmatter.agent;
+    const agentId = frontmatter.identity;
 
     // Check for conflicting fields
     if (flowId && agentId) {
@@ -119,14 +119,14 @@ export class RequestRouter {
         action: "request.routing.error",
         target: requestId,
         payload: {
-          error: "Request cannot specify both 'flow' and 'agent' fields",
+          error: "Request cannot specify both 'flow' and 'identity' fields",
           field: "conflict",
           value: `${flowId}/${agentId}`,
         },
         traceId,
       });
       throw new RoutingError(
-        "Request cannot specify both 'flow' and 'agent' fields",
+        "Request cannot specify both 'flow' and 'identity' fields",
         requestId,
       );
     }

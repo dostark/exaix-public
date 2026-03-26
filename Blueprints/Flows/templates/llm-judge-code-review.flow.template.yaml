@@ -6,7 +6,7 @@ steps:
   - id: analyze-code
     name: Analyze Code Structure
     type: agent
-    agent: code-analyzer
+    identity: code-analyzer
     dependsOn: []
     input:
       source: request
@@ -17,7 +17,7 @@ steps:
   - id: security-review
     name: Security Analysis
     type: agent
-    agent: security-reviewer
+    identity: security-reviewer
     dependsOn:
       - analyze-code
     input:
@@ -30,7 +30,7 @@ steps:
   - id: quality-review
     name: Code Quality Analysis
     type: agent
-    agent: quality-reviewer
+    identity: quality-reviewer
     dependsOn:
       - analyze-code
     input:
@@ -43,7 +43,7 @@ steps:
   - id: judge-evaluation
     name: Judge Final Assessment
     type: agent
-    agent: quality-judge
+    identity: quality-judge
     dependsOn:
       - security-review
       - quality-review
@@ -61,7 +61,7 @@ steps:
   - id: generate-report
     name: Generate Final Report
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - judge-evaluation
     input:

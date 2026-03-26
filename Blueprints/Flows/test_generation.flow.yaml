@@ -10,7 +10,7 @@ steps:
   - id: analyze-code-structure
     name: Analyze Code Structure
     type: agent
-    agent: code-analyst
+    identity: code-analyst
     dependsOn: []
     input:
       source: request
@@ -22,7 +22,7 @@ steps:
   - id: identify-test-scenarios
     name: Identify Test Scenarios
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - analyze-code-structure
     input:
@@ -36,7 +36,7 @@ steps:
   - id: generate-unit-tests
     name: Generate Unit Tests
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - identify-test-scenarios
     input:
@@ -52,7 +52,7 @@ steps:
   - id: generate-integration-tests
     name: Generate Integration Tests
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - identify-test-scenarios
     input:
@@ -68,7 +68,7 @@ steps:
   - id: identify-edge-cases
     name: Identify Edge Cases
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn:
       - analyze-code-structure
     input:
@@ -82,7 +82,7 @@ steps:
   - id: generate-edge-case-tests
     name: Generate Edge Case Tests
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - identify-edge-cases
       - generate-unit-tests
@@ -99,7 +99,7 @@ steps:
   - id: review-test-quality
     name: Review Test Quality
     type: agent
-    agent: quality-judge
+    identity: quality-judge
     dependsOn:
       - generate-unit-tests
       - generate-integration-tests
@@ -118,7 +118,7 @@ steps:
   - id: compile-test-suite
     name: Compile Complete Test Suite
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - review-test-quality
     input:

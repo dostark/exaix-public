@@ -256,7 +256,7 @@ export class FlowReporter {
     // Add nodes for each step
     for (const step of flow.steps) {
       const stepName = step.id;
-      const agent = step.agent;
+      const agent = step.identity;
       graph += `    ${stepName}["${stepName}<br/>(${agent})"]\n`;
     }
 

@@ -10,7 +10,7 @@ steps:
   - id: diff-analysis
     name: Analyze PR Diff
     type: agent
-    agent: code-analyst
+    identity: code-analyst
     dependsOn: []
     input:
       source: request
@@ -22,7 +22,7 @@ steps:
   - id: code-quality-review
     name: Code Quality Review
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - diff-analysis
     input:
@@ -36,7 +36,7 @@ steps:
   - id: security-review
     name: Security Review
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn:
       - diff-analysis
     input:
@@ -50,7 +50,7 @@ steps:
   - id: performance-review
     name: Performance Impact Review
     type: agent
-    agent: performance-engineer
+    identity: performance-engineer
     dependsOn:
       - diff-analysis
     input:
@@ -64,7 +64,7 @@ steps:
   - id: test-coverage-review
     name: Test Coverage Review
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - diff-analysis
     input:
@@ -78,7 +78,7 @@ steps:
   - id: documentation-review
     name: Documentation Review
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - diff-analysis
     input:
@@ -92,7 +92,7 @@ steps:
   - id: consolidate-feedback
     name: Consolidate Review Feedback
     type: agent
-    agent: quality-judge
+    identity: quality-judge
     dependsOn:
       - code-quality-review
       - security-review
@@ -115,7 +115,7 @@ steps:
   - id: generate-pr-report
     name: Generate PR Review Report
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - consolidate-feedback
     input:

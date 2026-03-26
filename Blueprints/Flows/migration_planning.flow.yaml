@@ -10,7 +10,7 @@ steps:
   - id: gather-requirements
     name: Gather Migration Requirements
     type: agent
-    agent: product-manager
+    identity: product-manager
     dependsOn: []
     input:
       source: request
@@ -21,7 +21,7 @@ steps:
   - id: analyze-current-state
     name: Analyze Current Codebase
     type: agent
-    agent: code-analyst
+    identity: code-analyst
     dependsOn: []
     input:
       source: request
@@ -33,7 +33,7 @@ steps:
   - id: impact-analysis
     name: Impact Analysis
     type: agent
-    agent: software-architect
+    identity: software-architect
     dependsOn:
       - gather-requirements
       - analyze-current-state
@@ -50,7 +50,7 @@ steps:
   - id: breaking-changes
     name: Identify Breaking Changes
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn:
       - impact-analysis
     input:
@@ -66,7 +66,7 @@ steps:
   - id: risk-assessment
     name: Risk Assessment
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - impact-analysis
       - breaking-changes
@@ -83,7 +83,7 @@ steps:
   - id: security-considerations
     name: Security Considerations
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn:
       - impact-analysis
     input:
@@ -97,7 +97,7 @@ steps:
   - id: create-migration-plan
     name: Create Migration Plan
     type: agent
-    agent: software-architect
+    identity: software-architect
     dependsOn:
       - breaking-changes
       - risk-assessment
@@ -118,7 +118,7 @@ steps:
   - id: testing-strategy
     name: Define Testing Strategy
     type: agent
-    agent: test-engineer
+    identity: test-engineer
     dependsOn:
       - create-migration-plan
     input:
@@ -134,7 +134,7 @@ steps:
   - id: generate-documentation
     name: Generate Migration Documentation
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - create-migration-plan
       - testing-strategy

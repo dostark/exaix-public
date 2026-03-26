@@ -8,7 +8,7 @@ steps:
   - id: analyze-code
     name: Analyze Codebase
     type: agent
-    agent: senior-coder
+    identity: senior-coder
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: security-review
     name: Security Analysis
     type: agent
-    agent: security-expert
+    identity: security-expert
     dependsOn:
       - analyze-code
     input:
@@ -33,7 +33,7 @@ steps:
   - id: performance-review
     name: Performance Review
     type: agent
-    agent: performance-engineer
+    identity: performance-engineer
     dependsOn:
       - analyze-code
     input:
@@ -47,7 +47,7 @@ steps:
   - id: final-report
     name: Generate Final Report
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - security-review
       - performance-review

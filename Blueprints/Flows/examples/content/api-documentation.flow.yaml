@@ -6,7 +6,7 @@ steps:
   - id: api-analysis
     name: API Structure Analysis
     type: agent
-    agent: api-analyst
+    identity: api-analyst
     dependsOn: []
     input:
       source: request
@@ -17,7 +17,7 @@ steps:
   - id: endpoint-documentation
     name: Endpoint Documentation
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - api-analysis
     input:
@@ -30,7 +30,7 @@ steps:
   - id: data-models
     name: Data Models & Schemas
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - api-analysis
     input:
@@ -43,7 +43,7 @@ steps:
   - id: authentication-docs
     name: Authentication & Security
     type: agent
-    agent: security-writer
+    identity: security-writer
     dependsOn:
       - api-analysis
     input:
@@ -56,7 +56,7 @@ steps:
   - id: examples-integration
     name: Code Examples & Integration Guide
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - endpoint-documentation
       - data-models
@@ -74,7 +74,7 @@ steps:
   - id: documentation-review
     name: Documentation Review & Quality Assurance
     type: agent
-    agent: documentation-reviewer
+    identity: documentation-reviewer
     dependsOn:
       - endpoint-documentation
       - data-models

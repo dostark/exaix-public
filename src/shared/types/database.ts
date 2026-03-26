@@ -31,7 +31,10 @@ export interface IActivityRecord {
   id: string;
   trace_id: string;
   actor: string | null;
+  actor_type: string | null;
   agent_id: string | null;
+  agent_kind: string | null;
+  identity_id: string | null;
   action_type: string;
   target: string | null;
   payload: string;

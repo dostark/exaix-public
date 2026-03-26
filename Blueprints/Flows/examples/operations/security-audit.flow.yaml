@@ -8,7 +8,7 @@ steps:
   - id: code-security-scan
     name: Code Security Analysis
     type: agent
-    agent: code-security-auditor
+    identity: code-security-auditor
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: infrastructure-security
     name: Infrastructure Security Assessment
     type: agent
-    agent: infrastructure-security-auditor
+    identity: infrastructure-security-auditor
     dependsOn: []
     input:
       source: request
@@ -30,7 +30,7 @@ steps:
   - id: compliance-check
     name: Compliance & Regulatory Review
     type: agent
-    agent: compliance-auditor
+    identity: compliance-auditor
     dependsOn: []
     input:
       source: request
@@ -41,7 +41,7 @@ steps:
   - id: dependency-analysis
     name: Dependency & Supply Chain Security
     type: agent
-    agent: dependency-auditor
+    identity: dependency-auditor
     dependsOn: []
     input:
       source: request
@@ -52,7 +52,7 @@ steps:
   - id: risk-assessment
     name: Risk Assessment & Prioritization
     type: agent
-    agent: risk-assessor
+    identity: risk-assessor
     dependsOn:
       - code-security-scan
       - infrastructure-security
@@ -72,7 +72,7 @@ steps:
   - id: remediation-planning
     name: Remediation Planning & Recommendations
     type: agent
-    agent: security-synthesizer
+    identity: security-synthesizer
     dependsOn:
       - risk-assessment
     input:

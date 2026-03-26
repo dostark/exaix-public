@@ -8,7 +8,7 @@ steps:
   - id: requirements-analysis
     name: Requirements Analysis & Planning
     type: agent
-    agent: product-manager
+    identity: product-manager
     dependsOn: []
     input:
       source: request
@@ -19,7 +19,7 @@ steps:
   - id: technical-design
     name: Technical Design & Architecture
     type: agent
-    agent: senior-developer
+    identity: senior-developer
     dependsOn:
       - requirements-analysis
     input:
@@ -32,7 +32,7 @@ steps:
   - id: implementation
     name: Implementation & Coding
     type: agent
-    agent: senior-developer
+    identity: senior-developer
     dependsOn:
       - technical-design
     input:
@@ -47,7 +47,7 @@ steps:
   - id: unit-testing
     name: Unit Testing & Validation
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - implementation
     input:
@@ -63,7 +63,7 @@ steps:
   - id: integration-testing
     name: Integration Testing
     type: agent
-    agent: qa-engineer
+    identity: qa-engineer
     dependsOn:
       - unit-testing
     input:
@@ -79,7 +79,7 @@ steps:
   - id: documentation
     name: Documentation & User Guide
     type: agent
-    agent: technical-writer
+    identity: technical-writer
     dependsOn:
       - integration-testing
     input:
