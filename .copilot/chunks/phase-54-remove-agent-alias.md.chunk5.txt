@@ -4,14 +4,14 @@
 - [ ] Remove `BLUEPRINT*AGENTS*DIR` constant
 - [x] Remove `agent?` field from `IRequestFrontmatter` interface in
   `src/services/request_processing/types.ts`
-- [ ] Remove `agent` key from Zod schema in `src/schemas/request.ts`
-- [ ] Remove `agent:` frontmatter parsing fallback from `src/services/request*processing/request*parser.ts`
-- [ ] Remove `blueprint.legacy_path.used` journal event emission from `BlueprintLoader`
-- [ ] Remove `agent` field from `FlowStepSchema` in `src/shared/schemas/flow.ts`
-- [ ] Remove `agent` field from `GateEvaluateSchema` in `src/shared/schemas/flow.ts`
-- [ ] Remove `agent` parameter from `define_flow.ts` step config type
-- [ ] Remove runtime fallback logic `identity ?? agent` in `flow*runner.ts` / `flow*loader.ts`
-- [ ] Migrate all `Blueprints/Flows/*.yaml` step definitions from `agent:` to `identity:`
-- [ ] Update all tests that still use `--agent`, `agent:`, or `Blueprints/Agents/` to use
+- [x] Remove `agent` key from Zod schema in `src/schemas/request.ts`
+- [x] Remove `agent:` frontmatter parsing fallback from `src/services/request*processing/request*parser.ts`
+- [x] Remove `blueprint.legacy_path.used` journal event emission from `BlueprintLoader`
+- [x] Remove `agent` field from `FlowStepSchema` in `src/shared/schemas/flow.ts`
+- [x] Remove `agent` field from `GateEvaluateSchema` in `src/shared/schemas/flow.ts`
+- [x] Remove `agent` parameter from `define_flow.ts` step config type
+- [x] Remove runtime fallback logic `identity ?? agent` in `flow*runner.ts` / `flow*loader.ts`
+- [x] Migrate all `Blueprints/Flows/*.yaml` step definitions from `agent:` to `identity:`
+- [x] Update all tests that still use `--agent`, `agent:`, or `Blueprints/Agents/` to use
   the canonical `--identity`, `identity:`, and `Blueprints/Identities/` equivalents
-- [ ] Confirm no remaining references to deprecated surfaces in source or tests
+- [x] Confirm no remaining references to deprecated surfaces in source or tests

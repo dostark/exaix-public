@@ -1214,6 +1214,7 @@ deno run -A scripts/ci.ts all
 ### Step 10 — Migrate Blueprints/Flows/ YAML files ✅
 
 **✅ IMPLEMENTED** — 21 YAML files migrated (`agent:` → `identity:`)
+
 - All `Blueprints/Flows/*.yaml` files updated
 - Zero `agent:` keys remain in flow step definitions
 - Flow validation passes for all migrated files
@@ -1221,6 +1222,7 @@ deno run -A scripts/ci.ts all
 ### Step 11 — Add actor_type, agent_kind, identity_id columns ✅
 
 **✅ IMPLEMENTED** — `migrations/002_actor_identity_fields.sql` created
+
 - Migration adds `actor_type`, `agent_kind`, `identity_id` columns to `activity` table
 - Backfills `identity_id` from existing `agent_id` values
 - Creates indexes for new columns
@@ -1228,6 +1230,7 @@ deno run -A scripts/ci.ts all
 ### Step 12 — Update ActivityRecordSchema and LogEntry ✅
 
 **✅ IMPLEMENTED** — `src/services/db.ts` updated
+
 - `ActivityRecordSchema` includes `actor_type`, `agent_kind`, `identity_id` fields
 - `LogEntry` interface includes new fields
 - INSERT statement writes all new columns
@@ -1235,6 +1238,7 @@ deno run -A scripts/ci.ts all
 ### Step 13 — Update IActivity and LogActivityRequest ✅
 
 **✅ IMPLEMENTED** — `src/repositories/activity_repository.ts` updated
+
 - `IActivity` interface includes `actorType`, `agentKind`, `identityId` fields
 - `LogActivityRequest` interface includes new optional fields
 - Mapping from `ActivityRecord` populates all new fields
@@ -1242,6 +1246,7 @@ deno run -A scripts/ci.ts all
 ### Step 14 — Update ILogEvent and IServiceContext ✅
 
 **✅ IMPLEMENTED** — `src/services/common/types.ts`, `src/shared/enums.ts` updated
+
 - Added `ActorType` and `AgentKind` enums
 - `ILogEvent` includes `actorType`, `agentKind`, `identityId` fields
 - `IServiceContext` includes new fields
@@ -1249,12 +1254,14 @@ deno run -A scripts/ci.ts all
 ### Step 15 — Update EventLogger ✅
 
 **✅ IMPLEMENTED** — `src/services/event_logger.ts` updated
+
 - `logToDatabase()` passes `actorType`, `agentKind`, `identityId` to repository
 - Both ActivityRepository and direct DatabaseService paths updated
 
 ### Step 16 — Fix callers ✅
 
 **✅ IMPLEMENTED** — Multiple files updated
+
 - `flow_runner.ts` logging uses `identityId` field
 - Test fixtures updated to use proper Actor/Agent/Identity fields
 - 12+ test files migrated
@@ -1264,7 +1271,7 @@ deno run -A scripts/ci.ts all
 ## Commits
 
 | Commit | Description |
-|--------|-------------|
+| -------- | ------------- |
 | `0b28129c` | Steps 8-9: define_flow.ts, flow_runner.ts logging |
 | `06da0900` | Steps 10-12: YAML migration, database schema |
 | `02c0679f` | Steps 14-16: ILogEvent, EventLogger, ActorType/AgentKind enums |
@@ -1274,6 +1281,7 @@ deno run -A scripts/ci.ts all
 ## CI Verification
 
 All gates passed:
+
 - ✅ deno check — 0 errors
 - ✅ deno lint — 0 errors
 - ✅ deno fmt — all files formatted
@@ -1281,7 +1289,6 @@ All gates passed:
 - ✅ check:arch — 331 GROUNDED, 0 UNGROUNDED
 - ✅ check:complexity — 0 breaches
 - ✅ Tests — 232+ passing (flows/, helpers/)
-
 
 ---
 
@@ -1293,6 +1300,7 @@ All gates passed:
 `AgentExecutor` currently passes the identity blueprint slug into `agentId`
 in every journal call (`logExecutionStart`, `logExecutionComplete`,
 `logExecutionError`).  Per GLOSSARY.md:
+
 - `agentId` = runtime agent that handled execution → `"agent-executor"`
 - `identityId` = which LLM blueprint was used → the blueprint slug
 
@@ -1438,6 +1446,7 @@ in `IAgentExecutionOptions` that carries the blueprint slug must also be
 renamed (see Step 21).
 
 **Verification:**
+
 ```bash
 deno check src/services/agent_executor.ts
 grep -n "agentId:" src/services/agent_executor.ts
@@ -1447,16 +1456,15 @@ deno task test -- --filter agent_executor
 ```
 
 **Success criteria:**
-- [ ] `logExecutionStart`, `logExecutionComplete`, `logExecutionError` all
-  accept `identityId` parameter instead of `agentId`
-- [ ] All three methods write `agentId: "agent-executor"` and
+
+- [x] `logExecutionStart`, `logExecutionComplete`, `logExecutionError` all accept `identityId` parameter instead of `agentId`
+- [x] All three methods write `agentId: "agent-executor"` and
   `identityId: <blueprint slug>` to the journal
-- [ ] Zero TypeScript errors
+- [x] Zero TypeScript errors
 
 ---
 
-### Step 21 — Fix `IAgentExecutionOptions` and `IExecutionContext` schemas:
-             rename `agent_id` field to `identity_id`
+### Step 21 — Fix `IAgentExecutionOptions` and `IExecutionContext` schemas: rename `agent_id` field to `identity_id`
 
 **File:** `src/shared/schemas/agent_executor.ts`
 
@@ -1520,6 +1528,7 @@ const _blueprint = await this.loadBlueprint(options.identity_id);
 ```
 
 **Verification:**
+
 ```bash
 grep -rn "agent_id" src/shared/schemas/agent_executor.ts
 # Must return zero results
@@ -1532,15 +1541,15 @@ deno task test
 ```
 
 **Success criteria:**
+
 - [ ] `IAgentExecutionOptions.identity_id` replaces `agent_id`
 - [ ] All callers updated
-- [ ] Zero TypeScript errors
+- [x] Zero TypeScript errors
 - [ ] All tests pass
 
 ---
 
-### Step 22 — Fix `MemoryBankService.logActivity`: add `actor`, `actorType`,
-             `agentId`, `agentKind`, `identityId` to every journal call
+### Step 22 — Fix `MemoryBankService.logActivity`: add `actor`, `actorType`, `agentId`, `agentKind`, `identityId` to every journal call
 
 **File:** `src/services/memory_bank.ts`
 
@@ -1662,6 +1671,7 @@ stored in the execution record.  The metadata key should be `identity_id`,
 not `agent`.
 
 **Verification:**
+
 ```bash
 deno check src/services/memory_bank.ts
 grep -n '"agent"' src/services/memory_bank.ts
@@ -1670,6 +1680,7 @@ deno task test -- --filter memory_bank
 ```
 
 **Success criteria:**
+
 - [ ] `logActivity` helper uses `"service:memory-bank"` as actor
 - [ ] `db.logActivity` signature accepts `agentKind`, `actorType`, `identityId`
 - [ ] Metadata key `"agent"` in `memory.execution.recorded` renamed to
@@ -1685,6 +1696,7 @@ deno task test -- --filter memory_bank
 **Problem:** `ExecutionMemorySchema` has a field `agent: z.string()` which means "which identity/blueprint performed the execution." This is `identity_id`, not a runtime agent ID.
 
 **BEFORE:**
+
 ```typescript
 export const ExecutionMemorySchema = z.object({
   // ...
@@ -1696,6 +1708,7 @@ export const ExecutionMemorySchema = z.object({
 ```
 
 **AFTER:**
+
 ```typescript
 export const ExecutionMemorySchema = z.object({
   // ...
@@ -1710,19 +1723,20 @@ export const ExecutionMemorySchema = z.object({
 **Also update** the `IExecutionMemory` type (derived automatically via `z.infer` — no manual change needed if above is done).
 
 **Verify:**
+
 ```bash
 grep -n '"agent"' src/shared/schemas/memory_bank.ts
 grep -n 'agent:' src/shared/schemas/memory_bank.ts
 ```
+
 Both should return zero results after the change.
 
 **Success criteria:**
+
 - `IExecutionMemory.agent` no longer exists
 - `IExecutionMemory.identity_id` is `string` (required)
 - `IExecutionMemory.agent_id` is `string | undefined` (optional)
 - `deno check src/shared/schemas/memory_bank.ts` passes
-
-***
 
 ### Step 24 — Fix `MemoryUpdateProposalSchema.agent` → `identity_id` in shared schema
 
@@ -1731,6 +1745,7 @@ Both should return zero results after the change.
 **Problem:** `MemoryUpdateProposalSchema` has `agent: z.string()` which tracks "which identity proposed the memory update." This should be `identity_id`.
 
 **BEFORE:**
+
 ```typescript
 export const MemoryUpdateProposalSchema = z.object({
   // ...
@@ -1742,6 +1757,7 @@ export const MemoryUpdateProposalSchema = z.object({
 ```
 
 **AFTER:**
+
 ```typescript
 export const MemoryUpdateProposalSchema = z.object({
   // ...
@@ -1753,17 +1769,18 @@ export const MemoryUpdateProposalSchema = z.object({
 ```
 
 **Verify:**
+
 ```bash
 grep -n 'agent:' src/shared/schemas/memory_bank.ts
 ```
+
 Should return zero results after the change.
 
 **Success criteria:**
+
 - `IMemoryUpdateProposal.agent` no longer exists
 - `IMemoryUpdateProposal.identity_id` is `string` (required)
 - `deno check src/shared/schemas/memory_bank.ts` passes
-
-***
 
 ### Step 25 — Update `MemoryBankService` to use `identity_id` in execution records and activity logging
 
@@ -1772,6 +1789,7 @@ Should return zero results after the change.
 **Problem 1:** In `createExecutionRecord()`, the `logActivity` call passes `execution.agent` in metadata. After Step 23, this field is now `execution.identity_id`.
 
 **BEFORE:**
+
 ```typescript
 this.logActivity({
   event_type: "memory.execution.recorded",
@@ -1786,6 +1804,7 @@ this.logActivity({
 ```
 
 **AFTER:**
+
 ```typescript
 this.logActivity({
   event_type: "memory.execution.recorded",
@@ -1801,6 +1820,7 @@ this.logActivity({
 ```
 
 **Problem 2:** In `logActivity()` private method, the call to `this.db.logActivity` passes `null` as `agent_id`:
+
 ```typescript
 this.db.logActivity(
   "system",
@@ -1811,20 +1831,22 @@ this.db.logActivity(
   null, // No agent_id for memory bank operations
 );
 ```
+
 This is already correctly passing `null` for `agent_id` (runtime agent), and `"system"` as actor. **No change needed here** — this is already semantically correct: memory bank itself is the system actor with no runtime agent.
 
 **Verify:**
+
 ```bash
 grep -n 'execution\.agent' src/services/memory_bank.ts
 grep -n '"agent":' src/services/memory_bank.ts
 ```
+
 Both should return zero results after the change.
 
 **Success criteria:**
+
 - `execution.agent` reference replaced with `execution.identity_id` in all metadata calls
 - `deno check src/services/memory_bank.ts` passes
-
-***
 
 ### Step 26 — Update `MemoryExtractorService.createProposal()` to use `identity_id` instead of `agent`
 
@@ -1833,6 +1855,7 @@ Both should return zero results after the change.
 **Problem:** `createProposal()` accepts `agent: string` parameter and sets `proposal.agent = agent`. After Step 24, `IMemoryUpdateProposal` uses `identity_id` instead of `agent`.
 
 **BEFORE (method signature and body):**
+
 ```typescript
 async createProposal(
   learning: IProposalLearning,
@@ -1869,6 +1892,7 @@ async createProposal(
 ```
 
 **AFTER:**
+
 ```typescript
 async createProposal(
   learning: IProposalLearning,
@@ -1905,18 +1929,19 @@ async createProposal(
 ```
 
 **Also update** any callers of `createProposal()` — find them with:
+
 ```bash
 grep -rn 'createProposal(' src/
 ```
+
 For each call site, rename the third argument variable from `agent` to the appropriate identity value (e.g., `execution.identity_id` or the identity name string).
 
 **Success criteria:**
+
 - `createProposal` parameter renamed from `agent` to `identityId`
 - `proposal.agent` assignment replaced with `proposal.identity_id = identityId`
 - All call sites updated to pass identity name as third argument
 - `deno check src/services/memory_extractor.ts` passes
-
-***
 
 ### Step 27 — Audit `NotificationService` actor semantics and fix logActivity calls
 
@@ -1925,6 +1950,7 @@ For each call site, rename the third argument variable from `agent` to the appro
 **Problem:** The `logActivity` private helper passes `"notification-service"` as the first argument (actor). This is a system-internal actor name — acceptable. However, `notifyMemoryUpdate()` should carry `identity_id` in metadata when the proposal contains one (after Step 24, `proposal.identity_id` exists).
 
 **BEFORE (in `notifyMemoryUpdate`):**
+
 ```typescript
 this.logActivity({
   event_type: "memory.update.pending",
@@ -1938,6 +1964,7 @@ this.logActivity({
 ```
 
 **AFTER:**
+
 ```typescript
 this.logActivity({
   event_type: "memory.update.pending",
@@ -1954,18 +1981,19 @@ this.logActivity({
 **Problem 2:** `notifyApproval` and `notifyRejection` log via `logActivity` but do not receive a proposal object, only IDs. These are fine as-is — no `identity_id` available at that call point, and logging is already using `"notification-service"` as actor.
 
 **Final audit grep:**
+
 ```bash
 grep -rn '\.agent' src/services/notification.ts
 grep -rn '"agent"' src/services/notification.ts
 ```
+
 Both should return zero results.
 
 **Success criteria:**
+
 - `notifyMemoryUpdate` metadata includes `identity_id` from proposal
 - No `agent` field references in `notification.ts`
 - `deno check src/services/notification.ts` passes
-
-***
 
 ### Cross-cutting Final Audit (Step 28 — Optional cleanup pass)
 
@@ -2000,7 +2028,7 @@ deno test src/services/ --allow-all
 **Summary of what changed in Steps 23–27:**
 
 | Location | BEFORE | AFTER |
-|---|---|---|
+| --- | --- | --- |
 | `ExecutionMemorySchema` | `agent: string` | `identity_id: string`, `agent_id?: string` |
 | `MemoryUpdateProposalSchema` | `agent: string` | `identity_id: string` |
 | `MemoryBankService.createExecutionRecord` | `metadata.agent` | `metadata.identity_id`, `metadata.agent_id` |

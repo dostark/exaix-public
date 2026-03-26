@@ -156,7 +156,7 @@ export const ExecutionContextSchema = z.object({
  * Agent execution options validation
  */
 export const AgentExecutionOptionsSchema = z.object({
-  agent_id: BlueprintNameSchema,
+  identity_id: BlueprintNameSchema,
   portal: PortalNameSchema,
   security_mode: z.nativeEnum(SecurityMode).default(SecurityMode.SANDBOXED),
   timeout_ms: z.number().int().positive().default(DEFAULT_AGENT_TIMEOUT_MS),

@@ -64,6 +64,7 @@ export enum ActorType {
  */
 export enum AgentKind {
   AGENT_RUNNER = "agent-runner",
+  AGENT_EXECUTOR = "agent-executor",
   FLOW_AGENT = "flow-agent",
   TOOL_AGENT = "tool-agent",
   REQUEST_ROUTER = "request-router",

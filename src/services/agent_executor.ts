@@ -38,7 +38,7 @@ import {
   type IChangesetResult,
   type IExecutionContext,
 } from "../shared/schemas/agent_executor.ts";
-import { LogLevel, SecurityMode } from "../shared/enums.ts";
+import { ActorType, AgentKind, LogLevel, SecurityMode } from "../shared/enums.ts";
 import { InputValidator } from "../shared/schemas/input_validation.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import { JSONValue } from "../shared/types/json.ts";
@@ -342,19 +342,19 @@ export class AgentExecutor {
     }
 
     // Validate agent has permissions (check before loading blueprint)
-    if (!this.permissions.checkAgentAllowed(options.portal, options.agent_id).allowed) {
+    if (!this.permissions.checkAgentAllowed(options.portal, options.identity_id).allowed) {
       throw new Error(
-        `Agent not allowed to access portal: ${options.agent_id} -> ${options.portal}`,
+        `Identity not allowed to access portal: ${options.identity_id} -> ${options.portal}`,
       );
     }
 
     // Load blueprint (TODO: use blueprint for agent spawning when implemented)
-    const _blueprint = await this.loadBlueprint(options.agent_id);
+    const _blueprint = await this.loadBlueprint(options.identity_id);
 
     // Log execution start
     await this.logExecutionStart(
       context.trace_id,
-      options.agent_id,
+      options.identity_id,
       options.portal,
     );
 
@@ -376,7 +376,7 @@ export class AgentExecutor {
         // Log completion
         await this.logExecutionComplete(
           context.trace_id,
-          options.agent_id,
+          options.identity_id,
           validated,
         );
 
@@ -399,14 +399,14 @@ export class AgentExecutor {
       // Log completion
       await this.logExecutionComplete(
         context.trace_id,
-        options.agent_id,
+        options.identity_id,
         validated,
       );
 
       return validated;
     } catch (error) {
       // Log error
-      await this.logExecutionError(context.trace_id, options.agent_id, {
+      await this.logExecutionError(context.trace_id, options.identity_id, {
         type: "agent_error",
         message: error instanceof Error ? error.message : String(error),
         trace_id: context.trace_id,
@@ -1003,15 +1003,18 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    */
   async logExecutionStart(
     traceId: string,
-    agentId: string,
+    identityId: string,
     portal: string,
   ): Promise<void> {
     await this.logger.log({
       action: "agent.execution_started",
       target: portal,
       actor: "system",
+      actorType: ActorType.SERVICE,
       traceId: traceId,
-      agentId: agentId,
+      agentId: "agent-executor",
+      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityId: identityId,
       payload: {
         portal,
         started_at: new Date().toISOString(),
@@ -1024,15 +1027,18 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    */
   async logExecutionComplete(
     traceId: string,
-    agentId: string,
+    identityId: string,
     result: IChangesetResult,
   ): Promise<void> {
     await this.logger.log({
       action: "agent.execution_completed",
       target: result.branch,
       actor: "system",
+      actorType: ActorType.SERVICE,
       traceId: traceId,
-      agentId: agentId,
+      agentId: "agent-executor",
+      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityId: identityId,
       payload: {
         branch: result.branch,
         commit_sha: result.commit_sha,
@@ -1049,15 +1055,18 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    */
   async logExecutionError(
     traceId: string,
-    agentId: string,
+    identityId: string,
     error: { type: string; message: string; trace_id?: string },
   ): Promise<void> {
     await this.logger.log({
       action: "agent.execution_failed",
-      target: agentId,
+      target: identityId,
       actor: "system",
+      actorType: ActorType.SERVICE,
       traceId: traceId,
-      agentId: agentId,
+      agentId: "agent-executor",
+      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityId: identityId,
       level: LogLevel.ERROR,
       payload: {
         error_type: error.type,

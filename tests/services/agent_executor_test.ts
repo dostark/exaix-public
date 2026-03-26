@@ -273,7 +273,7 @@ Deno.test({
       };
 
       const options: IAgentExecutionOptions = {
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         portal: "NonexistentPortal",
         security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
@@ -319,7 +319,7 @@ Deno.test({
       };
 
       const options: IAgentExecutionOptions = {
-        agent_id: "unauthorized-agent", // Not in agents_allowed
+        identity_id: "unauthorized-agent", // Not in agents_allowed
         portal: "TestPortal",
         security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
@@ -710,7 +710,7 @@ Deno.test({
       );
 
       const options: IAgentExecutionOptions = {
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         portal: "TestPortal",
         security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
@@ -1074,7 +1074,7 @@ Deno.test({
       };
 
       const options: IAgentExecutionOptions = {
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         portal: "/test/portal",
         security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
@@ -1127,7 +1127,7 @@ Deno.test({
       };
 
       const options: IAgentExecutionOptions = {
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         portal: "/test/portal",
         security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
@@ -1187,7 +1187,7 @@ DROP TABLE sensitive_data;
       };
 
       const options: IAgentExecutionOptions = {
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         portal: "/test/portal",
         security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
@@ -1506,7 +1506,7 @@ Deno.test({
       const options: any = {
         portal: "P1",
         security_mode: SecurityMode.HYBRID,
-        agent_id: "agent1",
+        identity_id: "agent1",
       };
 
       // Set execution context to enable portal context block
@@ -1587,7 +1587,7 @@ Deno.test({
       };
       const options: any = {
         portal: "TestPortal",
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         security_mode: SecurityMode.HYBRID,
       };
 
@@ -1699,7 +1699,7 @@ Deno.test({
 
       const options: any = {
         portal: "TestPortal",
-        agent_id: "test-agent",
+        identity_id: "test-agent",
         security_mode: SecurityMode.HYBRID,
       };
 
@@ -1773,7 +1773,7 @@ Deno.test({
         plan: "P",
         portal: "TestPortal",
       };
-      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+      const options: any = { portal: "TestPortal", identity_id: "test-agent", security_mode: SecurityMode.HYBRID };
 
       await assertRejects(
         () => executor.executeStep(context, options),
@@ -1813,7 +1813,7 @@ Deno.test({
         plan: "P",
         portal: "TestPortal",
       };
-      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+      const options: any = { portal: "TestPortal", identity_id: "test-agent", security_mode: SecurityMode.HYBRID };
 
       const result = await executor.executeStep(context, options);
       // Validates fallback object
@@ -1853,7 +1853,7 @@ Deno.test({
         plan: "P",
         portal: "TestPortal",
       };
-      const options: any = { portal: "TestPortal", agent_id: "test-agent", security_mode: SecurityMode.HYBRID };
+      const options: any = { portal: "TestPortal", identity_id: "test-agent", security_mode: SecurityMode.HYBRID };
 
       const result = await executor.executeStep(context, options);
       // Validates parse fail fallback
