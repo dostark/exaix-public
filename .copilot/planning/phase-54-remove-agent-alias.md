@@ -1685,7 +1685,7 @@ deno task test -- --filter memory_bank
 - [ ] `db.logActivity` signature accepts `agentKind`, `actorType`, `identityId`
 - [ ] Metadata key `"agent"` in `memory.execution.recorded` renamed to
   `"identity_id"`
-- [ ] Zero TypeScript errors
+- [x] Zero TypeScript errors
 
 ---
 

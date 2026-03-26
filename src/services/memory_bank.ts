@@ -401,7 +401,7 @@ export class MemoryBankService implements IMemoryBankService {
       trace_id: execution.trace_id,
       metadata: {
         status: execution.status,
-        agent: execution.agent,
+        identity_id: execution.agent,
         files_changed: (execution.changes?.files_created?.length || 0) +
           (execution.changes?.files_modified?.length || 0),
       },
@@ -1118,12 +1118,15 @@ export class MemoryBankService implements IMemoryBankService {
   }): void {
     try {
       this.db.logActivity(
-        "system",
+        "service:memory-bank",
         event.event_type,
         event.target,
         event.metadata || {},
         event.trace_id,
-        null, // No agent_id for memory bank operations
+        null,
+        "memory-bank",
+        "service",
+        null,
       );
     } catch (error) {
       console.error("Failed to log activity:", error);
