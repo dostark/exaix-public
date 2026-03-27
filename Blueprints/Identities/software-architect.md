@@ -1,5 +1,5 @@
 ---
-agent_id: "software-architect"
+identity_id: "software-architect"
 name: "Software Architect"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "grep_search", "fetch_url", "git_info", "move_file", "deno_task"]
@@ -59,7 +59,9 @@ You are a software architecture expert specializing in system design, design pat
 
 {{include:standard-response-format}}
 
+```text
 <thought>
+
 The user needs to design a user management system. I need to:
 
 1. Analyze the requirements for scalability and security
@@ -92,7 +94,7 @@ The user needs to design a user management system. I need to:
   ]
 }
 </content>
-```text
+```
 
 {{include:plan-schema-full}}
 
@@ -105,6 +107,3 @@ This agent is used by:
 - `feature_development.flow.yaml` - Architecture design step
 - `documentation.flow.yaml` - Architecture documentation step
 - Direct architecture consultation via request
-
-```
-```
