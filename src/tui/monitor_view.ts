@@ -25,9 +25,8 @@ export interface ILogEntry {
   trace_id: string;
   actor: string | null;
   actor_type: string | null;
-  agent_id: string | null;
-  agent_kind: string | null;
   identity_id: string | null;
+  identity_kind?: string | null;
   action_type: string;
   target: string | null;
   payload: JSONObject;
@@ -58,7 +57,7 @@ export enum MonitorViewAction {
   BOOKMARK = "bookmark",
   EXPORT = "export",
   SEARCH = "search",
-  FILTER_AGENT = "filter-agent",
+  FILTER_IDENTITY = "filter-identity",
   FILTER_TIME = "filter-time",
   FILTER_TRACE = "filter-trace",
   FILTER_ACTION = "filter-action",
@@ -132,8 +131,8 @@ export class MonitorViewBindings extends KeyBindingsBase<MonitorViewAction, KeyB
     { key: KEYS.S, action: MonitorViewAction.SEARCH, description: "Search logs", category: KeyBindingCategory.ACTIONS },
     {
       key: KEYS.F,
-      action: MonitorViewAction.FILTER_AGENT,
-      description: "Filter by agent",
+      action: MonitorViewAction.FILTER_IDENTITY,
+      description: "Filter by identity",
       category: KeyBindingCategory.ACTIONS,
     },
     {
@@ -223,6 +222,7 @@ export class MonitorView {
       this.logs = activities.map((log: IActivityRecord): ILogEntry => ({
         ...log,
         payload: (typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload) as JSONObject,
+        identity_kind: log.identity_kind ?? null,
       }));
     }
   }
@@ -335,8 +335,8 @@ export class MinimalLogServiceMock implements IJournalService {
   query(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     let filtered = this.logs;
 
-    if (filter.agentId) {
-      filtered = filtered.filter((l) => l.agent_id === filter.agentId);
+    if (filter.identityId) {
+      filtered = filtered.filter((l) => l.identity_id === filter.identityId);
     }
     if (filter.actionType) {
       filtered = filtered.filter((l) => l.action_type === filter.actionType);
@@ -349,8 +349,8 @@ export class MinimalLogServiceMock implements IJournalService {
       ...log,
       payload: JSON.stringify(log.payload),
       actor_type: log.actor_type ?? null,
-      agent_kind: log.agent_kind ?? null,
       identity_id: log.identity_id ?? null,
+      identity_kind: log.identity_kind ?? null,
     }))]);
   }
 
@@ -371,7 +371,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   protected logViewExtensions: ILogViewExtensions;
   public autoRefreshTimer: number | null = null;
   // Track what dialog is pending
-  public pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
+  public pendingDialogType: "search" | "filter-identity" | "filter-time" | "filter-trace" | "filter-action" | null =
+    null;
 
   constructor(monitorView: MonitorView, useColors = true) {
     super(useColors);
@@ -441,27 +442,27 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
         const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
         return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
       });
-    } else if (this.logViewExtensions.groupBy === "agent") {
-      // Group by agent
-      const byAgent = new Map<string, ILogEntry[]>();
+    } else if (this.logViewExtensions.groupBy === GroupingMode.IDENTITY) {
+      // Group by identity
+      const byIdentity = new Map<string, ILogEntry[]>();
       for (const log of logs) {
-        const agent = log.agent_id || "unknown";
-        if (!byAgent.has(agent)) {
-          byAgent.set(agent, []);
+        const identity = log.identity_id || "unknown";
+        if (!byIdentity.has(identity)) {
+          byIdentity.set(identity, []);
         }
-        byAgent.get(agent)!.push(log);
+        byIdentity.get(identity)!.push(log);
       }
 
-      this.state.tree = Array.from(byAgent.entries()).map(([agent, agentLogs]) => {
-        const children = agentLogs.map((log) => {
+      this.state.tree = Array.from(byIdentity.entries()).map(([identity, identityLogs]) => {
+        const children = identityLogs.map((log) => {
           const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
           const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
           return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
         });
         return createGroupNode<ILogEntry>(
-          `agent-${agent}`,
-          `🤖 ${agent} (${agentLogs.length})`,
-          "agent-group",
+          `identity-${identity}`,
+          `🤖 ${identity} (${identityLogs.length})`,
+          "identity-group",
           children,
         );
       });
@@ -478,7 +479,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       this.state.tree = Array.from(byAction.entries()).map(([action, actionLogs]) => {
         const icon = LOG_ICONS[action as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const children = actionLogs.map((log) => {
-          const label = `${this.formatTimestamp(log.timestamp)} [${log.agent_id || "unknown"}]`;
+          const label = `${this.formatTimestamp(log.timestamp)} [${log.identity_id || "unknown"}]`;
           return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
         });
         return createGroupNode<ILogEntry>(
@@ -555,7 +556,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
           { key: "b", description: "Bookmark entry" },
           { key: "e", description: "Export logs" },
           { key: "s", description: "Search logs" },
-          { key: "f", description: "Filter by agent" },
+          { key: "f", description: "Filter by identity" },
           { key: "t", description: "Filter by time" },
           { key: "T", description: "Filter by Trace ID" },
           { key: "A", description: "Filter by Action Type" },
@@ -625,7 +626,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     lines.push(`Trace ID: ${log.trace_id}`);
     lines.push(`Timestamp: ${log.timestamp}`);
     lines.push(`Actor: ${log.actor || "unknown"}`);
-    lines.push(`Agent: ${log.agent_id || "(none)"}`);
+    lines.push(`Identity: ${log.identity_id || "(none)"}`);
     lines.push(`Action: ${log.action_type}`);
     lines.push(`Target: ${log.target || "(none)"}`);
     lines.push("");
@@ -650,7 +651,7 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     if (!selectedId) return;
 
     // Skip group nodes
-    if (selectedId.startsWith("agent-") || selectedId.startsWith("action-")) {
+    if (selectedId.startsWith("identity-") || selectedId.startsWith("action-")) {
       return;
     }
 
@@ -669,8 +670,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
 
   toggleGrouping(): void {
     if (this.logViewExtensions.groupBy === GroupingMode.NONE) {
-      this.logViewExtensions.groupBy = GroupingMode.AGENT;
-    } else if (this.logViewExtensions.groupBy === GroupingMode.AGENT) {
+      this.logViewExtensions.groupBy = GroupingMode.IDENTITY;
+    } else if (this.logViewExtensions.groupBy === GroupingMode.IDENTITY) {
       this.logViewExtensions.groupBy = GroupingMode.ACTION;
     } else {
       this.logViewExtensions.groupBy = GroupingMode.NONE;
@@ -734,15 +735,15 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     });
   }
 
-  showFilterByAgentDialog(): void {
+  showFilterByIdentityDialog(): void {
     const logs = this.monitorView.getFilteredLogs();
-    const agents = [...new Set(logs.map((l) => l.agent_id).filter(Boolean))];
-    const agentList = agents.length > 0 ? agents.join(", ") : "(no agents)";
+    const identities = [...new Set(logs.map((l) => l.identity_id).filter(Boolean))];
+    const identityList = identities.length > 0 ? identities.join(", ") : "(no identities)";
 
-    this.pendingDialogType = "filter-agent";
+    this.pendingDialogType = "filter-identity";
     this.showInputDialog({
-      title: "Filter by Agent",
-      label: `Available agents: ${agentList}\nEnter agent ID (empty to clear):`,
+      title: "Filter by Identity",
+      label: `Available identities: ${identityList}\nEnter identity ID (empty to clear):`,
       defaultValue: "",
     });
   }
@@ -783,12 +784,12 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
     this.statusMessage = `Searching for: ${query}`;
   }
 
-  private handleAgentFilterResult(agent: string): void {
-    if (agent) {
-      this.monitorView.setFilter({ agentId: agent });
-      this.statusMessage = `Filtered by agent: ${agent}`;
+  private handleIdentityFilterResult(identity: string): void {
+    if (identity) {
+      this.monitorView.setFilter({ identityId: identity });
+      this.statusMessage = `Filtered by identity: ${identity}`;
     } else {
-      this.monitorView.setFilter({ agentId: undefined });
+      this.monitorView.setFilter({ identityId: undefined });
       this.statusMessage = "Filter cleared";
     }
     this.monitorView.refreshLogs().then(() => {
@@ -857,8 +858,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       case "search":
         this.handleSearchResult(value);
         break;
-      case "filter-agent":
-        this.handleAgentFilterResult(value);
+      case "filter-identity":
+        this.handleIdentityFilterResult(value);
         break;
       case "filter-time":
         this.handleTimeFilterResult(value);
@@ -927,8 +928,8 @@ export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
       case KEYS.S:
         this.showSearchDialog();
         return true;
-      case KEYS.F:
-        this.showFilterByAgentDialog();
+      case MonitorViewAction.FILTER_IDENTITY:
+        this.showFilterByIdentityDialog();
         return true;
       case KEYS.T:
         this.showTimeFilterDialog();

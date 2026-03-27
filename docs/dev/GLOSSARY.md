@@ -203,10 +203,10 @@ testing.
 
 Fields in journal entries describing **who** performed the action.
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `actor` | string | Free-form identity of who acted. Format: `"user:<email>"`, `"service:<name>"`, `"mcp-client:<id>"`, `"identity:<id>"` |
-| `actor_type` | string | Enumerated category of the actor: `"user"`, `"service"`, `"mcp-client"`, `"identity"` |
+| Field        | Type   | Meaning                                                                                                               |
+| ------------ | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| `actor`      | string | Free-form identity of who acted. Format: `"user:<email>"`, `"service:<name>"`, `"mcp-client:<id>"`, `"identity:<id>"` |
+| `actor_type` | string | Enumerated category of the actor: `"user"`, `"service"`, `"mcp-client"`, `"identity"`                                 |
 
 `actor_type = "identity"` means an identity instance acted autonomously with
 no human in the loop (e.g. a chained or scheduled identity call).
@@ -216,10 +216,10 @@ no human in the loop (e.g. a chained or scheduled identity call).
 Fields in journal entries describing **how** the work was done — which runtime
 execution unit handled it.
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `agent_id` | string | Identifier of the runtime agent instance, e.g. `"agent-runner"`, `"flow-runner"`, `"request-router"` |
-| `agent_kind` | string | Category of runtime agent: `"agent-runner"`, `"flow-agent"`, `"tool-agent"`, `"request-router"` |
+| Field        | Type   | Meaning                                                                                              |
+| ------------ | ------ | ---------------------------------------------------------------------------------------------------- |
+| `agent_id`   | string | Identifier of the runtime agent instance, e.g. `"agent-runner"`, `"flow-runner"`, `"request-router"` |
+| `agent_kind` | string | Category of runtime agent: `"agent-runner"`, `"flow-agent"`, `"tool-agent"`, `"request-router"`      |
 
 These fields are **always** about the runtime Agent, never about an identity
 blueprint.
@@ -228,8 +228,8 @@ blueprint.
 
 Field in journal entries describing **what** LLM persona was used.
 
-| Field | Type | Meaning |
-| --- | --- | --- |
+| Field         | Type   | Meaning                                                                                                                                           |
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `identity_id` | string | Canonical ID of the identity blueprint that was loaded and run for this LLM call. Matches the slug of the `.md` file in `Blueprints/Identities/`. |
 
 ---
@@ -241,32 +241,32 @@ interfaces, database columns and journal payloads for each core concept.
 
 ### `identity` vs `identity_id`
 
-| Name | Where used | Meaning |
-| --- | --- | --- |
-| `identity` | Request frontmatter, flow YAML step, CLI flag `--identity` | The name or slug the user/config provides to select an identity blueprint (e.g. `senior-coder`) |
-| `identity_id` | TypeScript interface field, database column, journal payload | The resolved canonical identifier stored in a record after the blueprint has been looked up |
+| Name          | Where used                                                   | Meaning                                                                                         |
+| ------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `identity`    | Request frontmatter, flow YAML step, CLI flag `--identity`   | The name or slug the user/config provides to select an identity blueprint (e.g. `senior-coder`) |
+| `identity_id` | TypeScript interface field, database column, journal payload | The resolved canonical identifier stored in a record after the blueprint has been looked up     |
 
 `identity` is the **input**. `identity_id` is what the system **stores**.
 They are often the same string value but play different roles.
 
 ### Actor code identifiers
 
-| Code name | Layer | Meaning |
-| --- | --- | --- |
-| `actor` | TypeScript field, journal payload, DB column | Free-form string identifying who performed the action |
+| Code name    | Layer                                        | Meaning                                                                        |
+| ------------ | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| `actor`      | TypeScript field, journal payload, DB column | Free-form string identifying who performed the action                          |
 | `actor_type` | TypeScript field, journal payload, DB column | Enumerated category: `"user"` \| `"service"` \| `"mcp-client"` \| `"identity"` |
 
 ### Agent code identifiers
 
-| Code name | Layer | Meaning |
-| --- | --- | --- |
-| `agent_id` | TypeScript field, journal payload, DB column | Identifier of the runtime agent instance that handled execution. Never holds an identity blueprint reference. |
-| `agent_kind` | TypeScript field, journal payload, DB column | Category of runtime agent: `"agent-runner"` \| `"flow-agent"` \| `"tool-agent"` \| `"request-router"` |
+| Code name    | Layer                                        | Meaning                                                                                                       |
+| ------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `agent_id`   | TypeScript field, journal payload, DB column | Identifier of the runtime agent instance that handled execution. Never holds an identity blueprint reference. |
+| `agent_kind` | TypeScript field, journal payload, DB column | Category of runtime agent: `"agent-runner"` \| `"flow-agent"` \| `"tool-agent"` \| `"request-router"`         |
 
 ### Identity code identifiers
 
-| Code name | Layer | Meaning |
-| --- | --- | --- |
+| Code name     | Layer                                        | Meaning                                                     |
+| ------------- | -------------------------------------------- | ----------------------------------------------------------- |
 | `identity_id` | TypeScript field, journal payload, DB column | Canonical ID of the identity blueprint used for an LLM call |
 
 ### Complete journal record field map

@@ -1,6 +1,6 @@
 -- up
 -- Exaix Database Schema - Complete Initialization
--- Combined migration - all tables created at once
+-- All tables and columns created at once with current schema
 
 -- ============================================================================
 -- Activity Tracking
@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS activity (
   id TEXT PRIMARY KEY,
   trace_id TEXT NOT NULL,
   actor TEXT NOT NULL,
-  agent_id TEXT,
+  actor_type TEXT,
+  identity_id TEXT,
+  identity_kind TEXT,
   action_type TEXT NOT NULL,
   target TEXT,
   payload TEXT NOT NULL,
@@ -20,7 +22,9 @@ CREATE TABLE IF NOT EXISTS activity (
 CREATE INDEX IF NOT EXISTS idx_activity_trace ON activity(trace_id);
 CREATE INDEX IF NOT EXISTS idx_activity_time ON activity(timestamp);
 CREATE INDEX IF NOT EXISTS idx_activity_actor ON activity(actor);
-CREATE INDEX IF NOT EXISTS idx_activity_agent ON activity(agent_id);
+CREATE INDEX IF NOT EXISTS idx_activity_identity ON activity(identity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_actor_type ON activity(actor_type);
+CREATE INDEX IF NOT EXISTS idx_activity_identity_kind ON activity(identity_kind);
 
 -- ============================================================================
 -- File Locking / Leases
@@ -28,13 +32,14 @@ CREATE INDEX IF NOT EXISTS idx_activity_agent ON activity(agent_id);
 
 CREATE TABLE IF NOT EXISTS leases (
   file_path TEXT PRIMARY KEY,
-  agent_id TEXT NOT NULL,
+  identity_id TEXT NOT NULL,
   acquired_at DATETIME DEFAULT (datetime('now')),
   heartbeat_at DATETIME DEFAULT (datetime('now')),
   expires_at DATETIME NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_leases_expires ON leases(expires_at);
+CREATE INDEX IF NOT EXISTS idx_leases_identity ON leases(identity_id);
 
 -- ============================================================================
 -- Reviews (Git-based changes with approval workflow)
@@ -53,7 +58,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   commit_sha TEXT,                  -- Latest commit SHA from agent
   files_changed INTEGER DEFAULT 0,  -- Number of files in commit
   created TEXT NOT NULL,            -- ISO 8601 timestamp
-  created_by TEXT NOT NULL,         -- Agent blueprint name
+  identity_id TEXT NOT NULL,        -- Identity blueprint name
   approved_at TEXT,                 -- Approval timestamp
   approved_by TEXT,                 -- User who approved
   rejected_at TEXT,                 -- Rejection timestamp
@@ -64,7 +69,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS idx_reviews_trace_id ON reviews(trace_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
 CREATE INDEX IF NOT EXISTS idx_reviews_portal ON reviews(portal);
-CREATE INDEX IF NOT EXISTS idx_reviews_created_by ON reviews(created_by);
+CREATE INDEX IF NOT EXISTS idx_reviews_identity_id ON reviews(identity_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_branch ON reviews(branch);
 CREATE INDEX IF NOT EXISTS idx_reviews_repository ON reviews(repository);
 
@@ -112,7 +117,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
   id TEXT PRIMARY KEY,
   status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
   type TEXT NOT NULL CHECK (type IN ('analysis', 'report', 'diagram')),
-  agent TEXT NOT NULL,
+  identity TEXT NOT NULL,
   portal TEXT,
   target_branch TEXT,               -- Optional target/base branch context for portal artifacts
   created TEXT NOT NULL,
@@ -123,7 +128,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_artifacts_status ON artifacts(status);
-CREATE INDEX IF NOT EXISTS idx_artifacts_agent ON artifacts(agent);
+CREATE INDEX IF NOT EXISTS idx_artifacts_identity ON artifacts(identity);
 CREATE INDEX IF NOT EXISTS idx_artifacts_portal ON artifacts(portal);
 CREATE INDEX IF NOT EXISTS idx_artifacts_request_id ON artifacts(request_id);
 CREATE INDEX IF NOT EXISTS idx_artifacts_created ON artifacts(created DESC);

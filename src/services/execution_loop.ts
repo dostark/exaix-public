@@ -44,7 +44,7 @@ import { JSONValue } from "../shared/types/json.ts";
 export interface IExecutionLoopConfig {
   config: Config;
   db?: DatabaseService;
-  agentId: string;
+  identityId: string;
   llmProvider?: IModelProvider;
   reviewRegistry?: ReviewRegistry;
 }
@@ -87,35 +87,35 @@ export interface IExecuteOptions {
 export class ExecutionLoop {
   private config: Config;
   private db?: DatabaseService;
-  private agentId: string;
+  private identityId: string;
   private plansDir: string;
   private leases = new Map<string, ITaskLease>();
   private blueprintLoader: BlueprintLoader;
 
   constructor(
-    { config, db, agentId, llmProvider, reviewRegistry }: IExecutionLoopConfig & {
+    { config, db, identityId, llmProvider, reviewRegistry }: IExecutionLoopConfig & {
       reviewRegistry?: ReviewRegistry;
     },
   ) {
     this.config = config;
     this.db = db;
-    this.agentId = agentId;
+    this.identityId = identityId;
     this.llmProvider = llmProvider;
     this.reviewRegistry = reviewRegistry;
     this.plansDir = join(config.system.root, config.paths.workspace, config.paths.active);
     this.blueprintLoader = new BlueprintLoader({
-      blueprintsPath: join(config.system.root, config.paths.blueprints, "Agents"),
+      blueprintsPath: join(config.system.root, config.paths.blueprints, config.paths.identities),
     });
   }
 
   private reviewRegistry?: ReviewRegistry;
   private llmProvider?: IModelProvider;
 
-  private async isReadOnlyAgentId(agentId: string | undefined): Promise<boolean> {
-    if (!agentId) return false;
+  private async isReadOnlyAgentId(identityId: string | undefined): Promise<boolean> {
+    if (!identityId) return false;
 
     try {
-      const blueprint = await this.blueprintLoader.load(agentId);
+      const blueprint = await this.blueprintLoader.load(identityId);
       if (!blueprint) return false;
       return isReadOnlyAgentCapabilities(blueprint.capabilities);
     } catch {
@@ -272,7 +272,7 @@ export class ExecutionLoop {
       config: this.config,
       db: this.db,
       traceId,
-      agentId: this.agentId,
+      identityId: this.identityId,
       repoPath,
     });
   }
@@ -305,11 +305,11 @@ export class ExecutionLoop {
     const structuredPlan = parseStructuredPlanFromMarkdown(planContent, {
       trace_id: frontmatter.trace_id,
       request_id: frontmatter.request_id,
-      agent_id: frontmatter.agent_id,
+      identity_id: frontmatter.identity_id,
     });
 
     const actions = structuredPlan ? [] : this.parsePlanActions(planContent);
-    const planAgentId = frontmatter.agent_id || structuredPlan?.agent;
+    const planAgentId = frontmatter.identity_id || structuredPlan?.agent;
     const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
     const hasExecutableWork = structuredPlan !== null || actions.length > 0;
     const executionStrategy = this.getExecutionStrategy(frontmatter);
@@ -460,7 +460,7 @@ export class ExecutionLoop {
       if (args.isReadOnly && (!this.llmProvider || !this.db)) {
         this.logActivity("execution.readonly_structured_plan_skipped", args.traceId, {
           request_id: args.requestId,
-          agent_id: args.planAgentId ?? null,
+          identity_id: args.planAgentId ?? null,
         });
         return { didExecuteWork: false, didMutateRepo: false };
       }
@@ -475,7 +475,7 @@ export class ExecutionLoop {
       if (args.isReadOnly) {
         this.logActivity("execution.readonly_structured_plan_executed", args.traceId, {
           request_id: args.requestId,
-          agent_id: args.planAgentId ?? null,
+          identity_id: args.planAgentId ?? null,
         });
       }
 
@@ -636,7 +636,7 @@ export class ExecutionLoop {
       config: this.config,
       db: this.db,
       traceId,
-      agentId: this.agentId,
+      identityId: this.identityId,
       baseDir: executionRoot,
     });
 
@@ -705,7 +705,7 @@ export class ExecutionLoop {
     const context = {
       trace_id: plan.trace_id,
       request_id: plan.request_id,
-      agent: plan.agent,
+      identity: (plan as { identity?: string; agent?: string }).identity ?? plan.agent,
       frontmatter: {},
       steps: plan.steps,
     };
@@ -754,7 +754,7 @@ export class ExecutionLoop {
   private ensureLease(filePath: string, traceId: string): void {
     // Check if already leased
     const existingLease = this.leases.get(filePath);
-    if (existingLease && existingLease.holder !== this.agentId) {
+    if (existingLease && existingLease.holder !== this.identityId) {
       throw new Error(
         `Task lease already held by ${existingLease.holder}`,
       );
@@ -763,13 +763,13 @@ export class ExecutionLoop {
     // Acquire lease
     this.leases.set(filePath, {
       filePath,
-      holder: this.agentId,
+      holder: this.identityId,
       acquiredAt: new Date(),
     });
 
     this.logActivity("execution.lease_acquired", traceId, {
       file_path: filePath,
-      holder: this.agentId,
+      holder: this.identityId,
     });
   }
 
@@ -1006,7 +1006,7 @@ export class ExecutionLoop {
     try {
       return await gitService.commit({
         message: `Execute plan: ${requestId}`,
-        description: `Executed by agent ${this.agentId}`,
+        description: `Executed by agent ${this.identityId}`,
         traceId,
       });
     } catch (error) {
@@ -1049,7 +1049,7 @@ export class ExecutionLoop {
           description: `Execution for request ${requestId}`,
           commit_sha: commitSha,
           files_changed: 1, // Defaulting to 1 for now
-          created_by: this.agentId,
+          created_by: this.identityId,
         });
         console.log(`[ExecutionLoop] Review registered successfully`);
       } else {
@@ -1074,7 +1074,7 @@ export class ExecutionLoop {
       const traceData = {
         traceId,
         requestId,
-        agentId: this.agentId,
+        identityId: this.identityId,
         status: ExecutionStatus.COMPLETED,
         branch: `feat/${requestId}-${traceId.substring(0, 8)}`,
         completedAt: new Date(),
@@ -1113,7 +1113,7 @@ export class ExecutionLoop {
       const traceData = {
         traceId,
         requestId,
-        agentId: this.agentId,
+        identityId: this.identityId,
         status: ExecutionStatus.FAILED,
         branch: `feat/${requestId}-${traceId.substring(0, 8)}`,
         completedAt: new Date(),
@@ -1134,7 +1134,7 @@ export class ExecutionLoop {
         );
         await Deno.mkdir(failureDir, { recursive: true });
         const failureContent =
-          `# Failure Report\n\n**Trace ID:** ${traceId}\n**Request ID:** ${requestId}\n**Agent:** ${this.agentId}\n**Error:** ${error}\n\n**Summary:** ${traceData.summary}\n**Reasoning:** ${traceData.reasoning}\n\nGenerated at ${
+          `# Failure Report\n\n**Trace ID:** ${traceId}\n**Request ID:** ${requestId}\n**Agent:** ${this.identityId}\n**Error:** ${error}\n\n**Summary:** ${traceData.summary}\n**Reasoning:** ${traceData.reasoning}\n\nGenerated at ${
             new Date().toISOString()
           }`;
         await Deno.writeTextFile(join(failureDir, "failure.md"), failureContent);
@@ -1173,7 +1173,8 @@ export class ExecutionLoop {
         null,
         payload,
         traceId,
-        this.agentId,
+        null, // actorType
+        this.identityId, // identityId
       );
     } catch (error) {
       console.error("Failed to log execution activity:", error);

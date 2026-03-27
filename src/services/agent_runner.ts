@@ -40,7 +40,7 @@ export interface IBlueprint {
   systemPrompt: string;
 
   /** Optional: Agent identifier for logging */
-  agentId?: string;
+  identityId?: string;
 
   /** Optional: Default skills to apply for all requests (Phase 17) */
   defaultSkills?: string[];
@@ -220,15 +220,15 @@ export class AgentRunner implements IAgentRunner {
     request: IParsedRequest,
   ): Promise<IAgentExecutionResult> {
     const startTime = Date.now();
-    const agentId = blueprint.agentId || "unknown";
+    const identityId = blueprint.identityId || "unknown";
     const traceId = request.traceId;
     const requestId = request.requestId;
 
     // Phase 17: Match skills based on request context
-    const skillsApplied = await this.matchAndApplySkills(blueprint, request, agentId);
+    const skillsApplied = await this.matchAndApplySkills(blueprint, request, identityId);
 
     // Log agent execution start
-    this.logExecutionStart(request, agentId, traceId, requestId, skillsApplied);
+    this.logExecutionStart(request, identityId, traceId, requestId, skillsApplied);
 
     // Step 1: Construct the combined prompt (with skill context)
     const skillContext = skillsApplied.length > 0 && this.skillsService
@@ -243,7 +243,7 @@ export class AgentRunner implements IAgentRunner {
 
     // Handle retry failure
     if (!retryResult.success) {
-      this.handleExecutionFailure(retryResult, requestId, agentId, traceId, duration);
+      this.handleExecutionFailure(retryResult, requestId, identityId, traceId, duration);
     }
 
     // Step 3: Parse the response to extract thought and content
@@ -251,7 +251,16 @@ export class AgentRunner implements IAgentRunner {
     const result = this.parseResponse(rawResponse);
 
     // Log successful execution
-    this.logExecutionCompletion(result, rawResponse, retryResult, requestId, agentId, traceId, duration, skillsApplied);
+    this.logExecutionCompletion(
+      result,
+      rawResponse,
+      retryResult,
+      requestId,
+      identityId,
+      traceId,
+      duration,
+      skillsApplied,
+    );
 
     return {
       ...result,
@@ -265,7 +274,7 @@ export class AgentRunner implements IAgentRunner {
   private async matchAndApplySkills(
     blueprint: IBlueprint,
     request: IParsedRequest,
-    agentId: string,
+    identityId: string,
   ): Promise<string[]> {
     if (!this.skillsService || this.disableSkills) {
       return [];
@@ -286,7 +295,7 @@ export class AgentRunner implements IAgentRunner {
           taskType: request.taskType,
           filePaths: request.filePaths,
           tags: request.tags,
-          agentId,
+          identityId,
         });
 
         if (matchedSkills.length > 0) {
@@ -322,7 +331,7 @@ export class AgentRunner implements IAgentRunner {
    */
   private logExecutionStart(
     request: IParsedRequest,
-    agentId: string,
+    identityId: string,
     traceId: string | undefined,
     requestId: string | undefined,
     skillsApplied: string[],
@@ -332,7 +341,7 @@ export class AgentRunner implements IAgentRunner {
       "agent.execution_started",
       requestId || null,
       {
-        agent_id: agentId,
+        identity_id: identityId,
         prompt_length: request.userPrompt.length,
         has_context: Object.keys(request.context).length > 0,
         retry_enabled: !this.disableRetry,
@@ -341,7 +350,7 @@ export class AgentRunner implements IAgentRunner {
         skills_applied: skillsApplied,
       },
       traceId,
-      agentId,
+      identityId,
     );
   }
 
@@ -386,7 +395,7 @@ export class AgentRunner implements IAgentRunner {
   private handleExecutionFailure(
     retryResult: IRetryResult<string>,
     requestId: string | undefined,
-    agentId: string,
+    identityId: string,
     traceId: string | undefined,
     duration: number,
   ): never {
@@ -395,7 +404,7 @@ export class AgentRunner implements IAgentRunner {
       "agent.execution_failed",
       requestId || null,
       {
-        agent_id: agentId,
+        identity_id: identityId,
         duration_ms: duration,
         total_attempts: retryResult.totalAttempts,
         retry_history: toSafeJson(retryResult.retryHistory),
@@ -403,7 +412,7 @@ export class AgentRunner implements IAgentRunner {
         error_message: retryResult.error?.message || "Unknown error",
       },
       traceId,
-      agentId,
+      identityId,
     );
 
     throw retryResult.error || new Error("Agent execution failed after retries");
@@ -417,7 +426,7 @@ export class AgentRunner implements IAgentRunner {
     rawResponse: string,
     retryResult: IRetryResult<string>,
     requestId: string | undefined,
-    agentId: string,
+    identityId: string,
     traceId: string | undefined,
     duration: number,
     skillsApplied: string[],
@@ -427,7 +436,7 @@ export class AgentRunner implements IAgentRunner {
       "agent.execution_completed",
       requestId || null,
       {
-        agent_id: agentId,
+        identity_id: identityId,
         duration_ms: duration,
         total_attempts: retryResult.totalAttempts,
         retry_history: retryResult.retryHistory.length > 0 ? toSafeJson(retryResult.retryHistory) : null,
@@ -437,7 +446,7 @@ export class AgentRunner implements IAgentRunner {
         skills_applied: skillsApplied.length > 0 ? toSafeJson(skillsApplied) : null,
       },
       traceId,
-      agentId,
+      identityId,
     );
   }
 
@@ -537,14 +546,14 @@ export class AgentRunner implements IAgentRunner {
     target: string | null,
     payload: Record<string, JSONValue>,
     traceId?: string,
-    agentId?: string | null,
+    identityId?: string | null,
   ): void {
     if (!this.db) {
       return; // No database, skip logging
     }
 
     try {
-      this.db.logActivity(actor, actionType, target, payload, traceId, agentId || null);
+      this.db.logActivity(actor, actionType, target, payload, traceId, identityId || null);
     } catch (error) {
       console.error("[AgentRunner] Failed to log activity:", error);
     }

@@ -8,8 +8,8 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { SecurityMode } from "../../src/shared/enums.ts";
 
+import { AgentExecutionOptionsSchema } from "../../src/shared/schemas/agent_executor.ts";
 import {
-  AgentExecutionOptionsSchema,
   AgentIdSchema,
   BlueprintNameSchema,
   ExecutionContextSchema,
@@ -224,7 +224,7 @@ Deno.test("Input Validation - ExecutionContextSchema", async (t) => {
 Deno.test("Input Validation - AgentExecutionOptionsSchema", async (t) => {
   await t.step("accepts valid execution options", () => {
     const validOptions = {
-      agent_id: "test-agent",
+      identity_id: "test-identity",
       portal: "default",
       security_mode: SecurityMode.SANDBOXED,
       timeout_ms: 300000,
@@ -236,7 +236,7 @@ Deno.test("Input Validation - AgentExecutionOptionsSchema", async (t) => {
 
   await t.step("applies default values", () => {
     const minimalOptions = {
-      agent_id: "test-agent",
+      identity_id: "test-agent",
       portal: "default",
     };
     const parsed = AgentExecutionOptionsSchema.parse(minimalOptions);
@@ -248,7 +248,7 @@ Deno.test("Input Validation - AgentExecutionOptionsSchema", async (t) => {
 
   await t.step("rejects invalid security modes", () => {
     const invalidOptions = {
-      agent_id: "test-agent",
+      identity_id: "test-agent",
       portal: "default",
       security_mode: "invalid-mode",
     };
@@ -272,7 +272,7 @@ Deno.test("Input Validation - InputValidator utility", async (t) => {
 
   await t.step("validates agent execution options", () => {
     const validOptions = {
-      agent_id: "test-agent",
+      identity_id: "test-agent",
       portal: "default",
       security_mode: SecurityMode.SANDBOXED,
       timeout_ms: 300000,

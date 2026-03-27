@@ -43,7 +43,7 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
       subject: "IRequest 87654321",
       status: RequestStatus.PLANNED,
       priority: RequestPriority.HIGH,
-      agent: "code-reviewer",
+      identity: "code-reviewer",
     },
   ]);
   const requests = await _service.listRequests();
@@ -90,7 +90,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       subject: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: RequestPriority.NORMAL,
-      agent: "default",
+      identity: "default",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
     },
@@ -100,7 +100,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: RequestPriority.NORMAL,
-      agent: "default",
+      identity: "default",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
     },
@@ -113,12 +113,15 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
 
 Deno.test("RequestManagerView - creates new request", async () => {
   const { service: _service, view } = createViewWithRequests();
-  const newIRequest = await view.createRequest("Test request", { priority: RequestPriority.HIGH, agent: "test-agent" });
+  const newIRequest = await view.createRequest("Test request", {
+    priority: RequestPriority.HIGH,
+    identity: "test-agent",
+  });
 
   assert(newIRequest.trace_id);
   assertEquals(newIRequest.status, RequestStatus.PENDING);
   assertEquals(newIRequest.priority, RequestPriority.HIGH);
-  assertEquals(newIRequest.agent, "test-agent");
+  assertEquals(newIRequest.identity, "test-agent");
 });
 
 Deno.test("RequestManagerView - gets request content", async () => {
@@ -314,7 +317,7 @@ Deno.test("Phase 13.6: RequestViewState interface", () => {
   assertEquals(state.searchQuery, "");
   assertEquals(state.filterStatus, null);
   assertEquals(state.filterPriority, null);
-  assertEquals(state.filterAgent, null);
+  assertEquals(state.filterIdentity, null);
   assertEquals(state.groupBy, "none");
 });
 
@@ -338,9 +341,9 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
   tui.toggleGrouping();
   assertEquals(tui.getState().groupBy, "priority");
 
-  // Toggle to agent grouping
+  // Toggle to identity grouping
   tui.toggleGrouping();
-  assertEquals(tui.getState().groupBy, RequestGroupingMode.AGENT);
+  assertEquals(tui.getState().groupBy, RequestGroupingMode.IDENTITY);
 
   // Toggle back to none
   tui.toggleGrouping();
@@ -353,14 +356,14 @@ Deno.test("Phase 13.6: Search functionality", () => {
     {
       trace_id: "req-1",
       subject: "Bug fix",
-      agent: "developer",
+      identity: "developer",
     },
     {
       trace_id: "req-2",
       subject: "Feature request",
       status: RequestStatus.COMPLETED,
       priority: RequestPriority.HIGH,
-      agent: "designer",
+      identity: "designer",
     },
   ]);
   const view = new RequestManagerView(mockService);
@@ -394,7 +397,7 @@ Deno.test("Phase 13.6: Filter by status", () => {
   assertEquals(tui.getFilteredRequests()[0].status, RequestStatus.PENDING);
 });
 
-Deno.test("Phase 13.6: Filter by agent", () => {
+Deno.test("Phase 13.6: Filter by identity", () => {
   const mockService = new MinimalRequestServiceMock();
   const requests: IRequest[] = [
     {
@@ -403,7 +406,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       subject: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: RequestPriority.NORMAL,
-      agent: "developer",
+      identity: "developer",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
       source: RequestSource.CLI,
@@ -414,7 +417,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: RequestPriority.HIGH,
-      agent: "designer",
+      identity: "designer",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
       source: RequestSource.CLI,
@@ -423,12 +426,12 @@ Deno.test("Phase 13.6: Filter by agent", () => {
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
-  // Filter by agent
-  tui.getState().filterAgent = "dev";
+  // Filter by identity
+  tui.getState().filterIdentity = "dev";
   tui.buildTree();
 
   assertEquals(tui.getFilteredRequests().length, 1);
-  assertEquals(tui.getFilteredRequests()[0].agent, "developer");
+  assertEquals(tui.getFilteredRequests()[0].identity, "developer");
 });
 
 Deno.test("Phase 13.6: Help sections", () => {

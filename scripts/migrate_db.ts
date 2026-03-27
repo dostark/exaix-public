@@ -150,13 +150,20 @@ function validateMigration(migrationFile: string, db: Database): ValidationResul
 
       // Check that required indexes exist
       const indexes = [
+        "idx_activity_trace",
+        "idx_activity_identity",
+        "idx_activity_actor_type",
+        "idx_activity_identity_kind",
+        "idx_leases_identity",
         "idx_reviews_trace_id",
         "idx_reviews_status",
         "idx_reviews_portal",
-        "idx_reviews_created_by",
+        "idx_reviews_identity_id",
         "idx_reviews_branch",
         "idx_provider_costs_provider",
         "idx_provider_costs_timestamp",
+        "idx_artifacts_status",
+        "idx_artifacts_identity",
       ];
       for (const index of indexes) {
         const indexExists = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name=?").get(index);

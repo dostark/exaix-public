@@ -1,12 +1,12 @@
 /**
  * @module ExecutionLoopTest
  * @path tests/execution_loop_test.ts
- * @description Verifies the primary agent execution loop, ensuring robust orchestration
+ * @description Verifies the primary identity execution loop, ensuring robust orchestration
  * of planning, execution, and confirmation phases for user requests.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryBankSource, MemoryOperation, PortalOperation } from "../src/shared/enums.ts";
+import { MemoryOperation, PortalOperation } from "../src/shared/enums.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
 import { PlanStatus } from "../src/shared/status/plan_status.ts";
 import { join } from "@std/path";
@@ -37,7 +37,7 @@ import { EXECUTION_REPORT_FILENAME } from "../src/shared/constants.ts";
  * - Handle success path = commit changes, generate report, archive plan
  * - Handle failure path = rollback git, generate failure report, move plan back
  * - Release lease even on failure
- * - Log all execution steps to IActivity Journal with trace_id and agent_id
+ * - Log all execution steps to IActivity Journal with trace_id and identity_id
  */
 
 function getTestPaths(root: string) {
@@ -63,7 +63,7 @@ Deno.test("ExecutionLoop: processes approved plan from Workspace/Active", async 
 trace_id: "${traceId}"
 request_id: test-request
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Test Plan
@@ -77,7 +77,7 @@ agent_id: test-agent
     const config = createMockConfig(tempDir);
     const paths = getTestPaths(tempDir);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
 
     // Process the plan
     const result = await loop.processTask(planPath);
@@ -114,7 +114,7 @@ Deno.test("ExecutionLoop: acquires lease to prevent concurrent execution", async
 trace_id: "test-trace-lease"
 request_id: lease-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Lease Test Plan
@@ -126,8 +126,8 @@ We need to test concurrent lease acquisition.
     const planPath = join(paths.activeDir, "lease-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop1 = new ExecutionLoop({ config, db, agentId: "agent-1" });
-    const loop2 = new ExecutionLoop({ config, db, agentId: "agent-2" });
+    const loop1 = new ExecutionLoop({ config, db, identityId: "identity-1" });
+    const loop2 = new ExecutionLoop({ config, db, identityId: "identity-2" });
 
     // Start first execution but don't await
     const exec1Promise = loop1.processTask(planPath);
@@ -171,7 +171,7 @@ Deno.test("ExecutionLoop: creates git branch and commits with trace_id", async (
 trace_id: "test-trace-git"
 request_id: git-commit-test
 status: approved
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Git Integration Test
@@ -183,7 +183,7 @@ Detailed git branch/commit testing is covered in integration tests.
     const planPath = join(paths.activeDir, "git-commit-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     // Verify execution completed (git branch creation is tested in integration tests)
@@ -209,7 +209,7 @@ Deno.test("ExecutionLoop: handles tool execution failure gracefully", async () =
 trace_id: "test-trace-fail"
 request_id: fail-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Failure Test Plan
@@ -221,7 +221,7 @@ agent_id: test-agent
     const planPath = join(activeDir, "fail-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
@@ -286,17 +286,17 @@ path = "analysis-target.txt"
     await Deno.mkdir(paths.activeDir, { recursive: true });
 
     // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
-    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsDir);
     await Deno.writeTextFile(
       join(blueprintsDir, "code-analyst.md"),
-      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+      `---\nidentity_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
     );
 
     await Deno.writeTextFile(join(tempDir, "analysis-target.txt"), "analysis source");
 
     const planContent =
-      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-report\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-report\nstatus: active\nidentity_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
 
     const planPath = join(paths.activeDir, "readonly-report.md");
     await Deno.writeTextFile(planPath, planContent);
@@ -304,7 +304,7 @@ path = "analysis-target.txt"
     const loop = new ExecutionLoop({
       config,
       db,
-      agentId: "daemon",
+      identityId: "daemon",
       llmProvider: new ReadOnlyReportProvider(),
     });
 
@@ -321,9 +321,9 @@ path = "analysis-target.txt"
     assertStringIncludes(reportContent, "Read-only analysis report.");
 
     const artifacts = await db.preparedAll<
-      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+      { id: string; status: string; identity: string; portal: string | null; request_id: string; file_path: string }
     >(
-      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      "SELECT id, status, identity, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
       ["readonly-report"],
     );
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
@@ -350,7 +350,7 @@ Deno.test("ExecutionLoop: generates mission report on success", async () => {
 trace_id: "${traceId}"
 request_id: report-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Report Test Plan
@@ -362,7 +362,7 @@ agent_id: test-agent
     const planPath = join(activeDir, "report-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -395,7 +395,7 @@ Deno.test("ExecutionLoop: releases lease even on failure", async () => {
 trace_id: "test-trace-lease-release"
 request_id: lease-release-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Lease Release Test
@@ -407,8 +407,8 @@ agent_id: test-agent
     const planPath = join(paths.activeDir, "lease-release-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop1 = new ExecutionLoop({ config, db, agentId: "agent-1" });
-    const loop2 = new ExecutionLoop({ config, db, agentId: "agent-2" });
+    const loop1 = new ExecutionLoop({ config, db, identityId: "identity-1" });
+    const loop2 = new ExecutionLoop({ config, db, identityId: "identity-2" });
 
     // First execution fails
     const result1 = await loop1.processTask(planPath);
@@ -442,7 +442,7 @@ Deno.test("ExecutionLoop: logs all execution steps to IActivity Journal", async 
 trace_id: "test-trace-logging"
 request_id: logging-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Logging Test Plan
@@ -458,7 +458,7 @@ content = "activity journal logging test"
     const planPath = join(getWorkspaceActiveDir(tempDir), "logging-test.md");
     await Deno.writeTextFile(planPath, planContent);
     const config = createMockConfig(tempDir);
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     await loop.processTask(planPath);
 
     // Wait for batched logs to flush
@@ -482,10 +482,10 @@ content = "activity journal logging test"
       "Should log execution outcome",
     );
 
-    // Verify agent_id is set
-    const agentActions = activities.filter((a: ActivityRecord) => a.actor === MemoryBankSource.AGENT);
+    // Verify identity_id is set
+    const agentActions = activities.filter((a: ActivityRecord) => a.actor === "agent");
     agentActions.forEach((action: ActivityRecord) => {
-      assertEquals(action.agent_id, "test-agent", "Agent actions should have agent_id");
+      assertEquals(action.identity_id, "test-identity", "Agent actions should have identity_id");
     });
   } finally {
     await cleanup();
@@ -506,7 +506,7 @@ Deno.test("ExecutionLoop: parses plan frontmatter correctly", async () => {
 trace_id: "test-trace-parse"
 request_id: parse-test
 status: active
-agent_id: senior-coder
+identity_id: senior-coder
 ---
 
 # Parse Test Plan
@@ -515,7 +515,7 @@ agent_id: senior-coder
     const planPath = join(paths.activeDir, "parse-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "senior-coder" });
+    const loop = new ExecutionLoop({ config, db, identityId: "senior-coder" });
     const result = await loop.processTask(planPath);
 
     // If parsing failed, this would have thrown
@@ -531,7 +531,7 @@ agent_id: senior-coder
  * Regression test for deployed behavior where analysis agents (e.g. code-analyst)
  * incorrectly triggered git branch creation and diffs instead of producing execution artifacts.
  *
- * Root cause: structured plans were auto-executed via PlanExecutor without checking agent capabilities.
+ * Root cause: structured plans were auto-executed via PlanExecutor without checking identity capabilities.
  * Fix: ExecutionLoop skips structured-plan execution for read-only agents.
  */
 Deno.test("[regression] ExecutionLoop: skips structured execution for read-only agents", async () => {
@@ -545,22 +545,22 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
     await Deno.mkdir(paths.activeDir, { recursive: true });
 
     // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
-    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsDir);
     await Deno.writeTextFile(
       join(blueprintsDir, "code-analyst.md"),
-      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+      `---\nidentity_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
     );
 
     // Create a structured plan with steps (would normally trigger PlanExecutor)
     const planContent =
-      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-structured\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-structured\nstatus: active\nidentity_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
 
     const planPath = join(paths.activeDir, "readonly-structured.md");
     await Deno.writeTextFile(planPath, planContent);
 
     // No llmProvider passed; this should still succeed for read-only agents.
-    const loop = new ExecutionLoop({ config, db, agentId: "daemon" });
+    const loop = new ExecutionLoop({ config, db, identityId: "daemon" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -582,15 +582,15 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
 
     // Read-only executions should also produce a canonical review artifact (artifact-*.md)
     const artifacts = await db.preparedAll<
-      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+      { id: string; status: string; identity: string; portal: string | null; request_id: string; file_path: string }
     >(
-      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      "SELECT id, status, identity, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
       ["readonly-structured"],
     );
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
     assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
     assertEquals(artifacts[0].status, ReviewStatus.PENDING);
-    assertEquals(artifacts[0].agent, "code-analyst");
+    assertEquals(artifacts[0].identity, "code-analyst");
     assertEquals(artifacts[0].portal, null);
 
     const artifactFileExists = await Deno.stat(join(tempDir, artifacts[0].file_path)).then(() => true).catch(() =>
@@ -611,7 +611,7 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
  * Regression test for the legacy/no-op plan path:
  * - Not a structured plan (no "## Execution Steps")
  * - No TOML actions
- * - Read-only agent
+ * - Read-only identity
  *
  * Expected behavior: succeed without git mutations, but still create canonical artifact.
  */
@@ -626,21 +626,21 @@ Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces arti
     await Deno.mkdir(paths.activeDir, { recursive: true });
 
     // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
-    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsDir);
     await Deno.writeTextFile(
       join(blueprintsDir, "code-analyst.md"),
-      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+      `---\nidentity_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
     );
 
     // Legacy/no-op plan: not structured, no TOML blocks/actions.
     const planContent =
-      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-legacy\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Legacy No-op Plan\n\nThis is an analysis output plan with no executable actions.\n`;
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-legacy\nstatus: active\nidentity_id: code-analyst\n---\n\n# Read-only Legacy No-op Plan\n\nThis is an analysis output plan with no executable actions.\n`;
 
     const planPath = join(paths.activeDir, "readonly-legacy.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "daemon" });
+    const loop = new ExecutionLoop({ config, db, identityId: "daemon" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -662,15 +662,15 @@ Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces arti
 
     // Read-only executions should also produce a canonical review artifact (artifact-*.md)
     const artifacts = await db.preparedAll<
-      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+      { id: string; status: string; identity: string; portal: string | null; request_id: string; file_path: string }
     >(
-      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      "SELECT id, status, identity, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
       ["readonly-legacy"],
     );
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
     assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
     assertEquals(artifacts[0].status, ReviewStatus.PENDING);
-    assertEquals(artifacts[0].agent, "code-analyst");
+    assertEquals(artifacts[0].identity, "code-analyst");
     assertEquals(artifacts[0].portal, null);
 
     const artifactFileExists = await Deno.stat(join(tempDir, artifacts[0].file_path)).then(() => true).catch(() =>
@@ -707,7 +707,7 @@ trace_id: "test-trace-invalid"
     const planPath = join(getWorkspaceActiveDir(tempDir), "invalid-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
 
     // Should fail with clear error about missing trace_id
     const result = await loop.processTask(planPath);
@@ -731,7 +731,7 @@ Deno.test("ExecutionLoop: handles git rollback on failure", async () => {
 trace_id: "test-trace-rollback"
 request_id: rollback-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Rollback Test Plan
@@ -744,7 +744,7 @@ agent_id: test-agent
     const planPath = join(systemActiveDir, "rollback-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false, "Execution should fail due to 'Intentionally fail' marker");
@@ -815,7 +815,7 @@ This plan has two actions in TOML format.
     const planPath = join(systemActiveDir, "toml-actions.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -865,7 +865,7 @@ This plan has one action in TOML format.
     const planPath = join(systemActiveDir, "multi-actions.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -905,7 +905,7 @@ The system should still execute successfully using fallback behavior.
     const planPath = join(systemActiveDir, "no-actions.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true, "Should succeed even without actions");
@@ -962,7 +962,7 @@ Only the middle block should be parsed.
     const planPath = join(systemActiveDir, "malformed-blocks.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true, "Should succeed despite malformed blocks");
@@ -1022,7 +1022,7 @@ Only the middle block with 'tool' field should be treated as an action.
     const planPath = join(systemActiveDir, "no-tool-field.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -1083,7 +1083,7 @@ Deno.test("ExecutionLoop: handles commit with no changes gracefully", async () =
 trace_id: "test-trace-nochanges"
 request_id: nochanges-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # No Changes Plan
@@ -1094,7 +1094,7 @@ This plan has no action blocks.
     const planPath = join(systemActiveDir, "nochanges-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     // Should succeed even with no changes to commit
@@ -1146,7 +1146,7 @@ Deno.test("ExecutionLoop: lease mechanism prevents duplicate processing", async 
 trace_id: "test-trace-lease"
 request_id: lease-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Lease Test
@@ -1155,7 +1155,7 @@ agent_id: test-agent
     const planPath = join(systemActiveDir, "lease-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
 
     // Process task successfully - lease should be acquired and released
     const result1 = await loop.processTask(planPath);
@@ -1171,7 +1171,7 @@ agent_id: test-agent
 
     // Parse payload to verify holder
     const payload = JSON.parse(leaseAcquired.payload);
-    assertEquals(payload.holder, "test-agent");
+    assertEquals(payload.holder, "test-identity");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -1200,7 +1200,7 @@ status: invalid-status
     const planPath = join(systemActiveDir, "bad-plan.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
@@ -1232,7 +1232,7 @@ this is not: valid: yaml: format
     const planPath = join(systemActiveDir, "malformed-plan.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
@@ -1260,7 +1260,7 @@ Deno.test("ExecutionLoop: handles unknown tool gracefully", async () => {
 trace_id: "test-trace-unknown"
 request_id: unknown-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Unknown Tool Test
@@ -1277,7 +1277,7 @@ test = "value"
     const planPath = join(systemActiveDir, "unknown-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     // Tool execution returns success:false but doesn't throw, so task succeeds
@@ -1318,7 +1318,7 @@ Deno.test("ExecutionLoop: summarizeResult handles various result types", async (
 trace_id: "test-trace-summary"
 request_id: summary-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Summary Test
@@ -1335,7 +1335,7 @@ path = "test-read.txt"
     const planPath = join(systemActiveDir, "summary-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, true);
@@ -1363,7 +1363,7 @@ Deno.test("ExecutionLoop: failure report generation and plan status update", asy
 trace_id: "test-trace-failreport"
 request_id: failreport-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Failure Report Test
@@ -1374,7 +1374,7 @@ Intentionally fail
     const planPath = join(systemActiveDir, "failreport-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
@@ -1435,7 +1435,7 @@ Deno.test("ExecutionLoop: handles git rollback on failure", async () => {
 trace_id: "test-trace-rollback"
 request_id: rollback-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # Rollback Test
@@ -1446,7 +1446,7 @@ path traversal: ../../etc/passwd
     const planPath = join(systemActiveDir, "rollback-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
@@ -1481,7 +1481,7 @@ Deno.test("ExecutionLoop: logActivity handles missing database gracefully", asyn
 trace_id: "test-trace-nodb"
 request_id: nodb-test
 status: active
-agent_id: test-agent
+identity_id: test-identity
 ---
 
 # No DB Test
@@ -1491,7 +1491,7 @@ agent_id: test-agent
     await Deno.writeTextFile(planPath, planContent);
 
     // Create loop without database
-    const loop = new ExecutionLoop({ config, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, identityId: "test-identity" });
     const result = await loop.processTask(planPath);
 
     // Should still succeed even without database

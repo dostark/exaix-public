@@ -26,7 +26,7 @@ import { RequestSource } from "../shared/enums.ts";
 export class CreateRequestTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = CreateRequestToolArgsSchema.parse(args);
-    const { description, agent, identity, agent_id } = validatedArgs;
+    const { description, agent, identity, identity_id } = validatedArgs;
 
     try {
       const requestCmd = new RequestCommands(this.context);
@@ -40,10 +40,10 @@ export class CreateRequestTool extends ToolHandler {
         RequestSource.MCP,
       );
 
-      this.logToolExecution("create_request", "system", {
+      this.logToolExecution("create_request", "system", identity_id, {
         description,
         identity: identityId,
-        agent_id,
+        identity_id,
         request_id: result.filename.replace(".md", ""),
         trace_id: result.trace_id,
         success: true,
@@ -59,7 +59,10 @@ export class CreateRequestTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("create_request", "system", error, { description, agent_id: agent_id ?? null });
+      this.formatError("create_request", "system", identity_id, error, {
+        description,
+        identity_id: identity_id ?? null,
+      });
     }
   }
 
@@ -82,12 +85,12 @@ export class CreateRequestTool extends ToolHandler {
             type: "string",
             description: "Deprecated: use identity instead",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["description", "agent_id"],
+        required: ["description", "identity_id"],
       },
     };
   }
@@ -99,7 +102,7 @@ export class CreateRequestTool extends ToolHandler {
 export class ListPlansTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = ListPlansToolArgsSchema.parse(args);
-    const { status, agent_id } = validatedArgs;
+    const { status, identity_id } = validatedArgs;
     const filterStatus: PlanStatusType = status ?? PlanStatus.PENDING;
 
     try {
@@ -107,9 +110,9 @@ export class ListPlansTool extends ToolHandler {
 
       const plans = await planCmd.list(filterStatus);
 
-      this.logToolExecution("list_plans", "system", {
+      this.logToolExecution("list_plans", "system", identity_id, {
         status: filterStatus,
-        agent_id,
+        identity_id,
         count: plans.length,
         success: true,
       });
@@ -123,7 +126,10 @@ export class ListPlansTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("list_plans", "system", error, { status: status ?? null, agent_id: agent_id ?? null });
+      this.formatError("list_plans", "system", identity_id, error, {
+        status: status ?? null,
+        identity_id: identity_id ?? null,
+      });
     }
   }
 
@@ -139,12 +145,12 @@ export class ListPlansTool extends ToolHandler {
             enum: [PlanStatus.PENDING, PlanStatus.APPROVED, PlanStatus.REJECTED, PlanStatus.REVIEW],
             description: "Status to filter by",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["agent_id"],
+        required: ["identity_id"],
       },
     };
   }
@@ -156,7 +162,7 @@ export class ListPlansTool extends ToolHandler {
 export class ApprovePlanTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = ApprovePlanToolArgsSchema.parse(args);
-    const { plan_id, agent_id } = validatedArgs;
+    const { plan_id, identity_id } = validatedArgs;
 
     try {
       const planCmd = new PlanCommands(this.context);
@@ -164,9 +170,9 @@ export class ApprovePlanTool extends ToolHandler {
       // We don't check existence separately as approve() handles it (or throws)
       await planCmd.approve(plan_id);
 
-      this.logToolExecution("approve_plan", "system", {
+      this.logToolExecution("approve_plan", "system", identity_id, {
         plan_id,
-        agent_id,
+        identity_id,
         success: true,
       });
 
@@ -179,7 +185,7 @@ export class ApprovePlanTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("approve_plan", "system", error, { plan_id, agent_id: agent_id ?? null });
+      this.formatError("approve_plan", "system", identity_id, error, { plan_id, identity_id: identity_id ?? null });
     }
   }
 
@@ -194,12 +200,12 @@ export class ApprovePlanTool extends ToolHandler {
             type: "string",
             description: "ID of the plan to approve",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["plan_id", "agent_id"],
+        required: ["plan_id", "identity_id"],
       },
     };
   }
@@ -211,7 +217,7 @@ export class ApprovePlanTool extends ToolHandler {
 export class QueryJournalTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = QueryJournalToolArgsSchema.parse(args);
-    const { trace_id, limit, agent_id } = validatedArgs;
+    const { trace_id, limit, identity_id } = validatedArgs;
 
     try {
       let activities;
@@ -221,10 +227,10 @@ export class QueryJournalTool extends ToolHandler {
         activities = await this.db.getRecentActivity(limit);
       }
 
-      this.logToolExecution("query_journal", "system", {
+      this.logToolExecution("query_journal", "system", identity_id, {
         trace_id: trace_id ?? null,
         limit: limit ?? null,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         count: activities.length,
         success: true,
       });
@@ -238,10 +244,10 @@ export class QueryJournalTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("query_journal", "system", error, {
+      this.formatError("query_journal", "system", identity_id, error, {
         trace_id: trace_id ?? null,
         limit: limit ?? null,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
       });
     }
   }
@@ -261,12 +267,12 @@ export class QueryJournalTool extends ToolHandler {
             type: "number",
             description: "Max records to return (default: 50)",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["agent_id"],
+        required: ["identity_id"],
       },
     };
   }

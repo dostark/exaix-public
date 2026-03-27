@@ -11,7 +11,6 @@ import { z } from "zod";
 import { MockStrategy, ProviderType, SecurityMode } from "../enums.ts";
 import {
   BLUEPRINT_NAME_MAX_LENGTH,
-  DEFAULT_AGENT_TIMEOUT_MS,
   FILENAME_MAX_LENGTH,
   MAX_ID_LENGTH,
   MAX_NAME_LENGTH,
@@ -20,9 +19,7 @@ import {
   PLAN_CONTENT_MAX_LENGTH,
   USER_REQUEST_MAX_LENGTH,
 } from "../constants.ts";
-
-// Default values for agent configuration
-const DEFAULT_AGENT_MAX_TOOL_CALLS = 100;
+import { AgentExecutionOptionsSchema } from "./agent_executor.ts";
 
 /**
  * Blueprint name validation - prevents path traversal and injection
@@ -153,18 +150,6 @@ export const ExecutionContextSchema = z.object({
 }).strict();
 
 /**
- * Agent execution options validation
- */
-export const AgentExecutionOptionsSchema = z.object({
-  identity_id: BlueprintNameSchema,
-  portal: PortalNameSchema,
-  security_mode: z.nativeEnum(SecurityMode).default(SecurityMode.SANDBOXED),
-  timeout_ms: z.number().int().positive().default(DEFAULT_AGENT_TIMEOUT_MS),
-  max_tool_calls: z.number().int().positive().default(DEFAULT_AGENT_MAX_TOOL_CALLS),
-  audit_enabled: z.boolean().default(true),
-}).strict();
-
-/**
  * Input validation utility class
  */
 export class InputValidator {
@@ -178,7 +163,7 @@ export class InputValidator {
   /**
    * Validates agent execution options
    */
-  static validateAgentExecutionOptions(rawOptions: unknown): z.infer<typeof AgentExecutionOptionsSchema> {
+  static validateAgentExecutionOptions(rawOptions: unknown): z.output<typeof AgentExecutionOptionsSchema> {
     return AgentExecutionOptionsSchema.parse(rawOptions);
   }
 

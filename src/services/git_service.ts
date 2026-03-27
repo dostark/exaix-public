@@ -48,7 +48,7 @@ export interface IGitServiceConfig {
   config: Config;
   db?: IDatabaseService;
   traceId?: string;
-  agentId?: string;
+  identityId?: string;
   repoPath?: string;
 }
 
@@ -117,14 +117,14 @@ export class GitService implements IGitService {
   private config: Config;
   private db?: IDatabaseService;
   private traceId?: string;
-  private agentId?: string;
+  private identityId?: string;
   private repoPath: string;
 
   constructor(options: IGitServiceConfig) {
     this.config = options.config;
     this.db = options.db;
     this.traceId = options.traceId;
-    this.agentId = options.agentId;
+    this.identityId = options.identityId;
     this.repoPath = options.repoPath || options.config.system.root;
   }
 
@@ -435,7 +435,9 @@ export class GitService implements IGitService {
     // Security Guard: Prevent checkouts to protected branches for agents
     // Exception: allow when explicitly permitted (e.g., for creating feature branches)
     const protectedBranches = ["main", "master", "develop", "prod", "production"];
-    if (!options?.allowProtected && protectedBranches.includes(branchName.toLowerCase()) && this.agentId !== "daemon") {
+    if (
+      !options?.allowProtected && protectedBranches.includes(branchName.toLowerCase()) && this.identityId !== "daemon"
+    ) {
       throw new GitSecurityError(`Switching to protected branch '${branchName}' is prohibited for agents.`);
     }
 
@@ -785,12 +787,13 @@ export class GitService implements IGitService {
 
     try {
       this.db.logActivity(
-        ActivityActor.AGENT,
+        ActivityActor.IDENTITY,
         actionType,
         null,
         payload,
         this.traceId,
-        this.agentId,
+        null, // actorType
+        this.identityId, // identityId
       );
     } catch (error) {
       console.error("Failed to log git activity:", error);
