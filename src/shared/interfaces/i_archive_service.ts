@@ -11,7 +11,7 @@ import type { MemoryStatusType } from "../status/memory_status.ts";
 
 export interface IArchiveEntry {
   trace_id: string;
-  agent_id: string;
+  identity_id: string;
   status: MemoryStatusType | string;
   archived_at: string;
 }
@@ -25,7 +25,7 @@ export interface IArchiveService {
   /**
    * Search for archived entries by agent ID.
    */
-  searchByAgent(agentId: string): Promise<IArchiveEntry[]>;
+  searchByAgent(identityId: string): Promise<IArchiveEntry[]>;
 
   /**
    * Get an archived entry by its trace ID.

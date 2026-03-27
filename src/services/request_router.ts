@@ -36,7 +36,7 @@ import { RequestKind } from "../shared/enums.ts";
 export interface IRoutingDecision {
   type: RequestKind;
   flowId?: string;
-  agentId?: string;
+  identityId?: string;
   result: IAgentExecutionResult | IFlowResult;
 }
 
@@ -111,17 +111,17 @@ export class RequestRouter {
   async route(request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId, frontmatter } = request;
     const flowId = frontmatter.flow;
-    const agentId = frontmatter.identity;
+    const identityId = frontmatter.identity;
 
     // Check for conflicting fields
-    if (flowId && agentId) {
+    if (flowId && identityId) {
       await this.eventLogger.log({
         action: "request.routing.error",
         target: requestId,
         payload: {
           error: "Request cannot specify both 'flow' and 'identity' fields",
           field: "conflict",
-          value: `${flowId}/${agentId}`,
+          value: `${flowId}/${identityId}`,
         },
         traceId,
       });
@@ -137,8 +137,8 @@ export class RequestRouter {
     }
 
     // Route to agent if specified
-    if (agentId) {
-      return await this.routeToAgent(agentId, request);
+    if (identityId) {
+      return await this.routeToAgent(identityId, request);
     }
 
     // Route to default agent
@@ -193,21 +193,21 @@ export class RequestRouter {
     };
   }
 
-  public async routeToAgent(agentId: string, request: RouterRequest): Promise<IRoutingDecision> {
+  public async routeToAgent(identityId: string, request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId, body } = request;
 
     // Log routing decision
     await this.eventLogger.log({
-      action: "request.routing.agent",
+      action: "request.routing.identity",
       target: requestId,
-      payload: { agentId },
+      payload: { identityId },
       traceId,
     });
 
     // Load blueprint
-    const blueprint = await this.loadBlueprint(agentId);
+    const blueprint = await this.loadBlueprint(identityId);
     if (!blueprint) {
-      throw new RoutingError(`Agent blueprint not found: ${agentId}`, requestId);
+      throw new RoutingError(`Agent blueprint not found: ${identityId}`, requestId);
     }
 
     // Create parsed request
@@ -226,8 +226,8 @@ export class RequestRouter {
     const result = await this.agentRunner.run(blueprint, parsedRequest);
 
     return {
-      type: RequestKind.AGENT,
-      agentId,
+      type: RequestKind.IDENTITY,
+      identityId,
       result,
     };
   }
@@ -265,8 +265,8 @@ export class RequestRouter {
     const result = await this.agentRunner.run(blueprint, parsedRequest);
 
     return {
-      type: RequestKind.AGENT,
-      agentId: this.defaultAgentId,
+      type: RequestKind.IDENTITY,
+      identityId: this.defaultAgentId,
       result,
     };
   }
@@ -275,9 +275,9 @@ export class RequestRouter {
    * Load an agent blueprint from the blueprints directory
    * Uses unified BlueprintLoader for consistent parsing
    */
-  protected async loadBlueprint(agentId: string): Promise<IBlueprint | null> {
+  protected async loadBlueprint(identityId: string): Promise<IBlueprint | null> {
     const loader = new BlueprintLoader({ blueprintsPath: this.blueprintsPath });
-    const loaded = await loader.load(agentId);
+    const loaded = await loader.load(identityId);
     if (!loaded) {
       return null;
     }

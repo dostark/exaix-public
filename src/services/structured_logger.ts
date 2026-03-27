@@ -89,7 +89,7 @@ export class ConsoleOutput implements ILogOutput {
     if (context.trace_id) parts.push(`trace=${context.trace_id.slice(0, 8)}`);
     if (context.request_id) parts.push(`req=${context.request_id.slice(0, 8)}`);
     if (context.user_id) parts.push(`user=${context.user_id}`);
-    if (context.agent_id) parts.push(`agent=${context.agent_id}`);
+    if (context.identity_id) parts.push(`agent=${context.identity_id}`);
     if (context.operation) parts.push(`op=${context.operation}`);
 
     return parts.length > 0 ? ` [${parts.join(" ")}]` : "";

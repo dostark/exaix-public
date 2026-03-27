@@ -16,11 +16,11 @@ export interface IPlanMetadata {
   id: string; // The filename (e.g., plan.md)
   status: PlanStatusType;
   trace_id?: string;
-  agent_id?: string;
+  identity_id?: string;
   author?: string;
   request_id?: string;
   request_subject?: string;
-  request_agent?: string;
+  request_identity?: string;
   request_portal?: string;
   request_priority?: string;
   request_created_by?: string;

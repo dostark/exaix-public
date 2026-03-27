@@ -29,7 +29,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       const result = await env.createRequest(
         "Implement a simple hello world function in TypeScript",
         {
-          agentId: "senior-coder",
+          identityId: "senior-coder",
           priority: 7,
           tags: ["feature", "typescript"],
         },
@@ -47,7 +47,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       // Verify frontmatter
       const content = await Deno.readTextFile(requestPath);
       assertStringIncludes(content, `trace_id: "${traceId}"`);
-      assertStringIncludes(content, "agent: senior-coder");
+      assertStringIncludes(content, "identity: senior-coder");
       assertStringIncludes(content, "status: pending");
       assertStringIncludes(content, "priority: 7");
 
@@ -114,7 +114,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       const loop = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "test-agent",
+        identityId: "test-agent",
       });
 
       // Execute the plan
@@ -179,7 +179,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       const reportResult = await reporter.generate({
         traceId,
         requestId: "implement-hello",
-        agentId: "senior-coder",
+        identityId: "senior-coder",
         status: ExecutionStatus.COMPLETED,
         branch: `feat/implement-hello-${traceId.substring(0, 8)}`,
         completedAt: new Date(),

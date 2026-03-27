@@ -18,7 +18,7 @@ interface IActivity {
   id: string;
   traceId: string;
   actor: string | null;
-  agentId: string | null;
+  identityId: string | null;
   actionType: string;
   target: string | null;
   payload: ActivityPayload;
@@ -69,7 +69,8 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
     target: "test-target",
     payload: { key: "value" },
     traceId: "test-trace-123",
-    agentId: "test-agent-456",
+    actorType: null,
+    identityId: "test-agent-456",
   };
 
   await repo.logActivity(activity);
@@ -81,7 +82,8 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
   assertEquals(capturedArgs[2], "test-target");
   assertEquals(capturedArgs[3], { key: "value" });
   assertEquals(capturedArgs[4], "test-trace-123");
-  assertEquals(capturedArgs[5], "test-agent-456");
+  assertEquals(capturedArgs[5], null); // actorType
+  assertEquals(capturedArgs[6], "test-agent-456"); // identityId
 });
 
 Deno.test("DatabaseActivityRepository: retrieves activities by trace ID", async () => {
@@ -91,9 +93,8 @@ Deno.test("DatabaseActivityRepository: retrieves activities by trace ID", async 
       trace_id: "trace123",
       actor: "agent1",
       actor_type: null,
-      agent_id: "agent-1",
-      agent_kind: null,
-      identity_id: null,
+      identity_id: "test-agent",
+      identity_kind: null,
       action_type: "execution.start",
       target: "/portal/test",
       payload: '{"step": "init"}',
@@ -104,9 +105,8 @@ Deno.test("DatabaseActivityRepository: retrieves activities by trace ID", async 
       trace_id: "trace123",
       actor: "agent1",
       actor_type: null,
-      agent_id: "agent-1",
-      agent_kind: null,
-      identity_id: null,
+      identity_id: "test-agent",
+      identity_kind: null,
       action_type: "execution.end",
       target: "/portal/test",
       payload: '{"result": "success"}',
@@ -137,9 +137,8 @@ Deno.test("DatabaseActivityRepository: retrieves activities by action type", asy
       trace_id: "trace1",
       actor: "system",
       actor_type: null,
-      agent_id: null,
-      agent_kind: null,
-      identity_id: null,
+      identity_id: "test-agent",
+      identity_kind: null,
       action_type: "daemon.start",
       target: null,
       payload: "{}",
@@ -169,9 +168,8 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
       trace_id: "trace1",
       actor: MemoryBankSource.USER,
       actor_type: null,
-      agent_id: null,
-      agent_kind: null,
-      identity_id: null,
+      identity_id: "test-agent",
+      identity_kind: null,
       action_type: "user.action",
       target: "file.txt",
       payload: '{"operation": "edit"}',
@@ -203,9 +201,8 @@ Deno.test("DatabaseActivityRepository: maps database records to domain objects",
     trace_id: "test-trace",
     actor: "test-actor",
     actor_type: null,
-    agent_id: "test-agent",
-    agent_kind: null,
-    identity_id: null,
+    identity_id: "test-agent",
+    identity_kind: null,
     action_type: "test.action",
     target: "test-target",
     payload: '{"key": "value", "number": 42}',
@@ -225,7 +222,7 @@ Deno.test("DatabaseActivityRepository: maps database records to domain objects",
   assertEquals(activity.id, "test-id");
   assertEquals(activity.traceId, "test-trace");
   assertEquals(activity.actor, "test-actor");
-  assertEquals(activity.agentId, "test-agent");
+  assertEquals(activity.identityId, "test-agent");
   assertEquals(activity.actionType, "test.action");
   assertEquals(activity.target, "test-target");
   assertEquals(activity.payload, { key: "value", number: 42 });
@@ -238,9 +235,8 @@ Deno.test("DatabaseActivityRepository: handles null values correctly", async () 
     trace_id: "test-trace",
     actor: null,
     actor_type: null,
-    agent_id: null,
-    agent_kind: null,
-    identity_id: null,
+    identity_id: "test-agent",
+    identity_kind: null,
     action_type: "test.action",
     target: null,
     payload: "{}",
@@ -258,7 +254,7 @@ Deno.test("DatabaseActivityRepository: handles null values correctly", async () 
   assertEquals(activities.length, 1);
   const activity = activities[0];
   assertEquals(activity.actor, null);
-  assertEquals(activity.agentId, null);
+  assertEquals(activity.identityId, "test-agent");
   assertEquals(activity.target, null);
   assertEquals(activity.payload, {});
 });
@@ -269,9 +265,8 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
     trace_id: "test-trace",
     actor: "test-actor",
     actor_type: null,
-    agent_id: null,
-    agent_kind: null,
-    identity_id: null,
+    identity_id: "test-agent",
+    identity_kind: null,
     action_type: "test.action",
     target: "test-target",
     payload: "invalid json {",

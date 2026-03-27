@@ -21,7 +21,7 @@ import { createMockConfig } from "./helpers/config.ts";
  * - Test 4: Flushes batch when max size reached
  * - Test 5: Prevents logging when database is closing
  * - Test 6: Query methods return filtered/limited results
- * - Test 7: Handles null fields (agent_id, target) gracefully
+ * - Test 7: Handles null fields (identity_id, target) gracefully
  * - Test 8: Auto-generates trace_id if not provided
  * - Test 9: Data persists across database connections
  */
@@ -253,7 +253,7 @@ Deno.test("DatabaseService: getRecentActivity flushes pending logs", async () =>
   }
 });
 
-Deno.test("DatabaseService: handles null agent_id", async () => {
+Deno.test("DatabaseService: handles null identity_id", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const traceId = crypto.randomUUID();
@@ -265,7 +265,7 @@ Deno.test("DatabaseService: handles null agent_id", async () => {
 
     const activities = db.getActivitiesByTrace(traceId);
     assertEquals(activities.length, 1);
-    assertEquals(activities[0].agent_id, null);
+    assertEquals(activities[0].identity_id, null);
 
     await db.close();
   } finally {

@@ -13,7 +13,7 @@ import type { IRequestMetadata } from "../../shared/types/request.ts";
 export interface IRequestEnrichable {
   request_id?: string;
   request_subject?: string;
-  request_agent?: string;
+  request_identity?: string;
   request_portal?: string;
   request_priority?: string;
   request_created_by?: string;
@@ -57,7 +57,7 @@ export async function enrichWithRequest<T extends IRequestEnrichable>(
     return {
       ...metadata,
       request_subject: title,
-      request_agent: request.agent,
+      request_identity: request.identity,
       request_portal: request.portal,
       request_priority: request.priority,
       request_created_by: request.created_by,

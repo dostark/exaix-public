@@ -30,7 +30,7 @@ Deno.test("Integration: Plan Execution Parsing", async (t) => {
       const planContent = `---
 trace_id: ${crypto.randomUUID()}
 request_id: ${crypto.randomUUID()}
-agent: mock-agent
+identity: mock-agent
 status: approved
 created_at: ${new Date().toISOString()}
 ---
@@ -120,7 +120,7 @@ Protect routes with authentication checks.
 
       assertEquals(typeof frontmatter.trace_id, "string");
       assertEquals(typeof frontmatter.request_id, "string");
-      assertEquals(frontmatter.agent, "mock-agent");
+      assertEquals(frontmatter.identity, "mock-agent");
       assertEquals(frontmatter.status, MemoryStatus.APPROVED);
 
       // Extract body
@@ -245,7 +245,7 @@ This plan has no step headers, which should be detected as invalid.
       const planContent = `---
 trace_id: ${traceId}
 request_id: ${requestId}
-agent: mock-agent
+identity: mock-agent
 status: approved
 priority: high
 created_at: 2024-01-01T10:00:00Z
@@ -271,7 +271,7 @@ Initial setup
       // Validate all context fields
       assertEquals(frontmatter.trace_id, traceId);
       assertEquals(frontmatter.request_id, requestId);
-      assertEquals(frontmatter.agent, "mock-agent");
+      assertEquals(frontmatter.identity, "mock-agent");
       assertEquals(frontmatter.status, MemoryStatus.APPROVED);
       assertEquals(frontmatter.priority, "high");
       // YAML parser converts ISO strings to Date objects

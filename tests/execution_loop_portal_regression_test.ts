@@ -66,7 +66,7 @@ Deno.test("[regression] ExecutionLoop: targets portal directory and creates revi
     const loop = new ExecutionLoop({
       config,
       db,
-      agentId: "test-agent",
+      identityId: "test-agent",
       reviewRegistry,
     });
 

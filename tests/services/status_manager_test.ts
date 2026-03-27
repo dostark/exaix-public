@@ -50,7 +50,7 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
       target: string | null;
       payload: TestPayload;
       traceId?: string;
-      agentId?: string | null;
+      identityId?: string | null;
     }
   > = [];
   const db = createStubDb({
@@ -60,9 +60,9 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
       target: string | null,
       payload: TestPayload,
       traceId?: string,
-      agentId?: string | null,
+      identityId?: string | null,
     ) => {
-      calls.push({ actor, actionType, target, payload, traceId, agentId });
+      calls.push({ actor, actionType, target, payload, traceId, identityId });
     },
   });
   const logger = new EventLogger({ db });

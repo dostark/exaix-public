@@ -49,7 +49,7 @@ export interface IContextConfig {
   requestId?: string;
 
   /** Optional: Agent ID for activity logging */
-  agentId?: string;
+  identityId?: string;
 
   /** Optional: Database service for activity logging */
   db?: DatabaseService;
@@ -385,7 +385,7 @@ export class ContextLoader {
           is_local_agent: metadata.isLocalAgent,
         },
         this.config.traceId,
-        this.config.agentId || null,
+        this.config.identityId || null,
       );
     } catch (error) {
       // Log to stderr but don't fail context loading
@@ -416,7 +416,7 @@ export class ContextLoader {
           error_type: error instanceof Error ? error.name : "Unknown",
         },
         this.config.traceId,
-        this.config.agentId || null,
+        this.config.identityId || null,
       );
     } catch (dbError) {
       // Log both errors to stderr

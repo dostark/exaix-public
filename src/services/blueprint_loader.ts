@@ -21,9 +21,9 @@ import { DEFAULT_BLUEPRINT_VERSION } from "../shared/constants.ts";
  */
 export interface ILoadedBlueprint {
   /** Agent identifier (from frontmatter or filename) */
-  agentId: string;
+  identityId: string;
 
-  /** Human-readable name (from frontmatter or derived from agentId) */
+  /** Human-readable name (from frontmatter or derived from identityId) */
   name: string;
 
   /** Model specification (provider:model format) */
@@ -54,7 +54,7 @@ export interface ILoadedBlueprint {
  */
 export interface IBlueprint {
   systemPrompt: string;
-  agentId?: string;
+  identityId?: string;
 }
 
 export interface IBlueprintLoaderOptions {
@@ -75,7 +75,7 @@ export interface IBlueprintLoaderOptions {
  */
 export const RuntimeBlueprintFrontmatterSchema = z.object({
   /** Agent identifier - required */
-  agent_id: z.string().min(1).optional(),
+  identity_id: z.string().min(1).optional(),
 
   /** Human-readable name */
   name: z.string().min(1).optional(),
@@ -148,16 +148,16 @@ export class BlueprintLoader {
   /**
    * Load a blueprint by agent ID
    *
-   * @param agentId - The agent identifier (filename without .md)
+   * @param identityId - The agent identifier (filename without .md)
    * @returns ILoadedBlueprint or null if not found
    */
-  async load(agentId: string): Promise<ILoadedBlueprint | null> {
+  async load(identityId: string): Promise<ILoadedBlueprint | null> {
     // Check cache first
-    if (this.cache.has(agentId)) {
-      return this.cache.get(agentId)!;
+    if (this.cache.has(identityId)) {
+      return this.cache.get(identityId)!;
     }
 
-    const blueprintPath = this.resolvePath(agentId);
+    const blueprintPath = this.resolvePath(identityId);
 
     if (!await exists(blueprintPath)) {
       return null;
@@ -165,10 +165,10 @@ export class BlueprintLoader {
 
     try {
       const content = await Deno.readTextFile(blueprintPath);
-      const blueprint = this.parse(content, agentId, blueprintPath);
+      const blueprint = this.parse(content, identityId, blueprintPath);
 
       // Cache for subsequent lookups
-      this.cache.set(agentId, blueprint);
+      this.cache.set(identityId, blueprint);
 
       return blueprint;
     } catch (error) {
@@ -176,8 +176,8 @@ export class BlueprintLoader {
         throw error;
       }
       throw new BlueprintLoadError(
-        `Failed to load blueprint '${agentId}': ${error instanceof Error ? error.message : String(error)}`,
-        agentId,
+        `Failed to load blueprint '${identityId}': ${error instanceof Error ? error.message : String(error)}`,
+        identityId,
         blueprintPath,
       );
     }
@@ -186,13 +186,13 @@ export class BlueprintLoader {
   /**
    * Load blueprint or throw if not found
    */
-  async loadOrThrow(agentId: string): Promise<ILoadedBlueprint> {
-    const blueprint = await this.load(agentId);
+  async loadOrThrow(identityId: string): Promise<ILoadedBlueprint> {
+    const blueprint = await this.load(identityId);
     if (!blueprint) {
-      const path = this.resolvePath(agentId);
+      const path = this.resolvePath(identityId);
       throw new BlueprintLoadError(
-        `Identity '${agentId}' not found in Blueprints/Identities/. If you are migrating from a pre-Phase-53 workspace, move your blueprints from Blueprints/Agents/ to Blueprints/Identities/.`,
-        agentId,
+        `Identity '${identityId}' not found in Blueprints/Identities/. If you are migrating from a pre-Phase-53 workspace, move your blueprints from Blueprints/Identities/ to Blueprints/Identities/.`,
+        identityId,
         path,
       );
     }
@@ -207,14 +207,14 @@ export class BlueprintLoader {
    * 2. TOML frontmatter (+++ delimited)
    * 3. Plain markdown (no frontmatter, entire content is system prompt)
    */
-  parse(content: string, agentId: string, path: string): ILoadedBlueprint {
+  parse(content: string, identityId: string, path: string): ILoadedBlueprint {
     // Try YAML frontmatter first (most common)
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
     if (yamlMatch) {
       return this.parseWithFrontmatter(
         yamlMatch[1],
         content.slice(yamlMatch[0].length),
-        agentId,
+        identityId,
         path,
         DataFormat.YAML,
       );
@@ -226,14 +226,14 @@ export class BlueprintLoader {
       return this.parseWithFrontmatter(
         tomlMatch[1],
         content.slice(tomlMatch[0].length),
-        agentId,
+        identityId,
         path,
         DataFormat.TOML,
       );
     }
 
     // No frontmatter - treat entire content as system prompt (backward compatible)
-    return this.createMinimalBlueprint(content, agentId, path);
+    return this.createMinimalBlueprint(content, identityId, path);
   }
 
   /**
@@ -242,7 +242,7 @@ export class BlueprintLoader {
   private parseWithFrontmatter(
     frontmatterRaw: string,
     body: string,
-    agentId: string,
+    identityId: string,
     path: string,
     format: DataFormat.YAML | DataFormat.TOML,
   ): ILoadedBlueprint {
@@ -257,10 +257,10 @@ export class BlueprintLoader {
       }
     } catch (error) {
       throw new BlueprintLoadError(
-        `Invalid ${String(format).toUpperCase()} frontmatter in blueprint '${agentId}': ${
+        `Invalid ${String(format).toUpperCase()} frontmatter in blueprint '${identityId}': ${
           error instanceof Error ? error.message : String(error)
         }`,
-        agentId,
+        identityId,
         path,
       );
     }
@@ -270,8 +270,8 @@ export class BlueprintLoader {
     if (!validation.success) {
       const errors = validation.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ");
       throw new BlueprintLoadError(
-        `Invalid frontmatter in blueprint '${agentId}': ${errors}`,
-        agentId,
+        `Invalid frontmatter in blueprint '${identityId}': ${errors}`,
+        identityId,
         path,
       );
     }
@@ -283,8 +283,8 @@ export class BlueprintLoader {
     const systemPrompt = this.resolveFragments(rawSystemPrompt, new Set());
 
     return {
-      agentId: frontmatter.agent_id || agentId,
-      name: frontmatter.name || this.deriveNameFromId(agentId),
+      identityId: frontmatter.identity_id || identityId,
+      name: frontmatter.name || this.deriveNameFromId(identityId),
       model: frontmatter.model || this.options.defaultModel || "anthropic:claude-sonnet-4-20250514",
       provider: frontmatter.provider,
       capabilities: frontmatter.capabilities,
@@ -310,7 +310,7 @@ export class BlueprintLoader {
       }
 
       // Fragments are stored in Blueprints/Fragments/ relative to blueprintsPath
-      const fragmentsDir = this.options.blueprintsPath.endsWith("Agents")
+      const fragmentsDir = this.options.blueprintsPath.endsWith("Identities")
         ? join(this.options.blueprintsPath, "..", "Fragments")
         : join(this.options.blueprintsPath, "Fragments");
 
@@ -341,14 +341,14 @@ export class BlueprintLoader {
    */
   private createMinimalBlueprint(
     content: string,
-    agentId: string,
+    identityId: string,
     path: string,
   ): ILoadedBlueprint {
     const frontmatter = RuntimeBlueprintFrontmatterSchema.parse({});
 
     return {
-      agentId,
-      name: this.deriveNameFromId(agentId),
+      identityId,
+      name: this.deriveNameFromId(identityId),
       model: this.options.defaultModel || "anthropic:claude-sonnet-4-20250514",
       capabilities: [],
       systemPrompt: content.trim(),
@@ -362,8 +362,8 @@ export class BlueprintLoader {
    * Derive human-readable name from agent ID
    * "code-reviewer" → "Code Reviewer"
    */
-  private deriveNameFromId(agentId: string): string {
-    return agentId
+  private deriveNameFromId(identityId: string): string {
+    return identityId
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
@@ -372,27 +372,27 @@ export class BlueprintLoader {
   /**
    * Resolve agent ID to file path
    *
-   * Phase 54: Only checks Blueprints/Identities/{agentId}.md (canonical path).
-   * Legacy Blueprints/Agents/ path is no longer supported.
+   * Phase 54: Only checks Blueprints/Identities/{identityId}.md (canonical path).
+   * Legacy Blueprints/Identities/ path is no longer supported.
    *
-   * @param agentId - The agent identifier
+   * @param identityId - The agent identifier
    * @returns Full path to the identity blueprint
    */
-  private resolvePath(agentId: string): string {
+  private resolvePath(identityId: string): string {
     // If blueprintsPath already ends with 'Identities', use it directly
     if (this.options.blueprintsPath.endsWith("Identities")) {
-      return join(this.options.blueprintsPath, `${agentId}.md`);
+      return join(this.options.blueprintsPath, `${identityId}.md`);
     }
 
     // Otherwise, assume it's the Blueprints root and use Identities subdirectory
-    return join(this.options.blueprintsPath, "Identities", `${agentId}.md`);
+    return join(this.options.blueprintsPath, "Identities", `${identityId}.md`);
   }
 
   /**
    * Check if a blueprint exists
    */
-  async exists(agentId: string): Promise<boolean> {
-    const path = this.resolvePath(agentId);
+  async exists(identityId: string): Promise<boolean> {
+    const path = this.resolvePath(identityId);
     return await exists(path);
   }
 
@@ -406,8 +406,8 @@ export class BlueprintLoader {
   /**
    * Remove a specific blueprint from cache
    */
-  invalidate(agentId: string): void {
-    this.cache.delete(agentId);
+  invalidate(identityId: string): void {
+    this.cache.delete(identityId);
   }
 
   /**
@@ -416,7 +416,7 @@ export class BlueprintLoader {
   toLegacyBlueprint(loaded: ILoadedBlueprint): IBlueprint {
     return {
       systemPrompt: loaded.systemPrompt,
-      agentId: loaded.agentId,
+      identityId: loaded.identityId,
     };
   }
 }
@@ -431,7 +431,7 @@ export class BlueprintLoader {
 export class BlueprintLoadError extends Error {
   constructor(
     message: string,
-    public readonly agentId: string,
+    public readonly identityId: string,
     public readonly path: string,
   ) {
     super(message);
@@ -456,10 +456,10 @@ export function createBlueprintLoader(blueprintsPath: string): BlueprintLoader {
  */
 export async function loadBlueprint(
   blueprintsPath: string,
-  agentId: string,
+  identityId: string,
 ): Promise<IBlueprint | null> {
   const loader = new BlueprintLoader({ blueprintsPath });
-  const loaded = await loader.load(agentId);
+  const loaded = await loader.load(identityId);
 
   if (!loaded) {
     return null;

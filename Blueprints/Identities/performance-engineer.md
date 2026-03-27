@@ -1,5 +1,5 @@
 ---
-agent_id: "performance-engineer"
+identity_id: "performance-engineer"
 name: "Performance Engineer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "grep_search", "deno_task", "fetch_url", "git_info"]

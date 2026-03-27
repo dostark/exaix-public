@@ -158,7 +158,7 @@ default_model = "claude-opus-4-6"
 max_tokens_default = 4096
 
 [mcp_defaults]
-agent_id = "system"
+identity_id = "system"
 
 [git]
 branch_prefix_pattern = "^(feat|fix|docs|chore|refactor|test)/"

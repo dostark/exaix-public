@@ -61,7 +61,7 @@ class MockAgentService implements IAgentService {
     return Promise.resolve([...this.agents]);
   }
 
-  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+  getAgentHealth(_identityId: string): Promise<AgentHealthData> {
     return Promise.resolve({
       status: AgentHealth.HEALTHY,
       issues: [],
@@ -69,7 +69,7 @@ class MockAgentService implements IAgentService {
     });
   }
 
-  getAgentLogs(_agentId: string, _limit = 50): Promise<AgentLogEntry[]> {
+  getAgentLogs(_identityId: string, _limit = 50): Promise<AgentLogEntry[]> {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),

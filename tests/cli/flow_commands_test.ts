@@ -74,7 +74,7 @@ Deno.test("FlowCommands: listFlows outputs table for valid flows", async () => {
 id: "cli-flow"
 name: "CLI Flow"
 description: "Flow for CLI test"
-steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(`${flowDir}/cli-flow.flow.yaml`, validFlow);
@@ -94,7 +94,7 @@ Deno.test("FlowCommands: listFlows outputs JSON when requested", async () => {
 id: "json-flow"
 name: "JSON IFlow as Flow"
 description: "IFlow as Flow for JSON test"
-steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(`${flowDir}/json-flow.flow.yaml`, flowModule);
@@ -115,7 +115,7 @@ Deno.test("FlowCommands: validateFlow returns valid for correct flow", async () 
 id: "valid-cli-flow"
 name: "Valid CLI IFlow as Flow"
 description: "Valid flow for CLI test"
-steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(`${flowDir}/valid-cli-flow.flow.yaml`, validFlow);
@@ -135,7 +135,7 @@ Deno.test("FlowCommands: validateFlowWithoutService fallback works", async () =>
 id: "fallback-flow"
 name: "Fallback Flow"
 description: "Test fallback validation"
-steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(join(flowDir, "fallback-flow.flow.yaml"), validFlow);
@@ -154,7 +154,7 @@ Deno.test("FlowCommands: showFlow outputs JSON when requested (id check)", async
 id: "show-flow"
 name: "Show IFlow as Flow"
 description: "IFlow as Flow to test show"
-steps: [{ id: "s1", name: "Step 1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(`${flowDir}/show-flow.flow.yaml`, flowDef);
@@ -174,7 +174,7 @@ Deno.test("FlowCommands: showFlow prints JSON when requested (id & name)", async
 id: "show-flow-2"
 name: "Show Flow 2"
 description: "Flow for show test"
-steps: [{ id: "s1", name: "Step 1", agent: "agentA", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "Step 1", identity: "agentA", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(`${flowDir}/show-flow-2.flow.yaml`, flowModule);
@@ -197,11 +197,11 @@ description: "IFlow as Flow for full render test"
 steps:
   - id: "a"
     name: "Step A"
-    agent: "agentA"
+    identity: "agentA"
     input: { source: "request", transform: "passthrough" }
   - id: "b"
     name: "Step B"
-    agent: "agentB"
+    identity: "agentB"
     dependsOn: ["a"]
     input: { source: "request", transform: "passthrough" }
 settings: { maxParallelism: 2, failFast: true }
@@ -272,7 +272,7 @@ Deno.test("FlowCommands: validateFlow outputs JSON when requested and handles va
 id: "valid-for-json"
 name: "JSON IFlow as Flow"
 description: "Valid flow"
-steps: [{ id: "s1", name: "S1", agent: "agent1", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "S1", identity: "agent1", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(join(flowDir, "valid-for-json.flow.yaml"), validFlow);
@@ -344,7 +344,7 @@ Deno.test("FlowCommands: validateFlow prints invalid and exits", async () => {
 id: "bad"
 name: "Bad IFlow as Flow"
 description: "Invalid flow"
-steps: [{ id: "s1", name: "bad", agent: "", input: { source: "request", transform: "passthrough" } }]
+steps: [{ id: "s1", name: "bad", identity: "", input: { source: "request", transform: "passthrough" } }]
 output: { from: "s1", format: "markdown" }
 `;
     await Deno.writeTextFile(join(flowDir, "bad.flow.yaml"), invalidFlow);

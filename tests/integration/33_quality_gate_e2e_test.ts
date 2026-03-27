@@ -136,7 +136,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
       async () => {
         const { filePath } = await env.createRequest(
           "Implement a TypeScript function to validate JWT tokens",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         const proceedGate = makeStubGate(RequestQualityRecommendation.PROCEED, 90);
@@ -163,7 +163,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
       async () => {
         const { filePath } = await env.createRequest(
           "Something is wrong, please fix it",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         const clarGate = makeStubGate(
@@ -191,7 +191,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
       async () => {
         const { filePath } = await env.createRequest(
           "The auth module needs some cleanup",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         const enrichGate = makeStubGate(
@@ -221,7 +221,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
       async () => {
         const { filePath } = await env.createRequest(
           "Do whatever",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         const rejectGate = makeStubGate(RequestQualityRecommendation.REJECT, 5);
@@ -242,7 +242,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
       async () => {
         const { filePath } = await env.createRequest(
           "Please fix the broken stuff in the codebase",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         const disabledGate = new RequestQualityGate({
@@ -277,7 +277,7 @@ Deno.test("Quality Gate E2E – pipeline integration", async (t) => {
           // Body scores ~35 by heuristic (borderline → triggers LLM escalation
           // in hybrid mode).  When LLM throws the gate falls back to heuristic.
           "fix something in the system that is broken",
-          { agentId: "senior-coder" },
+          { identityId: "senior-coder" },
         );
 
         // Provider that always rejects — simulates network/service outage.
@@ -333,7 +333,7 @@ Deno.test("Quality Gate E2E – clarification session lifecycle", async (t) => {
   try {
     const { filePath } = await env.createRequest(
       "Investigate the performance regression in the query layer",
-      { agentId: "senior-coder" },
+      { identityId: "senior-coder" },
     );
     const requestId = basename(filePath, ".md");
 
@@ -419,7 +419,7 @@ function buildProcessor(
     {
       workspacePath: join(env.tempDir, "Workspace"),
       requestsDir: join(env.tempDir, "Workspace", "Requests"),
-      blueprintsPath: join(env.tempDir, "Blueprints", "Agents"),
+      blueprintsPath: join(env.tempDir, "Blueprints", "Identities"),
       includeReasoning: true,
     },
     provider,

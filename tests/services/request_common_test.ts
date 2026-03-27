@@ -18,23 +18,23 @@ Deno.test("loadBlueprint: returns null when blueprint does not exist", async () 
 
 Deno.test("loadBlueprint: reads blueprint when present", async () => {
   const dir = await Deno.makeTempDir();
-  const agentId = "agent";
-  const path = join(dir, `${agentId}.md`);
+  const identityId = "agent";
+  const path = join(dir, `${identityId}.md`);
   await Deno.writeTextFile(path, "prompt");
 
-  const out = await loadBlueprint(dir, agentId);
-  assertEquals(out?.agentId, agentId);
+  const out = await loadBlueprint(dir, identityId);
+  assertEquals(out?.identityId, identityId);
   assertEquals(out?.systemPrompt, "prompt");
 });
 
 Deno.test("loadBlueprint: returns null on read error", async () => {
   const dir = await Deno.makeTempDir();
-  const agentId = "agent";
-  const path = join(dir, `${agentId}.md`);
+  const identityId = "agent";
+  const path = join(dir, `${identityId}.md`);
   // Create a directory with the same name as the file to cause a read error
   await Deno.mkdir(path);
 
-  const out = await loadBlueprint(dir, agentId);
+  const out = await loadBlueprint(dir, identityId);
   assertEquals(out, null);
 });
 

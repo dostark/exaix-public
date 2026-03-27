@@ -63,7 +63,7 @@ export enum ActorType {
  * Identifies which runtime agent implementation handled an action.
  */
 export enum AgentKind {
-  AGENT_RUNNER = "agent-runner",
+  IDENTITY_RUNNER = "identity-runner",
   AGENT_EXECUTOR = "agent-executor",
   FLOW_AGENT = "flow-agent",
   TOOL_AGENT = "tool-agent",
@@ -244,7 +244,7 @@ export enum VerificationStatus {
  * Common grouping modes for TUI views.
  */
 export enum GroupingMode {
-  AGENT = "agent",
+  IDENTITY = "identity",
   ACTION = "action",
   NONE = "none",
   STATUS = "status",
@@ -266,7 +266,7 @@ export enum RequestGroupingMode {
   NONE = "none",
   STATUS = "status",
   PRIORITY = "priority",
-  AGENT = "agent",
+  IDENTITY = "identity",
 }
 
 /**
@@ -303,7 +303,7 @@ export enum RequestOperation {
 export enum LogGroupingMode {
   CORRELATION = "correlation",
   TRACE = "trace",
-  AGENT = "agent",
+  IDENTITY = "identity",
   LEVEL = "level",
   TIME = "time",
   NONE = "none",
@@ -460,7 +460,7 @@ export enum LogRotationInterval {
  */
 export enum RequestKind {
   FLOW = "flow",
-  AGENT = "agent",
+  IDENTITY = "identity",
 }
 
 /**
@@ -872,7 +872,7 @@ export enum MemoryReferenceType {
 export enum MemoryBankSource {
   EXECUTION = "execution",
   USER = "user",
-  AGENT = "agent",
+  IDENTITY = "identity",
   LEARNED = "learned",
   CORE = "core",
   PROJECT = "project",
@@ -1052,7 +1052,7 @@ export enum ActivityType {
  */
 export enum ActivityActor {
   HUMAN = "human",
-  AGENT = "agent",
+  IDENTITY = "identity",
   SYSTEM = "system",
 }
 
@@ -1085,7 +1085,7 @@ export enum TuiNodeType {
   LEARNING = "learning",
   PATTERN = "pattern",
   DECISION = "decision",
-  AGENT = "agent",
+  IDENTITY = "identity",
   STATUS_GROUP = "status-group",
   MODEL_GROUP = "model-group",
   GROUP = "group",
@@ -1114,7 +1114,7 @@ export enum ProviderCapability {
  * Icons used in the TUI.
  */
 export enum TuiIcon {
-  AGENT = "🤖",
+  IDENTITY = "🤖",
   LEARNING = "🎯",
   BRAIN = "🧠",
   SUCCESS = "✅",
@@ -1134,7 +1134,7 @@ export enum TuiIcon {
 export enum RequestDialogType {
   SEARCH = "search",
   FILTER_STATUS = "filter-status",
-  FILTER_AGENT = "filter-agent",
+  FILTER_IDENTITY = "filter-identity",
   CREATE = "create",
   PRIORITY = "priority",
 }

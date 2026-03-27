@@ -41,7 +41,7 @@ const AGENT_ID_ARRAY = "array-test";
 
 // Helper to create test workspace structure
 async function createTestBlueprintsDir(baseDir: string): Promise<string> {
-  const blueprintsDir = join(baseDir, "Blueprints", "Agents");
+  const blueprintsDir = join(baseDir, "Blueprints", "Identities");
   await ensureDir(blueprintsDir);
   return blueprintsDir;
 }
@@ -69,7 +69,7 @@ Deno.test("[regression] Blueprint list works with YAML frontmatter (---)", async
 
     // Create blueprint with YAML frontmatter (--- delimiters)
     const yamlBlueprint = `---
-agent_id: "${AGENT_ID_YAML}"
+identity_id: "${AGENT_ID_YAML}"
 name: "${AGENT_NAME_YAML}"
 model: "${AGENT_MODEL_MOCK}"
 capabilities: ["${AGENT_CAP_TESTING}"]
@@ -96,7 +96,7 @@ This agent uses YAML frontmatter format.
     // Before the fix, this would return 0 (only looked for +++ delimiters)
     // After the fix, this should return 1 (supports both +++ and --- delimiters)
     assertEquals(blueprints.length, 1, "Should find blueprint with YAML frontmatter");
-    assertEquals(blueprints[0].agent_id, AGENT_ID_YAML);
+    assertEquals(blueprints[0].identity_id, AGENT_ID_YAML);
     assertEquals(blueprints[0].name, AGENT_NAME_YAML);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -111,7 +111,7 @@ Deno.test("[regression] Blueprint list works with TOML frontmatter (+++)", async
 
     // Create blueprint with TOML frontmatter (+++ delimiters)
     const tomlBlueprint = `+++
-agent_id = "${AGENT_ID_TOML}"
+identity_id = "${AGENT_ID_TOML}"
 name = "${AGENT_NAME_TOML}"
 model = "${AGENT_MODEL_MOCK}"
 capabilities = ["${AGENT_CAP_TESTING}"]
@@ -135,7 +135,7 @@ This agent uses TOML frontmatter format.
     const blueprints = await blueprintCommands.list();
 
     assertEquals(blueprints.length, 1, "Should find blueprint with TOML frontmatter");
-    assertEquals(blueprints[0].agent_id, AGENT_ID_TOML);
+    assertEquals(blueprints[0].identity_id, AGENT_ID_TOML);
     assertEquals(blueprints[0].name, AGENT_NAME_TOML);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -150,7 +150,7 @@ Deno.test("[regression] Blueprint show works with YAML frontmatter", async () =>
 
     // Create blueprint with YAML frontmatter
     const yamlBlueprint = `---
-agent_id: "${AGENT_ID_SHOW}"
+identity_id: "${AGENT_ID_SHOW}"
 name: "${AGENT_NAME_SHOW}"
 model: "${AGENT_MODEL_OLLAMA}"
 capabilities: ["${AGENT_CAP_CODE}"]
@@ -176,7 +176,7 @@ System prompt content here.
     const details = await blueprintCommands.show(AGENT_ID_SHOW);
 
     assertExists(details, "Should return blueprint details");
-    assertEquals(details.agent_id, AGENT_ID_SHOW);
+    assertEquals(details.identity_id, AGENT_ID_SHOW);
     assertEquals(details.model, AGENT_MODEL_OLLAMA);
     assertEquals(details.name, AGENT_NAME_SHOW);
   } finally {
@@ -193,7 +193,7 @@ Deno.test("[regression] Blueprint validate works with YAML frontmatter", async (
     // Create valid blueprint with YAML frontmatter
     // Includes required <thought> and <content> tags for validation
     const yamlBlueprint = `---
-agent_id: "${AGENT_ID_VALIDATE}"
+identity_id: "${AGENT_ID_VALIDATE}"
 name: "${AGENT_NAME_VALIDATE}"
 model: "${AGENT_MODEL_MOCK}"
 capabilities: ["${AGENT_CAP_TESTING}"]
@@ -234,7 +234,7 @@ Deno.test("[regression] Blueprint list finds both YAML and TOML formats in same 
 
     // Create YAML blueprint
     const yamlBlueprint = `---
-agent_id: "${AGENT_ID_MIXED_YAML}"
+identity_id: "${AGENT_ID_MIXED_YAML}"
 name: "Mixed YAML Agent"
 model: "mock:yaml"
 version: "${AGENT_VERSION_V1}"
@@ -246,7 +246,7 @@ YAML content.
 
     // Create TOML blueprint
     const tomlBlueprint = `+++
-agent_id = "${AGENT_ID_MIXED_TOML}"
+identity_id = "${AGENT_ID_MIXED_TOML}"
 name = "Mixed TOML Agent"
 model = "mock:toml"
 version = "${AGENT_VERSION_V1}"
@@ -266,7 +266,7 @@ TOML content.
 
     assertEquals(blueprints.length, 2, "Should find both YAML and TOML blueprints");
 
-    const ids = blueprints.map((b: IBlueprintMetadata) => b.agent_id).sort();
+    const ids = blueprints.map((b: IBlueprintMetadata) => b.identity_id).sort();
     assertEquals(ids, [AGENT_ID_MIXED_TOML, AGENT_ID_MIXED_YAML]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -281,7 +281,7 @@ Deno.test("[regression] YAML frontmatter parses arrays correctly", async () => {
 
     // Create blueprint with array in YAML frontmatter
     const yamlBlueprint = `---
-agent_id: "${AGENT_ID_ARRAY}"
+identity_id: "${AGENT_ID_ARRAY}"
 name: "Array Test Agent"
 model: "${AGENT_MODEL_MOCK}"
 capabilities: ["code_generation", "testing", "debugging"]

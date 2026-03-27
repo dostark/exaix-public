@@ -1,5 +1,5 @@
 ---
-agent: google
+identity: google
 scope: dev
 title: Google Gemini Provider Adaptation Guide
 short_summary: "Optimized guidance for Google Gemini 1.5 Pro, focusing on 2M context window usage and parallel tool calls."

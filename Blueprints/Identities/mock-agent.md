@@ -1,5 +1,5 @@
 ---
-agent_id: "mock-agent"
+identity_id: "mock-agent"
 name: "Mock Testing Agent"
 model: "mock:test-model"
 capabilities:

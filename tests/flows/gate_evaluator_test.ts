@@ -147,7 +147,7 @@ Deno.test("GateEvaluator.evaluateStepResult: evaluates step result content", asy
 Deno.test("GateEvaluator: fails if required criteria fail even when overallScore meets threshold", async () => {
   const judgeInvoker = {
     evaluate: (
-      _agentId: string,
+      _identityId: string,
       _content: string,
       _criteria: EvaluationCriterion[],
       _context?: string,
@@ -214,7 +214,7 @@ Deno.test("GateEvaluator: supports criteria objects in config.criteria", async (
 Deno.test("GateEvaluator: handles judge errors and returns halted by default", async () => {
   const judgeInvoker = {
     evaluate: (
-      _agentId: string,
+      _identityId: string,
       _content: string,
       _criteria: EvaluationCriterion[],
       _context?: string,

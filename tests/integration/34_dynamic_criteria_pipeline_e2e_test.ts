@@ -96,18 +96,18 @@ class CapturingJudgeInvoker extends MockJudgeInvoker {
   capturedCriteria: EvaluationCriterion[] = [];
 
   override evaluate(
-    agentId: string,
+    identityId: string,
     content: string,
     criteria: EvaluationCriterion[],
     context?: string,
   ): Promise<EvaluationResult> {
     this.capturedCriteria = [...criteria];
-    return super.evaluate(agentId, content, criteria, context);
+    return super.evaluate(identityId, content, criteria, context);
   }
 }
 
 class StubAgentExecutor implements IAgentExecutor {
-  async run(_agentId: string, _req: IFlowStepRequest): Promise<IAgentExecutionResult> {
+  async run(_identityId: string, _req: IFlowStepRequest): Promise<IAgentExecutionResult> {
     return await Promise.resolve({ thought: "", content: "stub", raw: "stub" });
   }
 }
@@ -126,11 +126,11 @@ function makeGateFlowWithCriteria(includeRequestCriteria: boolean): IFlow {
         id: "gate1",
         name: "Quality Gate",
         type: FlowStepType.GATE,
-        agent: "judge",
+        identity: "judge",
         dependsOn: [],
         input: { source: FlowInputSource.REQUEST },
         evaluate: {
-          agent: "judge",
+          identity: "judge",
           criteria: ["code_correctness"],
           threshold: 0.05,
           onFail: FlowGateOnFail.HALT,
@@ -210,7 +210,7 @@ Deno.test(
     const analysis = makeAnalysisWithGoals();
 
     await agent.run(
-      { systemPrompt: "You are a developer", agentId: "dev-agent" },
+      { systemPrompt: "You are a developer", identityId: "dev-agent" },
       { userPrompt: "Add OAuth2 login", context: {} },
       analysis,
     );
@@ -294,11 +294,11 @@ Deno.test(
           id: "g1",
           name: "Gate",
           type: FlowStepType.GATE,
-          agent: "judge",
+          identity: "judge",
           dependsOn: [],
           input: { source: FlowInputSource.REQUEST },
           evaluate: {
-            agent: "judge",
+            identity: "judge",
             criteria: ["code_correctness"],
             threshold: 0.05,
             onFail: FlowGateOnFail.HALT,

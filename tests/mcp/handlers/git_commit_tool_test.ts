@@ -31,7 +31,7 @@ Deno.test("GitCommitTool: commits changes successfully", async () => {
     const result = await handler.execute({
       portal: "TestPortal",
       message: "Test commit message",
-      agent_id: "test-agent",
+      identity_id: "test-agent",
     });
 
     const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
@@ -65,7 +65,7 @@ Deno.test("GitCommitTool: commits specific files successfully", async () => {
       portal: "TestPortal",
       message: "Test commit message",
       files: ["test_file2.txt"],
-      agent_id: "test-agent",
+      identity_id: "test-agent",
     });
 
     const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
@@ -93,7 +93,7 @@ Deno.test("GitCommitTool: returns error when git commit fails", async () => {
         handler.execute({
           portal: "TestPortal",
           message: "Test commit message",
-          agent_id: "test-agent",
+          identity_id: "test-agent",
         }),
       Error,
       "Failed to commit: ",
@@ -120,7 +120,7 @@ Deno.test("GitCommitTool: returns error when access is denied", async () => {
         handler.execute({
           portal: "TestPortal",
           message: "Test commit message",
-          agent_id: "test-agent",
+          identity_id: "test-agent",
         }),
       Error,
       "Operation 'git' is not permitted",

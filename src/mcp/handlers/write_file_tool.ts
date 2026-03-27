@@ -27,13 +27,13 @@ export class WriteFileTool extends ToolHandler {
       portal: string;
       path: string;
       content: string;
-      agent_id: string;
+      identity_id: string;
     };
-    const { portal, path, content, agent_id } = validatedArgs;
+    const { portal, path, content, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.WRITE);
+      this.validatePermission(portal, identity_id, PortalOperation.WRITE);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -49,9 +49,9 @@ export class WriteFileTool extends ToolHandler {
       await Deno.writeTextFile(absolutePath, content);
 
       // Log successful execution
-      this.logToolExecution("write_file", portal, {
+      this.logToolExecution("write_file", portal, identity_id, {
         path,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: true,
         bytes: content.length,
       });
@@ -66,9 +66,9 @@ export class WriteFileTool extends ToolHandler {
       };
     } catch (error) {
       // Log failed execution
-      this.logToolExecution("write_file", portal, {
+      this.logToolExecution("write_file", portal, identity_id, {
         path,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -96,12 +96,12 @@ export class WriteFileTool extends ToolHandler {
             type: "string",
             description: "File content to write",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "path", "content", "agent_id"],
+        required: ["portal", "path", "content", "identity_id"],
       },
     };
   }

@@ -161,7 +161,7 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
       subject: "Test Request",
       status: RequestStatus.COMPLETED,
       priority: RequestPriority.NORMAL,
-      agent: "code-reviewer",
+      identity: "code-reviewer",
       created: new Date().toISOString(),
       created_by: "test@example.com",
       source: RequestSource.CLI,

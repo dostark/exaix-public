@@ -33,10 +33,10 @@ export interface IReviewMetadata {
   worktree_path?: string;
   files_changed: number;
   created_at: string;
-  agent_id: string;
+  identity_id: string;
   // Request context
   request_subject?: string;
-  request_agent?: string;
+  request_identity?: string;
   request_portal?: string;
   request_priority?: string;
   request_created_by?: string;
@@ -381,7 +381,7 @@ export class ReviewCommands extends BaseCommand {
       db: this.db,
       repoPath,
       traceId,
-      agentId: await this.getUserIdentity(),
+      identityId: await this.getUserIdentity(),
     });
 
     return {
@@ -394,7 +394,7 @@ export class ReviewCommands extends BaseCommand {
       id: string;
       status: string;
       type: string;
-      agent: string;
+      identity: string;
       portal: string | null;
       target_branch: string | null;
       created: string;
@@ -403,7 +403,7 @@ export class ReviewCommands extends BaseCommand {
       file_path: string;
       rejection_reason: string | null;
     }>(
-      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
+      `SELECT id, status, type, identity, portal, target_branch, created, updated, request_id, file_path, rejection_reason
        FROM artifacts WHERE id = ?`,
       [artifactId],
     );
@@ -419,7 +419,7 @@ export class ReviewCommands extends BaseCommand {
       id: row.id,
       status,
       type: row.type as ArtifactSubtype,
-      agent: row.agent,
+      identity: row.identity,
       portal: row.portal,
       target_branch: row.target_branch,
       created: row.created,
@@ -432,7 +432,7 @@ export class ReviewCommands extends BaseCommand {
 
   private async listArtifacts(filters?: IArtifactFilters): Promise<IArtifact[]> {
     let query =
-      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
+      `SELECT id, status, type, identity, portal, target_branch, created, updated, request_id, file_path, rejection_reason
        FROM artifacts WHERE 1=1`;
     const params: (string | null)[] = [];
 
@@ -441,9 +441,9 @@ export class ReviewCommands extends BaseCommand {
       params.push(filters.status);
     }
 
-    if (filters?.agent) {
-      query += ` AND agent = ?`;
-      params.push(filters.agent);
+    if (filters?.identity) {
+      query += ` AND identity = ?`;
+      params.push(filters.identity);
     }
 
     if (filters?.portal !== undefined) {
@@ -462,7 +462,7 @@ export class ReviewCommands extends BaseCommand {
       id: string;
       status: string;
       type: string;
-      agent: string;
+      identity: string;
       portal: string | null;
       target_branch: string | null;
       created: string;
@@ -476,7 +476,7 @@ export class ReviewCommands extends BaseCommand {
       id: row.id,
       status: isReviewStatus(row.status) ? row.status : ReviewStatus.PENDING,
       type: row.type as ArtifactSubtype,
-      agent: row.agent,
+      identity: row.identity,
       portal: row.portal,
       target_branch: row.target_branch,
       created: row.created,
@@ -685,7 +685,7 @@ export class ReviewCommands extends BaseCommand {
         request_id: artifact.request_id,
         files_changed: 0,
         created_at: artifact.created,
-        agent_id: artifact.agent,
+        identity_id: artifact.identity,
         file_path: artifact.file_path,
         portal: artifact.portal ?? undefined,
         status: artifact.status,
@@ -775,7 +775,7 @@ export class ReviewCommands extends BaseCommand {
       worktree_path: row.worktree_path ?? undefined,
       files_changed: row.files_changed ?? 0,
       created_at: row.created,
-      agent_id: row.created_by,
+      identity_id: row.created_by,
       portal: row.portal ?? undefined,
       status,
       approved_at: row.approved_at ?? undefined,
@@ -852,7 +852,7 @@ export class ReviewCommands extends BaseCommand {
   private async getBranchTimestampAndAgent(
     repoPath: string,
     branch: string,
-  ): Promise<{ timestamp: string; agent_id: string } | null> {
+  ): Promise<{ timestamp: string; identity_id: string } | null> {
     const logCmd = new Deno.Command("git", {
       args: ["log", branch, "--format=%H %aI %ae", "-1"],
       cwd: repoPath,
@@ -866,7 +866,7 @@ export class ReviewCommands extends BaseCommand {
     const logLine = new TextDecoder().decode(logResult.stdout).trim();
     const parts = logLine.split(" ");
     if (parts.length < 3) return null;
-    return { timestamp: parts[1], agent_id: parts[2] };
+    return { timestamp: parts[1], identity_id: parts[2] };
   }
 
   private async getFilesChangedCount(repoPath: string, baseBranch: string, branch: string): Promise<number> {
@@ -922,7 +922,7 @@ export class ReviewCommands extends BaseCommand {
       worktree_path: storedWorktreePath ?? undefined,
       files_changed: filesChanged,
       created_at: logInfo.timestamp,
-      agent_id: logInfo.agent_id,
+      identity_id: logInfo.identity_id,
       status,
     };
 
@@ -945,7 +945,7 @@ export class ReviewCommands extends BaseCommand {
         request_id: artifact.request_id,
         files_changed: 0,
         created_at: artifact.created,
-        agent_id: artifact.agent,
+        identity_id: artifact.identity,
         portal: artifact.portal ?? undefined,
         status: artifact.status,
         rejection_reason: artifact.rejection_reason ?? undefined,
@@ -976,7 +976,7 @@ export class ReviewCommands extends BaseCommand {
             request_id: artifact.request_id,
             files_changed: 0,
             created_at: artifact.created,
-            agent_id: artifact.agent,
+            identity_id: artifact.identity,
             file_path: artifact.file_path,
             portal: artifact.portal ?? undefined,
             status: artifact.status,
@@ -1071,7 +1071,7 @@ export class ReviewCommands extends BaseCommand {
       worktree_path: storedWorktreePath ?? undefined,
       files_changed: files.length,
       created_at: commits[commits.length - 1]?.timestamp || new Date().toISOString(),
-      agent_id: commits[0]?.sha.substring(0, 8) || "unknown",
+      identity_id: commits[0]?.sha.substring(0, 8) || "unknown",
     } as IReviewMetadata;
 
     // Enrich with request and plan context

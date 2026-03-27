@@ -38,7 +38,9 @@ async function findBest(agent: string, query: string) {
     const md = await Deno.readTextFile(entry.path);
     const fmRaw = extractFrontmatter(md) || "";
     const fm = fmRaw ? (parse(fmRaw) as JSONObject) : {};
-    if (String(fm.agent || "") !== agent) continue;
+    // Support both 'identity' (current) and 'agent' (legacy) field names
+    const docAgent = String(fm.identity || fm.agent || "");
+    if (docAgent !== agent) continue;
     const s = scoreDoc(md, query);
     if (s > best.score) best = { path: entry.path, fm, score: s, md };
   }

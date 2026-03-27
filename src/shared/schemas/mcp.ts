@@ -32,39 +32,39 @@ export type MCPConfig = z.infer<typeof MCPConfigSchema>;
 export const ReadFileToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
   path: z.string().min(1, "File path required"),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const WriteFileToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
   path: z.string().min(1, "File path required"),
   content: z.string(),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const ListDirectoryToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
   path: z.string().optional().default(""),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const GitCreateBranchToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
   branch: z.string().min(1, "Branch name required")
     .regex(/^(feat|fix|docs|chore|refactor|test)\//, "Branch must start with feat/, fix/, docs/, etc."),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const GitCommitToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
   message: z.string().min(1, "Commit message required"),
   files: z.array(z.string()).optional(),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const GitStatusToolArgsSchema = z.object({
   portal: z.string().min(1, "Portal name required"),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const CreateRequestToolArgsSchema = z.object({
@@ -74,23 +74,23 @@ export const CreateRequestToolArgsSchema = z.object({
   /** Identity to assign (Phase 54 canonical field) */
   identity: z.string().default("default"),
   context: z.array(z.string()).optional(),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const ListPlansToolArgsSchema = z.object({
   status: z.enum(PLAN_STATUS_VALUES).optional(),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const ApprovePlanToolArgsSchema = z.object({
   plan_id: z.string().min(1, "Plan ID required"),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 export const QueryJournalToolArgsSchema = z.object({
   trace_id: z.string().optional(),
   limit: z.number().int().positive().default(DEFAULT_QUERY_LIMIT),
-  agent_id: z.string().min(1, "Agent ID required").default("system"),
+  identity_id: z.string().min(1, "Identity ID required").default("system"),
 });
 
 // Union type for all tool arguments

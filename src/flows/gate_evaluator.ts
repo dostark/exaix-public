@@ -47,7 +47,7 @@ export interface IGateResult {
  */
 export interface JudgeInvoker {
   evaluate(
-    agentId: string,
+    identityId: string,
     content: string,
     criteria: EvaluationCriterion[],
     context?: string,
@@ -291,8 +291,8 @@ export class MockJudgeInvoker implements JudgeInvoker {
   private mockResults: Map<string, EvaluationResult> = new Map();
   private defaultScore: number = 0.85;
 
-  setMockResult(agentId: string, result: EvaluationResult): void {
-    this.mockResults.set(agentId, result);
+  setMockResult(identityId: string, result: EvaluationResult): void {
+    this.mockResults.set(identityId, result);
   }
 
   setDefaultScore(score: number): void {
@@ -300,13 +300,13 @@ export class MockJudgeInvoker implements JudgeInvoker {
   }
 
   evaluate(
-    agentId: string,
+    identityId: string,
     _content: string,
     criteria: EvaluationCriterion[],
     _context?: string,
   ): Promise<EvaluationResult> {
     // Check for specific mock result
-    const mockResult = this.mockResults.get(agentId);
+    const mockResult = this.mockResults.get(identityId);
     if (mockResult) {
       return Promise.resolve(mockResult);
     }
@@ -331,7 +331,7 @@ export class MockJudgeInvoker implements JudgeInvoker {
       suggestions: [],
       metadata: {
         evaluatedAt: new Date().toISOString(),
-        evaluatorAgent: agentId,
+        evaluatorAgent: identityId,
       },
     });
   }

@@ -1,5 +1,5 @@
 ---
-agent_id: "senior-coder"
+identity_id: "senior-coder"
 name: "Senior Software Engineer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["code_generation", "architecture", "debugging", "testing", "code_review"]

@@ -55,7 +55,7 @@ async function setupPlanValidationEnv(requestContentTemplate: string) {
     {
       workspacePath: join(tempDir, config.paths.workspace),
       requestsDir: getWorkspaceRequestsDir(tempDir),
-      blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
+      blueprintsPath: join(tempDir, config.paths.blueprints, "Identities"),
       includeReasoning: false,
     },
     undefined,
@@ -138,7 +138,7 @@ trace_id: "{traceId}"
 created: "${new Date().toISOString()}"
 status: pending
 priority: normal
-agent: technical-writer
+identity: technical-writer
 source: cli
 created_by: "test@example.com"
 ---
@@ -189,7 +189,7 @@ trace_id: "{traceId}"
 created: "${new Date().toISOString()}"
 status: pending
 priority: normal
-agent: technical-writer
+identity: technical-writer
 ---
 
 Content here.
@@ -227,7 +227,7 @@ Deno.test("Regression: End-to-end error handling workflow captures detailed raw 
 trace_id: "{traceId}"
 status: pending
 priority: normal
-agent: technical-writer
+identity: technical-writer
 ---
 Request info.
 `,

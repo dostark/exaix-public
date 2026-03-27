@@ -36,7 +36,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
     // Setup minimal workspace
     const workspacePath = join(tmpDir, "Workspace");
     const requestsDir = join(workspacePath, "Requests");
-    const blueprintsPath = join(tmpDir, "Blueprints", "Agents");
+    const blueprintsPath = join(tmpDir, "Blueprints", "Identities");
     const migrationsPath = join(tmpDir, "migrations");
     await Deno.mkdir(requestsDir, { recursive: true });
     await Deno.mkdir(blueprintsPath, { recursive: true });
@@ -68,7 +68,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
 
     // Create a mock agent blueprint
     const blueprintContent = `---
-agent_id: "test-agent"
+identity_id: "test-agent"
 name: "Test Agent"
 model: "google:gemini-2.5-flash"
 capabilities: ["search"]

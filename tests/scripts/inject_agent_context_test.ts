@@ -29,7 +29,7 @@ Deno.test("inject finds best doc and extracts title/summary/snippet", async () =
   const filename = `test-inject-${Date.now()}.md`;
   const unique = `snippet-unique-${Date.now()}`;
   const md = `---
-agent: copilot
+identity: copilot
 title: Test Agent
 short_summary: A short summary
 ---
@@ -57,7 +57,7 @@ Deno.test("inject selects best-scoring document among multiple candidates", asyn
   const f2 = `candidate-b-${Date.now()}.md`;
 
   const md1 = `---
-agent: copilot
+identity: copilot
 title: Low Score
 short_summary: low
 ---
@@ -65,7 +65,7 @@ short_summary: low
 Contains the word foobar once.`;
 
   const md2 = `---
-agent: copilot
+identity: copilot
 title: High Score
 short_summary: high
 ---
@@ -131,7 +131,7 @@ Deno.test("main prints found=false JSON when no doc matches", async () => {
 Deno.test("inject handles docs missing title/short_summary", async () => {
   const filename = `test-inject-empty-meta-${Date.now()}.md`;
   const md = `---
-agent: copilot
+identity: copilot
 ---
 
 This doc has no title or short summary but has a paragraph.`;

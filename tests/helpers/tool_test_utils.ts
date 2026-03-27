@@ -39,7 +39,7 @@ export async function setupToolTestContext(): Promise<IToolTestContext> {
     config,
     db,
     traceId: "test-trace",
-    agentId: "test-agent",
+    identityId: "test-agent",
   });
 
   return {

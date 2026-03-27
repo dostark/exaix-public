@@ -16,11 +16,11 @@ import type { AgentHealthData, AgentLogEntry, IAgentStatusItem } from "../../sha
 import { IAgentService } from "../../shared/interfaces/i_agent_service.ts";
 
 export class AgentServiceAdapter extends BaseCommand implements IAgentService {
-  private agentsDir: string;
+  private identitiesDir: string;
 
   constructor(context: ICommandContext) {
     super(context);
-    this.agentsDir = join(
+    this.identitiesDir = join(
       this.config.system.root!,
       this.config.paths.workspace!,
       this.config.paths.identities!,
@@ -34,7 +34,7 @@ export class AgentServiceAdapter extends BaseCommand implements IAgentService {
     const agents: IAgentStatusItem[] = [];
 
     try {
-      if (!await exists(this.agentsDir)) {
+      if (!await exists(this.identitiesDir)) {
         // Return a default system agent if directory doesn't exist
         return [{
           id: "system",
@@ -47,7 +47,7 @@ export class AgentServiceAdapter extends BaseCommand implements IAgentService {
         }];
       }
 
-      for await (const entry of Deno.readDir(this.agentsDir)) {
+      for await (const entry of Deno.readDir(this.identitiesDir)) {
         if (entry.isDirectory || (entry.isFile && entry.name.endsWith(".json"))) {
           const id = entry.name.replace(".json", "");
           agents.push({
@@ -71,7 +71,7 @@ export class AgentServiceAdapter extends BaseCommand implements IAgentService {
   /**
    * Get health data for a specific agent.
    */
-  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+  getAgentHealth(_identityId: string): Promise<AgentHealthData> {
     return Promise.resolve({
       status: AgentHealth.HEALTHY,
       issues: [],
@@ -82,7 +82,7 @@ export class AgentServiceAdapter extends BaseCommand implements IAgentService {
   /**
    * Get logs for a specific agent.
    */
-  getAgentLogs(_agentId: string, _limit: number = 50): Promise<AgentLogEntry[]> {
+  getAgentLogs(_identityId: string, _limit: number = 50): Promise<AgentLogEntry[]> {
     // Agent-specific log files are not yet standardized in core.
     return Promise.resolve([]);
   }

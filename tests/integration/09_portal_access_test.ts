@@ -98,7 +98,7 @@ export function main() {
       const secretPath = join(env.tempDir, ".exa/secrets.json");
 
       // Log an access attempt (simulating what the security layer would do)
-      // logActivity(actor, actionType, target, payload, traceId, agentId)
+      // logActivity(actor, actionType, target, payload, traceId, identityId)
       env.db.logActivity(
         "security-agent",
         "security.access_denied",
@@ -109,7 +109,7 @@ export function main() {
           reason: "Path outside portal boundary",
         },
         alphaTraceId, // traceId as 5th parameter
-        "test-agent", // agentId as 6th parameter
+        "test-agent", // identityId as 6th parameter
       );
 
       await new Promise((resolve) => setTimeout(resolve, 100));

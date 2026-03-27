@@ -14,7 +14,7 @@ const BLUEPRINTS_DIR = "./Blueprints/Identities";
 const EXAMPLES_DIR = "./Blueprints/Identities/examples";
 
 interface BlueprintFrontmatter {
-  agent_id: string;
+  identity_id: string;
   name: string;
   model: string;
   capabilities?: string[];
@@ -60,7 +60,7 @@ Deno.test("Blueprint validation: default.md passes schema", async () => {
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "default");
+  assertEquals(frontmatter!.identity_id, "default");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -71,7 +71,7 @@ Deno.test("Blueprint validation: senior-coder.md passes schema", async () => {
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "senior-coder");
+  assertEquals(frontmatter!.identity_id, "senior-coder");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -82,7 +82,7 @@ Deno.test("Blueprint validation: quality-judge.md passes schema", async () => {
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "quality-judge");
+  assertEquals(frontmatter!.identity_id, "quality-judge");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -97,7 +97,7 @@ Deno.test("Blueprint validation: examples/code-reviewer.md passes schema", async
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "code-reviewer");
+  assertEquals(frontmatter!.identity_id, "code-reviewer");
   assertExists(frontmatter!.default_skills, "Should have default_skills");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
@@ -109,7 +109,7 @@ Deno.test("Blueprint validation: examples/feature-developer.md passes schema", a
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "feature-developer");
+  assertEquals(frontmatter!.identity_id, "feature-developer");
   assertExists(frontmatter!.default_skills, "Should have default_skills");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
@@ -121,7 +121,7 @@ Deno.test("Blueprint validation: examples/security-auditor.md passes schema", as
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "security-auditor");
+  assertEquals(frontmatter!.identity_id, "security-auditor");
   assertExists(frontmatter!.default_skills, "Should have default_skills");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
@@ -137,7 +137,7 @@ Deno.test("Blueprint validation: security-expert.md passes schema", async () => 
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "security-expert");
+  assertEquals(frontmatter!.identity_id, "security-expert");
   assertExists(frontmatter!.default_skills, "Should have default_skills");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
@@ -149,7 +149,7 @@ Deno.test("Blueprint validation: performance-engineer.md passes schema", async (
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "performance-engineer");
+  assertEquals(frontmatter!.identity_id, "performance-engineer");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -160,7 +160,7 @@ Deno.test("Blueprint validation: technical-writer.md passes schema", async () =>
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "technical-writer");
+  assertEquals(frontmatter!.identity_id, "technical-writer");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -171,7 +171,7 @@ Deno.test("Blueprint validation: software-architect.md passes schema", async () 
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "software-architect");
+  assertEquals(frontmatter!.identity_id, "software-architect");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);
@@ -182,7 +182,7 @@ Deno.test("Blueprint validation: test-engineer.md passes schema", async () => {
   const frontmatter = parseFrontmatter(content);
 
   assertExists(frontmatter, "Should have frontmatter");
-  assertEquals(frontmatter!.agent_id, "test-engineer");
+  assertEquals(frontmatter!.identity_id, "test-engineer");
 
   const result = BlueprintFrontmatterSchema.safeParse(frontmatter);
   assertEquals(result.success, true, `Schema errors: ${!result.success ? result.error?.message : ""}`);

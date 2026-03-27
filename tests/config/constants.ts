@@ -264,7 +264,7 @@ export const JOURNAL_CAPTURE_COUNT_ONE = 1;
 
 export const JOURNAL_FILTER_TRACE = `trace_id=${JOURNAL_TRACE_ID_ONE}`;
 export const JOURNAL_FILTER_ACTION = `action_type=${JournalAction.Generic}`;
-export const JOURNAL_FILTER_AGENT = `agent_id=${JOURNAL_AGENT_ID}`;
+export const JOURNAL_FILTER_AGENT = `identity_id=${JOURNAL_AGENT_ID}`;
 export const JOURNAL_SINCE_VALUE = "2026-01-01T00:00:00.000Z";
 export const JOURNAL_FILTER_SINCE = `since=${JOURNAL_SINCE_VALUE}`;
 export const JOURNAL_FILTER_UNKNOWN = "unknown=foo";

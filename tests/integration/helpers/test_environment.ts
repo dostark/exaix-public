@@ -31,7 +31,7 @@ import {
 import { RequestProcessor } from "../../../src/services/request_processor.ts";
 import { ExecutionLoop } from "../../../src/services/execution_loop.ts";
 import {
-  getBlueprintsAgentsDir,
+  getBlueprintsIdentitiesDir,
   getMemoryDir,
   getMemoryExecutionDir,
   getMemoryProjectsDir,
@@ -61,7 +61,7 @@ export interface ActionParams {
 
 interface IRequestCreationOptions {
   traceId?: string;
-  agentId?: string;
+  identityId?: string;
   priority?: number;
   tags?: string[];
   portal?: string;
@@ -122,7 +122,7 @@ export class TestEnvironment {
     await ensureDir(getMemoryTasksDir(tempDir));
     await ensureDir(getMemoryDir(tempDir));
     await ensureDir(getRuntimeDir(tempDir));
-    await ensureDir(getBlueprintsAgentsDir(tempDir));
+    await ensureDir(getBlueprintsIdentitiesDir(tempDir));
     await ensureDir(getPortalsDir(tempDir));
 
     // Copy flows for integration tests that need them
@@ -193,7 +193,7 @@ archive = "Archive"
 plans = "Plans"
 requests = "Requests"
 rejected = "Rejected"
-agents = "Agents"
+identities = "Identities"
 flows = "Flows"
 memoryProjects = "Projects"
 memoryExecution = "Execution"
@@ -243,7 +243,7 @@ default_model = "claude-3-7-sonnet-20250219"
 max_tokens_default = 4096
 
 [mcp_defaults]
-agent_id = "default"
+identity_id = "default"
 
 [git]
 branch_prefix_pattern = "feature/"
@@ -279,7 +279,7 @@ retry_backoff_base_ms = 1000
     flowId?: string;
     status?: string;
     priority?: number;
-    agentId?: string;
+    identityId?: string;
     portal?: string;
     tags?: string[];
     targetBranch?: string;
@@ -291,7 +291,7 @@ retry_backoff_base_ms = 1000
       `status: ${options.status ?? "pending"}`,
       `priority: ${options.priority ?? 5}`,
       options.flowId ? `flow: ${options.flowId}` : null,
-      options.agentId ? `agent: ${options.agentId}` : (options.flowId ? null : `agent: senior-coder`),
+      options.identityId ? `identity: ${options.identityId}` : (options.flowId ? null : `identity: senior-coder`),
       `source: test`,
       `created_by: test_environment`,
       options.portal ? `portal: "${options.portal}"` : null,
@@ -354,7 +354,7 @@ retry_backoff_base_ms = 1000
       traceId,
       flowId: options.flowId,
       priority: options.priority,
-      agentId: options.agentId,
+      identityId: options.identityId,
       tags: options.tags,
       portal: options.portal,
       targetBranch: options.targetBranch,
@@ -374,7 +374,7 @@ retry_backoff_base_ms = 1000
     requestId: string,
     options: {
       status?: string;
-      agentId?: string;
+      identityId?: string;
       portal?: string;
       targetBranch?: string;
       actions?: Array<{ tool: string; params: ActionParams }>;
@@ -395,7 +395,7 @@ retry_backoff_base_ms = 1000
       "---",
       `trace_id: "${traceId}"`,
       `request_id: "${requestId}"`,
-      `agent_id: ${options.agentId ?? "senior-coder"}`,
+      `identity_id: ${options.identityId ?? "senior-coder"}`,
       `status: ${options.status ?? "review"}`,
       `created_at: "${new Date().toISOString()}"`,
       options.portal ? `portal: "${options.portal}"` : null,
@@ -668,11 +668,11 @@ This plan will accomplish the requested task.
   /**
    * Create an ExecutionLoop instance for testing
    */
-  createExecutionLoop(agentId: string = "test-agent"): ExecutionLoop {
+  createExecutionLoop(identityId: string = "test-agent"): ExecutionLoop {
     return new ExecutionLoop({
       config: this.config,
       db: this.db,
-      agentId,
+      identityId,
     });
   }
 
@@ -713,13 +713,13 @@ This plan will accomplish the requested task.
    * Create a blueprint agent file
    */
   async createBlueprint(
-    agentId: string,
+    identityId: string,
     content?: string,
   ): Promise<string> {
-    const blueprintsPath = join(this.tempDir, "Blueprints", "Agents");
+    const blueprintsPath = join(this.tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsPath);
 
-    const defaultContent = `# ${agentId} Blueprint
+    const defaultContent = `# ${identityId} Blueprint
 
 You are an expert software developer with deep knowledge of multiple programming languages and frameworks.
 
@@ -727,7 +727,7 @@ You are an expert software developer with deep knowledge of multiple programming
 
 Always respond with valid JSON containing a plan with actionable steps.`;
 
-    const blueprintPath = join(blueprintsPath, `${agentId}.md`);
+    const blueprintPath = join(blueprintsPath, `${identityId}.md`);
     await Deno.writeTextFile(blueprintPath, content ?? defaultContent);
 
     return blueprintPath;
@@ -758,7 +758,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
         workspacePath: join(this.tempDir, "Workspace"),
         requestsDir: options?.requestsDir ?? getWorkspaceRequestsDir(this.tempDir),
         blueprintsPath: options?.blueprintsPath ??
-          join(this.tempDir, "Blueprints", "Agents"),
+          join(this.tempDir, "Blueprints", "Identities"),
         includeReasoning: options?.includeReasoning ?? true,
       },
       provider, // Test provider override

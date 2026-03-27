@@ -15,6 +15,8 @@ export interface IRequestFrontmatter {
   priority: string;
   /** Identity blueprint to use for this request (Phase 54 canonical field) */
   identity?: string;
+  /** Legacy alias for identity (backward compatibility) */
+  agent?: string;
   flow?: string;
   source: string;
   created_by: string;

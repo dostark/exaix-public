@@ -1,5 +1,5 @@
 ---
-agent_id: "default"
+identity_id: "default"
 name: "Default Agent"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["code_generation", "planning", "debugging", "research", "execution", "refactoring"]

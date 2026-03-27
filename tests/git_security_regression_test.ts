@@ -39,7 +39,7 @@ args = ["reset", "--hard", "HEAD"]
     const context: IPlanContext = {
       trace_id: "trace-security-1",
       request_id: "req-security-1",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Attack", content: "Attempt destructive reset" }],
     };
@@ -87,7 +87,7 @@ args = ["checkout", "main"]
     const context: IPlanContext = {
       trace_id: "trace-security-2",
       request_id: "req-security-2",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Attack", content: "Attempt checkout main" }],
     };
@@ -134,14 +134,14 @@ Deno.test("Git Security: prevents system root taint during Portal execution fail
   const loop = new ExecutionLoop({
     config,
     db,
-    agentId: "test-daemon",
+    identityId: "test-daemon",
   });
 
   // Create a plan that fails
   const planContent = `---
 trace_id: "trace-taint"
 request_id: "req-taint"
-agent: "test-agent"
+identity: "test-agent"
 portal: "test"
 status: "approved"
 ---

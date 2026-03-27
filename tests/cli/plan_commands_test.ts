@@ -74,7 +74,7 @@ describe("PlanCommands", () => {
       const planId = "test-plan-001";
       const planContent = `---
 trace_id: "trace-123"
-agent_id: agent-456
+identity_id: agent-456
 status: review
 created_at: "2025-11-25T10:00:00Z"
 ---
@@ -115,7 +115,7 @@ created_at: "2025-11-25T10:00:00Z"
       const approval = activities.find((a) => a.action_type === "plan.approved" && a.target === planId);
       assertExists(approval, "Approval should be logged");
       assertExists(approval?.actor);
-      assertEquals(approval?.agent_id, null);
+      assertEquals(approval?.identity_id, null);
       const approvalPayload = JSON.parse(approval?.payload || "{}");
       assertEquals(approvalPayload?.via, RequestSource.CLI);
       assertEquals(approval?.trace_id, "trace-123");
@@ -189,7 +189,7 @@ status: review
       const planId = "test-plan-004";
       const planContent = `---
 trace_id: "trace-abc"
-agent_id: agent-xyz
+identity_id: agent-xyz
 status: review
 ---
 
@@ -368,7 +368,7 @@ Some actions
 trace_id: "trace-req"
 status: ${RequestStatus.PLANNED}
 priority: normal
-agent: code-analyst
+identity: code-analyst
 source: cli
 created: "2025-11-25T10:00:00Z"
 created_by: "tester"
@@ -545,7 +545,7 @@ This plan is currently being executed.
       const planContent = `---
 trace_id: "trace-show-001"
 status: review
-agent_id: agent-123
+identity_id: agent-123
 created_at: "2025-11-25T10:00:00Z"
 ---
 
@@ -603,7 +603,7 @@ Just some content.
       const planContent = `---
 status: rejected
 trace_id: "trace-rejected-001"
-agent_id: agent-456
+identity_id: agent-456
 created_at: "2025-11-25T10:00:00Z"
 rejected_at: "${rejectedAt}"
 rejected_by: "${rejectedBy}"

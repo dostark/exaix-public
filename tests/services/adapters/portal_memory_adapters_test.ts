@@ -390,7 +390,7 @@ function createMockArchiveService(overrides: Partial<ArchiveService> = {}): Arch
   const sampleEntry: ArchiveEntry = {
     trace_id: "00000000-0000-0000-0000-000000000001",
     request_id: "req-1",
-    agent_id: "agent-1",
+    identity_id: "agent-1",
     archived_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
     status: ArchiveStatus.COMPLETED,
@@ -427,8 +427,8 @@ Deno.test("ArchiveAdapter: searchByDateRange delegates", async () => {
 Deno.test("ArchiveAdapter: searchByAgent delegates", async () => {
   let capturedAgentId = "";
   const service = createMockArchiveService({
-    searchByAgent: (agentId: string) => {
-      capturedAgentId = agentId;
+    searchByAgent: (identityId: string) => {
+      capturedAgentId = identityId;
       return Promise.resolve([]);
     },
   });

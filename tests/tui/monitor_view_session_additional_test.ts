@@ -16,9 +16,8 @@ function makeLog(overrides: Partial<ILogEntry> = {}): ILogEntry {
     trace_id: overrides.trace_id ?? "trace",
     actor: overrides.actor ?? "actor",
     actor_type: overrides.actor_type ?? null,
-    agent_id: overrides.agent_id ?? "agent",
-    agent_kind: overrides.agent_kind ?? null,
-    identity_id: overrides.identity_id ?? null,
+    identity_id: overrides.identity_id ?? "agent",
+    identity_kind: overrides.identity_kind ?? null,
     action_type: overrides.action_type ?? "request_created",
     target: overrides.target ?? "t",
     payload: overrides.payload ?? { k: 1 },
@@ -26,18 +25,18 @@ function makeLog(overrides: Partial<ILogEntry> = {}): ILogEntry {
   };
 }
 
-Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", async () => {
+Deno.test("MonitorTuiSession: grouping cycles none -> identity -> action -> none", async () => {
   const logs = [
-    makeLog({ id: "1", agent_id: "a1", action_type: "request_created" }),
-    makeLog({ id: "2", agent_id: "a2", action_type: "plan_approved" }),
+    makeLog({ id: "1", identity_id: "a1", action_type: "request_created" }),
+    makeLog({ id: "2", identity_id: "a2", action_type: "plan_approved" }),
   ];
 
   const { monitorView: _view, session } = await createMonitorViewSession(logs);
 
   assertEquals(session.getGroupBy(), "none");
   session.toggleGrouping();
-  assertEquals(session.getGroupBy(), "agent");
-  assertExists(session.getLogTree().find((n: ITreeNode) => n.id.startsWith("agent-")));
+  assertEquals(session.getGroupBy(), "identity");
+  assertExists(session.getLogTree().find((n: ITreeNode) => n.id.startsWith("identity-")));
 
   session.toggleGrouping();
   assertEquals(session.getGroupBy(), "action");
@@ -48,7 +47,7 @@ Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", 
 });
 
 Deno.test("MonitorTuiSession: toggleBookmark ignores group nodes and toggles log nodes", async () => {
-  const logs = [makeLog({ id: "1", agent_id: "a1" })];
+  const logs = [makeLog({ id: "1", identity_id: "a1" })];
   const { monitorView: _view, session } = await createMonitorViewSession(logs);
   const monitorSession = session as MonitorTuiSession;
 

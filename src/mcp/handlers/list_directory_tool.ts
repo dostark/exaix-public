@@ -25,13 +25,13 @@ export class ListDirectoryTool extends ToolHandler {
     const validatedArgs = ListDirectoryToolArgsSchema.parse(args) as {
       portal: string;
       path?: string;
-      agent_id: string;
+      identity_id: string;
     };
-    const { portal, path, agent_id } = validatedArgs;
+    const { portal, path, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.READ);
+      this.validatePermission(portal, identity_id, PortalOperation.READ);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -60,9 +60,9 @@ export class ListDirectoryTool extends ToolHandler {
       const listing = entries.length > 0 ? entries.join("\n") : "(Directory is empty)";
 
       // Log successful execution
-      this.logToolExecution("list_directory", portal, {
+      this.logToolExecution("list_directory", portal, identity_id, {
         path: listPath || "/",
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: true,
         entry_count: entries.length,
       });
@@ -77,9 +77,9 @@ export class ListDirectoryTool extends ToolHandler {
       };
     } catch (error) {
       // Log failed execution
-      this.logToolExecution("list_directory", portal, {
+      this.logToolExecution("list_directory", portal, identity_id, {
         path: path || "/",
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -103,12 +103,12 @@ export class ListDirectoryTool extends ToolHandler {
             type: "string",
             description: "Relative path within portal (optional, defaults to root)",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "agent_id"],
+        required: ["portal", "identity_id"],
       },
     };
   }

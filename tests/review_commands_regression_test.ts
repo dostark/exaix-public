@@ -26,12 +26,12 @@ async function createRequestFile(
   dir: string,
   requestId: string,
   title: string,
-  agent: string,
+  identity: string,
 ): Promise<string> {
   const path = join(dir, `${requestId}.md`);
   const content = `# ${title}
 
-This is a test request created by ${agent}.
+This is a test request created by ${identity}.
 
 ## Requirements
 
@@ -53,7 +53,7 @@ async function createPlanFile(
   const content = `---
 trace_id: "${traceId}"
 status: ${status}
-agent_id: ${TEST_AGENT_ID}
+identity_id: ${TEST_AGENT_ID}
 created_at: "${TEST_CREATED_AT}"
 ---
 
@@ -143,7 +143,7 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
       request_id: TEST_REQUEST_ID,
       files_changed: 5,
       created_at: TEST_CREATED_AT,
-      agent_id: TEST_AGENT_ID,
+      identity_id: TEST_AGENT_ID,
       // New fields that should be supported
       request_subject: "Test Request",
       plan_id: "test_plan",
@@ -171,7 +171,7 @@ Deno.test("[regression] Review show displays complete context information", () =
     request_id: TEST_REQUEST_ID,
     files_changed: 3,
     created_at: TEST_CREATED_AT,
-    agent_id: TEST_AGENT_ID,
+    identity_id: TEST_AGENT_ID,
     // Request context
     request_subject: "Test Request Title",
     request_agent: TEST_AGENT_ID,

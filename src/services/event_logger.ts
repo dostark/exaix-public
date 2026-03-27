@@ -362,9 +362,8 @@ export class EventLogger implements IEventLogger {
           target: event.target,
           payload: event.payload ?? {},
           traceId: event.traceId,
-          agentId: event.agentId ?? null,
-          agentKind: event.agentKind ?? null,
           identityId: event.identityId ?? null,
+          identityKind: event.identityKind ?? null,
         });
       } catch (error) {
         // Database write failed - log warning but don't crash
@@ -379,10 +378,9 @@ export class EventLogger implements IEventLogger {
           event.target,
           event.payload ?? {},
           event.traceId,
-          event.agentId ?? null,
           event.actorType ?? null,
-          event.agentKind ?? null,
           event.identityId ?? null,
+          event.identityKind ?? null,
         );
       } catch (error) {
         // Database write failed - log warning but don't crash

@@ -62,7 +62,7 @@ export class FrontmatterParser {
     this.logActivity("request.validated", {
       file_path: filePath ?? null,
       trace_id: result.data.trace_id,
-      agent_id: result.data.agent_id,
+      identity_id: result.data.identity_id,
       status: result.data.status,
     });
 
@@ -87,7 +87,7 @@ export class FrontmatterParser {
         payload.file_path as string || null,
         payload,
         undefined, // No specific trace_id for validation operations
-        null, // No agent_id (system operation)
+        null, // No identity_id (system operation)
       );
     } catch (error) {
       // Log error but don't fail the parsing

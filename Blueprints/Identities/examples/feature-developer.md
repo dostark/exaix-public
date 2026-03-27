@@ -1,5 +1,5 @@
 ---
-agent_id: "feature-developer"
+identity_id: "feature-developer"
 name: "Feature Developer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory", "git_create_branch", "git_commit", "git_status"]

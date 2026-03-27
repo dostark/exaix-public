@@ -26,7 +26,7 @@ async function runExecutionTest(
     loop: ExecutionLoop;
     activeDir: string;
   }) => Promise<void>,
-  options: { noDb?: boolean; createActiveDir?: boolean; agentId?: string } = {},
+  options: { noDb?: boolean; createActiveDir?: boolean; identityId?: string } = {},
 ) {
   const tempDir = await Deno.makeTempDir({ prefix: `exec-ext-${prefix}-` });
   let db, cleanup;
@@ -45,7 +45,7 @@ async function runExecutionTest(
       await Deno.mkdir(activeDir, { recursive: true });
     }
 
-    const loop = new ExecutionLoop({ config, db, agentId: options.agentId ?? "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: options.identityId ?? "test-agent" });
     await fn({ tempDir, config, db, loop, activeDir });
   } finally {
     if (cleanup) await cleanup();
@@ -288,7 +288,7 @@ status: active
       const result2 = await loop.processTask(planPath);
       assertEquals(result2.success, true);
     },
-    { agentId: "same-agent" },
+    { identityId: "same-agent" },
   );
 });
 
@@ -411,7 +411,7 @@ path = "existing.txt"
     const planPath = join(activeDir, "no-changes-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    const loop = new ExecutionLoop({ config, db, identityId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     // Should succeed even with nothing to commit
@@ -466,7 +466,7 @@ Deno.test("ExecutionLoop: uses correct memory execution path configuration", asy
     const _loop = new ExecutionLoop({
       config,
       db,
-      agentId: "test-agent",
+      identityId: "test-agent",
       llmProvider: undefined,
     });
 

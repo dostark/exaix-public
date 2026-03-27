@@ -28,13 +28,13 @@ export class GitCommitTool extends ToolHandler {
       portal: string;
       message: string;
       files?: string[];
-      agent_id: string;
+      identity_id: string;
     };
-    const { portal, message, files, agent_id } = validatedArgs;
+    const { portal, message, files, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.GIT);
+      this.validatePermission(portal, identity_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -77,14 +77,15 @@ export class GitCommitTool extends ToolHandler {
       return this.formatSuccess(
         "git_commit",
         portal,
+        identity_id,
         `Changes committed successfully in portal '${portal}': ${message}`,
-        { message, files: files?.length || "all", agent_id },
+        { message, files: files?.length || "all", identity_id },
       );
     } catch (error) {
-      this.formatError("git_commit", portal, error, {
+      this.formatError("git_commit", portal, identity_id, error, {
         message,
         files: files?.length || "all",
-        agent_id,
+        identity_id,
       });
     }
   }
@@ -109,12 +110,12 @@ export class GitCommitTool extends ToolHandler {
             items: { type: "string" },
             description: "Optional: specific files to commit (defaults to all changes)",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "message", "agent_id"],
+        required: ["portal", "message", "identity_id"],
       },
     };
   }

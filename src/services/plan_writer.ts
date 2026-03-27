@@ -23,7 +23,7 @@ import { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 export interface IRequestMetadata {
   requestId: string;
-  agentId?: string;
+  identityId?: string;
   traceId: string;
   createdAt: Date;
   contextFiles: string[];
@@ -256,8 +256,8 @@ export class PlanWriter {
       `created_at: ${metadata.createdAt.toISOString()}`,
     ];
 
-    if (metadata.agentId) {
-      lines.push(`agent_id: "${metadata.agentId}"`);
+    if (metadata.identityId) {
+      lines.push(`identity_id: "${metadata.identityId}"`);
     }
 
     if (metadata.model) {

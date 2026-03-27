@@ -68,7 +68,7 @@ Always respond with:
         {
           workspacePath: getWorkspaceDir(`${env.tempDir}`),
           requestsDir: getWorkspaceRequestsDir(`${env.tempDir}`),
-          blueprintsPath: `${env.tempDir}/Blueprints/Agents`,
+          blueprintsPath: `${env.tempDir}/Blueprints/Identities`,
           includeReasoning: true,
         },
         provider, // Test provider override
@@ -77,7 +77,7 @@ Always respond with:
       // End-to-end: create request and process
       const requestResult = await env.createRequest(
         "Implement user authentication with JWT tokens",
-        { agentId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
+        { identityId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
       );
 
       const planPath = await processor.process(requestResult.filePath);

@@ -107,9 +107,9 @@ Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
       target: string | null,
       payload: Record<string, JSONValue>,
       traceId?: string,
-      agentId?: string | null,
+      identityId?: string | null,
     ) => {
-      calls.push([actor, actionType, target, payload, traceId, agentId]);
+      calls.push([actor, actionType, target, payload, traceId, identityId]);
     },
   });
 
@@ -204,7 +204,7 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
   });
 
   const result = await agent.run(
-    { systemPrompt: "", agentId: "agent" } satisfies IBlueprint,
+    { systemPrompt: "", identityId: "agent" } satisfies IBlueprint,
     { userPrompt: "u", context: {}, traceId: "t" } satisfies IParsedRequest,
   );
 
@@ -262,7 +262,7 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
   });
 
   const result = await agent.run(
-    { systemPrompt: "", agentId: "agent" } satisfies IBlueprint,
+    { systemPrompt: "", identityId: "agent" } satisfies IBlueprint,
     { userPrompt: "u", context: {}, traceId: "t" } satisfies IParsedRequest,
   );
 

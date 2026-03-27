@@ -35,11 +35,11 @@ Deno.test("RequestRouter: routes agent requests to AgentRunner", async () => {
 
   const result = await router.route(request);
 
-  assertEquals(result.type, RequestKind.AGENT);
-  assertEquals(result.agentId, "senior-coder");
+  assertEquals(result.type, RequestKind.IDENTITY);
+  assertEquals(result.identityId, "senior-coder");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
-  assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "senior-coder");
-  assertEquals(mockLogger.events[0].action, "request.routing.agent");
+  assertEquals(mockAgentRunner.executedAgents[0].blueprint.identityId, "senior-coder");
+  assertEquals(mockLogger.events[0].action, "request.routing.identity");
 });
 
 Deno.test("RequestRouter: routes requests without flow/agent to default agent", async () => {
@@ -49,10 +49,10 @@ Deno.test("RequestRouter: routes requests without flow/agent to default agent", 
 
   const result = await router.route(request);
 
-  assertEquals(result.type, RequestKind.AGENT);
-  assertEquals(result.agentId, "default-agent");
+  assertEquals(result.type, RequestKind.IDENTITY);
+  assertEquals(result.identityId, "default-agent");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
-  assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "default-agent");
+  assertEquals(mockAgentRunner.executedAgents[0].blueprint.identityId, "default-agent");
   assertEquals(mockLogger.events[0].action, "request.routing.default");
 });
 
@@ -93,13 +93,13 @@ Deno.test("RequestRouter: flow takes priority over agent when both present (shou
   router.route = async function (request: any) {
     // Skip the conflicting fields check for this test
     const flowId = request.frontmatter.flow;
-    const agentId = request.frontmatter.agent;
+    const identityId = request.frontmatter.identity;
 
     if (flowId) {
       return await router.routeToFlow(flowId, request);
     }
-    if (agentId) {
-      return await router.routeToAgent(agentId, request);
+    if (identityId) {
+      return await router.routeToAgent(identityId, request);
     }
     return await router.routeToDefaultAgent(request);
   };

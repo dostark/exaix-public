@@ -10,6 +10,6 @@ interface FlowOverrides {
   name?: string;
   description?: string;
   steps?: Array<
-    { id: string; name: string; agent: string; dependsOn?: string[]; input?: { source: string; transform: string } }
+    { id: string; name: string; identity: string; dependsOn?: string[]; input?: { source: string; transform: string } }
   >;
 }

@@ -1,5 +1,5 @@
 ---
-agent_id: "code-analyst"
+identity_id: "code-analyst"
 name: "Code Analyst"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "grep_search", "fetch_url", "git_info"]

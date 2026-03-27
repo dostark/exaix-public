@@ -47,7 +47,7 @@ content = "Hello World"
     const context: IPlanContext = {
       trace_id: "trace-123",
       request_id: "req-123",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {
         trace_id: "trace-123",
         request_id: "req-123",
@@ -145,7 +145,7 @@ content = "Step 2"
     const context: IPlanContext = {
       trace_id: "trace-456",
       request_id: "req-456",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [
         { number: 1, title: "Step 1", content: "Do step 1" },
@@ -191,7 +191,7 @@ foo = "bar"
     const context: IPlanContext = {
       trace_id: "trace-fail",
       request_id: "req-fail",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Fail", content: "Fail" }],
     };
@@ -221,7 +221,7 @@ Deno.test("PlanExecutor: handles no actions generated", async () => {
     const context: IPlanContext = {
       trace_id: "trace-no-act",
       request_id: "req-no-act",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "No Action", content: "Do nothing" }],
     };
@@ -257,7 +257,7 @@ path = "bad.txt"
     const context: IPlanContext = {
       trace_id: "trace-bad",
       request_id: "req-bad",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Bad TOML", content: "Bad" }],
     };
@@ -293,7 +293,7 @@ path = "non_existent.txt"
     const context: IPlanContext = {
       trace_id: "trace-fail-res",
       request_id: "req-fail-res",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Fail Result", content: "Fail" }],
     };
@@ -336,7 +336,7 @@ path = "read.txt"
     const context: IPlanContext = {
       trace_id: "trace-no-change",
       request_id: "req-no-change",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "Read Only", content: "Read" }],
     };
@@ -361,7 +361,7 @@ Deno.test("PlanExecutor: handles execution without git", async () => {
     const context: IPlanContext = {
       trace_id: "trace-no-git",
       request_id: "req-no-git",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [{ number: 1, title: "No Git", content: "No Git" }],
     };
@@ -393,7 +393,7 @@ Deno.test("PlanExecutor: handles portal context in frontmatter", async () => {
     const context: IPlanContext = {
       trace_id: "trace-portal",
       request_id: "req-portal",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: { portal: "MyPortal" },
       steps: [{ number: 1, title: "Portal Step", content: "Write in portal" }],
     };
@@ -417,7 +417,7 @@ Deno.test("PlanExecutor: generates execution report", async () => {
     const context: IPlanContext = {
       trace_id: "trace-report",
       request_id: "req-report",
-      agent: "test-agent",
+      identity: "test-agent",
       frontmatter: {},
       steps: [], // No steps will trigger report even if generateReport is false, but we set it true
     };

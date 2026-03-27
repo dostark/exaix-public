@@ -193,7 +193,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates average correctly", () => {
 
   const confidences = [
     {
-      agentId: "agent1",
+      identityId: "agent1",
       confidence: {
         score: 80,
         level: ConfidenceAssessmentLevel.HIGH,
@@ -204,7 +204,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates average correctly", () => {
       },
     },
     {
-      agentId: "agent2",
+      identityId: "agent2",
       confidence: {
         score: 60,
         level: ConfidenceAssessmentLevel.MEDIUM,
@@ -228,7 +228,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates weighted average", () => {
 
   const confidences = [
     {
-      agentId: "agent1",
+      identityId: "agent1",
       confidence: {
         score: 100,
         level: ConfidenceAssessmentLevel.VERY_HIGH,
@@ -240,7 +240,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates weighted average", () => {
       weight: 3,
     },
     {
-      agentId: "agent2",
+      identityId: "agent2",
       confidence: {
         score: 50,
         level: ConfidenceAssessmentLevel.MEDIUM,
@@ -273,7 +273,7 @@ Deno.test("[ConfidenceScorer] aggregate tracks flaggedForReview", () => {
 
   const confidences = [
     {
-      agentId: "agent1",
+      identityId: "agent1",
       confidence: {
         score: 90,
         level: ConfidenceAssessmentLevel.VERY_HIGH,
@@ -284,7 +284,7 @@ Deno.test("[ConfidenceScorer] aggregate tracks flaggedForReview", () => {
       },
     },
     {
-      agentId: "agent2",
+      identityId: "agent2",
       confidence: {
         score: 20,
         level: ConfidenceAssessmentLevel.VERY_LOW,

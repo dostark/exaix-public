@@ -86,7 +86,7 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       default_model: "claude-opus-4.5",
       max_tokens_default: 4096,
     },
-    mcp_defaults: { agent_id: "system" },
+    mcp_defaults: { identity_id: "system" },
     rate_limiting: {
       enabled: true,
       max_calls_per_minute: 60,

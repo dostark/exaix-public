@@ -14,7 +14,7 @@ import {
   searchByTags,
   searchMemoryAdvanced,
 } from "../../src/services/memory_search.ts";
-import { type IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
+import { IExecutionMemory, type IProjectMemory } from "../../src/shared/schemas/memory_bank.ts";
 import { createTestLearning } from "./helpers/memory_test_helpers.ts";
 import {
   ConfidenceLevel,
@@ -84,7 +84,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
           category: LearningCategory.INSIGHT,
           confidence: ConfidenceLevel.HIGH,
           scope: MemoryScope.GLOBAL,
-          source: MemoryBankSource.AGENT,
+          source: MemoryBankSource.IDENTITY,
         }),
       ]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {

@@ -82,6 +82,7 @@ describe("PlanWriter - JSON Integration", () => {
         createdAt: new Date(),
         contextFiles: [],
         contextWarnings: [],
+        identityId: "test-agent",
       };
 
       const result = await planWriter.writePlan(agentResult, metadata);
@@ -106,6 +107,7 @@ describe("PlanWriter - JSON Integration", () => {
         createdAt: new Date(),
         contextFiles: [],
         contextWarnings: [],
+        identityId: "test-agent",
       };
 
       const result = await planWriter.writePlan(agentResult, metadata);
@@ -131,6 +133,7 @@ describe("PlanWriter - JSON Integration", () => {
         createdAt: new Date("2024-11-25T10:00:00Z"),
         contextFiles: [],
         contextWarnings: [],
+        identityId: "test-agent",
       };
 
       const result = await planWriter.writePlan(agentResult, metadata);
@@ -155,6 +158,7 @@ describe("PlanWriter - JSON Integration", () => {
         createdAt: new Date(),
         contextFiles: [],
         contextWarnings: [],
+        identityId: "test-agent",
       };
 
       const result = await planWriter.writePlan(agentResult, metadata);
@@ -206,6 +210,7 @@ describe("PlanWriter - JSON Integration", () => {
         createdAt: new Date(),
         contextFiles: [`${knowledgeDir}/Doc1.md`], // Need at least one context file for warnings to show
         contextWarnings: ["Warning 1", "Warning 2"],
+        identityId: "test-agent",
       };
 
       const result = await planWriter.writePlan(agentResult, metadata);
@@ -228,6 +233,7 @@ describe("PlanWriter - JSON Integration", () => {
         requestId: "my-feature",
         traceId: "trace",
         createdAt: new Date(),
+        identityId: "test-agent",
         contextFiles: [],
         contextWarnings: [],
       };

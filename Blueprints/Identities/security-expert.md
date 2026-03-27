@@ -1,5 +1,5 @@
 ---
-agent_id: "security-expert"
+identity_id: "security-expert"
 name: "Security Expert"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "grep_search", "fetch_url", "git_info", "deno_task", "patch_file"]

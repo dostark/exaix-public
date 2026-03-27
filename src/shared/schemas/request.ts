@@ -20,7 +20,10 @@ import { REQUEST_STATUS_VALUES } from "../status/request_status.ts";
  */
 export const RequestSchema = z.object({
   trace_id: z.string().uuid("Invalid trace_id: must be a valid UUID"),
-  agent_id: z.string().min(1, "agent_id cannot be empty"),
+  /** Identity blueprint to use (Phase 54 canonical field) */
+  identity: z.string().min(1, "Identity cannot be empty").optional(),
+  /** Legacy agent identification (Phase 53 and earlier) */
+  identity_id: z.string().min(1, "identity_id cannot be empty").optional(),
   status: z.enum(REQUEST_STATUS_VALUES),
   priority: z.number().int().min(0).max(10).default(5),
   created_at: z.string().datetime().optional(),

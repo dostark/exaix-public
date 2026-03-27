@@ -120,7 +120,7 @@ Deno.test("[integration] Portal execution context points to portal workspace", a
     const portal: IPortalPermissions = {
       alias: portalAlias,
       target_path: portalPath,
-      agents_allowed: ["*"],
+      identities_allowed: ["*"],
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     };
 
@@ -186,14 +186,14 @@ Deno.test("[integration] Multi-portal contexts are isolated", async () => {
     const portalConfig1: IPortalPermissions = {
       alias: portal1.portalAlias,
       target_path: portal1.portalPath,
-      agents_allowed: ["*"],
+      identities_allowed: ["*"],
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     };
 
     const portalConfig2: IPortalPermissions = {
       alias: portal2.portalAlias,
       target_path: portal2.portalPath,
-      agents_allowed: ["*"],
+      identities_allowed: ["*"],
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     };
 
@@ -229,7 +229,7 @@ Deno.test("[integration] Portal context validation fails for missing git repo", 
     const portal: IPortalPermissions = {
       alias: "no-git-portal",
       target_path: tempDir,
-      agents_allowed: ["*"],
+      identities_allowed: ["*"],
       operations: [PortalOperation.READ],
     };
 

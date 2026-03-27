@@ -115,11 +115,11 @@ Deno.test("MockRequestService: all methods", async () => {
   if (typeof content !== "string" || !content.includes("test-id")) throw new Error("getRequestContent failed");
   const newReq = await service.createRequest("desc", {
     priority: RequestPriority.HIGH,
-    agent: "test",
+    identity: "test",
     portal: "main",
     model: TEST_MODEL_OPENAI,
   });
-  if (typeof newReq !== "object" || newReq.priority !== RequestPriority.HIGH || newReq.agent !== "test") {
+  if (typeof newReq !== "object" || newReq.priority !== RequestPriority.HIGH || newReq.identity !== "test") {
     throw new Error("createRequest failed");
   }
   if (await service.updateRequestStatus("id", "planned") !== true) throw new Error("updateRequestStatus failed");

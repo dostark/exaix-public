@@ -28,7 +28,7 @@ import { initTestDbService } from "./helpers/db.ts";
 Deno.test("RequestSchema: valid frontmatter object passes validation", () => {
   const validRequest = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
-    agent_id: "coder-agent",
+    identity_id: "coder-agent",
     status: RequestStatus.PENDING,
     priority: 8,
     tags: ["feature", "ui"],
@@ -37,7 +37,7 @@ Deno.test("RequestSchema: valid frontmatter object passes validation", () => {
   const result = RequestSchema.parse(validRequest);
 
   assertEquals(result.trace_id, "550e8400-e29b-41d4-a716-446655440000");
-  assertEquals(result.agent_id, "coder-agent");
+  assertEquals(result.identity_id, "coder-agent");
   assertEquals(result.status, RequestStatus.PENDING);
   assertEquals(result.priority, 8);
   assertEquals(result.tags, ["feature", "ui"]);
@@ -46,7 +46,7 @@ Deno.test("RequestSchema: valid frontmatter object passes validation", () => {
 Deno.test("RequestSchema: applies default values", () => {
   const minimalRequest = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
-    agent_id: "coder-agent",
+    identity_id: "coder-agent",
     status: RequestStatus.PENDING,
   };
 
@@ -58,7 +58,7 @@ Deno.test("RequestSchema: applies default values", () => {
 
 Deno.test("RequestSchema: rejects missing required field (trace_id)", () => {
   const invalidRequest = {
-    agent_id: "coder-agent",
+    identity_id: "coder-agent",
     status: RequestStatus.PENDING,
   };
 
@@ -78,7 +78,7 @@ Deno.test("RequestSchema: rejects missing required field (trace_id)", () => {
 Deno.test("RequestSchema: rejects invalid enum value", () => {
   const invalidRequest = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
-    agent_id: "coder-agent",
+    identity_id: "coder-agent",
     status: "banana", // invalid
   };
 
@@ -99,7 +99,7 @@ Deno.test("RequestSchema: rejects invalid enum value", () => {
 Deno.test("RequestSchema: strips unknown fields", () => {
   const requestWithExtra = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
-    agent_id: "coder-agent",
+    identity_id: "coder-agent",
     status: RequestStatus.PENDING,
     unknown_field: "should be stripped",
     another_extra: 123,
@@ -114,7 +114,7 @@ Deno.test("RequestSchema: strips unknown fields", () => {
 Deno.test("FrontmatterParser: valid markdown with YAML frontmatter", () => {
   const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 priority: 8
 tags: [feature, ui]
@@ -131,7 +131,7 @@ Create a modern login page with:
   const result = parser.parse(markdown);
 
   assertEquals(result.request.trace_id, "550e8400-e29b-41d4-a716-446655440000");
-  assertEquals(result.request.agent_id, "coder-agent");
+  assertEquals(result.request.identity_id, "coder-agent");
   assertEquals(result.request.status, RequestStatus.PENDING);
   assertEquals(result.request.priority, 8);
   assertEquals(result.request.tags, ["feature", "ui"]);
@@ -158,7 +158,7 @@ No frontmatter here!
 Deno.test("FrontmatterParser: throws on invalid YAML syntax", () => {
   const markdown = `---
 trace_id: "missing-closing-quote
-agent_id: coder-agent
+identity_id: coder-agent
 ---
 
 Body content
@@ -171,7 +171,7 @@ Body content
 
 Deno.test("FrontmatterParser: throws on validation error with field details", () => {
   const markdown = `---
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 ---
 
@@ -191,7 +191,7 @@ Missing trace_id field
 Deno.test("FrontmatterParser: handles empty body content", () => {
   const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 ---
 `;
@@ -206,7 +206,7 @@ status: pending
 Deno.test("FrontmatterParser: YAML with datetime parses correctly", () => {
   const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 created_at: "2025-11-27T10:30:00Z"
 ---
@@ -224,7 +224,7 @@ Body content
 Deno.test("FrontmatterParser: handles special characters in strings", () => {
   const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 ---
 
@@ -247,7 +247,7 @@ Deno.test("FrontmatterParser logs successful validation", async () => {
     const parser = new FrontmatterParser(db);
     const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 priority: 8
 tags: [feature, ui]
@@ -279,7 +279,7 @@ Deno.test("FrontmatterParser logs validation failure", async () => {
   try {
     const parser = new FrontmatterParser(db);
     const markdown = `---
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 ---
 
@@ -374,7 +374,7 @@ Deno.test("FrontmatterParser: logs activity without file_path", async () => {
     const parser = new FrontmatterParser(db);
     const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: coder-agent
+identity_id: coder-agent
 status: pending
 ---
 
@@ -416,7 +416,7 @@ Body
 Deno.test("FrontmatterParser: handles valid frontmatter with all optional fields", () => {
   const markdown = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
-agent_id: senior-coder
+identity_id: senior-coder
 status: in_progress
 priority: 10
 tags: [urgent, bug-fix, security]

@@ -157,7 +157,7 @@ Deno.test("request list prints entries when present", async () => {
         {
           trace_id: "abcd1234efgh5678",
           priority: RequestPriority.CRITICAL,
-          agent: "agent-x",
+          identity: "agent-x",
           created_by: "tester",
           created: "now",
           status: MemoryStatus.PENDING,
@@ -181,7 +181,7 @@ Deno.test("request show prints content when request exists", async () => {
           trace_id: id,
           status: MemoryStatus.PENDING,
           priority: RequestPriority.NORMAL,
-          agent: MemoryBankSource.AGENT,
+          identity: MemoryBankSource.IDENTITY,
           created_by: "tester",
           created: "time",
           filename: "/tmp/req.md",
@@ -218,7 +218,7 @@ Deno.test("review list prints entries when present", async () => {
           files_changed: 2,
           created_at: new Date().toISOString(),
           trace_id: "trace-1",
-          agent_id: "agent-1",
+          identity_id: "agent-1",
           diff: "",
           commits: [],
         },
@@ -291,7 +291,7 @@ Deno.test("blueprint list prints hint when empty and list when present", async (
     assert(emptyOut.includes("Create a blueprint"));
     ctx.blueprintCommands.list = () =>
       Promise.resolve([{
-        agent_id: "a1",
+        identity_id: "a1",
         name: "A",
         model: "mock",
         capabilities: ["c1"],
@@ -323,7 +323,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
         filename: "/tmp/exa-test/request-1.md",
         trace_id: "trace-1234",
         priority: RequestPriority.NORMAL,
-        agent: "default",
+        identity: "default",
         path: "/tmp",
         source: RequestSource.FILE,
         created_by: "tester",
@@ -344,7 +344,7 @@ Deno.test("request --file prints human output when no --json", async () => {
         filename: "/tmp/exa-test/request-2.md",
         trace_id: "trace-5678",
         priority: RequestPriority.HIGH,
-        agent: "tester",
+        identity: "tester",
         path: "/tmp",
         source: RequestSource.FILE,
         created_by: "tester",
@@ -425,7 +425,7 @@ Deno.test("review show prints commits and diff", async () => {
         trace_id: "t1",
         created_at: new Date().toISOString(),
         type: ReviewType.CODE,
-        agent_id: "agent-1",
+        identity_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
       await mod.__test_command.parse(["review", "show", "cs-1"]);
@@ -447,7 +447,7 @@ Deno.test("review show --diff outputs only diff", async () => {
         trace_id: "t1",
         created_at: new Date().toISOString(),
         type: ReviewType.CODE,
-        agent_id: "agent-1",
+        identity_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
       await mod.__test_command.parse(["review", "show", "cs-1", "--diff"]);
@@ -469,7 +469,7 @@ Deno.test("request inline --dry-run logs dry_run and creates file", async () => 
         filename: "/tmp/req.md",
         trace_id: "t1",
         priority: RequestPriority.NORMAL,
-        agent: "a",
+        identity: "a",
         path: "/tmp",
         source: RequestSource.CLI as const,
         created_by: "tester",
@@ -555,7 +555,7 @@ Deno.test("request list --json outputs JSON", async () => {
         {
           trace_id: "t1",
           priority: RequestPriority.NORMAL,
-          agent: "a",
+          identity: "a",
           created_by: "u",
           created: "t",
           status: MemoryStatus.PENDING,
@@ -648,7 +648,7 @@ Deno.test("request inline --json prints JSON output", async () => {
         filename: "/tmp/r.md",
         trace_id: "t-json",
         priority: RequestPriority.NORMAL,
-        agent: "a",
+        identity: "a",
         path: "/tmp",
         source: RequestSource.CLI as const,
         created_by: "tester",
@@ -711,7 +711,7 @@ Deno.test("blueprint create successful prints created message", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.blueprintCommands.create = (id: string, opts: BlueprintCreateOptions) =>
       Promise.resolve({
-        agent_id: id,
+        identity_id: id,
         name: opts.name ?? id,
         model: opts.model ?? "mock:test",
         path: "/tmp",
@@ -760,7 +760,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
         filename: "/tmp/exa-test/request-file.md",
         trace_id: "trace-file-1",
         priority: RequestPriority.NORMAL,
-        agent: "file-agent",
+        identity: "file-agent",
         path: "/tmp",
         source: RequestSource.FILE,
         created_by: "tester",
@@ -781,7 +781,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
         filename: "/tmp/exa-test/request-file2.md",
         trace_id: "trace-file-2",
         priority: RequestPriority.HIGH,
-        agent: "file-agent",
+        identity: "file-agent",
         path: "/tmp",
         source: RequestSource.FILE,
         created_by: "tester",
@@ -820,7 +820,7 @@ Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
         filename: "/tmp/req.md",
         trace_id: "t-dry",
         priority: RequestPriority.NORMAL,
-        agent: "a",
+        identity: "a",
         path: "/tmp",
         source: RequestSource.CLI,
         created_by: "tester",

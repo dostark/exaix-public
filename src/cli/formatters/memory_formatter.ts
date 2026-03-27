@@ -344,7 +344,7 @@ export class MemoryFormatter {
     for (const exec of executions) {
       const traceId = exec.trace_id.substring(0, CLI_TRUNCATE_ID_SHORT);
       lines.push(
-        `| ${traceId}... | ${exec.status} | ${exec.portal} | ${exec.agent} | ${exec.started_at} |`,
+        `| ${traceId}... | ${exec.status} | ${exec.portal} | ${exec.identity_id} | ${exec.started_at} |`,
       );
     }
 
@@ -363,7 +363,7 @@ export class MemoryFormatter {
       `Request ID:  ${exec.request_id}`,
       `Status:      ${exec.status}`,
       `Portal:      ${exec.portal}`,
-      `Agent:       ${exec.agent}`,
+      `Identity:     ${exec.identity_id}`,
       `Started:     ${exec.started_at}`,
       `Completed:   ${exec.completed_at || "In progress"}`,
       "",
@@ -400,7 +400,7 @@ export class MemoryFormatter {
       `| Request ID | \`${exec.request_id}\` |`,
       `| Status | ${exec.status} |`,
       `| Portal | ${exec.portal} |`,
-      `| Agent | ${exec.agent} |`,
+      `| Identity | ${exec.identity_id} |`,
       `| Started | ${exec.started_at} |`,
       `| Completed | ${exec.completed_at || "In progress"} |`,
       "",
@@ -662,7 +662,7 @@ export class MemoryFormatter {
       `ID:          ${proposal.id}`,
       `Status:      ${proposal.status}`,
       `Created:     ${proposal.created_at}`,
-      `Agent:       ${proposal.agent}`,
+      `Identity:     ${proposal.identity_id}`,
       `Execution:   ${proposal.execution_id}`,
       "",
       "─".repeat(60),
@@ -695,7 +695,7 @@ export class MemoryFormatter {
       `| ID | ${proposal.id} |`,
       `| Status | ${proposal.status} |`,
       `| Created | ${proposal.created_at} |`,
-      `| Agent | ${proposal.agent} |`,
+      `| Identity | ${proposal.identity_id} |`,
       `| Execution | ${proposal.execution_id} |`,
       "",
       "## ILearning",

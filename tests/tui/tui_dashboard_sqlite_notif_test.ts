@@ -31,7 +31,7 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
     await notificationService.notifyMemoryUpdate({
       id: "prop-1",
       created_at: new Date().toISOString(),
-      agent: "test-agent",
+      identity_id: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
       learning: {

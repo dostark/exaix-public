@@ -149,7 +149,7 @@ status: approved
     await t.step("should extract agent from frontmatter", async () => {
       const planContent = `---
 trace_id: test-trace-123
-agent: mock-agent
+identity: mock-agent
 ---
 
 # Plan
@@ -164,7 +164,7 @@ agent: mock-agent
 
       const frontmatter = parse(frontmatterMatch![1]) as JSONObject;
 
-      assertEquals(frontmatter.agent, "mock-agent");
+      assertEquals(frontmatter.identity, "mock-agent");
     });
 
     await t.step("should handle missing optional context fields", async () => {
@@ -185,7 +185,7 @@ trace_id: test-trace-123
       const frontmatter = parse(frontmatterMatch![1]) as JSONObject;
 
       assertEquals(frontmatter.request_id, undefined);
-      assertEquals(frontmatter.agent, undefined);
+      assertEquals(frontmatter.identity, undefined);
       assertExists(frontmatter.trace_id); // Only trace_id is required
     });
   });
@@ -360,7 +360,7 @@ Some content here
       const planContent = `---
 trace_id: integration-test-123
 request_id: integration-req-456
-agent: mock-agent
+identity: mock-agent
 status: approved
 created_at: 2024-01-01T00:00:00Z
 ---
@@ -403,7 +403,7 @@ Create authentication middleware.
 
       assertEquals(frontmatter.trace_id, "integration-test-123");
       assertEquals(frontmatter.request_id, "integration-req-456");
-      assertEquals(frontmatter.agent, "mock-agent");
+      assertEquals(frontmatter.identity, "mock-agent");
 
       // Parse body
       const bodyMatch = content.match(/^---\n[\s\S]*?\n---\n\n([\s\S]*)$/);

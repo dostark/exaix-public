@@ -1,5 +1,5 @@
 ---
-agent_id: "technical-writer"
+identity_id: "technical-writer"
 name: "Technical Writer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory", "fetch_url", "grep_search", "git_info"]

@@ -57,7 +57,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
       completed_at: new Date().toISOString(),
       status: ExecutionStatus.COMPLETED,
       portal: "integration-test-portal",
-      agent: "test-agent",
+      identity_id: "test-agent",
       summary: "Implemented error handling middleware with proper async/await patterns",
       context_files: ["src/middleware/error.ts"],
       context_portals: ["integration-test-portal"],
@@ -75,7 +75,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
     assertGreaterOrEqual(extractedLearnings.length, 1);
 
     // Step 4: Create proposal from learning
-    const proposalId = await extractor.createProposal(extractedLearnings[0], execution, execution.agent);
+    const proposalId = await extractor.createProposal(extractedLearnings[0], execution, "test-identity");
     assertExists(proposalId);
 
     // Step 5: Verify pending proposal exists
@@ -123,7 +123,7 @@ Deno.test("Integration: execution failure extracts troubleshooting learning", as
       completed_at: new Date().toISOString(),
       status: ExecutionStatus.FAILED,
       portal: "failure-test-portal",
-      agent: "test-agent",
+      identity_id: "test-agent",
       summary: "Failed to parse configuration file",
       context_files: ["config.json"],
       context_portals: ["failure-test-portal"],
@@ -239,7 +239,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
       {
         id: "11111111-aaaa-4000-8000-000000000001",
         created_at: new Date().toISOString(),
-        source: MemoryBankSource.AGENT,
+        source: MemoryBankSource.IDENTITY,
         scope: MemoryScope.GLOBAL,
         title: "Database indexing strategy",
         description: "Create indexes on frequently queried columns for optimal database performance",
@@ -394,7 +394,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
       completed_at: new Date().toISOString(),
       status: ExecutionStatus.COMPLETED,
       portal: "pending-cli-portal",
-      agent: "test-agent",
+      identity_id: "test-agent",
       summary: "Added validation middleware",
       context_files: ["src/validate.ts"],
       context_portals: ["pending-cli-portal"],
@@ -410,7 +410,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
     // Extract learnings and create proposal
     const learnings = extractor.analyzeExecution(execution);
     assertGreaterOrEqual(learnings.length, 1);
-    await extractor.createProposal(learnings[0], execution, execution.agent);
+    await extractor.createProposal(learnings[0], execution, execution.identity_id);
 
     // List pending via CLI
     const pendingList = await commands.pendingList(UIOutputFormat.TABLE);
@@ -482,7 +482,7 @@ Deno.test("Integration: performance - embedding search completes under 500ms", a
     const learnings: ILearning[] = Array.from({ length: 20 }, (_, i) => ({
       id: `33333333-cccc-4000-8000-00000000000${i.toString().padStart(2, "0")}`,
       created_at: new Date().toISOString(),
-      source: MemoryBankSource.AGENT,
+      source: MemoryBankSource.IDENTITY,
       scope: MemoryScope.GLOBAL,
       title: `ILearning ${i}`,
       description: `Description for learning ${i} with some searchable content`,

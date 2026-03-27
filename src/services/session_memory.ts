@@ -260,7 +260,7 @@ export class SessionMemoryService {
       const learning: ILearning = {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: MemoryBankSource.AGENT,
+        source: MemoryBankSource.IDENTITY,
         scope: insight.portal ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
         project: insight.portal,
         title: insight.title,

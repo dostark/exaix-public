@@ -33,17 +33,17 @@ Deno.test("Integration: Blueprint Management - Full Lifecycle", async (t) => {
       });
 
       assertExists(result.path, "Blueprint path should be returned");
-      assertEquals(result.agent_id, testAgentId);
+      assertEquals(result.identity_id, testAgentId);
 
       // Verify file exists
-      const blueprintPath = join(env.tempDir, "Blueprints", "Agents", `${testAgentId}.md`);
+      const blueprintPath = join(env.tempDir, "Blueprints", "Identities", `${testAgentId}.md`);
       const fileExists = await exists(blueprintPath);
       assertEquals(fileExists, true, "Blueprint file should exist");
 
       // Verify TOML frontmatter format
       const content = await Deno.readTextFile(blueprintPath);
       assertStringIncludes(content, "+++", "Should use TOML delimiters");
-      assertStringIncludes(content, `agent_id = "${testAgentId}"`);
+      assertStringIncludes(content, `identity_id = "${testAgentId}"`);
       assertStringIncludes(content, `name = "Integration Test Agent"`);
       assertStringIncludes(content, `model = "ollama:codellama:13b"`);
       assertStringIncludes(content, "capabilities = [");
@@ -120,13 +120,13 @@ Test execution results
     // ========================================================================
     await t.step("Test 4: Validation detects missing fields", async () => {
       // Create invalid blueprint manually
-      const invalidPath = join(env.tempDir, "Blueprints", "Agents", "invalid-test.md");
+      const invalidPath = join(env.tempDir, "Blueprints", "Identities", "invalid-test.md");
       const invalidContent = `+++
-name = "Missing agent_id"
+name = "Missing identity_id"
 model = "ollama:llama3.2"
 +++
 
-Invalid blueprint without agent_id field
+Invalid blueprint without identity_id field
 `;
       await Deno.writeTextFile(invalidPath, invalidContent);
 
@@ -135,15 +135,15 @@ Invalid blueprint without agent_id field
       assertEquals(result.valid, false, "Validation should fail");
       assert(result.errors.length > 0, "Should have validation errors");
       assert(
-        result.errors.some((e: string) => e.includes("agent_id")),
-        "Should report missing agent_id",
+        result.errors.some((e: string) => e.includes("identity_id")),
+        "Should report missing identity_id",
       );
     });
 
     // ========================================================================
     // Test 5: Reserved Names Rejected
     // ========================================================================
-    await t.step("Test 5: Reserved agent_id names rejected", async () => {
+    await t.step("Test 5: Reserved identity_id names rejected", async () => {
       await assertRejects(
         async () =>
           await blueprintCommands.create("system", {
@@ -168,7 +168,7 @@ Invalid blueprint without agent_id field
     // ========================================================================
     // Test 6: Duplicate Names Rejected
     // ========================================================================
-    await t.step("Test 6: Duplicate agent_id rejected", async () => {
+    await t.step("Test 6: Duplicate identity_id rejected", async () => {
       await assertRejects(
         async () =>
           await blueprintCommands.create(testAgentId, {
@@ -184,7 +184,7 @@ Invalid blueprint without agent_id field
     // Test 7: Edit Blueprint
     // ========================================================================
     await t.step("Test 7: Edit modifies blueprint and re-validates", async () => {
-      const blueprintPath = join(env.tempDir, "Blueprints", "Agents", `${testAgentId}.md`);
+      const blueprintPath = join(env.tempDir, "Blueprints", "Identities", `${testAgentId}.md`);
       const originalContent = await Deno.readTextFile(blueprintPath);
 
       // Modify blueprint directly (simulating manual edit)
@@ -209,14 +209,14 @@ Invalid blueprint without agent_id field
     await t.step("Test 8: Blueprint referenced in request creation", async () => {
       const { filePath } = await env.createRequest(
         "Test request using custom agent",
-        { agentId: testAgentId },
+        { identityId: testAgentId },
       );
 
       const content = await Deno.readTextFile(filePath);
-      assertStringIncludes(content, `agent: ${testAgentId}`);
+      assertStringIncludes(content, `identity: ${testAgentId}`);
 
       // Verify request can be processed (blueprint exists and is valid)
-      const blueprintPath = join(env.tempDir, "Blueprints", "Agents", `${testAgentId}.md`);
+      const blueprintPath = join(env.tempDir, "Blueprints", "Identities", `${testAgentId}.md`);
       const blueprintExists = await exists(blueprintPath);
       assertEquals(blueprintExists, true, "Blueprint should exist for request processing");
     });
@@ -229,10 +229,10 @@ Invalid blueprint without agent_id field
 
       assert(blueprints.length >= 3, "Should have at least 3 blueprints");
 
-      const agentIds = blueprints.map((b: IBlueprintMetadata) => b.agent_id);
-      assert(agentIds.includes(testAgentId), "Should include test agent");
-      assert(agentIds.includes(coderAgentId), "Should include coder agent");
-      assert(agentIds.includes(customAgentId), "Should include custom agent");
+      const identityIds = blueprints.map((b: IBlueprintMetadata) => b.identity_id);
+      assert(identityIds.includes(testAgentId), "Should include test agent");
+      assert(identityIds.includes(coderAgentId), "Should include coder agent");
+      assert(identityIds.includes(customAgentId), "Should include custom agent");
     });
 
     // ========================================================================
@@ -243,7 +243,7 @@ Invalid blueprint without agent_id field
 
       assertExists(result.content, "Should return content");
 
-      assertEquals(result.agent_id, testAgentId);
+      assertEquals(result.identity_id, testAgentId);
       assertEquals(result.name, "Integration Test Agent");
       assertStringIncludes(result.content, "<thought>");
       assertStringIncludes(result.content, "<content>");
@@ -259,9 +259,9 @@ Invalid blueprint without agent_id field
       await blueprintCommands.remove(testAgentId, { force: true });
 
       // Verify files deleted
-      const testPath = join(env.tempDir, "Blueprints", "Agents", `${testAgentId}.md`);
-      const coderPath = join(env.tempDir, "Blueprints", "Agents", `${coderAgentId}.md`);
-      const customPath = join(env.tempDir, "Blueprints", "Agents", `${customAgentId}.md`);
+      const testPath = join(env.tempDir, "Blueprints", "Identities", `${testAgentId}.md`);
+      const coderPath = join(env.tempDir, "Blueprints", "Identities", `${coderAgentId}.md`);
+      const customPath = join(env.tempDir, "Blueprints", "Identities", `${customAgentId}.md`);
 
       assertEquals(await exists(testPath), false, "Test agent blueprint should be deleted");
       assertEquals(await exists(coderPath), false, "Coder agent blueprint should be deleted");

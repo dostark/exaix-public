@@ -11,7 +11,7 @@ echo "Scaffolding runtime workspace at: $TARGET"
 
 # Ensure base folders
 mkdir -p "$TARGET/.exa" \
-  "$TARGET/Blueprints/Agents" \
+  "$TARGET/Blueprints/Identities" \
   "$TARGET/Blueprints/Flows" \
   "$TARGET/Workspace/Requests" \
   "$TARGET/Workspace/Plans" \
@@ -23,7 +23,7 @@ mkdir -p "$TARGET/.exa" \
   "$TARGET/scripts"
 
 # Place .gitkeep placeholders to keep empty dirs visible in repos if desired
-touch "$TARGET/Blueprints/Agents/.gitkeep" || true
+touch "$TARGET/Blueprints/Identities/.gitkeep" || true
 touch "$TARGET/Blueprints/Flows/.gitkeep" || true
 touch "$TARGET/Workspace/Requests/.gitkeep" || true
 touch "$TARGET/Workspace/Plans/.gitkeep" || true

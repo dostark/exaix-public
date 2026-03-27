@@ -1,5 +1,5 @@
 ---
-agent: google
+identity: google
 scope: dev
 title: Gemini Quickstart Prompt
 short_summary: "Native long-context prompt for Gemini 1.5 Pro to perform whole-repo analysis."

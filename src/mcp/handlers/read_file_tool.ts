@@ -25,11 +25,11 @@ export class ReadFileTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     // Validate arguments with Zod schema
     const validatedArgs = ReadFileToolArgsSchema.parse(args);
-    const { portal, path, agent_id } = validatedArgs;
+    const { portal, path, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.READ);
+      this.validatePermission(portal, identity_id, PortalOperation.READ);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -49,9 +49,9 @@ export class ReadFileTool extends ToolHandler {
       }
 
       // Log successful execution
-      this.logToolExecution("read_file", portal, {
+      this.logToolExecution("read_file", portal, identity_id, {
         path,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: true,
         bytes: content.length,
       });
@@ -66,9 +66,9 @@ export class ReadFileTool extends ToolHandler {
       };
     } catch (error) {
       // Log failed execution
-      this.logToolExecution("read_file", portal, {
+      this.logToolExecution("read_file", portal, identity_id, {
         path,
-        agent_id: agent_id ?? null,
+        identity_id: identity_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });
@@ -92,12 +92,12 @@ export class ReadFileTool extends ToolHandler {
             type: "string",
             description: "Relative path within portal",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "path", "agent_id"],
+        required: ["portal", "path", "identity_id"],
       },
     };
   }

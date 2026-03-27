@@ -87,7 +87,7 @@ export class ExecutionMemoryBuilder {
       completed_at: new Date().toISOString(),
       status: ExecutionStatus.COMPLETED,
       portal,
-      agent: "test-agent",
+      identity_id: "test-agent",
       summary: `Test execution for ${portal}`,
       context_files: [],
       context_portals: [portal],
@@ -110,8 +110,8 @@ export class ExecutionMemoryBuilder {
     return this;
   }
 
-  public withAgent(agent: string): this {
-    this.memory.agent = agent;
+  public withIdentity(identity: string): this {
+    this.memory.identity_id = identity;
     return this;
   }
 

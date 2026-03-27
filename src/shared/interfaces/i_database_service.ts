@@ -20,10 +20,9 @@ export interface IDatabaseService {
     target: string | null,
     payload: Record<string, JSONValue>,
     traceId?: string,
-    agentId?: string | null,
     actorType?: string | null,
-    agentKind?: string | null,
     identityId?: string | null,
+    identityKind?: string | null,
   ): void;
 
   /**

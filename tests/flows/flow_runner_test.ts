@@ -49,13 +49,13 @@ class MockAgentRunner implements IAgentExecutor {
     }
   }
 
-  async run(agentId: string, _request: IFlowStepRequest): Promise<IAgentExecutionResult> {
-    if (this.failures.has(agentId)) {
-      throw new Error(`Mock failure for agent ${agentId}`);
+  async run(identityId: string, _request: IFlowStepRequest): Promise<IAgentExecutionResult> {
+    if (this.failures.has(identityId)) {
+      throw new Error(`Mock failure for agent ${identityId}`);
     }
-    const result = this.results.get(agentId);
+    const result = this.results.get(identityId);
     if (!result) {
-      throw new Error(`No mock result for agent ${agentId}`);
+      throw new Error(`No mock result for agent ${identityId}`);
     }
     return await Promise.resolve(result);
   }
@@ -639,11 +639,11 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
 
   // Mock agent runner that throws a string
   class ThrowingAgentRunner extends MockAgentRunner {
-    override async run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
-      if (agentId === "throwing-agent") {
+    override async run(identityId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
+      if (identityId === "throwing-agent") {
         throw "String error"; // Throw a string, not an Error
       }
-      return await super.run(agentId, request);
+      return await super.run(identityId, request);
     }
   }
 
@@ -1428,14 +1428,14 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
 
 // Mock AgentRunner that captures requests to verify skills are passed
 class CapturingMockAgentRunner implements IAgentExecutor {
-  capturedRequests: Array<{ agentId: string; request: IFlowStepRequest }> = [];
+  capturedRequests: Array<{ identityId: string; request: IFlowStepRequest }> = [];
 
-  async run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
-    this.capturedRequests.push({ agentId, request });
+  async run(identityId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
+    this.capturedRequests.push({ identityId, request });
     return await Promise.resolve({
-      thought: `Processing ${agentId}`,
-      content: `Result from ${agentId}`,
-      raw: `Raw from ${agentId}`,
+      thought: `Processing ${identityId}`,
+      content: `Result from ${identityId}`,
+      raw: `Raw from ${identityId}`,
     });
   }
 }
@@ -1587,15 +1587,15 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
   await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Step1: uses flow defaults
-  assertEquals(mockAgentRunner.capturedRequests[0].agentId, "agent1");
+  assertEquals(mockAgentRunner.capturedRequests[0].identityId, "agent1");
   assertEquals(mockAgentRunner.capturedRequests[0].request.skills, ["flow-default"]);
 
   // Step2: uses its own skills (override)
-  assertEquals(mockAgentRunner.capturedRequests[1].agentId, "agent2");
+  assertEquals(mockAgentRunner.capturedRequests[1].identityId, "agent2");
   assertEquals(mockAgentRunner.capturedRequests[1].request.skills, ["custom-skill"]);
 
   // Step3: uses flow defaults
-  assertEquals(mockAgentRunner.capturedRequests[2].agentId, "agent3");
+  assertEquals(mockAgentRunner.capturedRequests[2].identityId, "agent3");
   assertEquals(mockAgentRunner.capturedRequests[2].request.skills, ["flow-default"]);
 });
 
@@ -1679,9 +1679,8 @@ class MockDatabaseService {
       timestamp: new Date().toISOString(),
       actor: "test",
       actor_type: null,
-      agent_id: null,
-      agent_kind: null,
       identity_id: null,
+      identity_kind: null,
       target: null,
     }));
   }
@@ -1701,7 +1700,9 @@ class MockDatabaseService {
     _target: string | null,
     _payload: Record<string, JSONValue>,
     _traceId?: string,
-    _agentId?: string | null,
+    _actorType?: string | null,
+    _identityId?: string | null,
+    _identityKind?: string | null,
   ): void {}
   waitForFlush(): Promise<void> {
     return Promise.resolve();

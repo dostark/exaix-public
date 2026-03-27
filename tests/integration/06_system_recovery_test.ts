@@ -97,7 +97,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       await env.writeFile(
         ".locks/crash-test.lock",
         JSON.stringify({
-          agentId: "crashed-agent",
+          identityId: "crashed-agent",
           pid: 99999, // Non-existent PID
           startedAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
           planPath: activePlanPath,
@@ -255,7 +255,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       const loop = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "recovery-agent",
+        identityId: "recovery-agent",
       });
 
       // Try to process the same plan
@@ -302,7 +302,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       const loop = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "healthy-agent",
+        identityId: "healthy-agent",
       });
 
       const result = await loop.processTask(activePath);
@@ -452,7 +452,7 @@ Deno.test("Integration: System Recovery - Lease timeout", async () => {
     await env.writeFile(
       ".locks/timeout-test.lock",
       JSON.stringify({
-        agentId: "slow-agent",
+        identityId: "slow-agent",
         pid: Deno.pid, // Valid PID but old
         startedAt: new Date(Date.now() - LEASE_TIMEOUT_MS - 1000).toISOString(),
       }),

@@ -21,7 +21,7 @@ export async function processDialogCompletion(
   handlers: {
     handleSearchResult: (value: string) => void;
     handleFilterStatusResult: (value: string) => void;
-    handleFilterAgentResult: (value: string) => void;
+    handleFilterIdentityResult: (value: string) => void;
     handleCreateResult: (value: string) => Promise<void>;
     handlePriorityResult: (value: string) => void;
     processConfirmDialog: (dialog: ConfirmDialog) => Promise<void>;
@@ -41,8 +41,8 @@ export async function processDialogCompletion(
         case RequestDialogType.FILTER_STATUS:
           handlers.handleFilterStatusResult(result.value);
           break;
-        case RequestDialogType.FILTER_AGENT:
-          handlers.handleFilterAgentResult(result.value);
+        case RequestDialogType.FILTER_IDENTITY:
+          handlers.handleFilterIdentityResult(result.value);
           break;
         case RequestDialogType.CREATE:
           try {

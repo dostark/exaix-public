@@ -101,7 +101,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
     trace_id: "trace-12345678",
     request_id: "request-trace-123",
     status: ExecutionStatus.COMPLETED,
-    agent: "a",
+    identity_id: "a",
     portal: "p",
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
@@ -118,7 +118,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
 
   const result = await MemoryFormatter.formatExecutionDetail(n, service);
   assertStringIncludes(result, "# Execution:");
-  assertStringIncludes(result, "**Agent:** a");
+  assertStringIncludes(result, "**Identity:** a");
 });
 
 Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning content", () => {
@@ -140,7 +140,7 @@ Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning conte
       confidence: ConfidenceLevel.HIGH,
     },
     reason: "Because",
-    agent: "agent",
+    identity_id: "agent",
     execution_id: "trace",
     status: MemoryStatus.PENDING,
   };
@@ -178,7 +178,7 @@ Deno.test("MemoryFormatter.formatExecutionMemory: includes changes only when pre
     trace_id: "trace-12345678",
     request_id: "request-123",
     status: ExecutionStatus.COMPLETED,
-    agent: "a",
+    identity_id: "a",
     portal: "p",
     started_at: new Date().toISOString(),
     summary: "",

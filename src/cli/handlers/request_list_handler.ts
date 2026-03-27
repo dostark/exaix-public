@@ -107,6 +107,11 @@ export class RequestListHandler extends BaseCommand {
       entry[field.key] = String(frontmatter[field.key] || field.fallback);
     }
 
+    // Ensure reciprocal compatibility between identity and agent
+    const identityValue = String(frontmatter.identity || frontmatter.agent || "default");
+    entry.identity = identityValue;
+    entry.agent = identityValue;
+
     const optionalKeys = ["portal", "target_branch", "model", "flow", "rejected_path", "subject"];
     for (const key of optionalKeys) {
       if (frontmatter[key]) entry[key] = String(frontmatter[key]);

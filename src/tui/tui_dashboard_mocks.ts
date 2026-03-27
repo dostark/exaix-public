@@ -215,7 +215,7 @@ export class MockLogService implements IDatabaseService, IJournalService {
     _target: string | null,
     _payload: Record<string, _JSONValue>,
     _traceId?: string,
-    _agentId?: string | null,
+    _identityId?: string | null,
   ): void {}
 
   waitForFlush(): Promise<void> {
@@ -310,7 +310,7 @@ export class MockRequestService implements IRequestService {
       path: "/mock/request.md",
       status: RequestStatus.PENDING,
       priority: options?.priority ?? RequestPriority.NORMAL,
-      agent: options?.agent ?? "default",
+      identity: options?.identity ?? "test-agent",
       source: source,
       created: new Date().toISOString(),
       created_by: "test-user",
@@ -338,7 +338,7 @@ export class MockRequestService implements IRequestService {
         path: "/mock/request.md",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
-        agent: "default",
+        identity: "test-agent",
         source: "tui" as RequestSource,
         created: new Date().toISOString(),
         created_by: "test-user",
@@ -390,8 +390,8 @@ export class MockAgentService implements IAgentService {
     ]);
   }
 
-  getAgentHealth(agentId: string): Promise<AgentHealthData> {
-    if (agentId === "agent-2") {
+  getAgentHealth(identityId: string): Promise<AgentHealthData> {
+    if (identityId === "agent-2") {
       return Promise.resolve({
         status: AgentHealth.WARNING,
         issues: ["Mock warning"],
@@ -405,17 +405,17 @@ export class MockAgentService implements IAgentService {
     });
   }
 
-  getAgentLogs(agentId: string, _limit = 50): Promise<AgentLogEntry[]> {
+  getAgentLogs(identityId: string, _limit = 50): Promise<AgentLogEntry[]> {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),
         level: LogLevel.INFO,
-        message: `Agent ${agentId} ready`,
+        message: `Agent ${identityId} ready`,
       },
       {
         timestamp: new Date().toISOString(),
         level: LogLevel.DEBUG,
-        message: `Agent ${agentId} heartbeating`,
+        message: `Agent ${identityId} heartbeating`,
       },
     ]);
   }
@@ -458,7 +458,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
       request_id: "request-1",
       portal: "main",
       status: ExecutionStatus.COMPLETED,
-      agent: "test-agent",
+      identity_id: "test-agent",
       started_at: new Date().toISOString(),
       summary: "Mock execution",
       steps: [],
@@ -481,7 +481,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
         request_id: "request-1",
         portal: "main",
         status: ExecutionStatus.COMPLETED,
-        agent: "test-agent",
+        identity_id: "test-agent",
         started_at: new Date().toISOString(),
         summary: "Mock history item",
         steps: [],
@@ -627,7 +627,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
     return Promise.resolve([]);
   }
 
-  getMemoryByAgent(_agentId: string): Promise<IMemorySearchResult[]> {
+  getMemoryByAgent(_identityId: string): Promise<IMemorySearchResult[]> {
     return Promise.resolve([]);
   }
 
@@ -767,7 +767,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
           tags: [],
         },
         reason: "Testing",
-        agent: "test-agent",
+        identity_id: "test-agent",
         status: MemoryRecordStatus.PENDING,
         created_at: new Date().toISOString(),
       },
@@ -793,7 +793,7 @@ export class MockMemoryService implements IMemoryBankService, IMemoryService {
         tags: [],
       },
       reason: "Testing",
-      agent: "test-agent",
+      identity_id: "test-agent",
       status: MemoryRecordStatus.PENDING,
       created_at: new Date().toISOString(),
     });
@@ -941,7 +941,7 @@ export class MockStructuredLoggerService implements ILogService {
     return Promise.resolve([]);
   }
 
-  getLogsByAgentId(_agentId: string): Promise<IStructuredLogEntry[]> {
+  getLogsByAgentId(_identityId: string): Promise<IStructuredLogEntry[]> {
     return Promise.resolve([]);
   }
   exportLogs(_filename: string, _entries: IStructuredLogEntry[]): Promise<void> {

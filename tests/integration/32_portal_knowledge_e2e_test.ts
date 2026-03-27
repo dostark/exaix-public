@@ -311,7 +311,7 @@ Deno.test(
         {
           workspacePath: join(env.tempDir, "Workspace"),
           requestsDir: join(env.tempDir, "Workspace", "Requests"),
-          blueprintsPath: join(env.tempDir, "Blueprints", "Agents"),
+          blueprintsPath: join(env.tempDir, "Blueprints", "Identities"),
           includeReasoning: false,
         },
         provider,
@@ -322,7 +322,7 @@ Deno.test(
 
       const { filePath } = await env.createRequest(
         "Analyze the portal codebase",
-        { agentId: "code-analyst", portal: portalAlias },
+        { identityId: "code-analyst", portal: portalAlias },
       );
 
       try {

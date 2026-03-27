@@ -1,5 +1,5 @@
 ---
-agent_id: "api-documenter"
+identity_id: "api-documenter"
 name: "API Documenter"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory"]

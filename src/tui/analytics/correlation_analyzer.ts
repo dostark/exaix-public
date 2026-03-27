@@ -25,7 +25,7 @@ export function analyzeCorrelation(entries: IStructuredLogEntry[]): CorrelationA
 
   // Extract metadata
   const traceIds = new Set(entries.map((e) => e.context.trace_id).filter(Boolean));
-  const agentIds = new Set(entries.map((e) => e.context.agent_id).filter(Boolean));
+  const identityIds = new Set(entries.map((e) => e.context.identity_id).filter(Boolean));
   const operations = new Set(entries.map((e) => e.context.operation).filter(Boolean));
 
   // Time analysis
@@ -53,7 +53,7 @@ export function analyzeCorrelation(entries: IStructuredLogEntry[]): CorrelationA
   return {
     correlationId,
     traceIds: Array.from(traceIds).filter(Boolean) as string[],
-    agentIds: Array.from(agentIds).filter(Boolean) as string[],
+    identityIds: Array.from(identityIds).filter(Boolean) as string[],
     operations: Array.from(operations).filter(Boolean) as string[],
     timeSpan: { start, end, duration },
     entryCount: entries.length,

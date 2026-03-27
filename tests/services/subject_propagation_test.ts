@@ -30,18 +30,18 @@ async function withSubjectPropagationEnv(
   const plansDir = join(workspaceDir, "Plans");
   const runtimeDir = join(tempDir, "Runtime");
   const blueprintsDir = join(tempDir, "Blueprints");
-  const agentsDir = join(blueprintsDir, "Identities");
+  const identitiesDir = join(blueprintsDir, "Identities");
 
   await Deno.mkdir(requestsDir, { recursive: true });
   await Deno.mkdir(plansDir, { recursive: true });
   await Deno.mkdir(runtimeDir, { recursive: true });
-  await Deno.mkdir(agentsDir, { recursive: true });
+  await Deno.mkdir(identitiesDir, { recursive: true });
 
   await Deno.writeTextFile(
-    join(agentsDir, "test-agent.md"),
+    join(identitiesDir, "test-agent.md"),
     `---
 name: "Test Agent"
-agent_id: "test-agent"
+identity_id: "test-agent"
 description: "Test agent"
 ---
 Follow instructions

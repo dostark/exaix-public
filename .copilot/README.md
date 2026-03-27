@@ -162,7 +162,7 @@ Every agent doc MUST start with YAML frontmatter:
 
 ```yaml
 ---
-agent: claude  # or: copilot, openai, google, general
+identity: claude  # or: copilot, openai, google, general
 scope: dev     # or: ci, docs, test
 title: "Your Title Here"
 short_summary: "One-liner description (1-3 sentences max, <200 chars)"
@@ -173,7 +173,7 @@ topics: ["keyword1", "keyword2", "keyword3"]
 
 **Field descriptions:**
 
-- **`agent`**: Target agent type (`claude`, `copilot`, `openai`, `google`, `general`)
+- **`identity`**: Target identity type (`claude`, `copilot`, `openai`, `google`, `general`)
 - **`scope`**: Context scope (`dev`, `ci`, `docs`, `test`)
 - **`title`**: Human-readable title
 - **`short_summary`**: Concise summary for quick injection (≤200 characters recommended)

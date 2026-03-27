@@ -28,7 +28,7 @@ function makeProposalLearning(overrides: Partial<IProposalLearning> = {}): IProp
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    source: MemoryBankSource.AGENT,
+    source: MemoryBankSource.IDENTITY,
     source_id: undefined,
 
     scope: MemoryScope.GLOBAL,
@@ -151,7 +151,7 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
           target: string | null,
           payload: Record<string, JSONValue>,
           traceId?: string,
-          agentId?: string | null,
+          identityId?: string | null,
         ) => {
           // Log as tuple for test
           calls.push([
@@ -160,7 +160,7 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
             target,
             payload,
             traceId,
-            agentId,
+            identityId,
           ] as CallRecord);
           return Promise.resolve();
         },
@@ -210,7 +210,7 @@ Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern 
           _target: string | null,
           _payload: Record<string, JSONValue>,
           _traceId?: string,
-          _agentId?: string | null,
+          _identityId?: string | null,
         ): void => {},
       } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {

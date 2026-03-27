@@ -1,5 +1,5 @@
 ---
-agent_id: "research-synthesizer"
+identity_id: "research-synthesizer"
 name: "Research Synthesizer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory"]

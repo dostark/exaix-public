@@ -1,5 +1,5 @@
 ---
-agent: google
+identity: google
 scope: dev
 title: Gemini TDD Workflow Prompt
 short_summary: "Exhaustive TDD prompt optimized for Gemini's long-context reasoning."

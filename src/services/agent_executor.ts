@@ -35,6 +35,7 @@ import { isReadOnlyAgentCapabilities, requiresGitTracking } from "./agent_capabi
 import {
   ChangesetResultSchema,
   type IAgentExecutionOptions,
+  type IAgentExecutionOptionsInput,
   type IChangesetResult,
   type IExecutionContext,
 } from "../shared/schemas/agent_executor.ts";
@@ -214,7 +215,7 @@ export class AgentExecutor {
 
     const blueprintPath = join(
       this.config.paths.blueprints,
-      "Agents",
+      "Identities",
       `${agentName}.md`,
     );
 
@@ -327,11 +328,11 @@ export class AgentExecutor {
    */
   async executeStep(
     rawContext: IExecutionContext,
-    rawOptions: IAgentExecutionOptions,
+    rawOptions: IAgentExecutionOptionsInput,
   ): Promise<IChangesetResult> {
     // ✓ Validate inputs first to prevent injection attacks
     const context = InputValidator.validateExecutionContext(rawContext);
-    const options = InputValidator.validateAgentExecutionOptions(rawOptions);
+    const options: IAgentExecutionOptions = InputValidator.validateAgentExecutionOptions(rawOptions);
 
     const startTime = Date.now();
 
@@ -342,19 +343,19 @@ export class AgentExecutor {
     }
 
     // Validate agent has permissions (check before loading blueprint)
-    if (!this.permissions.checkAgentAllowed(options.portal, options.identity_id).allowed) {
+    if (!this.permissions.checkAgentAllowed(options.portal, options.identity_id ?? "").allowed) {
       throw new Error(
         `Identity not allowed to access portal: ${options.identity_id} -> ${options.portal}`,
       );
     }
 
     // Load blueprint (TODO: use blueprint for agent spawning when implemented)
-    const _blueprint = await this.loadBlueprint(options.identity_id);
+    const _blueprint = await this.loadBlueprint(options.identity_id ?? "");
 
     // Log execution start
     await this.logExecutionStart(
       context.trace_id,
-      options.identity_id,
+      options.identity_id ?? "",
       options.portal,
     );
 
@@ -376,7 +377,7 @@ export class AgentExecutor {
         // Log completion
         await this.logExecutionComplete(
           context.trace_id,
-          options.identity_id,
+          options.identity_id ?? "",
           validated,
         );
 
@@ -399,14 +400,14 @@ export class AgentExecutor {
       // Log completion
       await this.logExecutionComplete(
         context.trace_id,
-        options.identity_id,
+        options.identity_id ?? "",
         validated,
       );
 
       return validated;
     } catch (error) {
       // Log error
-      await this.logExecutionError(context.trace_id, options.identity_id, {
+      await this.logExecutionError(context.trace_id, options.identity_id ?? "", {
         type: "agent_error",
         message: error instanceof Error ? error.message : String(error),
         trace_id: context.trace_id,
@@ -1013,7 +1014,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       actorType: ActorType.SERVICE,
       traceId: traceId,
       agentId: "agent-executor",
-      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityKind: AgentKind.AGENT_EXECUTOR,
       identityId: identityId,
       payload: {
         portal,
@@ -1037,7 +1038,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       actorType: ActorType.SERVICE,
       traceId: traceId,
       agentId: "agent-executor",
-      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityKind: AgentKind.AGENT_EXECUTOR,
       identityId: identityId,
       payload: {
         branch: result.branch,
@@ -1065,7 +1066,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       actorType: ActorType.SERVICE,
       traceId: traceId,
       agentId: "agent-executor",
-      agentKind: AgentKind.AGENT_EXECUTOR,
+      identityKind: AgentKind.AGENT_EXECUTOR,
       identityId: identityId,
       level: LogLevel.ERROR,
       payload: {

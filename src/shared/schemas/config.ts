@@ -281,9 +281,9 @@ export const ConfigSchema = z.object({
   }),
   /** MCP defaults */
   mcp_defaults: z.object({
-    agent_id: z.string().default(DEFAULTS.DEFAULT_MCP_AGENT_ID),
+    identity_id: z.string().default(DEFAULTS.DEFAULT_MCP_IDENTITY_ID),
   }).optional().default({
-    agent_id: DEFAULTS.DEFAULT_MCP_AGENT_ID,
+    identity_id: DEFAULTS.DEFAULT_MCP_IDENTITY_ID,
   }),
   /** Request quality gate configuration (Phase 47) */
   quality_gate: z.object({

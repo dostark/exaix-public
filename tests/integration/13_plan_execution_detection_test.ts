@@ -16,7 +16,7 @@ import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
 interface Frontmatter {
   trace_id?: string;
   request_id?: string;
-  agent_id?: string;
+  identity_id?: string;
   status?: string;
   created_at?: string;
   [key: string]: unknown;
@@ -41,7 +41,7 @@ Deno.test("Integration: Plan Execution Detection - approved plan detected", asyn
     const planContent = `---
 trace_id: "${traceId}"
 request_id: "${requestId}"
-agent_id: "senior-coder"
+identity_id: "senior-coder"
 status: approved
 created_at: "${new Date().toISOString()}"
 ---

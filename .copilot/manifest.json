@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-26T18:06:28.866Z",
+  "generated_at": "2026-03-27T21:53:07.081Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -165,7 +165,6 @@
     },
     {
       "path": ".copilot/prompts/google-quickstart.md",
-      "agent": "google",
       "scope": "dev",
       "title": "Gemini Quickstart Prompt",
       "short_summary": "Native long-context prompt for Gemini 1.5 Pro to perform whole-repo analysis.",
@@ -360,7 +359,6 @@
     },
     {
       "path": ".copilot/prompts/google-tdd-workflow.md",
-      "agent": "google",
       "scope": "dev",
       "title": "Gemini TDD Workflow Prompt",
       "short_summary": "Exhaustive TDD prompt optimized for Gemini's long-context reasoning.",
@@ -1154,7 +1152,6 @@
     },
     {
       "path": ".copilot/cross-reference.md",
-      "agent": "general",
       "scope": "dev",
       "title": "Agent Documentation Cross-Reference Map",
       "short_summary": "Quick reference mapping task types to relevant agent documentation files.",
@@ -1286,7 +1283,6 @@
     },
     {
       "path": ".copilot/providers/claude.md",
-      "agent": "claude",
       "scope": "dev",
       "title": "Claude provider adaptation notes",
       "short_summary": "Comprehensive Claude usage guide with task-specific prompts, thinking protocols, and tool-use patterns.",
@@ -1312,7 +1308,6 @@
     },
     {
       "path": ".copilot/providers/google.md",
-      "agent": "google",
       "scope": "dev",
       "title": "Google Gemini Provider Adaptation Guide",
       "short_summary": "Optimized guidance for Google Gemini 1.5 Pro, focusing on 2M context window usage and parallel tool calls.",
@@ -1355,7 +1350,6 @@
     },
     {
       "path": ".copilot/providers/google-long-context.md",
-      "agent": "google",
       "scope": "dev",
       "title": "Gemini Long-Context Reasoning Guide",
       "short_summary": "Strategies for utilizing Gemini's 1.5 Pro's 2M context window for holistic repository reasoning.",
@@ -1373,7 +1367,6 @@
     },
     {
       "path": ".copilot/providers/claude-rag.md",
-      "agent": "claude",
       "scope": "dev",
       "title": "Claude RAG (Retrieval-Augmented Generation) Usage Guide",
       "short_summary": "How to use embeddings infrastructure for semantic search and context injection with Claude.",

@@ -109,7 +109,7 @@ Deno.test("renderPendingPanel: limits display to 10 items", () => {
   for (let i = 0; i < 15; i++) {
     proposals.push({
       id: `proposal-${i}`,
-      agent: "test-agent",
+      identity_id: "test-identity",
       operation: MemoryOperation.ADD,
       learning: {
         id: `learning-${i}`,
@@ -118,7 +118,7 @@ Deno.test("renderPendingPanel: limits display to 10 items", () => {
         description: "Test",
         confidence: ConfidenceLevel.HIGH,
         tags: [],
-        source: MemoryBankSource.AGENT,
+        source: MemoryBankSource.IDENTITY,
         scope: MemoryScope.GLOBAL,
         created_at: new Date().toISOString(),
       },

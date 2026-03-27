@@ -58,7 +58,7 @@ describe("RequestCommands", () => {
       assertEquals(result.trace_id.length, 36); // UUID format
       assertEquals(result.status, RequestStatus.PENDING);
       assertEquals(result.priority, "normal");
-      assertEquals(result.agent, "default");
+      assertEquals(result.identity, "default");
 
       // Verify file exists
       if (!result.path) throw new Error("Path should be defined");
@@ -68,7 +68,7 @@ describe("RequestCommands", () => {
       assertStringIncludes(content, `trace_id: "${result.trace_id}"`);
       assertStringIncludes(content, "status: pending");
       assertStringIncludes(content, "priority: normal");
-      assertStringIncludes(content, "agent: default");
+      assertStringIncludes(content, "identity: default");
       assertStringIncludes(content, "Implement user authentication");
     });
 
@@ -82,12 +82,12 @@ describe("RequestCommands", () => {
     });
 
     it("should accept custom agent", async () => {
-      const result = await requestCommands.create("Write tests", { agent: "test_writer" });
-      assertEquals(result.agent, "test_writer");
+      const result = await requestCommands.create("Write tests", { identity: "test_writer" });
+      assertEquals(result.identity, "test_writer");
 
       if (!result.path) throw new Error("Path should be defined");
       const content = await Deno.readTextFile(result.path);
-      assertStringIncludes(content, "agent: test_writer");
+      assertStringIncludes(content, "identity: test_writer");
     });
 
     it("should accept portal option", async () => {
@@ -206,9 +206,9 @@ describe("RequestCommands", () => {
 
     it("should reject flow and agent combination", async () => {
       await assertRejects(
-        async () => await requestCommands.create("Test", { flow: "code-review", agent: "writer" }),
+        async () => await requestCommands.create("Test", { flow: "code-review", identity: "writer" }),
         Error,
-        "Cannot specify both 'flow' and 'agent'",
+        "Cannot specify both 'flow' and 'agent'/'identity'",
       );
     });
 
@@ -308,11 +308,11 @@ describe("RequestCommands", () => {
       await Deno.writeTextFile(inputFile, "Test content");
 
       const result = await requestCommands.createFromFile(inputFile, {
-        agent: "custom_agent",
+        identity: "custom_agent",
         priority: RequestPriority.HIGH,
       });
 
-      assertEquals(result.agent, "custom_agent");
+      assertEquals(result.identity, "custom_agent");
       assertEquals(result.priority, RequestPriority.HIGH);
     });
 
@@ -416,12 +416,12 @@ describe("RequestCommands", () => {
     });
 
     it("should include metadata from frontmatter", async () => {
-      await requestCommands.create("Test request", { priority: RequestPriority.HIGH, agent: "architect" });
+      await requestCommands.create("Test request", { priority: RequestPriority.HIGH, identity: "architect" });
 
       const requests = await requestCommands.list();
       assertEquals(requests.length, 1);
       assertEquals(requests[0].priority, RequestPriority.HIGH);
-      assertEquals(requests[0].agent, "architect");
+      assertEquals(requests[0].identity, "architect");
       assertEquals(requests[0].status, RequestStatus.PENDING);
     });
   });
@@ -552,7 +552,7 @@ Minimal content for show
       const requests = await requestCommands.list();
       assertEquals(requests.length, 1);
       assertEquals(requests[0].priority, "normal"); // Default when missing
-      assertEquals(requests[0].agent, "default"); // Default when missing
+      assertEquals(requests[0].identity, "default"); // Default when missing
       assertEquals(requests[0].created_by, "unknown"); // Default when missing
       assertEquals(requests[0].source, "unknown"); // Default when missing
     });
@@ -739,7 +739,7 @@ Minimal content for show
     it("should log activity with correct payload fields", async () => {
       const result = await requestCommands.create("Test activity payload", {
         priority: RequestPriority.HIGH,
-        agent: "special_agent",
+        identity: "special_agent",
         portal: "TestPortal",
       });
 
@@ -754,7 +754,8 @@ Minimal content for show
       assertExists(activity.payload);
       const payload = JSON.parse(activity.payload);
       assertEquals(payload.priority, "high");
-      assertEquals(payload.agent, "special_agent");
+      assertEquals(payload.identity, "special_agent");
+      assertEquals(payload.identity, "special_agent");
       assertEquals(payload.portal, "TestPortal");
       assertEquals(payload.source, RequestSource.CLI);
       assertEquals(typeof payload.description_length, "number");

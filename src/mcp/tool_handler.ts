@@ -50,7 +50,7 @@ export abstract class ToolHandler {
    */
   protected validatePermission(
     portalName: string,
-    agentId: string,
+    identityId: string,
     operation: PortalOperation,
   ): void {
     if (!this.permissions) {
@@ -58,7 +58,7 @@ export abstract class ToolHandler {
       return;
     }
 
-    const result = this.permissions.checkOperationAllowed(portalName, agentId, operation);
+    const result = this.permissions.checkOperationAllowed(portalName, identityId, operation);
     if (!result.allowed) {
       throw new Error(
         result.reason || `Permission denied for ${operation} on portal ${portalName}`,
@@ -100,13 +100,18 @@ export abstract class ToolHandler {
   protected logToolExecution(
     toolName: string,
     portal: string,
+    identityId: string,
     metadata: LogMetadata,
   ): void {
+    const actor = `identity:${identityId}`;
     this.db.logActivity(
-      "mcp.tool",
+      actor,
       `mcp.tool.${toolName}`,
       portal,
       toSafeJson(metadata) as Record<string, JSONValue>,
+      undefined,
+      "identity",
+      identityId,
     );
   }
 
@@ -116,10 +121,11 @@ export abstract class ToolHandler {
   protected formatSuccess(
     toolName: string,
     portal: string,
+    identityId: string,
     message: string,
     metadata: LogMetadata,
   ): MCPToolResponse {
-    this.logToolExecution(toolName, portal, { ...metadata, success: true });
+    this.logToolExecution(toolName, portal, identityId, { ...metadata, success: true });
     return {
       content: [{ type: "text", text: message }],
     };
@@ -131,10 +137,11 @@ export abstract class ToolHandler {
   protected formatError(
     toolName: string,
     portal: string,
+    identityId: string,
     error: unknown,
     metadata: LogMetadata,
   ): never {
-    this.logToolExecution(toolName, portal, {
+    this.logToolExecution(toolName, portal, identityId, {
       ...metadata,
       success: false,
       error: error instanceof Error ? error.message : String(error),

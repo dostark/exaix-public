@@ -11,7 +11,7 @@
 export interface IStructuredPlanFrontmatter {
   trace_id: string;
   request_id: string;
-  agent_id?: string;
+  identity_id?: string;
 }
 
 export interface IStructuredPlanStep {
@@ -70,7 +70,7 @@ export function parseStructuredPlanFromMarkdown(
   return {
     trace_id: frontmatter.trace_id,
     request_id: frontmatter.request_id,
-    agent: frontmatter.agent_id || "unknown",
+    agent: frontmatter.identity_id || "unknown",
     steps,
   };
 }

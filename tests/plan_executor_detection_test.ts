@@ -139,7 +139,7 @@ This is the plan body.
       const planContent = `---
 trace_id: "550e8400-e29b-41d4-a716-446655440000"
 request_id: "request-550e8400"
-agent_id: "senior-coder"
+identity_id: "senior-coder"
 status: approved
 created_at: "2025-12-03T10:00:00.000Z"
 ---
@@ -157,7 +157,7 @@ created_at: "2025-12-03T10:00:00.000Z"
       const frontmatter = parseYaml(yamlMatch[1]) as {
         trace_id?: string;
         request_id?: string;
-        agent_id?: string;
+        identity_id?: string;
         status?: string;
         [key: string]: unknown;
       };
@@ -165,7 +165,7 @@ created_at: "2025-12-03T10:00:00.000Z"
       // Assert
       assertEquals(frontmatter.trace_id, "550e8400-e29b-41d4-a716-446655440000");
       assertEquals(frontmatter.request_id, "request-550e8400");
-      assertEquals(frontmatter.agent_id, "senior-coder");
+      assertEquals(frontmatter.identity_id, "senior-coder");
       assertEquals(frontmatter.status, MemoryStatus.APPROVED);
     });
 
@@ -279,7 +279,7 @@ status: approved
       const frontmatter = parseYaml(yamlMatch[1]) as {
         trace_id?: string;
         request_id?: string;
-        agent_id?: string;
+        identity_id?: string;
         status?: string;
         [key: string]: unknown;
       };

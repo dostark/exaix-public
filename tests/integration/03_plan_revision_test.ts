@@ -51,7 +51,7 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
     await t.step("Setup: Create request and plan", async () => {
       const result = await env.createRequest(
         "Create a file reading utility",
-        { agentId: "senior-coder" },
+        { identityId: "senior-coder" },
       );
       traceId = result.traceId;
 

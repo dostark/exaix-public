@@ -88,7 +88,7 @@ export class AuditLogger {
           auditEntry.resource as string,
           auditEntry as Record<string, JSONValue>,
           auditEntry.trace_id as string,
-          null, // agentId
+          null, // identityId
         );
       } catch (error) {
         console.warn("[AuditLogger] Failed to write to audit database:", error);

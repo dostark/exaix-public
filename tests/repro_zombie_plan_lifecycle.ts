@@ -88,7 +88,7 @@ Deno.test("Reproduction: Zombie Plan Lifecycle in Manual Execution Mode", async 
     const planContent = `---
 trace_id: "${traceId}"
 request_id: "request-test"
-agent: "default"
+identity: "default"
 status: "approved"
 ---
 
@@ -109,7 +109,7 @@ Description: Intentionally fail for test
     const executionLoop = new ExecutionLoop({
       config,
       db,
-      agentId: "daemon",
+      identityId: "daemon",
     });
 
     const result = await executionLoop.processTask(planPath);

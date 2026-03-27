@@ -1,5 +1,5 @@
 ---
-agent: claude
+identity: claude
 scope: dev
 title: Claude RAG (Retrieval-Augmented Generation) Usage Guide
 short_summary: "How to use embeddings infrastructure for semantic search and context injection with Claude."

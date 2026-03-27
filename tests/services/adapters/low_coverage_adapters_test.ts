@@ -23,7 +23,7 @@ import { createStubConfig, createStubContext, createStubDb } from "../../test_he
 
 const TEST_DESCRIPTION = "test request";
 const TEST_TRACE_ID = "trace-1";
-const TEST_AGENT_ID = "agent-1";
+const TEST_IDENTITY_ID = "agent-1";
 
 const toPromise = <T>(value: T): Promise<T> => Promise.resolve(value);
 
@@ -34,7 +34,7 @@ function createRequestMetadata() {
     path: "Workspace/Requests/request.md",
     status: RequestStatus.PENDING,
     priority: RequestPriority.NORMAL,
-    agent: TEST_AGENT_ID,
+    identity: TEST_IDENTITY_ID,
     created: new Date().toISOString(),
     created_by: "tester",
     source: RequestSource.CLI as const,
@@ -112,9 +112,8 @@ Deno.test("JournalServiceAdapter query and distinct-values handling", async () =
     trace_id: TEST_TRACE_ID,
     actor: "cli",
     actor_type: null,
-    agent_id: TEST_AGENT_ID,
-    agent_kind: null,
-    identity_id: null,
+    identity_id: TEST_IDENTITY_ID,
+    identity_kind: null,
     action_type: "run",
     target: "target",
     payload: "{}",
@@ -160,10 +159,10 @@ Deno.test("AgentServiceAdapter list/health/log helpers", async () => {
   const existingDirRoot = await Deno.makeTempDir({ prefix: "agent-adapter-existing-" });
   try {
     const existingConfig = createMockConfig(existingDirRoot);
-    const agentsDir = join(existingDirRoot, existingConfig.paths.workspace, existingConfig.paths.identities);
-    await Deno.mkdir(agentsDir, { recursive: true });
-    await Deno.writeTextFile(join(agentsDir, "alpha.json"), "{}");
-    await Deno.mkdir(join(agentsDir, "beta"), { recursive: true });
+    const identitiesDir = join(existingDirRoot, existingConfig.paths.workspace, existingConfig.paths.identities);
+    await Deno.mkdir(identitiesDir, { recursive: true });
+    await Deno.writeTextFile(join(identitiesDir, "alpha.json"), "{}");
+    await Deno.mkdir(join(identitiesDir, "beta"), { recursive: true });
 
     const context = createStubContext({ config: createStubConfig(existingConfig), db: createStubDb() });
     const adapter = new AgentServiceAdapter(context);
@@ -189,13 +188,13 @@ Deno.test("LogServiceAdapter handles filtering, subscriptions, and export", asyn
     timestamp: new Date().toISOString(),
     level: LogLevel.INFO,
     message: "a",
-    context: { trace_id: "t1", correlation_id: "c1", agent_id: "ag1" },
+    context: { trace_id: "t1", correlation_id: "c1", identity_id: "ag1" },
   };
   const entryB: IStructuredLogEntry = {
     timestamp: new Date().toISOString(),
     level: LogLevel.ERROR,
     message: "b",
-    context: { trace_id: "t2", correlation_id: "c2", agent_id: "ag2" },
+    context: { trace_id: "t2", correlation_id: "c2", identity_id: "ag2" },
   };
 
   await Deno.writeTextFile(firstFile, `${JSON.stringify(entryA)}\nnot-json`);

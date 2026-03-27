@@ -27,11 +27,11 @@ export class JournalServiceAdapter implements IJournalService {
 
   /**
    * Get distinct values for a field.
-   * Currently supports: actor, agent_id, action_type, target.
+   * Currently supports: actor, identity_id, action_type, target.
    */
   async getDistinctValues(field: string): Promise<string[]> {
     // Only allow specific fields for security and performance
-    const allowedFields = ["actor", "agent_id", "action_type", "target"];
+    const allowedFields = ["actor", "identity_id", "action_type", "target"];
     if (!allowedFields.includes(field)) {
       return [];
     }

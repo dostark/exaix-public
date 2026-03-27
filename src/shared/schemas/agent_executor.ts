@@ -37,7 +37,7 @@ export type IExecutionContext = z.infer<typeof ExecutionContextSchema>;
 export const AgentExecutionOptionsSchema = z.object({
   identity_id: z.string().describe("Identity blueprint ID"),
   portal: z.string().describe("Portal name"),
-  security_mode: SecurityModeSchema,
+  security_mode: SecurityModeSchema.default(SecurityMode.SANDBOXED),
   timeout_ms: z.number().int().positive().default(300000).describe(
     "Execution timeout (default: 5 minutes)",
   ),
@@ -48,7 +48,10 @@ export const AgentExecutionOptionsSchema = z.object({
     "Enable post-execution git audit",
   ),
 });
-export type IAgentExecutionOptions = z.infer<
+export type IAgentExecutionOptions = z.output<
+  typeof AgentExecutionOptionsSchema
+>;
+export type IAgentExecutionOptionsInput = z.input<
   typeof AgentExecutionOptionsSchema
 >;
 

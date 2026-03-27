@@ -36,5 +36,5 @@ export interface ISkillMatchRequest {
   /** Raw request text for additional context */
   requestText?: string;
   /** ID of the agent making the request */
-  agentId?: string;
+  identityId?: string;
 }

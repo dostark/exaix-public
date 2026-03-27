@@ -26,7 +26,7 @@ async function createTestEnvironmentWithProposal(traceId?: string) {
 
   // Create a pending proposal
   const execution = new ExecutionMemoryBuilder("test-app", traceId ?? "550e8400-e29b-41d4-a716-446655440030")
-    .withAgent("senior-coder")
+    .withIdentity("senior-coder")
     .withSummary("Implemented repository pattern for database access with proper error handling.")
     .addContextFile("src/services/user.ts")
     .withChanges({
@@ -202,7 +202,7 @@ Deno.test("MemoryCommands: pendingApproveAll processes all", async () => {
     await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
     const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440035")
-      .withAgent("senior-coder")
+      .withIdentity("senior-coder")
       .addLesson("Repository pattern improves testability")
       .build();
 

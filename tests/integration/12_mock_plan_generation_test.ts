@@ -40,7 +40,7 @@ Always respond with:
     await t.step("End-to-end: Request file to plan generation", async () => {
       const requestResult = await env.createRequest(
         "Implement user authentication with JWT tokens",
-        { agentId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
+        { identityId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
       );
 
       requestPath = requestResult.filePath;
@@ -193,7 +193,7 @@ Always respond with:
 
     const requestResult = await env.createRequest(
       "Implement branch-targeted change",
-      { agentId: "senior-coder", targetBranch },
+      { identityId: "senior-coder", targetBranch },
     );
 
     const planPath = await processor.process(requestResult.filePath);

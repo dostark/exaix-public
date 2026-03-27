@@ -36,7 +36,7 @@ export interface ITraceData {
   requestId: string;
 
   /** Agent that executed the task */
-  agentId: string;
+  identityId: string;
 
   /** Execution status */
   status: ExecutionStatus;
@@ -147,7 +147,7 @@ export class MissionReporter {
         completed_at: traceData.completedAt.toISOString(),
         status: traceData.status,
         portal: this.extractPortalFromContext(traceData.contextFiles),
-        identity_id: traceData.agentId,
+        identity_id: traceData.identityId,
         summary: traceData.summary,
         context_files: traceData.contextFiles,
         context_portals: [this.extractPortalFromContext(traceData.contextFiles)],
@@ -172,7 +172,7 @@ export class MissionReporter {
         target: traceData.requestId,
         trace_id: traceData.traceId,
         metadata: {
-          identity_id: traceData.agentId,
+          identity_id: traceData.identityId,
           status: traceData.status,
           context_files_count: traceData.contextFiles.length,
           files_changed: gitStats.totalFilesChanged,

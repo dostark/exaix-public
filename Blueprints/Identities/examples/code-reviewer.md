@@ -1,5 +1,5 @@
 ---
-agent_id: "code-reviewer"
+identity_id: "code-reviewer"
 name: "Code Reviewer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory"]

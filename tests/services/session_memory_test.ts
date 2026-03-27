@@ -469,7 +469,7 @@ Deno.test("SessionMemoryService - saveInsight creates learning entry", async () 
   assertEquals(savedLearnings.length, 1);
   assertEquals(savedLearnings[0].title, "Test Insight");
   assertEquals(savedLearnings[0].status, MemoryStatus.PENDING);
-  assertEquals(savedLearnings[0].source, MemoryBankSource.AGENT);
+  assertEquals(savedLearnings[0].source, MemoryBankSource.IDENTITY);
 });
 
 Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped learning", async () => {

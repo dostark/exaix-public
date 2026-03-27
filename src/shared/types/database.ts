@@ -13,7 +13,7 @@
 export interface IJournalFilterOptions {
   traceId?: string;
   actionType?: string;
-  agentId?: string;
+  identityId?: string;
   limit?: number;
   since?: string; // ISO date string
   payload?: string; // LIKE pattern
@@ -32,9 +32,8 @@ export interface IActivityRecord {
   trace_id: string;
   actor: string | null;
   actor_type: string | null;
-  agent_id: string | null;
-  agent_kind: string | null;
   identity_id: string | null;
+  identity_kind?: string | null;
   action_type: string;
   target: string | null;
   payload: string;

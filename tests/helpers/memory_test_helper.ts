@@ -54,13 +54,13 @@ export async function createTestExecution(
   traceId: string,
   portal: string,
   opts: {
-    agent?: string;
+    identity?: string;
     summary?: string;
   } = {},
 ) {
   const builder = new ExecutionMemoryBuilder(portal, traceId);
 
-  builder.withAgent(opts.agent || "test-agent");
+  builder.withIdentity(opts.identity || "test-agent");
   builder.withSummary(opts.summary || `Test execution for ${portal}`);
   builder.addContextFile("src/main.ts");
   builder.withChanges({

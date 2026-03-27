@@ -37,7 +37,7 @@ Deno.test("RequestService.create: creates a request file with correct frontmatte
 
     assertEquals(metadata.status, RequestStatus.PENDING);
     assertEquals(metadata.priority, RequestPriority.NORMAL);
-    assertEquals(metadata.agent, "default");
+    assertEquals(metadata.identity, "default");
     assertEquals(metadata.source, RequestSource.CLI);
     assertEquals(metadata.created_by, "tester");
     assertEquals(metadata.subject, "Build the login page");
@@ -76,7 +76,7 @@ Deno.test("RequestService.create: uses provided options", async () => {
     const service = createTestRequestService(tempDir);
     const metadata = await service.create("Custom request", {
       priority: RequestPriority.HIGH,
-      agent: "coder",
+      identity: "coder",
       portal: "myportal",
       target_branch: "feature/test",
       model: "gpt-5",
@@ -86,7 +86,7 @@ Deno.test("RequestService.create: uses provided options", async () => {
     }, RequestSource.TUI);
 
     assertEquals(metadata.priority, RequestPriority.HIGH);
-    assertEquals(metadata.agent, "coder");
+    assertEquals(metadata.identity, "coder");
     assertEquals(metadata.portal, "myportal");
     assertEquals(metadata.target_branch, "feature/test");
     assertEquals(metadata.model, "gpt-5");
@@ -257,7 +257,7 @@ trace_id: test-id
 created: ${new Date().toISOString()}
 status: pending
 priority: extreme
-agent: default
+identity: default
 source: cli
 created_by: tester
 subject: Test
@@ -289,7 +289,7 @@ trace_id: test-id
 created: ${new Date().toISOString()}
 status: pending
 priority: normal
-agent: default
+identity: default
 source: webhook
 created_by: tester
 subject: Test
@@ -334,7 +334,7 @@ Deno.test("RequestService.show: returns default metadata for file without frontm
     assertEquals(shown.metadata.trace_id, "");
     assertEquals(shown.metadata.status, RequestStatus.PENDING);
     assertEquals(shown.metadata.priority, RequestPriority.NORMAL);
-    assertEquals(shown.metadata.agent, "default");
+    assertEquals(shown.metadata.identity, "default");
     assertEquals(shown.metadata.created_by, "unknown");
     assertEquals(shown.content.includes("Just markdown"), true);
   } finally {

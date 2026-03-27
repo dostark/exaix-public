@@ -49,7 +49,7 @@ interface CriterionScoresMap {
  */
 export interface AgentRunner {
   run(
-    agentId: string,
+    identityId: string,
     request: { userPrompt: string; context?: IAgentContext },
   ): Promise<{ content: string }>;
 }
@@ -70,7 +70,7 @@ export class JudgeEvaluator implements JudgeInvoker {
    * Evaluate content using a judge agent
    */
   async evaluate(
-    agentId: string,
+    identityId: string,
     content: string,
     criteria: EvaluationCriterion[],
     context?: string,
@@ -79,7 +79,7 @@ export class JudgeEvaluator implements JudgeInvoker {
     const prompt = buildEvaluationPrompt(content, criteria, context);
 
     // Invoke judge agent
-    const response = await this.agentRunner.run(agentId, {
+    const response = await this.agentRunner.run(identityId, {
       userPrompt: prompt,
       context: {
         evaluationMode: true,

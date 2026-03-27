@@ -113,7 +113,7 @@ Deno.test("Claude enhancements: verify README.md has Quick Start Guide", async (
   assert(readmeMd.includes("7. Test Retrieval"), "Should have step 7");
 
   // Verify frontmatter template
-  assert(readmeMd.includes("agent:"), "Should include frontmatter template with agent field");
+  assert(readmeMd.includes("identity:"), "Should include frontmatter template with agent field");
   assert(readmeMd.includes("scope:"), "Should include frontmatter template with scope field");
   assert(readmeMd.includes("short_summary:"), "Should include frontmatter template with short_summary field");
 
@@ -136,7 +136,7 @@ Deno.test("Claude enhancements: verify frontmatter schema compliance", async () 
     const fm = parse(fmMatch[1]) as JSONObject;
 
     // Verify required fields
-    assert(fm.agent, `${filePath} should have 'agent' field`);
+    assert(fm.identity, `${filePath} should have 'identity' field`);
     assert(fm.scope, `${filePath} should have 'scope' field`);
     assert(fm.title, `${filePath} should have 'title' field`);
     assert(fm.short_summary, `${filePath} should have 'short_summary' field`);

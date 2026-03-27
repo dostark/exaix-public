@@ -26,13 +26,13 @@ export class GitCreateBranchTool extends ToolHandler {
     const validatedArgs = GitCreateBranchToolArgsSchema.parse(args) as {
       portal: string;
       branch: string;
-      agent_id: string;
+      identity_id: string;
     };
-    const { portal, branch, agent_id } = validatedArgs;
+    const { portal, branch, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.GIT);
+      this.validatePermission(portal, identity_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -58,11 +58,12 @@ export class GitCreateBranchTool extends ToolHandler {
       return this.formatSuccess(
         "git_create_branch",
         portal,
+        identity_id,
         `Branch '${branch}' created and checked out successfully in portal '${portal}'`,
-        { branch, agent_id },
+        { branch, identity_id },
       );
     } catch (error) {
-      this.formatError("git_create_branch", portal, error, { branch, agent_id });
+      this.formatError("git_create_branch", portal, identity_id, error, { branch, identity_id });
     }
   }
 
@@ -81,12 +82,12 @@ export class GitCreateBranchTool extends ToolHandler {
             type: "string",
             description: "Branch name (must start with feat/, fix/, docs/, chore/, refactor/, or test/)",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "branch", "agent_id"],
+        required: ["portal", "branch", "identity_id"],
       },
     };
   }

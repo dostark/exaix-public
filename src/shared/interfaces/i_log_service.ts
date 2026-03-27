@@ -67,7 +67,7 @@ export interface ILogService {
   /**
    * Get logs by agent ID.
    */
-  getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]>;
+  getLogsByAgentId(identityId: string): Promise<IStructuredLogEntry[]>;
 
   /**
    * Export logs to a JSONL file.

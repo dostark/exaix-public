@@ -75,7 +75,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -104,7 +104,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -119,7 +119,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -145,7 +145,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -165,7 +165,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -184,7 +184,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -201,7 +201,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -225,7 +225,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -251,7 +251,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
           PortalOperation.WRITE,
           PortalOperation.GIT,
         ],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -270,7 +270,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 
@@ -300,7 +300,7 @@ describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
       const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
-        agents_allowed: ["*"],
+        identities_allowed: ["*"],
         target_path: portalDir,
       };
 

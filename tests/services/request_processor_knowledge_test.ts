@@ -223,13 +223,13 @@ Run the flow`;
   return filePath;
 }
 
-function writeAgentBlueprint(blueprintsPath: string, agentId = "test-agent"): void {
+function writeAgentBlueprint(blueprintsPath: string, identityId = "test-agent"): void {
   const content = `---
-name: ${agentId}
+name: ${identityId}
 description: Test agent
 ---
 You are a helpful assistant. When asked to do work, return a structured plan.`;
-  Deno.writeTextFileSync(join(blueprintsPath, `${agentId}.md`), content);
+  Deno.writeTextFileSync(join(blueprintsPath, `${identityId}.md`), content);
 }
 
 // ============================================================================

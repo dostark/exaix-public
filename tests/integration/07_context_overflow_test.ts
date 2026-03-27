@@ -139,7 +139,7 @@ Deno.test("Integration: Context Overflow - Large file references", async (t) => 
         const loop = new ExecutionLoop({
           config: env.config,
           db: env.db,
-          agentId: "test-agent",
+          identityId: "test-agent",
         });
 
         const result = await loop.processTask(activePath);

@@ -226,7 +226,7 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
     ".exa",
     "Memory",
     "Portals",
-    "Blueprints/Agents",
+    "Blueprints/Identities",
   ];
   for (const dir of requiredDirs) {
     await Deno.mkdir(join(tempDir, dir), { recursive: true });

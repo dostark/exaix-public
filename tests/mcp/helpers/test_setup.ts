@@ -20,7 +20,7 @@ import type { ICliApplicationContext } from "../../../src/cli/cli_context.ts";
 export interface IToolPermissionOptions {
   portalAlias?: string;
   operations?: PortalOperation[];
-  agentId?: string;
+  identityId?: string;
   fileContent?: Record<string, string>;
   initGit?: boolean;
 }
@@ -38,7 +38,7 @@ export interface IPortalTestOptions {
   createFiles?: boolean;
   fileContent?: Record<string, string>;
   permissions?: {
-    agents_allowed?: string[];
+    identities_allowed?: string[];
     operations?: string[];
   };
   initGit?: boolean;
@@ -94,7 +94,7 @@ async function initTestEnv(options: IPortalTestOptions & { prefix?: string }) {
   const portalConfig = {
     alias: portalAlias,
     target_path: portalPath,
-    agents_allowed: permissions.agents_allowed,
+    identities_allowed: permissions.identities_allowed,
     operations: permissions.operations,
   };
 
@@ -158,7 +158,7 @@ export async function initToolPermissionTest(
   const {
     portalAlias = "TestPortal",
     operations = [PortalOperation.READ],
-    agentId = "test-agent",
+    identityId = "test-agent",
     fileContent = {},
     initGit = false,
   } = options;
@@ -168,7 +168,7 @@ export async function initToolPermissionTest(
     fileContent,
     initGit,
     permissions: {
-      agents_allowed: [agentId],
+      identities_allowed: [identityId],
       operations,
     },
     prefix: "mcp-perm-test-",
@@ -177,7 +177,7 @@ export async function initToolPermissionTest(
   const permissions: IPortalPermissions = {
     alias: portalAlias,
     target_path: env.portalPath,
-    agents_allowed: [agentId],
+    identities_allowed: [identityId],
     operations,
   };
 

@@ -50,7 +50,7 @@ export interface IToolRegistryConfig {
   config: Config;
   db?: DatabaseService;
   traceId?: string;
-  agentId?: string;
+  identityId?: string;
   baseDir?: string;
 }
 
@@ -270,7 +270,7 @@ export class ToolRegistry {
   private config: Config;
   private db?: DatabaseService;
   private traceId?: string;
-  private agentId?: string;
+  private identityId?: string;
   private pathResolver: PathResolver;
   private tools: Map<string, ITool>;
   private baseDir: string;
@@ -291,7 +291,7 @@ export class ToolRegistry {
     });
     this.db = options?.db;
     this.traceId = options?.traceId ?? "tool-registry";
-    this.agentId = options?.agentId ?? "system";
+    this.identityId = options?.identityId ?? "system";
     // Default baseDir to system root if not provided. Resolve it to ensure absolute path.
     this.baseDir = options?.baseDir ? resolve(options.baseDir) : resolve(this.config.system.root);
 
@@ -682,7 +682,7 @@ export class ToolRegistry {
       params,
       toolRegistry: this,
       traceId: this.traceId,
-      agentId: this.agentId,
+      identityId: this.identityId,
     };
 
     await this.pipeline.execute(context, async () => {
@@ -825,10 +825,10 @@ export class ToolRegistry {
             attempted_path: path,
             error: error.message,
             trace_id: this.traceId ?? null,
-            agent_id: this.agentId ?? null,
+            identity_id: this.identityId ?? null,
           },
           this.traceId,
-          this.agentId,
+          this.identityId,
         );
 
         throw new Error(`Access denied: Path traversal detected`);
@@ -845,10 +845,10 @@ export class ToolRegistry {
             resolved_path: error.message.includes("->") ? error.message.split("->")[1]?.trim() : null,
             error: error.message,
             trace_id: this.traceId ?? null,
-            agent_id: this.agentId ?? null,
+            identity_id: this.identityId ?? null,
           },
           this.traceId,
-          this.agentId,
+          this.identityId,
         );
 
         const allowedRootsList = allowedRoots.join(", ");
@@ -864,10 +864,10 @@ export class ToolRegistry {
           input_path: path,
           error: error instanceof Error ? error.message : String(error),
           trace_id: this.traceId ?? null,
-          agent_id: this.agentId ?? null,
+          identity_id: this.identityId ?? null,
         },
         this.traceId,
-        this.agentId,
+        this.identityId,
       );
 
       throw error;
@@ -938,14 +938,14 @@ export class ToolRegistry {
 
     try {
       this.db.logActivity(
-        ActivityActor.AGENT,
+        ActivityActor.IDENTITY,
         actionType,
         (payload.params as Record<string, JSONValue>)?.path as string ||
           (payload.params as Record<string, JSONValue>)?.command as string ||
           null,
         payload,
         this.traceId,
-        this.agentId,
+        this.identityId,
       );
     } catch (error) {
       console.error("Failed to log tool activity:", error);

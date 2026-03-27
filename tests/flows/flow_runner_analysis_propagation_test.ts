@@ -34,7 +34,7 @@ import { PlanStatus } from "../../src/shared/status/plan_status.ts";
 
 class StubAgentExecutor implements IAgentExecutor {
   async run(
-    _agentId: string,
+    _identityId: string,
     _req: IFlowStepRequest,
   ): Promise<IAgentExecutionResult> {
     return await Promise.resolve({

@@ -41,7 +41,7 @@ export interface IAggregatedConfidence {
   weighted: number;
   level: ConfidenceAssessmentLevel;
   sources: Array<{
-    agentId: string;
+    identityId: string;
     score: number;
     weight: number;
   }>;
@@ -233,7 +233,7 @@ export class ConfidenceScorer {
 
     const blueprint: IBlueprint = {
       systemPrompt: "You are an expert at assessing AI response confidence. Provide structured JSON output.",
-      agentId: "confidence-assessor",
+      identityId: "confidence-assessor",
     };
 
     const parsedRequest: IParsedRequest = {
@@ -364,7 +364,7 @@ export class ConfidenceScorer {
    * Aggregate confidence from multiple sources
    */
   aggregate(
-    confidences: Array<{ agentId: string; confidence: ConfidenceAssessment; weight?: number }>,
+    confidences: Array<{ identityId: string; confidence: ConfidenceAssessment; weight?: number }>,
   ): IAggregatedConfidence {
     if (confidences.length === 0) {
       return {
@@ -398,7 +398,7 @@ export class ConfidenceScorer {
       weighted,
       level: this.scoreToLevel(weighted),
       sources: confidences.map((c) => ({
-        agentId: c.agentId,
+        identityId: c.identityId,
         score: c.confidence.score,
         weight: c.weight ?? 1,
       })),

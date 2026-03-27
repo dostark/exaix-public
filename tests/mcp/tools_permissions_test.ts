@@ -26,7 +26,7 @@ async function withToolPermission(
     operations?: PortalOperation[];
     fileContent?: Record<string, string>;
     initGit?: boolean;
-    agentId?: string;
+    identityId?: string;
   },
   fn: (ctx: { context: ICliApplicationContext; permissions: PortalPermissionsService }) => Promise<void>,
 ) {
@@ -62,7 +62,7 @@ Deno.test("MCP Tools: read_file requires read permission", async () => {
       const result = await tool.execute({
         portal: "TestPortal",
         path: "test.txt",
-        agent_id: "test-agent",
+        identity_id: "test-agent",
       });
 
       assertExists(result.content);
@@ -84,7 +84,7 @@ Deno.test("MCP Tools: read_file rejects when read permission denied", async () =
           await tool.execute({
             portal: "TestPortal",
             path: "test.txt",
-            agent_id: "test-agent",
+            identity_id: "test-agent",
           });
         },
         Error,
@@ -110,7 +110,7 @@ Deno.test("MCP Tools: write_file requires write permission", async () => {
         portal: "TestPortal",
         path: "test.txt",
         content: "new content",
-        agent_id: "test-agent",
+        identity_id: "test-agent",
       });
 
       assertExists(result.content);
@@ -132,7 +132,7 @@ Deno.test("MCP Tools: write_file rejects when write permission denied", async ()
             portal: "TestPortal",
             path: "test.txt",
             content: "new content",
-            agent_id: "test-agent",
+            identity_id: "test-agent",
           });
         },
         Error,
@@ -157,7 +157,7 @@ Deno.test("MCP Tools: git_status requires git permission", async () => {
 
       const result = await tool.execute({
         portal: "TestPortal",
-        agent_id: "test-agent",
+        identity_id: "test-agent",
       });
 
       assertExists(result.content);
@@ -177,7 +177,7 @@ Deno.test("MCP Tools: git_status rejects when git permission denied", async () =
         async () => {
           await tool.execute({
             portal: "TestPortal",
-            agent_id: "test-agent",
+            identity_id: "test-agent",
           });
         },
         Error,
@@ -194,7 +194,7 @@ Deno.test("MCP Tools: git_status rejects when git permission denied", async () =
 Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
   await withToolPermission(
     {
-      agentId: "allowed-agent",
+      identityId: "allowed-agent",
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
       fileContent: { "test.txt": "content" },
     },
@@ -206,7 +206,7 @@ Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
           await tool.execute({
             portal: "TestPortal",
             path: "test.txt",
-            agent_id: "unauthorized-agent",
+            identity_id: "unauthorized-agent",
           });
         },
         Error,
@@ -219,7 +219,7 @@ Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
 Deno.test("MCP Tools: allows wildcard agent access", async () => {
   await withToolPermission(
     {
-      agentId: "*",
+      identityId: "*",
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
       fileContent: { "test.txt": "content" },
     },
@@ -229,7 +229,7 @@ Deno.test("MCP Tools: allows wildcard agent access", async () => {
       const result = await tool.execute({
         portal: "TestPortal",
         path: "test.txt",
-        agent_id: "any-agent",
+        identity_id: "any-agent",
       });
 
       assertExists(result.content);

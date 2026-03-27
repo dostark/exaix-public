@@ -450,8 +450,8 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
         case LogGroupingMode.TRACE:
           key = entry.context.trace_id || "no-trace";
           break;
-        case LogGroupingMode.AGENT:
-          key = entry.context.agent_id || "no-agent";
+        case LogGroupingMode.IDENTITY:
+          key = entry.context.identity_id || "no-agent";
           break;
         case LogGroupingMode.LEVEL:
           key = entry.level;
@@ -480,7 +480,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
         return STRUCTURED_LOG_ICONS.correlation;
       case LogGroupingMode.TRACE:
         return STRUCTURED_LOG_ICONS.trace;
-      case LogGroupingMode.AGENT:
+      case LogGroupingMode.IDENTITY:
         return STRUCTURED_LOG_ICONS.agent;
       case LogGroupingMode.LEVEL:
         return STRUCTURED_LOG_ICONS[LogLevel.DEBUG] || "📊";
@@ -500,8 +500,8 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
     if (entry.context.trace_id) {
       contextStr += ` trace=${entry.context.trace_id.slice(0, 8)}`;
     }
-    if (entry.context.agent_id) {
-      contextStr += ` agent=${entry.context.agent_id}`;
+    if (entry.context.identity_id) {
+      contextStr += ` agent=${entry.context.identity_id}`;
     }
     if (entry.context.operation) {
       contextStr += ` op=${entry.context.operation}`;
@@ -616,7 +616,7 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
     const modes = [
       LogGroupingMode.CORRELATION,
       LogGroupingMode.TRACE,
-      LogGroupingMode.AGENT,
+      LogGroupingMode.IDENTITY,
       LogGroupingMode.LEVEL,
       LogGroupingMode.TIME,
       LogGroupingMode.NONE,

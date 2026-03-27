@@ -1,5 +1,5 @@
 ---
-agent_id: "qa-engineer"
+identity_id: "qa-engineer"
 name: "QA Engineer"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "run_command", "grep_search", "deno_task", "fetch_url", "git_info"]

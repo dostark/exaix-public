@@ -109,7 +109,7 @@ export async function handleRequestCreate(
     const identityId = options.identity;
 
     const createOptions = {
-      agent: options.flow ? undefined : identityId,
+      identity: options.flow ? undefined : identityId,
       priority: options.priority as RequestPriority,
       portal: options.portal,
       target_branch: options.targetBranch,
@@ -188,7 +188,7 @@ export async function handleRequestList(
           toSafeJson({
             status: req.status,
             subject: req.subject,
-            agent: req.flow ? undefined : req.agent,
+            identity: req.flow ? undefined : req.identity,
             flow: req.flow,
             target_branch: req.target_branch,
             created: `${req.created_by} @ ${req.created}`,
@@ -220,7 +220,7 @@ export async function handleRequestShow(
       status: metadata.status,
       subject: metadata.subject,
       priority: metadata.priority,
-      agent: metadata.flow ? undefined : metadata.agent,
+      identity: metadata.flow ? undefined : metadata.identity,
       flow: metadata.flow,
       target_branch: metadata.target_branch,
       created: `${metadata.created_by} @ ${metadata.created}`,
@@ -265,7 +265,7 @@ function printRequestResult(
     priority: RequestPriority;
     trace_id: string;
     filename: string;
-    agent?: string;
+    identity?: string;
     flow?: string;
     status: string;
     subject?: string;
@@ -288,7 +288,7 @@ function printRequestResult(
         filename: result.filename,
         priority: `${priorityIcon} ${result.priority}`,
         subject: result.subject,
-        agent: result.flow ? undefined : result.agent,
+        identity: result.flow ? undefined : result.identity,
         flow: result.flow,
         status: result.status,
       }) as Record<string, JSONValue>,

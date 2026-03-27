@@ -52,26 +52,31 @@ async function teardownTest() {
 Deno.test("[blueprint] create - generates valid blueprint file", async () => {
   await setupTest();
   try {
-    const agentId = `test-agent-${Date.now()}`;
-    const result = await commands.create(agentId, {
+    const identityId = `test-agent-${Date.now()}`;
+    const result = await commands.create(identityId, {
       name: "Test Agent",
       model: "ollama:codellama:13b",
     });
 
     // Verify result structure
     assertExists(result);
-    assertEquals(result.agent_id, agentId);
+    assertEquals(result.identity_id, identityId);
     assertEquals(result.name, "Test Agent");
     assertEquals(result.model, "ollama:codellama:13b");
 
     // Verify file exists
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", `${agentId}.md`);
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Identities",
+      `${identityId}.md`,
+    );
     assertEquals(await exists(blueprintPath), true);
 
     // Verify file content
     const content = await Deno.readTextFile(blueprintPath);
     assertStringIncludes(content, "+++");
-    assertStringIncludes(content, `agent_id = "${agentId}"`);
+    assertStringIncludes(content, `identity_id = "${identityId}"`);
     assertStringIncludes(content, 'name = "Test Agent"');
     assertStringIncludes(content, 'model = "ollama:codellama:13b"');
   } finally {
@@ -88,7 +93,7 @@ Deno.test("[blueprint] create - validates against schema", async () => {
     });
 
     // Verify all required fields present
-    assertExists(result.agent_id);
+    assertExists(result.identity_id);
     assertExists(result.name);
     assertExists(result.model);
     assertExists(result.created);
@@ -133,7 +138,7 @@ Deno.test("[blueprint] create - loads system prompt from file", async () => {
     const blueprintPath = join(
       testEnv.config.system.root,
       testEnv.config.paths.blueprints,
-      "Agents",
+      "Identities",
       "custom-agent.md",
     );
     const content = await Deno.readTextFile(blueprintPath);
@@ -143,7 +148,7 @@ Deno.test("[blueprint] create - loads system prompt from file", async () => {
   }
 });
 
-Deno.test("[blueprint] create - rejects reserved agent_id names", async () => {
+Deno.test("[blueprint] create - rejects reserved identity_id names", async () => {
   await setupTest();
   try {
     await assertRejects(
@@ -161,7 +166,7 @@ Deno.test("[blueprint] create - rejects reserved agent_id names", async () => {
   }
 });
 
-Deno.test("[blueprint] create - rejects duplicate agent_id", async () => {
+Deno.test("[blueprint] create - rejects duplicate identity_id", async () => {
   await setupTest();
   try {
     // Create first blueprint
@@ -186,7 +191,7 @@ Deno.test("[blueprint] create - rejects duplicate agent_id", async () => {
   }
 });
 
-Deno.test("[blueprint] create - rejects invalid agent_id format", async () => {
+Deno.test("[blueprint] create - rejects invalid identity_id format", async () => {
   await setupTest();
   try {
     await assertRejects(
@@ -219,7 +224,7 @@ Deno.test("[blueprint] create - logs to IActivity Journal", async () => {
     const activities = testEnv.db.getActivitiesByActionType("blueprint.created");
 
     assertEquals(activities.length >= 1, true);
-    // The target field should contain the agent_id
+    // The target field should contain the identity_id
     const activity = activities.find((a) => a.target === "journal-test");
     assertExists(activity);
   } finally {
@@ -242,9 +247,9 @@ Deno.test("[blueprint] list - shows all blueprints", async () => {
     const blueprints = await commands.list();
 
     assertEquals(blueprints.length >= 3, true);
-    assertEquals(blueprints.some((b) => b.agent_id === "agent-1"), true);
-    assertEquals(blueprints.some((b) => b.agent_id === "agent-2"), true);
-    assertEquals(blueprints.some((b) => b.agent_id === "agent-3"), true);
+    assertEquals(blueprints.some((b) => b.identity_id === "agent-1"), true);
+    assertEquals(blueprints.some((b) => b.identity_id === "agent-2"), true);
+    assertEquals(blueprints.some((b) => b.identity_id === "agent-3"), true);
   } finally {
     await teardownTest();
   }
@@ -259,11 +264,11 @@ Deno.test("[blueprint] list - returns metadata", async () => {
     });
 
     const blueprints = await commands.list();
-    const blueprint = blueprints.find((b) => b.agent_id === "meta-test");
+    const blueprint = blueprints.find((b) => b.identity_id === "meta-test");
 
     assertExists(blueprint);
     if (!blueprint) throw new Error("Blueprint not found");
-    assertEquals(blueprint.agent_id, "meta-test");
+    assertEquals(blueprint.identity_id, "meta-test");
     assertEquals(blueprint.name, "Meta Test Agent");
     assertEquals(blueprint.model, "anthropic:claude-sonnet");
     assertExists(blueprint.created);
@@ -279,11 +284,11 @@ Deno.test("[blueprint] list - parses YAML inline arrays with invalid JSON", asyn
     const blueprintPath = join(
       testEnv.config.system.root,
       testEnv.config.paths.blueprints,
-      "Agents",
+      "Identities",
       `${TEST_BLUEPRINT_YAML_AGENT_ID}.md`,
     );
     const yamlContent = `---
-agent_id: "${TEST_BLUEPRINT_YAML_AGENT_ID}"
+identity_id: "${TEST_BLUEPRINT_YAML_AGENT_ID}"
 name: "${TEST_BLUEPRINT_YAML_NAME}"
 model: "${TEST_BLUEPRINT_YAML_MODEL}"
 capabilities: [${TEST_BLUEPRINT_YAML_CAPABILITY_ONE}, ${TEST_BLUEPRINT_YAML_CAPABILITY_TWO}]
@@ -297,7 +302,7 @@ Inline YAML array test
     await Deno.writeTextFile(blueprintPath, yamlContent);
 
     const blueprints = await commands.list();
-    const blueprint = blueprints.find((b) => b.agent_id === TEST_BLUEPRINT_YAML_AGENT_ID);
+    const blueprint = blueprints.find((b) => b.identity_id === TEST_BLUEPRINT_YAML_AGENT_ID);
 
     assertExists(blueprint);
     if (!blueprint) throw new Error("Blueprint not found");
@@ -308,13 +313,13 @@ Inline YAML array test
   }
 });
 
-Deno.test("[blueprint] list - skips YAML frontmatter missing agent_id", async () => {
+Deno.test("[blueprint] list - skips YAML frontmatter missing identity_id", async () => {
   await setupTest();
   try {
     const blueprintPath = join(
       testEnv.config.system.root,
       testEnv.config.paths.blueprints,
-      "Agents",
+      "Identities",
       `${TEST_BLUEPRINT_MISSING_AGENT_ID}.md`,
     );
     const yamlContent = `---
@@ -325,7 +330,7 @@ created_by: "${TEST_BLUEPRINT_YAML_CREATED_BY}"
 version: "${TEST_BLUEPRINT_YAML_VERSION}"
 ---
 
-Missing agent_id
+Missing identity_id
 `;
     await Deno.writeTextFile(blueprintPath, yamlContent);
 
@@ -351,10 +356,10 @@ Deno.test("[blueprint] show - displays full blueprint", async () => {
     const details = await commands.show("show-test");
 
     assertExists(details);
-    assertEquals(details.agent_id, "show-test");
+    assertEquals(details.identity_id, "show-test");
     assertExists(details.content);
     assertStringIncludes(details.content, "+++");
-    assertStringIncludes(details.content, 'agent_id = "show-test"');
+    assertStringIncludes(details.content, 'identity_id = "show-test"');
   } finally {
     await teardownTest();
   }
@@ -400,14 +405,14 @@ Deno.test("[blueprint] validate - detects missing required fields", async () => 
   await setupTest();
   try {
     // Manually create invalid blueprint
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", "invalid.md");
+    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Identities", "invalid.md");
     await Deno.writeTextFile(
       blueprintPath,
       `+++
 name = "Invalid"
 +++
 
-Content without agent_id
+Content without identity_id
 `,
     );
 
@@ -415,7 +420,7 @@ Content without agent_id
 
     assertEquals(result.valid, false);
     assertEquals(result.errors.length > 0, true);
-    assertStringIncludes(result.errors.join(" "), "agent_id");
+    assertStringIncludes(result.errors.join(" "), "identity_id");
   } finally {
     await teardownTest();
   }
@@ -425,11 +430,11 @@ Deno.test("[blueprint] validate - checks system prompt format", async () => {
   await setupTest();
   try {
     // Create blueprint with missing output format tags
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", "no-tags.md");
+    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Identities", "no-tags.md");
     await Deno.writeTextFile(
       blueprintPath,
       `+++
-agent_id = "no-tags"
+identity_id = "no-tags"
 name = "No Tags"
 model = "ollama:llama3.2"
 created = "2025-12-02T10:00:00Z"
@@ -465,7 +470,12 @@ Deno.test("[blueprint] remove - deletes blueprint file", async () => {
       model: "ollama:llama3.2",
     });
 
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", "remove-test.md");
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Identities",
+      "remove-test.md",
+    );
     assertEquals(await exists(blueprintPath), true);
 
     await commands.remove("remove-test", { force: true });
@@ -491,7 +501,7 @@ Deno.test("[blueprint] remove - logs to IActivity Journal", async () => {
 
     const activities = testEnv.db.getActivitiesByActionType("blueprint.removed");
 
-    // The target field should contain the agent_id
+    // The target field should contain the identity_id
     const activity = activities.find((a) => a.target === "remove-journal");
     assertExists(activity);
   } finally {
@@ -718,7 +728,7 @@ Deno.test("[blueprint] create - handles empty description gracefully", async () 
     });
 
     assertExists(result.path);
-    assertEquals(result.agent_id, "no-desc");
+    assertEquals(result.identity_id, "no-desc");
   } finally {
     await teardownTest();
   }
@@ -740,7 +750,7 @@ Deno.test("[blueprint] validate - reports missing frontmatter", async () => {
     const blueprintPath = join(
       testEnv.config.system.root,
       testEnv.config.paths.blueprints,
-      "Agents",
+      "Identities",
       `${TEST_BLUEPRINT_NO_FRONTMATTER_ID}.md`,
     );
     await Deno.writeTextFile(blueprintPath, TEST_BLUEPRINT_NO_FRONTMATTER_CONTENT);
@@ -756,7 +766,12 @@ Deno.test("[blueprint] validate - reports missing frontmatter", async () => {
 Deno.test("[blueprint] show - throws on blueprint with invalid frontmatter", async () => {
   await setupTest();
   try {
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", "bad-format.md");
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Identities",
+      "bad-format.md",
+    );
     await Deno.writeTextFile(
       blueprintPath,
       `Not a valid blueprint format\nNo frontmatter`,

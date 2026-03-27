@@ -83,7 +83,7 @@ export class JournalFormatter {
           return [
             colors.gray(timestamp),
             action,
-            a.agent_id || a.actor || "-",
+            a.identity_id || a.actor || "-",
             colors.gray(a.trace_id.slice(0, 8)), // Truncate trace ID
             this.truncateText(a.target || "-", 30),
           ];
@@ -110,7 +110,7 @@ export class JournalFormatter {
     for (const activity of activities) {
       const timestamp = new Date(activity.timestamp).toLocaleString();
       const traceId = activity.trace_id.slice(0, 8);
-      const agent = activity.agent_id || activity.actor || "-";
+      const agent = activity.identity_id || activity.actor || "-";
 
       // Color code action
       const action = this.styleAction(activity.action_type);

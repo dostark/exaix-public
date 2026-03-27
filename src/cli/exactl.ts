@@ -139,7 +139,7 @@ function logReviewListItem(cs: IReviewMetadata) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
   const requestTitle = cs.request_subject ? `"${cs.request_subject}"` : cs.request_id;
   const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : undefined;
-  const agentInfo = cs.request_agent || cs.agent_id;
+  const agentInfo = cs.request_identity || cs.identity_id;
   const portalInfo = cs.request_portal || cs.portal || "workspace";
   const typeInfo = cs.type || "code";
   const trace = formatTraceShort(cs.trace_id);
@@ -196,7 +196,7 @@ function renderReviewShowSummary(cs: ReviewDetails) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
   const requestTitle = cs.request_subject ? `"${cs.request_subject}"` : "Untitled Request";
   const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
-  const agentInfo = cs.request_agent || cs.agent_id;
+  const agentInfo = cs.request_identity || cs.identity_id;
   const portalInfo = cs.request_portal || cs.portal || "workspace";
 
   display.info(`${statusEmoji} review.show`, cs.request_id, {
@@ -954,9 +954,9 @@ export const __test_command = new Command()
             "Template (default, coder, reviewer, architect, researcher, gemini, mock)",
           )
           .action(async (options, ...args: string[]) => {
-            const agentId = args[0];
+            const identityId = args[0];
             try {
-              const result = await blueprintCommands.create(agentId, {
+              const result = await blueprintCommands.create(identityId, {
                 name: options.name,
                 model: options.model,
                 description: options.description,
@@ -965,7 +965,7 @@ export const __test_command = new Command()
                 systemPromptFile: options.systemPromptFile,
                 template: options.template,
               });
-              display.info("blueprint.created", result.agent_id, {
+              display.info("blueprint.created", result.identity_id, {
                 name: result.name,
                 model: result.model,
                 path: result.path,
@@ -995,7 +995,7 @@ export const __test_command = new Command()
               }
               display.info("blueprint.list", "blueprints", { count: blueprints.length });
               for (const blueprint of blueprints) {
-                display.info(blueprint.agent_id, blueprint.name, {
+                display.info(blueprint.identity_id, blueprint.name, {
                   model: blueprint.model,
                   capabilities: blueprint.capabilities?.join(", ") || "general",
                   created: blueprint.created,
@@ -1014,10 +1014,10 @@ export const __test_command = new Command()
         new Command()
           .description("Show blueprint details")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0];
+            const identityId = args[0];
             try {
-              const blueprint = await blueprintCommands.show(agentId);
-              display.info("blueprint.show", blueprint.agent_id, {
+              const blueprint = await blueprintCommands.show(identityId);
+              display.info("blueprint.show", blueprint.identity_id, {
                 name: blueprint.name,
                 model: blueprint.model,
                 capabilities: blueprint.capabilities?.join(", ") || "general",
@@ -1039,16 +1039,16 @@ export const __test_command = new Command()
         new Command()
           .description("Validate blueprint format")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0];
+            const identityId = args[0];
             try {
-              const result = await blueprintCommands.validate(agentId);
+              const result = await blueprintCommands.validate(identityId);
               if (result.valid) {
-                display.info("blueprint.valid", agentId, {
+                display.info("blueprint.valid", identityId, {
                   status: "Valid ✓",
                   warnings: result.warnings?.length || 0,
                 });
               } else {
-                display.error("blueprint.invalid", agentId, {
+                display.error("blueprint.invalid", identityId, {
                   status: "Invalid ✗",
                   errors: result.errors,
                 });
@@ -1067,9 +1067,9 @@ export const __test_command = new Command()
         new Command()
           .description("Edit blueprint in $EDITOR")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0];
+            const identityId = args[0];
             try {
-              await blueprintCommands.edit(agentId);
+              await blueprintCommands.edit(identityId);
             } catch (error) {
               display.error("cli.error", "blueprint edit", {
                 message: error instanceof Error ? error.message : "Unknown error",
@@ -1084,10 +1084,10 @@ export const __test_command = new Command()
           .description("Remove a blueprint")
           .option("--force", "Skip confirmation")
           .action(async (options, ...args: string[]) => {
-            const agentId = args[0];
+            const identityId = args[0];
             try {
-              await blueprintCommands.remove(agentId, { force: options.force });
-              display.info("blueprint.removed", agentId, { status: "Removed ✓" });
+              await blueprintCommands.remove(identityId, { force: options.force });
+              display.info("blueprint.removed", identityId, { status: "Removed ✓" });
             } catch (error) {
               display.error("cli.error", "blueprint remove", {
                 message: error instanceof Error ? error.message : "Unknown error",
@@ -1106,7 +1106,7 @@ export const __test_command = new Command()
           }
           display.info("blueprint.list", "blueprints", { count: blueprints.length });
           for (const blueprint of blueprints) {
-            display.info(blueprint.agent_id, blueprint.name, {
+            display.info(blueprint.identity_id, blueprint.name, {
               model: blueprint.model,
               capabilities: blueprint.capabilities?.join(", ") || "general",
             });
@@ -1117,9 +1117,9 @@ export const __test_command = new Command()
         "rm <agent-id>",
         new Command().description("Alias for 'remove'").option("--force", "Skip confirmation").action(
           async (options, ...args: string[]) => {
-            const agentId = args[0];
-            await blueprintCommands.remove(agentId, { force: options.force });
-            display.info("blueprint.removed", agentId, { status: "Removed ✓" });
+            const identityId = args[0];
+            await blueprintCommands.remove(identityId, { force: options.force });
+            display.info("blueprint.removed", identityId, { status: "Removed ✓" });
           },
         ),
       )
@@ -1154,7 +1154,7 @@ export const __test_command = new Command()
                     systemPromptFile: options.systemPromptFile,
                     template: options.template,
                   });
-                  display.info("blueprint.created", result.agent_id, {
+                  display.info("blueprint.created", result.identity_id, {
                     name: result.name,
                     model: result.model,
                     path: result.path,
@@ -1184,7 +1184,7 @@ export const __test_command = new Command()
                   }
                   display.info("blueprint.list", "identities", { count: blueprints.length });
                   for (const blueprint of blueprints) {
-                    display.info(blueprint.agent_id, blueprint.name, {
+                    display.info(blueprint.identity_id, blueprint.name, {
                       model: blueprint.model,
                       capabilities: blueprint.capabilities?.join(", ") || "general",
                       created: blueprint.created,
@@ -1206,7 +1206,7 @@ export const __test_command = new Command()
                 const identityId = args[0];
                 try {
                   const blueprint = await blueprintCommands.show(identityId);
-                  display.info("blueprint.show", blueprint.agent_id, {
+                  display.info("blueprint.show", blueprint.identity_id, {
                     name: blueprint.name,
                     model: blueprint.model,
                     capabilities: blueprint.capabilities?.join(", ") || "general",
@@ -1654,7 +1654,7 @@ export const __test_command = new Command()
 
 const journalCommand = new Command()
   .description("Query the IActivity Journal")
-  .option("-f, --filter <filter:string>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
+  .option("-f, --filter <filter:string>", "Filter by key=value (trace_id, action_type, identity_id, since)", {
     collect: true,
   })
   .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })

@@ -24,12 +24,12 @@ Deno.test("[regression] YAML multi-line array format parses correctly", async ()
   const tempDir = await Deno.makeTempDir({ prefix: "exa_multiline_regression_" });
 
   try {
-    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsDir);
 
     // Create blueprint with multi-line array format (like mock-agent.md)
     const multilineBlueprint = `---
-agent_id: "${AGENT_ID}"
+identity_id: "${AGENT_ID}"
 name: "Multi-line Array Test"
 model: "mock:test-model"
 capabilities:
@@ -66,7 +66,7 @@ This blueprint uses multi-line YAML array format.
     const blueprints = await blueprintCommands.list();
 
     assertEquals(blueprints.length, 1, "Should find multi-line blueprint");
-    assertEquals(blueprints[0].agent_id, AGENT_ID);
+    assertEquals(blueprints[0].identity_id, AGENT_ID);
 
     // CRITICAL: capabilities should be an array, not a string
     assertEquals(Array.isArray(blueprints[0].capabilities), true, "capabilities should be an array");

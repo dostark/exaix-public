@@ -28,7 +28,7 @@ Deno.test("Integration: Invalid Input - Malformed YAML handling", async (t) => {
       // Create file with invalid YAML
       const invalidContent = `---
 trace_id: "abc-123
-agent_id: senior-coder
+identity_id: senior-coder
 status: pending
   invalid_indent: true
 tags: [unclosed, bracket
@@ -122,7 +122,7 @@ trace_id: !!!invalid yaml here!!!
       // File with valid frontmatter but corrupted body
       const partialContent = `---
 trace_id: "valid-trace-id"
-agent_id: senior-coder
+identity_id: senior-coder
 status: pending
 ---
 
@@ -206,7 +206,7 @@ Deno.test("Integration: Invalid Input - Missing required fields", async () => {
   try {
     // Request missing trace_id
     const missingTraceId = `---
-agent_id: senior-coder
+identity_id: senior-coder
 status: pending
 ---
 # Request
@@ -233,7 +233,7 @@ Deno.test("Integration: Invalid Input - Wrong field types", async () => {
     // priority should be number, not string
     const wrongTypes = `---
 trace_id: "abc-123"
-agent_id: senior-coder
+identity_id: senior-coder
 status: pending
 priority: "high"
 tags: "not-an-array"
@@ -262,7 +262,7 @@ Deno.test("Integration: Invalid Input - Very long values", async () => {
     const longValue = "x".repeat(10000);
     const longContent = `---
 trace_id: "${longValue}"
-agent_id: senior-coder
+identity_id: senior-coder
 status: pending
 ---
 # Request
@@ -289,7 +289,7 @@ Deno.test("Integration: Invalid Input - Special characters", async () => {
     // Special characters that might break parsing
     const specialChars = `---
 trace_id: "test-\${injection}-\`command\`"
-agent_id: "user'; DROP TABLE activity;--"
+identity_id: "user'; DROP TABLE activity;--"
 status: pending
 description: |
   Multi-line with <script>alert('xss')</script>
@@ -370,7 +370,7 @@ Deno.test("Integration: Invalid Input - Duplicate keys", async () => {
   try {
     const duplicateKeys = `---
 trace_id: "first-value"
-agent_id: senior-coder
+identity_id: senior-coder
 trace_id: "second-value"
 status: pending
 ---

@@ -236,7 +236,7 @@ export class RequestProcessor {
     const analysisMode = (this.config.request_analysis?.mode ?? DEFAULT_ANALYZER_MODE) as AnalysisMode;
     const analysis = analysisEnabled
       ? await this.analyzer.analyze(assessedBody, {
-        agentId: frontmatter.identity ?? frontmatter.flow,
+        identityId: frontmatter.identity ?? frontmatter.agent ?? frontmatter.flow,
         priority: frontmatter.priority,
         mode: analysisMode,
         memories: memoryContext,
@@ -398,7 +398,7 @@ export class RequestProcessor {
     const { frontmatter, filePath, traceLogger } = args;
 
     const hasFlow = !!frontmatter.flow;
-    const hasAgent = !!frontmatter.identity;
+    const hasAgent = !!frontmatter.identity || !!frontmatter.agent;
 
     if (hasFlow && hasAgent) {
       traceLogger.error("request.invalid", filePath, {
@@ -424,7 +424,7 @@ export class RequestProcessor {
       return null;
     }
 
-    return hasFlow ? RequestKind.FLOW : RequestKind.AGENT;
+    return hasFlow ? RequestKind.FLOW : RequestKind.IDENTITY;
   }
 
   private createRequestProcessingPipeline(): MiddlewarePipeline<IRequestProcessingContext> {
@@ -560,21 +560,11 @@ export class RequestProcessor {
     specification?: IRequestSpecification,
     memoryContext?: EnhancedRequest,
   ): Promise<string | null> {
-    const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.identity!, traceLogger);
+    const identityId = frontmatter.identity || frontmatter.agent;
+    const loadedBlueprint = await this.loadBlueprintWithFallback(identityId!, traceLogger);
 
     if (!loadedBlueprint) {
-      traceLogger.error("blueprint.not_found", frontmatter.identity!, {
-        request: filePath,
-      });
-      await this.statusManager.updateStatus(
-        filePath,
-        RequestStatus.FAILED,
-        `Blueprint not found: ${frontmatter.identity}`,
-      );
-      traceLogger.error("request.failed", filePath, {
-        error: `Blueprint not found: ${frontmatter.identity}`,
-      });
-      return null;
+      return this.handleBlueprintNotFound(filePath, identityId!, traceLogger);
     }
 
     const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
@@ -648,7 +638,7 @@ export class RequestProcessor {
       createdAt: new Date(frontmatter.created),
       contextFiles: [],
       contextWarnings: [],
-      agentId: frontmatter.identity,
+      identityId: frontmatter.identity || frontmatter.agent,
       model: frontmatter.model,
       portal: frontmatter.portal,
       targetBranch: frontmatter.target_branch,
@@ -692,32 +682,49 @@ ${result.content}`,
     return null; // Should be unreachable
   }
 
-  private async loadBlueprintWithFallback(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
+  private async handleBlueprintNotFound(
+    filePath: string,
+    identityId: string,
+    traceLogger: EventLogger,
+  ): Promise<string | null> {
+    traceLogger.error("blueprint.not_found", identityId, { request: filePath });
+    await this.statusManager.updateStatus(filePath, RequestStatus.FAILED, `Blueprint not found: ${identityId}`);
+    traceLogger.error("request.failed", filePath, { error: `Blueprint not found: ${identityId}` });
+    return null;
+  }
+
+  private async loadBlueprintWithFallback(
+    identityId: string,
+    traceLogger: EventLogger,
+  ): Promise<ILoadedBlueprint | null> {
     const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
-    let loadedBlueprint = await blueprintLoader.load(agentId);
+    let loadedBlueprint = await blueprintLoader.load(identityId);
 
     if (!loadedBlueprint) {
-      loadedBlueprint = await this.findBlueprintInWorktree(agentId, traceLogger);
+      loadedBlueprint = await this.findBlueprintInWorktree(identityId, traceLogger);
     }
     if (!loadedBlueprint) {
-      loadedBlueprint = await this.findBlueprintInRepoRoots(agentId, traceLogger);
+      loadedBlueprint = await this.findBlueprintInRepoRoots(identityId, traceLogger);
     }
     return loadedBlueprint;
   }
 
-  private async findBlueprintInWorktree(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
+  private async findBlueprintInWorktree(
+    identityId: string,
+    traceLogger: EventLogger,
+  ): Promise<ILoadedBlueprint | null> {
     let dir = Deno.cwd();
     while (true) {
-      const candidatePath = join(dir, "Blueprints", "Agents");
+      const candidatePath = join(dir, "Blueprints", "Identities");
       try {
-        const candidateFile = join(candidatePath, `${agentId}.md`);
+        const candidateFile = join(candidatePath, `${identityId}.md`);
         try {
           const stat = await Deno.stat(candidateFile);
           if (stat && stat.isFile) {
             const fallbackLoader = new BlueprintLoader({ blueprintsPath: candidatePath });
-            const loadedBlueprint = await fallbackLoader.load(agentId);
+            const loadedBlueprint = await fallbackLoader.load(identityId);
             if (loadedBlueprint) {
-              traceLogger.info("blueprint.loaded_fallback", agentId, { from: candidatePath });
+              traceLogger.info("blueprint.loaded_fallback", identityId, { from: candidatePath });
               return loadedBlueprint;
             }
           }
@@ -735,24 +742,27 @@ ${result.content}`,
     return null;
   }
 
-  private async findBlueprintInRepoRoots(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
+  private async findBlueprintInRepoRoots(
+    identityId: string,
+    traceLogger: EventLogger,
+  ): Promise<ILoadedBlueprint | null> {
     // Try the repository root (cwd) directly
-    const repoAgentsPath = join(Deno.cwd(), "Blueprints", "Agents");
-    const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoAgentsPath });
-    const loadedBlueprint = await fallbackLoader.load(agentId);
+    const repoIdentitiesPath = join(Deno.cwd(), "Blueprints", "Identities");
+    const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoIdentitiesPath });
+    const loadedBlueprint = await fallbackLoader.load(identityId);
     if (loadedBlueprint) {
-      traceLogger.info("blueprint.loaded_fallback", agentId, { from: repoAgentsPath });
+      traceLogger.info("blueprint.loaded_fallback", identityId, { from: repoIdentitiesPath });
       return loadedBlueprint;
     }
 
     // Also try locating Blueprints relative to this module (repo root)
     try {
       const repoRoot = join(dirname(dirname(dirname(new URL(import.meta.url).pathname))));
-      const repoModuleAgents = join(repoRoot, "Blueprints", "Agents");
-      const moduleLoader = new BlueprintLoader({ blueprintsPath: repoModuleAgents });
-      const moduleLoaded = await moduleLoader.load(agentId);
+      const repoModuleIdentities = join(repoRoot, "Blueprints", "Identities");
+      const moduleLoader = new BlueprintLoader({ blueprintsPath: repoModuleIdentities });
+      const moduleLoaded = await moduleLoader.load(identityId);
       if (moduleLoaded) {
-        traceLogger.info("blueprint.loaded_fallback", agentId, { from: repoModuleAgents });
+        traceLogger.info("blueprint.loaded_fallback", identityId, { from: repoModuleIdentities });
         return moduleLoaded;
       }
     } catch {
@@ -901,7 +911,7 @@ Raw Details: ${args.rawDetails}
     const bodySignals = this.checkContentHeuristics(request.userPrompt);
     if (bodySignals) return bodySignals;
 
-    return this.classifyByAgentId(blueprint.agentId);
+    return this.classifyByAgentId(blueprint.identityId);
   }
 
   private mapAnalysisComplexity(complexity: RequestAnalysisComplexity): TaskComplexity {
@@ -926,8 +936,8 @@ Raw Details: ${args.rawDetails}
     return null;
   }
 
-  private classifyByAgentId(agentId?: string): TaskComplexity {
-    const id = agentId || "";
+  private classifyByAgentId(identityId?: string): TaskComplexity {
+    const id = identityId || "";
     if (id.includes("analyzer") || id.includes("summarizer")) return TaskComplexity.SIMPLE;
     if (id.includes("coder") || id.includes("planner") || id.includes("architect")) {
       return TaskComplexity.COMPLEX;

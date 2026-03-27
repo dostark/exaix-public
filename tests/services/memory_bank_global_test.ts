@@ -73,7 +73,7 @@ Deno.test("LearningSchema: validates pending status with references", () => {
   const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440002",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemoryBankSource.AGENT,
+    source: MemoryBankSource.IDENTITY,
     source_id: "trace-123",
     scope: MemoryScope.PROJECT,
     project: "my-app",
@@ -115,7 +115,7 @@ Deno.test("LearningSchema: rejects invalid status", () => {
   const learning: unknown = {
     id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemoryBankSource.AGENT,
+    source: MemoryBankSource.IDENTITY,
     scope: MemoryScope.GLOBAL,
     title: "Test title",
     description: "Test description",
@@ -664,7 +664,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440003",
         created_at: "2026-01-04T12:00:00Z",
-        source: MemoryBankSource.AGENT,
+        source: MemoryBankSource.IDENTITY,
         scope: MemoryScope.GLOBAL,
         project: "app-b",
         title: "Insight 1",

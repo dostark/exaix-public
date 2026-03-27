@@ -96,7 +96,7 @@ Deno.test("JournalCommands maps filter strings to query filters", async () => {
     assertEquals(captured.length, JOURNAL_CAPTURE_COUNT_ONE);
     assertEquals(captured[0].traceId, JOURNAL_TRACE_ID_ONE);
     assertEquals(captured[0].actionType, JournalAction.Generic);
-    assertEquals(captured[0].agentId, JOURNAL_AGENT_ID);
+    assertEquals(captured[0].identityId, JOURNAL_AGENT_ID);
     assertEquals(captured[0].since, JOURNAL_SINCE_VALUE);
   } finally {
     db.queryActivity = originalQuery;

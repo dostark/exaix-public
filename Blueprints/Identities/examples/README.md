@@ -56,7 +56,7 @@ All identity blueprints use YAML frontmatter with the following structure:
 
 ```yaml
 ---
-agent_id: "agent-identifier"
+identity_id: "agent-identifier"
 name: "Agent Display Name"
 model: "provider:model-name"
 capabilities: ["tool1", "tool2", "tool3"]

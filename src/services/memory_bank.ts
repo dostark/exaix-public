@@ -1126,7 +1126,6 @@ export class MemoryBankService implements IMemoryBankService {
         null,
         "service",
         "memory-bank",
-        null,
       );
     } catch (error) {
       console.error("Failed to log activity:", error);

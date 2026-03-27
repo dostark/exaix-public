@@ -70,7 +70,7 @@ export interface IRequestMetadata {
   path?: string;
   status: RequestStatusType;
   priority: RequestPriority;
-  agent: string;
+  identity: string;
   portal?: string;
   target_branch?: string;
   model?: string;

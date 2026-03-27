@@ -140,7 +140,7 @@ if (import.meta.main) {
       {
         workspacePath: join(config.system.root, config.paths.workspace),
         requestsDir: join(config.system.root, config.paths.workspace, "Requests"),
-        blueprintsPath: join(config.system.root, config.paths.blueprints, "Agents"),
+        blueprintsPath: join(config.system.root, config.paths.blueprints, "Identities"),
         includeReasoning: true,
       },
       // Note: testProvider parameter removed - provider selection handled by ProviderSelector
@@ -148,7 +148,7 @@ if (import.meta.main) {
 
     await logger.info("request_processor.initialized", "RequestProcessor", {
       requestsDir: requestsPath,
-      blueprints: join(config.system.root, config.paths.blueprints, "Agents"),
+      blueprints: join(config.system.root, config.paths.blueprints, "Identities"),
     });
 
     // Create child logger for watcher events
@@ -185,7 +185,7 @@ if (import.meta.main) {
     const executionLoop = new ExecutionLoop({
       config,
       db: dbService,
-      agentId: "daemon",
+      identityId: "daemon",
       llmProvider,
       reviewRegistry,
     });

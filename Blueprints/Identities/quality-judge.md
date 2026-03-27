@@ -1,5 +1,5 @@
 ---
-agent_id: "quality-judge"
+identity_id: "quality-judge"
 name: "Quality Judge"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["evaluation", "quality_assessment", "structured_output", "code_review"]

@@ -50,7 +50,7 @@ function buildFrontmatter(traceId?: string, status?: string): string {
     `created: "${TEST_REQUEST_CREATED_AT}"`,
     `status: ${status ?? TEST_REQUEST_STATUS_VALID}`,
     `priority: ${TEST_REQUEST_PRIORITY}`,
-    `agent: ${TEST_REQUEST_AGENT}`,
+    `identity: ${TEST_REQUEST_AGENT}`,
     `source: ${TEST_REQUEST_SOURCE}`,
     `created_by: "${TEST_REQUEST_CREATED_BY}"`,
   ].filter(Boolean);

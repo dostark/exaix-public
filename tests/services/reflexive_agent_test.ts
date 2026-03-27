@@ -41,11 +41,11 @@ function makeCritiqueJSON(options: {
 async function runAgentTest(
   mockResponses: string[],
   options: any = {},
-  assertions: (result: any, agent: any) => void | Promise<void>,
+  assertions: (result: any, identity: any) => void | Promise<void>,
 ) {
   const agent = createReflexiveAgent(createMockProvider(mockResponses), options);
   const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
+    { systemPrompt: "Test", identityId: "test" },
     { userPrompt: "Help", context: {} },
   );
   await assertions(result, agent);
@@ -270,11 +270,11 @@ Deno.test("[ReflexiveAgent] accumulates metrics across executions", async () => 
   const agent = createReflexiveAgent(provider);
 
   await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
+    { systemPrompt: "Test", identityId: "test" },
     { userPrompt: "Help 1", context: {} },
   );
   await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
+    { systemPrompt: "Test", identityId: "test" },
     { userPrompt: "Help 2", context: {} },
   );
 
@@ -317,7 +317,7 @@ Deno.test("[createCodeReviewReflexiveAgent] creates code review optimized agent"
   const agent = createCodeReviewReflexiveAgent(createMockProvider(mockResponses));
 
   const result = await agent.run(
-    { systemPrompt: "Review code", agentId: "code-reviewer" },
+    { systemPrompt: "Review code", identityId: "code-reviewer" },
     { userPrompt: "Review this function", context: {} },
   );
 

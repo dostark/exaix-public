@@ -37,12 +37,12 @@ Deno.test("[e2e] Portal request → plan → execution → artifact review (read
     await setupGitRepo(portalTargetPath, { initialCommit: true, branch: "main" });
 
     // IBlueprint as Blueprint must include capabilities so ExecutionLoop can detect read-only mode.
-    const blueprintsDir = join(env.tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(env.tempDir, "Blueprints", "Identities");
     await ensureDir(blueprintsDir);
     await Deno.writeTextFile(
       join(blueprintsDir, "code-analyst.md"),
       `---
-agent_id: "code-analyst"
+identity_id: "code-analyst"
 name: "Code Analyst"
 model: "mock:test"
 capabilities: ["read_file", "list_directory", "grep_search"]
@@ -66,7 +66,7 @@ Return an analysis-only plan.
 
     const { filePath: requestPath, traceId } = await env.createRequest(
       "Analyze the portal repo and summarize what you find",
-      { agentId: "code-analyst", portal: portalAlias },
+      { identityId: "code-analyst", portal: portalAlias },
     );
 
     const requestId = requestPath.split("/").pop()!.replace(/\.md$/, "");
@@ -77,7 +77,7 @@ Return an analysis-only plan.
     const planContent = await Deno.readTextFile(planPath);
     assertStringIncludes(planContent, `trace_id: "${traceId}"`);
     assertStringIncludes(planContent, `request_id: "${requestId}"`);
-    assertStringIncludes(planContent, `agent_id: "code-analyst"`);
+    assertStringIncludes(planContent, `identity_id: "code-analyst"`);
     assertStringIncludes(planContent, `portal: "${portalAlias}"`);
 
     const activePlanPath = await env.approvePlan(planPath);
@@ -99,16 +99,16 @@ Return an analysis-only plan.
     assertEquals(traceSummaryExists, true, "Expected Memory/Execution/<traceId>/summary.md");
 
     const artifacts = await env.db.preparedAll<
-      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+      { id: string; status: string; identity: string; portal: string | null; request_id: string; file_path: string }
     >(
-      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      "SELECT id, status, identity, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
       [requestId],
     );
 
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created");
     assertExists(artifacts[0].id);
     assertEquals(artifacts[0].status, ReviewStatus.PENDING);
-    assertEquals(artifacts[0].agent, "code-analyst");
+    assertEquals(artifacts[0].identity, "code-analyst");
     assertEquals(artifacts[0].portal, portalAlias);
 
     const artifactAbsPath = join(env.tempDir, artifacts[0].file_path);

@@ -1,5 +1,5 @@
 ---
-agent_id: "product-manager"
+identity_id: "product-manager"
 name: "Product Manager"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "fetch_url"]

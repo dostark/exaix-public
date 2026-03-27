@@ -33,7 +33,7 @@ export interface IPlanStep {
 export interface IPlanContext {
   trace_id: string;
   request_id: string;
-  agent: string;
+  identity: string;
   frontmatter: Record<string, JSONValue>;
   steps: IPlanStep[];
 }
@@ -90,7 +90,7 @@ export class PlanExecutor {
   async execute(planPath: string, context: IPlanContext): Promise<IPlanExecutionResult> {
     const traceId = context.trace_id;
     const requestId = context.request_id;
-    const agentId = context.agent;
+    const identityId = context.identity;
     const actionReports: IPlanActionReport[] = [];
 
     await this.logger.info("plan.execution_started", planPath, {
@@ -106,7 +106,7 @@ export class PlanExecutor {
           db: this.db,
           repoPath: this.repoPath,
           traceId,
-          agentId,
+          identityId,
         })
         : null;
 
@@ -147,7 +147,7 @@ export class PlanExecutor {
         config: this.config,
         db: this.db,
         traceId,
-        agentId,
+        identityId,
         baseDir,
       });
 
@@ -165,7 +165,7 @@ export class PlanExecutor {
         try {
           const sha = await git.commit({
             message: `Complete plan: ${requestId}`,
-            description: `Executed by agent ${agentId}`,
+            description: `Executed by identity ${identityId}`,
             traceId,
           });
 
@@ -382,7 +382,7 @@ You should apply the principles and constraints from these skills during executi
     return `PLAN EXECUTION CONTEXT
 Trace ID: ${context.trace_id}
 Request ID: ${context.request_id}
-Agent: ${context.agent}
+Identity: ${context.identity}
 
 CURRENT TASK:
 Step ${step.number}: ${step.title}

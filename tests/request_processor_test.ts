@@ -20,7 +20,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import type { Config } from "../src/shared/schemas/config.ts";
 import { MockStrategy, PricingTier, ProviderCostTier } from "../src/shared/enums.ts";
 import {
-  getBlueprintsAgentsDir,
+  getBlueprintsIdentitiesDir,
   getWorkspaceDir,
   getWorkspacePlansDir,
   getWorkspaceRequestsDir,
@@ -51,7 +51,7 @@ function createRequestContent(opts: {
     `created: "${new Date().toISOString()}"`,
     `status: ${opts.status || MemoryStatus.PENDING}`,
     `priority: ${opts.priority || "normal"}`,
-    opts.flow ? null : `agent: ${opts.identity || "default"}`, // Only include agent if no flow
+    opts.flow ? null : `identity: ${opts.identity || "default"}`, // Only include agent if no flow
     opts.flow ? `flow: ${opts.flow}` : null,
     `source: cli`,
     `created_by: "test@example.com"`,
@@ -117,11 +117,11 @@ describe("RequestProcessor", () => {
     // Create additional required directories
     await Deno.mkdir(getWorkspaceRequestsDir(testDir), { recursive: true });
     await Deno.mkdir(getWorkspacePlansDir(testDir), { recursive: true });
-    await Deno.mkdir(join(testDir, "Blueprints", "Agents"), { recursive: true });
+    await Deno.mkdir(join(testDir, "Blueprints", "Identities"), { recursive: true });
 
     // Create default blueprint
     await Deno.writeTextFile(
-      join(testDir, "Blueprints", "Agents", "default.md"),
+      join(testDir, "Blueprints", "Identities", "default.md"),
       createBlueprintContent(),
     );
 
@@ -129,7 +129,7 @@ describe("RequestProcessor", () => {
     processorConfig = {
       workspacePath: getWorkspaceDir(testDir),
       requestsDir: getWorkspaceRequestsDir(testDir),
-      blueprintsPath: getBlueprintsAgentsDir(testDir),
+      blueprintsPath: getBlueprintsIdentitiesDir(testDir),
       includeReasoning: true,
     };
 
@@ -373,7 +373,7 @@ Do something
     it("should classify analyzer agents as simple tasks", async () => {
       // Create data-analyzer blueprint
       await Deno.writeTextFile(
-        join(testDir, "Blueprints", "Agents", "data-analyzer.md"),
+        join(testDir, "Blueprints", "Identities", "data-analyzer.md"),
         createBlueprintContent(),
       );
 
@@ -397,7 +397,7 @@ Do something
     it("should classify coder agents as complex tasks", async () => {
       // Create senior-coder blueprint
       await Deno.writeTextFile(
-        join(testDir, "Blueprints", "Agents", "senior-coder.md"),
+        join(testDir, "Blueprints", "Identities", "senior-coder.md"),
         createBlueprintContent(),
       );
 
@@ -421,7 +421,7 @@ Do something
     it("should classify general agents as medium tasks", async () => {
       // Create content-writer blueprint
       await Deno.writeTextFile(
-        join(testDir, "Blueprints", "Agents", "content-writer.md"),
+        join(testDir, "Blueprints", "Identities", "content-writer.md"),
         createBlueprintContent(),
       );
 
@@ -447,7 +447,7 @@ Do something
     it("should load custom agent blueprint", async () => {
       // Create a custom blueprint
       await Deno.writeTextFile(
-        join(testDir, "Blueprints", "Agents", "code-reviewer.md"),
+        join(testDir, "Blueprints", "Identities", "code-reviewer.md"),
         `# Code Reviewer Blueprint
 
 You are an expert code reviewer. Analyze code changes and provide feedback.
@@ -551,7 +551,7 @@ created: "${new Date().toISOString()}"
 status: pending
 priority: high
 flow: code-review
-agent: senior-coder
+identity: senior-coder
 source: cli
 created_by: "test@example.com"
 ---

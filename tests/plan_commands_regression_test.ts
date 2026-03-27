@@ -33,7 +33,7 @@ async function createPlanFile(
   const content = `---
 trace_id: "${traceId}"
 status: ${status}
-agent_id: ${TEST_AGENT_ID}
+identity_id: ${TEST_AGENT_ID}
 created_at: "${TEST_CREATED_AT}"
 ---
 
@@ -271,7 +271,7 @@ trace_id: "${traceId}"
 created: "2026-01-25T16:28:01.132Z"
 status: planned
 priority: high
-agent: test-agent
+identity: test-agent
 portal: test-portal
 created_by: test@example.com
 ---
@@ -310,7 +310,7 @@ This plan references a request and should show request context.
     assertEquals(plan.status, "review");
     assertEquals(plan.request_id, requestId);
     assertEquals(plan.request_subject, "Test Request Title");
-    assertEquals(plan.request_agent, "test-agent");
+    assertEquals(plan.request_identity, "test-agent");
     assertEquals(plan.request_portal, "test-portal");
     assertEquals(plan.request_priority, "high");
     assertEquals(plan.request_created_by, "test@example.com");
@@ -321,7 +321,7 @@ This plan references a request and should show request context.
     assertEquals(planDetails.metadata.status, "review");
     assertEquals(planDetails.metadata.request_id, requestId);
     assertEquals(planDetails.metadata.request_subject, "Test Request Title");
-    assertEquals(planDetails.metadata.request_agent, "test-agent");
+    assertEquals(planDetails.metadata.request_identity, "test-agent");
     assertEquals(planDetails.metadata.request_portal, "test-portal");
     assertEquals(planDetails.metadata.request_priority, "high");
     assertEquals(planDetails.metadata.request_created_by, "test@example.com");

@@ -110,7 +110,7 @@ describe("ReviewCommands Targeted Coverage", () => {
           "feat/request-dbonly-trace-db-only",
           "pending",
           new Date().toISOString(),
-          "agent",
+          "identity",
           tempDir,
           "description",
         ],
@@ -146,7 +146,7 @@ describe("ReviewCommands Targeted Coverage", () => {
       await db.preparedRun(
         `INSERT INTO reviews (id, trace_id, branch, status, created, created_by, repository, description)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        ["review-both", traceId, branchName, "pending", new Date().toISOString(), "agent", tempDir, "description"],
+        ["review-both", traceId, branchName, "pending", new Date().toISOString(), "identity", tempDir, "description"],
       );
 
       const reviews = await reviewCommands.list();
@@ -157,9 +157,9 @@ describe("ReviewCommands Targeted Coverage", () => {
     it("list: respects type filters", async () => {
       // Add artifact
       await db.preparedRun(
-        `INSERT INTO artifacts (id, request_id, type, agent, status, created, file_path)
+        `INSERT INTO artifacts (id, request_id, type, identity, status, created, file_path)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ["artifact-1", "req-1", "analysis", "agent", "pending", new Date().toISOString(), "path/to/art.md"],
+        ["artifact-1", "req-1", "analysis", "identity", "pending", new Date().toISOString(), "path/to/art.md"],
       );
 
       const artifacts = await reviewCommands.list(undefined, "artifact");
@@ -244,9 +244,9 @@ branch refs/heads/other
       await Deno.writeTextFile(artPath, "No frontmatter here");
 
       await db.preparedRun(
-        `INSERT INTO artifacts (id, request_id, type, agent, status, created, file_path)
+        `INSERT INTO artifacts (id, request_id, type, identity, status, created, file_path)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        ["artifact-bad", "req-bad", "analysis", "agent", "pending", new Date().toISOString(), "bad-art.md"],
+        ["artifact-bad", "req-bad", "analysis", "identity", "pending", new Date().toISOString(), "bad-art.md"],
       );
       await assertRejects(
         () => cast(reviewCommands).updateArtifactStatus("artifact-bad", "approved"),

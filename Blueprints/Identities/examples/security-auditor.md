@@ -1,5 +1,5 @@
 ---
-agent_id: "security-auditor"
+identity_id: "security-auditor"
 name: "Security Auditor"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "git_status"]

@@ -48,7 +48,7 @@ export interface IRequestAnalyzerConfig {
  */
 export interface IRequestAnalysisContext {
   /** The agent or flow ID that will execute the request, if known. */
-  agentId?: string;
+  identityId?: string;
   /** Request priority (low/medium/high) as a string hint. */
   priority?: string;
   /** Known file paths already associated with the request (e.g. from frontmatter). */

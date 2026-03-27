@@ -878,7 +878,7 @@ Deno.test("[regression] Sample config includes required provider strategy entrie
     ["ai_anthropic", "api_version"],
     ["ai_anthropic", "default_model"],
     ["ai_anthropic", "max_tokens_default"],
-    ["mcp_defaults", "agent_id"],
+    ["mcp_defaults", "identity_id"],
     ["providers", "google", "cost_tier"],
     ["providers", "google", "free_quota_requests_per_day"],
     ["providers", "google", "timeout_ms"],

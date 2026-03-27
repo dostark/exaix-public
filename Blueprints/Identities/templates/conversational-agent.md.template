@@ -1,5 +1,5 @@
 ---
-agent_id: "{{agent_id}}"
+identity_id: "{{agent_id}}"
 name: "{{name}}"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]
@@ -236,7 +236,7 @@ When user returns after gap:
 ## Frontmatter Reference
 
 ```yaml
-agent_id: "conversation-id"
+identity_id: "conversation-id"
 name: "Conversational Agent"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "memory_access"]

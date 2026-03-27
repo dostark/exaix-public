@@ -47,7 +47,7 @@ Deno.test("[BlueprintLoader] loads blueprint with YAML frontmatter", async () =>
 
   try {
     const content = `---
-agent_id: "code-reviewer"
+identity_id: "code-reviewer"
 name: "Code Reviewer Agent"
 model: "anthropic:claude-sonnet-4-20250514"
 capabilities:
@@ -66,7 +66,7 @@ You are a code reviewer. Review code for quality and best practices.
     const blueprint = await loader.load("code-reviewer");
 
     assertExists(blueprint);
-    assertEquals(blueprint.agentId, "code-reviewer");
+    assertEquals(blueprint.identityId, "code-reviewer");
     assertEquals(blueprint.name, "Code Reviewer Agent");
     assertEquals(blueprint.model, "anthropic:claude-sonnet-4-20250514");
     assertEquals(blueprint.capabilities, [McpToolName.READ_FILE, McpToolName.WRITE_FILE]);
@@ -92,7 +92,7 @@ You are a simple agent with no frontmatter.
     const blueprint = await loader.load("simple-agent");
 
     assertExists(blueprint);
-    assertEquals(blueprint.agentId, "simple-agent");
+    assertEquals(blueprint.identityId, "simple-agent");
     assertEquals(blueprint.name, "Simple Agent"); // Derived from ID
     assertEquals(blueprint.model, "anthropic:claude-sonnet-4-20250514"); // Default
     assertEquals(blueprint.capabilities, []);
@@ -107,7 +107,7 @@ Deno.test("[BlueprintLoader] uses default model when not specified", async () =>
 
   try {
     const content = `---
-agent_id: "no-model"
+identity_id: "no-model"
 name: "No Model Agent"
 ---
 
@@ -162,7 +162,7 @@ Deno.test("[BlueprintLoader] throws on invalid YAML frontmatter", async () => {
 
   try {
     const content = `---
-agent_id: "bad-yaml"
+identity_id: "bad-yaml"
 name: [invalid: yaml: syntax
 ---
 
@@ -187,7 +187,7 @@ Deno.test("[BlueprintLoader] validates frontmatter schema", async () => {
 
   try {
     const content = `---
-agent_id: "schema-test"
+identity_id: "schema-test"
 capabilities: "not-an-array"
 ---
 
@@ -216,7 +216,7 @@ Deno.test("[BlueprintLoader] parses reflexive agent configuration", async () => 
 
   try {
     const content = `---
-agent_id: "reflexive-agent"
+identity_id: "reflexive-agent"
 name: "Reflexive Agent"
 model: "anthropic:claude-sonnet-4-20250514"
 reflexive: true
@@ -247,7 +247,7 @@ Deno.test("[BlueprintLoader] parses memory and skills configuration", async () =
 
   try {
     const content = `---
-agent_id: "skilled-agent"
+identity_id: "skilled-agent"
 name: "Skilled Agent"
 model: "anthropic:claude-sonnet-4-20250514"
 memory_enabled: true
@@ -282,7 +282,7 @@ Deno.test("[BlueprintLoader] caches loaded blueprints", async () => {
 
   try {
     const content = `---
-agent_id: "cached-agent"
+identity_id: "cached-agent"
 name: "Cached Agent"
 ---
 
@@ -318,7 +318,7 @@ Deno.test("[BlueprintLoader] invalidate clears specific cache entry", async () =
 
   try {
     const content = `---
-agent_id: "invalidate-test"
+identity_id: "invalidate-test"
 name: "Original Name"
 ---
 
@@ -356,7 +356,7 @@ Deno.test("[BlueprintLoader] toLegacyBlueprint returns compatible interface", as
 
   try {
     const content = `---
-agent_id: "legacy-test"
+identity_id: "legacy-test"
 name: "Legacy Test"
 ---
 
@@ -371,7 +371,7 @@ System prompt content.
     const legacy = loader.toLegacyBlueprint(loaded);
 
     assertEquals(legacy.systemPrompt, "System prompt content.");
-    assertEquals(legacy.agentId, "legacy-test");
+    assertEquals(legacy.identityId, "legacy-test");
   } finally {
     await teardown(testDir);
   }
@@ -382,7 +382,7 @@ Deno.test("[loadBlueprint] standalone function returns legacy Blueprint", async 
 
   try {
     const content = `---
-agent_id: "standalone-test"
+identity_id: "standalone-test"
 name: "Standalone Test"
 ---
 
@@ -394,7 +394,7 @@ Standalone system prompt.
 
     assertExists(blueprint);
     assertEquals(blueprint.systemPrompt, "Standalone system prompt.");
-    assertEquals(blueprint.agentId, "standalone-test");
+    assertEquals(blueprint.identityId, "standalone-test");
   } finally {
     await teardown(testDir);
   }
@@ -455,7 +455,7 @@ Deno.test("[BlueprintLoader] loads from Identities path (canonical)", async () =
 
   try {
     const content = `---
-agent_id: "senior-coder"
+identity_id: "senior-coder"
 name: "Senior Coder"
 model: "anthropic:claude-sonnet-4-20250514"
 capabilities:
@@ -474,7 +474,7 @@ You are a senior coder.
     const blueprint = await loader.load("senior-coder");
 
     assertExists(blueprint);
-    assertEquals(blueprint.agentId, "senior-coder");
+    assertEquals(blueprint.identityId, "senior-coder");
     assertEquals(blueprint.name, "Senior Coder");
     assertEquals(blueprint.path, join(identitiesDir, "senior-coder.md"));
   } finally {

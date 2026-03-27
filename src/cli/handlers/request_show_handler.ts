@@ -76,6 +76,11 @@ export class RequestShowHandler extends BaseCommand {
       metadata[field.key] = String(matchingFrontmatter[field.key] || field.fallback);
     }
 
+    // Ensure reciprocal compatibility between identity and agent
+    const identityValue = String(matchingFrontmatter.identity || matchingFrontmatter.agent || "default");
+    metadata.identity = identityValue;
+    metadata.agent = identityValue;
+
     const optionalKeys = ["portal", "target_branch", "model", "flow", "error", "rejected_path", "subject"];
     for (const key of optionalKeys) {
       if (matchingFrontmatter[key]) metadata[key] = String(matchingFrontmatter[key]);

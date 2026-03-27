@@ -317,7 +317,7 @@ export class SimpleImprovementAgent implements ImprovementAgent {
   constructor(
     private agentRunner: {
       run(
-        agentId: string,
+        identityId: string,
         request: { userPrompt: string; context?: IAgentRequestContext },
       ): Promise<{ content: string }>;
     },
@@ -367,7 +367,7 @@ export function createFeedbackLoop(
   gateEvaluator: GateEvaluator,
   agentRunner: {
     run(
-      agentId: string,
+      identityId: string,
       request: { userPrompt: string; context?: IAgentRequestContext },
     ): Promise<{ content: string }>;
   },
@@ -409,7 +409,7 @@ export async function runSelfCorrectingAgent(
   config: SelfCorrectingConfig,
   agentRunner: {
     run(
-      agentId: string,
+      identityId: string,
       request: { userPrompt: string; context?: IAgentRequestContext },
     ): Promise<{ content: string }>;
   },

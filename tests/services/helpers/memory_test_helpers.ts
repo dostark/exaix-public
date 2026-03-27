@@ -147,7 +147,7 @@ export function createGlobalProposal(overrides: Partial<IMemoryUpdateProposal> =
     target_scope: overrides.target_scope ?? MemoryScope.GLOBAL,
     learning: createBaseLearning({
       id: "550e8400-e29b-41d4-a716-446655440003",
-      source: MemoryBankSource.AGENT,
+      source: MemoryBankSource.IDENTITY,
       scope: MemoryScope.GLOBAL,
       title: "Always validate input",
       description: "Input validation prevents security issues",

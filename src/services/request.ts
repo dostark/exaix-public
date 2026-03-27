@@ -58,7 +58,7 @@ export class RequestService {
     if (!trimmedDescription) throw new Error("Description cannot be empty");
 
     const priority = options.priority || RequestPriority.NORMAL;
-    const agent = options.agent || "default";
+    const identity = options.identity || "default";
     const portal = options.portal;
 
     const trace_id = crypto.randomUUID();
@@ -76,7 +76,7 @@ export class RequestService {
       created,
       status: RequestStatus.PENDING,
       priority,
-      agent,
+      identity,
       source,
       created_by,
       subject,
@@ -106,7 +106,7 @@ export class RequestService {
     await this.display.info("request.created", path, {
       trace_id,
       priority,
-      agent,
+      identity,
       portal: portal || null,
       source,
       created_by,
@@ -118,7 +118,7 @@ export class RequestService {
       path,
       status: RequestStatus.PENDING,
       priority,
-      agent,
+      identity,
       portal,
       target_branch: options.target_branch,
       model: options.model,
@@ -177,7 +177,7 @@ export class RequestService {
           filename,
           status: RequestStatus.PENDING,
           priority: RequestPriority.NORMAL,
-          agent: "default",
+          identity: "default",
           created: "",
           created_by: "unknown",
           source: RequestSource.CLI,
@@ -195,7 +195,7 @@ export class RequestService {
         filename,
         status: fm.status as RequestStatusType,
         priority: this.parsePriority(fm.priority),
-        agent: fm.agent || "default",
+        identity: fm.identity || "default",
         portal: fm.portal,
         created: fm.created || "",
         created_by: fm.created_by || "unknown",
@@ -274,7 +274,7 @@ export class RequestService {
     );
 
     const analysis = await analyzer.analyze(body, {
-      agentId: metadata.agent,
+      identityId: metadata.identity || "default",
       priority: metadata.priority,
       requestFilePath: path,
       traceId: metadata.trace_id,
@@ -291,7 +291,7 @@ export class RequestService {
       path,
       status: fm.status as RequestStatusType,
       priority: this.parsePriority(fm.priority),
-      agent: fm.agent || "default",
+      identity: fm.identity || "default",
       created: fm.created || "",
       created_by: fm.created_by || "unknown",
       source: this.parseSource(fm.source),

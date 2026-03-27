@@ -39,11 +39,11 @@ export interface ILogEvent {
   /** Trace ID for correlation */
   traceId?: string;
 
-  /** Runtime agent handling this event, e.g. "agent-runner" — NOT an identity id */
+  /** Runtime agent handling this event, e.g. "identity-runner" — NOT an identity id */
   agentId?: string;
 
   /** Category of runtime agent */
-  agentKind?: AgentKind | null;
+  identityKind?: AgentKind | null;
 
   /** LLM identity blueprint used for this event, e.g. "senior-coder" */
   identityId?: string;
@@ -69,7 +69,7 @@ export interface IServiceContext {
   /** Runtime agent handling this service call — NOT an identity id */
   agentId?: string;
   /** Category of runtime agent */
-  agentKind?: AgentKind | null;
+  identityKind?: AgentKind | null;
   /** LLM identity blueprint being executed */
   identityId?: string;
 }

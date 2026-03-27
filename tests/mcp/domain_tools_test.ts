@@ -14,6 +14,7 @@ import type { Config } from "../../src/shared/schemas/config.ts";
 import { ExaPathDefaults } from "../../src/shared/constants.ts";
 import { createStubConfig, createStubDisplay, createStubGit, createStubProvider } from "../test_helpers.ts";
 import type { ICliApplicationContext } from "../../src/cli/cli_context.ts";
+import { initActivityTableSchema } from "../helpers/db.ts";
 
 // Mock Config
 const createMockConfig = (rootDir: string): Config => ({
@@ -46,18 +47,7 @@ Deno.test("MCP Domain Tools", async (t) => {
   const db = new DatabaseService(config);
 
   // Initialize DB schema
-  db.instance.exec(`
-    CREATE TABLE IF NOT EXISTS activity (
-      id TEXT PRIMARY KEY,
-      trace_id TEXT NOT NULL,
-      actor TEXT NOT NULL,
-      agent_id TEXT,
-      action_type TEXT NOT NULL,
-      target TEXT,
-      payload TEXT NOT NULL,
-      timestamp DATETIME DEFAULT (datetime('now'))
-    );
-  `);
+  initActivityTableSchema(db);
 
   const context: ICliApplicationContext = {
     config: createStubConfig(config),
@@ -71,8 +61,8 @@ Deno.test("MCP Domain Tools", async (t) => {
     const tool = new CreateRequestTool(context);
     const result = await tool.execute({
       description: "Test Request",
-      agent: "test-agent",
-      agent_id: "user-1",
+      identity: "test-agent",
+      identity_id: "user-1",
     });
 
     assertExists(result.content);
@@ -102,7 +92,7 @@ Deno.test("MCP Domain Tools", async (t) => {
     const planContent = `---
 status: pending
 trace_id: trace-1
-agent_id: agent-1
+identity_id: agent-1
 created_at: 2023-01-01T00:00:00Z
 ---
 # Plan
@@ -113,7 +103,7 @@ Plan content
     const tool = new ListPlansTool(context);
     const result = await tool.execute({
       status: "pending",
-      agent_id: "user-1",
+      identity_id: "user-1",
     });
 
     const plans = JSON.parse(result.content[0].text);
@@ -132,7 +122,7 @@ Plan content
     const planContent = `---
 status: review
 trace_id: trace-2
-agent_id: agent-1
+identity_id: agent-1
 ---
 # Plan
 To be approved
@@ -142,7 +132,7 @@ To be approved
     const tool = new ApprovePlanTool(context);
     const result = await tool.execute({
       plan_id: planId,
-      agent_id: "user-1",
+      identity_id: "user-1",
     });
 
     assertExists(result.content);
@@ -165,7 +155,7 @@ To be approved
     const tool = new QueryJournalTool(context);
     const result = await tool.execute({
       limit: 10,
-      agent_id: "user-1",
+      identity_id: "user-1",
     });
 
     const activities = JSON.parse(result.content[0].text);
@@ -178,7 +168,7 @@ To be approved
     const tool = new ListPlansTool(context);
     // No status provided -> should be PENDING
     const result = await tool.execute({
-      agent_id: "user-1",
+      identity_id: "user-1",
     });
 
     // Check internal log or result
@@ -197,7 +187,7 @@ To be approved
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     const result = await tool.execute({
-      agent_id: "user-1",
+      identity_id: "user-1",
       trace_id: traceId, // This filters by trace_id
     });
 
@@ -222,7 +212,7 @@ To be approved
       await assertRejects(
         async () => {
           await tool.execute({
-            agent_id: "user-1",
+            identity_id: "user-1",
             trace_id: "any",
           });
         },

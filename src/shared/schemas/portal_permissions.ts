@@ -21,7 +21,7 @@ export interface IPermissionCheckResult {
   allowed: boolean;
   reason?: string;
   portal: string;
-  agent_id: string;
+  identity_id: string;
   operation: PortalOperation;
 }
 
@@ -32,7 +32,7 @@ export interface IRBACPermissionCheckResult {
   allowed: boolean;
   reason?: string;
   portal: string;
-  agent_id: string;
+  identity_id: string;
   action: PermissionAction;
   resource: string;
   conditions?: {
@@ -49,7 +49,7 @@ export interface IAgentWhitelistResult {
   allowed: boolean;
   reason?: string;
   portal: string;
-  agent_id: string;
+  identity_id: string;
 }
 
 // ============================================================================
@@ -129,7 +129,7 @@ export const PortalPermissionsSchema = z.object({
   created: z.string().optional(),
 
   // Legacy permission controls (for backward compatibility)
-  agents_allowed: z.array(z.string()).default(["*"]), // "*" = all agents
+  identities_allowed: z.array(z.string()).default(["*"]), // "*" = all agents
   operations: z.array(PortalOperationSchema).default([
     PortalOperation.READ,
     PortalOperation.WRITE,

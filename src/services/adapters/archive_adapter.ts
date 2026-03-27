@@ -16,8 +16,8 @@ export class ArchiveAdapter implements IArchiveService {
     return await this.inner.searchByDateRange(start, end);
   }
 
-  async searchByAgent(agentId: string): Promise<IArchiveEntry[]> {
-    return await this.inner.searchByAgent(agentId);
+  async searchByAgent(identityId: string): Promise<IArchiveEntry[]> {
+    return await this.inner.searchByAgent(identityId);
   }
 
   async getByTraceId(traceId: string): Promise<IArchiveEntry | null> {

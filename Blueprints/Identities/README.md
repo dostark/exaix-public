@@ -14,7 +14,7 @@ All identities support `default_skills` for automatic procedural knowledge injec
 
 `````yaml
 ---
-agent_id: "my-identity"
+identity_id: "my-identity"
 name: "My Identity"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]

@@ -9,7 +9,8 @@ import { assert, assertExists } from "@std/assert";
 import { parse } from "@std/yaml";
 
 interface Frontmatter {
-  agent: string;
+  identity?: string;
+  agent?: string;
   scope: string;
   title: string;
   short_summary: string;
@@ -35,7 +36,8 @@ export async function assertFrontmatterSchemaAndShortSummary(
 
     const fm = parse(fmMatch[1]) as Frontmatter;
 
-    assert(fm.agent, `${filePath} should have agent`);
+    // Support both 'identity' (current) and 'agent' (legacy) field names
+    assert(fm.identity || fm.agent, `${filePath} should have 'identity' or 'agent' field`);
     assert(fm.scope, `${filePath} should have scope`);
     assert(fm.title, `${filePath} should have title`);
     assert(fm.short_summary, `${filePath} should have short_summary`);

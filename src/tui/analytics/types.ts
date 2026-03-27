@@ -16,7 +16,7 @@ export interface ITimeRange {
 export interface CorrelationAnalysis {
   correlationId: string;
   traceIds: string[];
-  agentIds: string[];
+  identityIds: string[];
   operations: string[];
   timeSpan: ITimeRange;
   entryCount: number;
@@ -33,7 +33,7 @@ export interface TraceOperation {
   operation: string;
   timestamp: Date;
   duration?: number;
-  agentId?: string;
+  identityId?: string;
   level: string;
   message: string;
 }

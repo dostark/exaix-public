@@ -19,7 +19,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
   await t.step("create request with explicit skills", async () => {
     // 1. Create request with skills
     const metadata = await requestCommands.create("Test request with skills", {
-      agent: "security-expert",
+      identity: "security-expert",
       skills: ["documentation-driven", "file-ops"],
     });
 
@@ -41,7 +41,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
   await t.step("create request with single skill", async () => {
     // 1. Create request with single skill
     const metadata = await requestCommands.create("Test request with single skill", {
-      agent: "security-expert",
+      identity: "security-expert",
       skills: ["code-review"],
     });
 
@@ -58,7 +58,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
   await t.step("create request without skills", async () => {
     // 1. Create request without skills
     const metadata = await requestCommands.create("Test request without skills", {
-      agent: "security-expert",
+      identity: "security-expert",
     });
 
     // 2. Verify frontmatter does NOT have skills

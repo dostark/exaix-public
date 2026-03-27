@@ -28,7 +28,7 @@ Deno.test("GitCreateBranchTool: creates branch successfully", async () => {
     const result = await handler.execute({
       portal: "TestPortal",
       branch: "feat/new-test-branch",
-      agent_id: "test-agent",
+      identity_id: "test-agent",
     });
 
     const res = result as MCPToolResponse & { isError?: boolean; content: { text: string }[] };
@@ -61,7 +61,7 @@ Deno.test("GitCreateBranchTool: returns error when branch already exists", async
     await handler.execute({
       portal: "TestPortal",
       branch: "feat/existing-branch",
-      agent_id: "test-agent",
+      identity_id: "test-agent",
     });
 
     // Try to create it again
@@ -70,7 +70,7 @@ Deno.test("GitCreateBranchTool: returns error when branch already exists", async
         handler.execute({
           portal: "TestPortal",
           branch: "feat/existing-branch",
-          agent_id: "test-agent",
+          identity_id: "test-agent",
         }),
       Error,
       "Failed to create branch: ",
@@ -97,7 +97,7 @@ Deno.test("GitCreateBranchTool: returns error when access is denied", async () =
         handler.execute({
           portal: "TestPortal",
           branch: "feat/new-test-branch",
-          agent_id: "test-agent",
+          identity_id: "test-agent",
         }),
       Error,
       "Operation 'git' is not permitted",

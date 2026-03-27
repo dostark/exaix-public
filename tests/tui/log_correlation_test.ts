@@ -22,7 +22,7 @@ function createLogEntry(
   context: {
     correlation_id?: string;
     trace_id?: string;
-    agent_id?: string;
+    identity_id?: string;
     operation?: string;
   } = {},
   performance?: { duration_ms: number },
@@ -51,13 +51,13 @@ Deno.test("[analyzeCorrelation] analyzes correlation correctly", () => {
     createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, {
       correlation_id: "corr-1",
       trace_id: "trace-1",
-      agent_id: "agent-1",
+      identity_id: "agent-1",
       operation: "op-1",
     }, { duration_ms: 100 }),
     createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, {
       correlation_id: "corr-1",
       trace_id: "trace-2",
-      agent_id: "agent-1",
+      identity_id: "agent-1",
       operation: "op-2",
     }, { duration_ms: 200 }),
   ];

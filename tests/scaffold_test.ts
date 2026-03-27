@@ -198,7 +198,7 @@ Deno.test("scaffold.sh is idempotent", async () => {
     // Verify structure is still correct
     const requiredDirs = [
       ".exa",
-      "Blueprints/Agents",
+      "Blueprints/Identities",
       "Workspace/Requests",
       "Memory/Reports",
       "Portals",

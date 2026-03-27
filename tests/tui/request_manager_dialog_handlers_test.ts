@@ -92,13 +92,13 @@ Deno.test("processDialogCompletion: confirmed InputDialog routes filter and prio
   confirmInputDialog(filterStatusDialog);
   await processDialogCompletion(filterStatusDialog, RequestDialogType.FILTER_STATUS, handlers);
 
-  const filterAgentDialog = new InputDialog({
-    title: "Filter Agent",
-    label: "Agent",
+  const filterIdentityDialog = new InputDialog({
+    title: "Filter Identity",
+    label: "Identity",
     defaultValue: "default",
   });
-  confirmInputDialog(filterAgentDialog);
-  await processDialogCompletion(filterAgentDialog, RequestDialogType.FILTER_AGENT, handlers);
+  confirmInputDialog(filterIdentityDialog);
+  await processDialogCompletion(filterIdentityDialog, RequestDialogType.FILTER_IDENTITY, handlers);
 
   const priorityDialog = new InputDialog({
     title: "Priority",
@@ -108,7 +108,7 @@ Deno.test("processDialogCompletion: confirmed InputDialog routes filter and prio
   confirmInputDialog(priorityDialog);
   await processDialogCompletion(priorityDialog, RequestDialogType.PRIORITY, handlers);
 
-  assertEquals(calls, ["filter_status:pending", "filter_agent:default", "priority:high"]);
+  assertEquals(calls, ["filter_status:pending", "filter_identity:default", "priority:high"]);
 });
 
 Deno.test("processDialogCompletion: confirmed InputDialog with null dialogType is ignored", async () => {

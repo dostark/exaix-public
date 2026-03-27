@@ -170,7 +170,7 @@ Deno.test("GitService: logs all git operations", async () => {
 
   try {
     const config = createMockConfig(tempDir);
-    const git = new GitService({ config, db, traceId: "test-trace-456", agentId: "git-agent" });
+    const git = new GitService({ config, db, traceId: "test-trace-456", identityId: "git-agent" });
 
     await git.ensureRepository();
     await git.ensureIdentity();
@@ -185,8 +185,8 @@ Deno.test("GitService: logs all git operations", async () => {
 
     assertEquals(gitLogs.length >= 3, true); // init, identity, branch
 
-    // Check agent_id is tracked
-    const agentLogs = logs.filter((log) => log.agent_id === "git-agent");
+    // Check identity_id is tracked
+    const agentLogs = logs.filter((log) => log.identity_id === "git-agent");
     assertEquals(agentLogs.length >= 1, true);
   } finally {
     await cleanup();
@@ -571,9 +571,9 @@ Deno.test("GitService: branch operations preserve traceId context", async () => 
 
   try {
     const traceId = "preserved-trace-id-123";
-    const agentId = "test-agent";
+    const identityId = "test-agent";
     const config = createMockConfig(repoDir);
-    const git = new GitService({ config, db, traceId, agentId });
+    const git = new GitService({ config, db, traceId, identityId });
 
     await git.ensureRepository();
     await git.ensureIdentity();
@@ -593,8 +593,8 @@ Deno.test("GitService: branch operations preserve traceId context", async () => 
 
     assertEquals(logs.length >= 1, true);
 
-    // Verify agent_id is preserved
-    const agentLogs = logs.filter((log) => log.agent_id === agentId);
+    // Verify identity_id is preserved
+    const agentLogs = logs.filter((log) => log.identity_id === identityId);
     assertEquals(agentLogs.length >= 1, true);
   } finally {
     await cleanup();

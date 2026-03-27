@@ -133,7 +133,7 @@ export class MainKeyHandler {
       showPriorityDialog: () => void;
       showSearchDialog: () => void;
       showFilterStatusDialog: () => void;
-      showFilterAgentDialog: () => void;
+      showFilterIdentityDialog: () => void;
       toggleShowArchived: () => void;
       setShowHelp: (show: boolean) => void;
       updateTree: (tree: ITreeNode[]) => void;
@@ -252,7 +252,7 @@ export class MainKeyHandler {
     actions: {
       showSearchDialog: () => void;
       showFilterStatusDialog: () => void;
-      showFilterAgentDialog: () => void;
+      showFilterIdentityDialog: () => void;
     },
   ): boolean {
     switch (key) {
@@ -263,7 +263,7 @@ export class MainKeyHandler {
         actions.showFilterStatusDialog();
         return true;
       case KEYS.A:
-        actions.showFilterAgentDialog();
+        actions.showFilterIdentityDialog();
         return true;
     }
     return false;

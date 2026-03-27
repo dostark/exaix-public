@@ -44,7 +44,7 @@ Deno.test(
         {
           workspacePath: join(env.tempDir, "Workspace"),
           requestsDir: join(env.tempDir, "Workspace", "Requests"),
-          blueprintsPath: join(env.tempDir, "Blueprints", "Agents"),
+          blueprintsPath: join(env.tempDir, "Blueprints", "Identities"),
           includeReasoning: true,
         },
         provider,
@@ -54,7 +54,7 @@ Deno.test(
 
       const { filePath } = await env.createRequest(
         "Implement user authentication with JWT tokens and refresh token support",
-        { agentId: "senior-coder" },
+        { identityId: "senior-coder" },
       );
 
       // Analysis is written before plan generation, so it succeeds regardless
@@ -120,7 +120,7 @@ Deno.test(
         async () => {
           const { filePath } = await env.createRequest(
             "Implement an OAuth2 login flow with Google and GitHub providers",
-            { agentId: "senior-coder" },
+            { identityId: "senior-coder" },
           );
           planPath = await processor.process(filePath);
 

@@ -231,7 +231,7 @@ export async function executePlanForReview<TConfig extends Config>(
   const loop = new ExecutionLoop({
     config,
     db: env.db,
-    agentId: "daemon",
+    identityId: "daemon",
     reviewRegistry,
   });
   const result = await loop.processTask(activePlanPath);
@@ -260,7 +260,7 @@ export async function createAndRunReviewPlan<TConfig extends Config>(
     targetBranch: string;
     writePath: string;
     writeContent: string;
-    agentId?: string;
+    identityId?: string;
   },
 ): Promise<{
   traceId: string;
@@ -273,7 +273,7 @@ export async function createAndRunReviewPlan<TConfig extends Config>(
 
   const planPath = await env.createPlan(traceId, requestId, {
     status: "review",
-    agentId: params.agentId ?? "senior-coder",
+    identityId: params.identityId ?? "senior-coder",
     portal: params.portalAlias,
     targetBranch: params.targetBranch,
     actions: [{
@@ -285,7 +285,7 @@ export async function createAndRunReviewPlan<TConfig extends Config>(
   const activePlanPath = await env.approvePlan(planPath);
   const logger = new EventLogger({ db: env.db });
   const reviewRegistry = new ReviewRegistry(env.db, logger);
-  const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
+  const loop = new ExecutionLoop({ config, db: env.db, identityId: "daemon", reviewRegistry });
   const result = await loop.processTask(activePlanPath);
 
   return {
@@ -328,7 +328,7 @@ export async function createAndRunReviewWorkflow<TConfig extends Config>(
     description: string;
     writePath: string;
     writeContent: string;
-    agentId?: string;
+    identityId?: string;
     targetBranch?: string;
   },
 ): Promise<{
@@ -338,7 +338,7 @@ export async function createAndRunReviewWorkflow<TConfig extends Config>(
   reviewRegistry: ReviewRegistry;
 }> {
   const { traceId } = await env.createRequest(params.description, {
-    agentId: params.agentId ?? "senior-coder",
+    identityId: params.identityId ?? "senior-coder",
     portal: params.portalAlias,
     targetBranch: params.targetBranch,
   });
@@ -347,7 +347,7 @@ export async function createAndRunReviewWorkflow<TConfig extends Config>(
 
   const planPath = await env.createPlan(traceId, requestId, {
     status: "review",
-    agentId: params.agentId ?? "senior-coder",
+    identityId: params.identityId ?? "senior-coder",
     portal: params.portalAlias,
     targetBranch: params.targetBranch,
     actions: [{

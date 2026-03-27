@@ -1,5 +1,5 @@
 ---
-agent: google
+identity: google
 scope: dev
 title: Gemini Long-Context Reasoning Guide
 short_summary: "Strategies for utilizing Gemini's 1.5 Pro's 2M context window for holistic repository reasoning."

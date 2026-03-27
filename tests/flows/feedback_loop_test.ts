@@ -68,23 +68,23 @@ class MockImprovementAgent implements ImprovementAgent {
  */
 class MockAgentRunner {
   responses: Map<string, string> = new Map();
-  lastRequest: { agentId: string; prompt: string; context?: JSONObject } | null = null;
+  lastRequest: { identityId: string; prompt: string; context?: JSONObject } | null = null;
 
-  setResponse(agentId: string, response: string): void {
-    this.responses.set(agentId, response);
+  setResponse(identityId: string, response: string): void {
+    this.responses.set(identityId, response);
   }
 
   run(
-    agentId: string,
+    identityId: string,
     request: { userPrompt: string; context?: JSONObject },
   ): Promise<{ content: string }> {
     this.lastRequest = {
-      agentId,
+      identityId,
       prompt: request.userPrompt,
       context: request.context,
     };
 
-    const response = this.responses.get(agentId);
+    const response = this.responses.get(identityId);
     if (!response) {
       return Promise.resolve({ content: "Default improved content" });
     }
@@ -288,7 +288,7 @@ Deno.test("SimpleImprovementAgent: formats prompt correctly", async () => {
   );
 
   assertExists(mockRunner.lastRequest);
-  assertEquals(mockRunner.lastRequest.agentId, "improver-agent");
+  assertEquals(mockRunner.lastRequest.identityId, "improver-agent");
   assertEquals(mockRunner.lastRequest.prompt.includes("Write a function"), true);
   assertEquals(mockRunner.lastRequest.prompt.includes("function foo() {}"), true);
   assertEquals(mockRunner.lastRequest.prompt.includes("Iteration 1"), true);

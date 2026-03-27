@@ -14,14 +14,14 @@ import type { IRequestFrontmatter } from "./request_processing/types.ts";
 import type { IRequestAnalysis } from "../shared/schemas/request_analysis.ts";
 
 /** Load an agent blueprint file from a blueprints directory. */
-export async function loadBlueprint(blueprintsPath: string, agentId: string): Promise<IBlueprint | null> {
-  const blueprintPath = join(blueprintsPath, `${agentId}.md`);
+export async function loadBlueprint(blueprintsPath: string, identityId: string): Promise<IBlueprint | null> {
+  const blueprintPath = join(blueprintsPath, `${identityId}.md`);
   if (!await exists(blueprintPath)) return null;
   try {
     const content = await Deno.readTextFile(blueprintPath);
-    return { systemPrompt: content, agentId };
+    return { systemPrompt: content, identityId };
   } catch (err) {
-    console.error(`Failed to load blueprint ${agentId}:`, err);
+    console.error(`Failed to load blueprint ${identityId}:`, err);
     return null;
   }
 }

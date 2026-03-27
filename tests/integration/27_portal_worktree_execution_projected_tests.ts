@@ -31,7 +31,7 @@ async function setupPortalWorktreeExecutionLoop(env: TestEnvironment) {
 
   const logger = new EventLogger({ db: env.db });
   const reviewRegistry = new ReviewRegistry(env.db, logger);
-  const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
+  const loop = new ExecutionLoop({ config, db: env.db, identityId: "daemon", reviewRegistry });
 
   return { portalAlias, portalTargetPath, targetBranch, loop };
 }
@@ -48,7 +48,7 @@ Deno.test(
       const requestA = `request-${traceA.substring(0, 8)}`;
       const planA = await env.createPlan(traceA, requestA, {
         status: "review",
-        agentId: "senior-coder",
+        identityId: "senior-coder",
         portal: portalAlias,
         targetBranch,
         actions: [
@@ -66,7 +66,7 @@ Deno.test(
       const requestB = `request-${traceB.substring(0, 8)}`;
       const planB = await env.createPlan(traceB, requestB, {
         status: "review",
-        agentId: "senior-coder",
+        identityId: "senior-coder",
         portal: portalAlias,
         targetBranch,
         actions: [
@@ -148,7 +148,7 @@ Deno.test(
 
       const planPath = await env.createPlan(traceId, requestId, {
         status: "review",
-        agentId: "senior-coder",
+        identityId: "senior-coder",
         portal: portalAlias,
         targetBranch: badBaseBranch,
         actions: [

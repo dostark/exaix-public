@@ -228,8 +228,8 @@ server_name = "exaix"
 version = "1.0.0"
 
 [mcp_defaults]
-# Default agent ID for MCP tool operations when not explicitly specified
-agent_id = "system"
+# Default identity ID for MCP tool operations when not explicitly specified
+identity_id = "system"
 
 [git]
 # Git operations constraints for MCP tools

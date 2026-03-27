@@ -17,7 +17,7 @@ export class ArchiveCommands extends BaseCommand {
   async list(): Promise<void> {
     const index = await this.archive.searchByDateRange("0000-01-01T00:00:00Z", "9999-12-31T23:59:59Z");
     for (const entry of index) {
-      console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.agent_id} | ${entry.status}`);
+      console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.identity_id} | ${entry.status}`);
     }
   }
 
@@ -31,10 +31,10 @@ export class ArchiveCommands extends BaseCommand {
   }
 
   async search(query: string): Promise<void> {
-    // For demo: search by agent_id
+    // For demo: search by identity_id
     const results = await this.archive.searchByAgent(query);
     for (const entry of results) {
-      console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.agent_id} | ${entry.status}`);
+      console.log(`${entry.archived_at} | ${entry.trace_id} | ${entry.identity_id} | ${entry.status}`);
     }
   }
 

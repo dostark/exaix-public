@@ -163,8 +163,8 @@ export function renderContextBadges(entry: IStructuredLogEntry, options: ILogRen
     );
   }
 
-  if (entry.context.agent_id) {
-    badges.push(colorize(`agent:${entry.context.agent_id}`, options.theme.success, options.theme.reset));
+  if (entry.context.identity_id) {
+    badges.push(colorize(`agent:${entry.context.identity_id}`, options.theme.success, options.theme.reset));
   }
 
   if (entry.context.operation) {
@@ -307,7 +307,7 @@ export function renderLogSummary(entries: IStructuredLogEntry[], options: Partia
 
   // Context summary
   const contextStats = analyzeContext(entries);
-  if (contextStats.correlationIds > 0 || contextStats.traceIds > 0 || contextStats.agentIds > 0) {
+  if (contextStats.correlationIds > 0 || contextStats.traceIds > 0 || contextStats.identityIds > 0) {
     lines.push("");
     lines.push("Context Summary:");
     if (contextStats.correlationIds > 0) {
@@ -316,8 +316,8 @@ export function renderLogSummary(entries: IStructuredLogEntry[], options: Partia
     if (contextStats.traceIds > 0) {
       lines.push(`  Traces: ${contextStats.traceIds}`);
     }
-    if (contextStats.agentIds > 0) {
-      lines.push(`  Agents: ${contextStats.agentIds}`);
+    if (contextStats.identityIds > 0) {
+      lines.push(`  Agents: ${contextStats.identityIds}`);
     }
   }
 
@@ -360,16 +360,16 @@ function formatDuration(ms: number): string {
 function analyzeContext(entries: IStructuredLogEntry[]): {
   correlationIds: number;
   traceIds: number;
-  agentIds: number;
+  identityIds: number;
 } {
   const correlationIds = new Set(entries.map((e) => e.context.correlation_id).filter(Boolean));
   const traceIds = new Set(entries.map((e) => e.context.trace_id).filter(Boolean));
-  const agentIds = new Set(entries.map((e) => e.context.agent_id).filter(Boolean));
+  const identityIds = new Set(entries.map((e) => e.context.identity_id).filter(Boolean));
 
   return {
     correlationIds: correlationIds.size,
     traceIds: traceIds.size,
-    agentIds: agentIds.size,
+    identityIds: identityIds.size,
   };
 }
 

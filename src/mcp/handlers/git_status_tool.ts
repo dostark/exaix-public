@@ -25,13 +25,13 @@ export class GitStatusTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = GitStatusToolArgsSchema.parse(args) as {
       portal: string;
-      agent_id: string;
+      identity_id: string;
     };
-    const { portal, agent_id } = validatedArgs;
+    const { portal, identity_id } = validatedArgs;
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, PortalOperation.GIT);
+      this.validatePermission(portal, identity_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -60,11 +60,12 @@ export class GitStatusTool extends ToolHandler {
       return this.formatSuccess(
         "git_status",
         portal,
+        identity_id,
         statusText,
-        { agent_id, has_changes: output.trim().length > 0 },
+        { identity_id, has_changes: output.trim().length > 0 },
       );
     } catch (error) {
-      this.formatError("git_status", portal, error, { agent_id });
+      this.formatError("git_status", portal, identity_id, error, { identity_id });
     }
   }
 
@@ -79,12 +80,12 @@ export class GitStatusTool extends ToolHandler {
             type: "string",
             description: "Portal name",
           },
-          agent_id: {
+          identity_id: {
             type: "string",
-            description: "Agent identifier for permission checks",
+            description: "Identity identifier for permission checks",
           },
         },
-        required: ["portal", "agent_id"],
+        required: ["portal", "identity_id"],
       },
     };
   }

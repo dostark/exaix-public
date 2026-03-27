@@ -100,7 +100,7 @@ Deno.test("Integration Test 15.1: Happy Path - Sandboxed Mode", async () => {
 trace_id: ${traceId}
 request_id: ${requestId}
 status: approved
-agent: mock-agent
+identity: mock-agent
 portal: TestPortal
 created: ${new Date().toISOString()}
 ---
@@ -138,7 +138,7 @@ Create a simple hello world function in src/utils.ts
     };
     assertEquals(frontmatter.trace_id, traceId);
     assertEquals(frontmatter.status, ReviewStatus.APPROVED);
-    assertEquals(frontmatter.agent, "mock-agent");
+    assertEquals(frontmatter.identity, "mock-agent");
     assertEquals(frontmatter.portal, "TestPortal");
 
     // Step 3: Verify review can be registered
@@ -205,7 +205,7 @@ Deno.test("Integration Test 15.2: Happy Path - Hybrid Mode", async () => {
 trace_id: ${traceId}
 request_id: ${requestId}
 status: approved
-agent: mock-agent
+identity: mock-agent
 portal: TestPortal
 security_mode: hybrid
 created: ${new Date().toISOString()}
@@ -486,7 +486,7 @@ Deno.test("Integration Test 15.6: Review Filtering", async () => {
     assertEquals(portal1Reviews.length, 1);
     assertEquals(portal1Reviews[0].portal, "Portal1");
 
-    // Filter by agent
+    // Filter by identity
     const agent2Reviews = await reviewRegistry.list({ created_by: "agent2" });
     assertEquals(agent2Reviews.length, 1);
     assertEquals(agent2Reviews[0].created_by, "agent2");
@@ -510,7 +510,7 @@ Deno.test("Integration Test 15.7: Plan Parsing Errors", async () => {
     const planMissingTrace = `---
 request_id: req-001
 status: approved
-agent: test-agent
+identity: test-agent
 portal: TestPortal
 ---
 
@@ -540,7 +540,7 @@ portal: TestPortal
     const planInvalidSteps = `---
 trace_id: ${crypto.randomUUID()}
 status: approved
-agent: test-agent
+identity: test-agent
 portal: TestPortal
 ---
 
@@ -560,7 +560,7 @@ This should be "Step 1"
     const planEmptyTitles = `---
 trace_id: ${crypto.randomUUID()}
 status: approved
-agent: test-agent
+identity: test-agent
 portal: TestPortal
 ---
 
@@ -647,7 +647,7 @@ Deno.test("Integration Test 15.9: Agent Orchestration Errors", async () => {
     await eventLogger.error("agent.blueprint_not_found", "non-existent-agent", {
       trace_id: traceId,
       blueprint_name: "non-existent-agent",
-      search_path: "Blueprints/Agents/",
+      search_path: "Blueprints/Identities/",
     });
 
     // Test 2: Invalid blueprint format
@@ -770,7 +770,7 @@ Deno.test("Integration Test 15.11: Multi-Step Plan Execution", async () => {
 trace_id: ${traceId}
 request_id: multi-step-001
 status: approved
-agent: test-agent
+identity: test-agent
 portal: TestPortal
 ---
 

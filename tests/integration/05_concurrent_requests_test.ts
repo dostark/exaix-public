@@ -24,9 +24,9 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
     await t.step("Test 1: Multiple requests can be queued concurrently", async () => {
       // Create 3 requests in parallel
       const createPromises = [
-        env.createRequest("Task A: Write file A", { agentId: "agent-a" }),
-        env.createRequest("Task B: Write file B", { agentId: "agent-b" }),
-        env.createRequest("Task C: Write file C", { agentId: "agent-c" }),
+        env.createRequest("Task A: Write file A", { identityId: "agent-a" }),
+        env.createRequest("Task B: Write file B", { identityId: "agent-b" }),
+        env.createRequest("Task C: Write file C", { identityId: "agent-c" }),
       ];
 
       const results = await Promise.all(createPromises);
@@ -78,13 +78,13 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
       const loop1 = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "executor-1",
+        identityId: "executor-1",
       });
 
       const loop2 = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "executor-2",
+        identityId: "executor-2",
       });
 
       // Start both "simultaneously"
@@ -139,7 +139,7 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
           new ExecutionLoop({
             config: env.config,
             db: env.db,
-            agentId: `executor-${i + 2}`,
+            identityId: `executor-${i + 2}`,
           }),
       );
 
@@ -211,7 +211,7 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
       const loop = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: "final-executor",
+        identityId: "final-executor",
       });
 
       // Should complete without deadlock
@@ -304,8 +304,8 @@ Deno.test("Integration: Concurrent Requests - Shared resource access", async () 
     const active2 = await env.approvePlan(plan2);
 
     // Execute concurrently (real system would handle this)
-    const loop1 = new ExecutionLoop({ config: env.config, db: env.db, agentId: "reader" });
-    const loop2 = new ExecutionLoop({ config: env.config, db: env.db, agentId: "writer" });
+    const loop1 = new ExecutionLoop({ config: env.config, db: env.db, identityId: "reader" });
+    const loop2 = new ExecutionLoop({ config: env.config, db: env.db, identityId: "writer" });
 
     await Promise.allSettled([
       loop1.processTask(active1),
@@ -372,7 +372,7 @@ Deno.test("Integration: Concurrent Requests - Race condition protection", async 
       const loop = new ExecutionLoop({
         config: env.config,
         db: env.db,
-        agentId: `racer-${i}`,
+        identityId: `racer-${i}`,
       });
       return loop.processTask(path);
     });

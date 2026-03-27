@@ -67,7 +67,7 @@ class CapturingJudgeInvoker implements JudgeInvoker {
   lastCriteria: EvaluationCriterion[] = [];
 
   evaluate(
-    _agentId: string,
+    _identityId: string,
     _content: string,
     criteria: EvaluationCriterion[],
     _context?: string,

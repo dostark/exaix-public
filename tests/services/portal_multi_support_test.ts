@@ -18,7 +18,7 @@ function createTestPortal(alias: string, targetPath: string): IPortalPermissions
   return {
     alias,
     target_path: targetPath,
-    agents_allowed: ["*"],
+    identities_allowed: ["*"],
     operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     security: {
       mode: SecurityMode.SANDBOXED,

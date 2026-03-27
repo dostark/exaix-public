@@ -91,7 +91,7 @@ export class ContextCardGenerator {
         payload.alias as string,
         payload,
         undefined, // No specific trace_id for context card operations
-        null, // No agent_id (system operation)
+        null, // No identity_id (system operation)
       );
     } catch (error) {
       console.error("Failed to log activity:", error);

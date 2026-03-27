@@ -32,7 +32,7 @@ export function createStubDb(overrides: Partial<IDatabaseService> = {}): IDataba
       _target: string | null,
       _payload: JSONObject,
       _traceId?: string,
-      _agentId?: string | null,
+      _identityId?: string | null,
     ) => {
       /* noop */
     },

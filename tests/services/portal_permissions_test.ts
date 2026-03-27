@@ -18,7 +18,7 @@ function createTestPortal(overrides: Partial<IPortalPermissions> = {}): IPortalP
   return {
     alias: "TestPortal",
     target_path: "/tmp/test-portal",
-    agents_allowed: ["agent-1", "agent-2"],
+    identities_allowed: ["agent-1", "agent-2"],
     operations: [
       PortalOperation.READ,
       PortalOperation.WRITE,
@@ -48,7 +48,7 @@ Deno.test("IPortalPermissions: allows whitelisted agent", () => {
 
   assertEquals(result.allowed, true);
   assertEquals(result.portal, "TestPortal");
-  assertEquals(result.agent_id, "agent-1");
+  assertEquals(result.identity_id, "agent-1");
 });
 
 Deno.test("IPortalPermissions: rejects non-whitelisted agent", () => {
@@ -63,7 +63,7 @@ Deno.test("IPortalPermissions: rejects non-whitelisted agent", () => {
 
 Deno.test("IPortalPermissions: allows all agents with wildcard", () => {
   const portal = createTestPortal({
-    agents_allowed: ["*"],
+    identities_allowed: ["*"],
   });
   const service = createTestService([portal]);
 
@@ -205,12 +205,12 @@ Deno.test("IPortalPermissions: defaults to sandboxed if no security config", () 
 Deno.test("IPortalPermissions: handles multiple portals independently", () => {
   const portal1 = createTestPortal({
     alias: "Portal1",
-    agents_allowed: ["agent-1"],
+    identities_allowed: ["agent-1"],
     operations: [PortalOperation.READ],
   });
   const portal2 = createTestPortal({
     alias: "Portal2",
-    agents_allowed: ["agent-2"],
+    identities_allowed: ["agent-2"],
     operations: [
       PortalOperation.READ,
       PortalOperation.WRITE,
@@ -504,7 +504,7 @@ Deno.test("IPortalPermissions: RBAC denies unknown portal", () => {
 Deno.test("IPortalPermissions: RBAC falls back to legacy permissions when no RBAC defined", () => {
   const portal = createTestPortal({
     // No permissions array - should use legacy model
-    agents_allowed: ["agent1"],
+    identities_allowed: ["agent1"],
     operations: [PortalOperation.READ],
   });
   const service = createTestService([portal]);
@@ -522,7 +522,7 @@ Deno.test("IPortalPermissions: RBAC falls back to legacy permissions when no RBA
 Deno.test("IPortalPermissions: RBAC maps execute action to git operation", () => {
   const portal = createTestPortal({
     // Legacy model
-    agents_allowed: ["agent1"],
+    identities_allowed: ["agent1"],
     operations: [PortalOperation.GIT],
   });
   const service = createTestService([portal]);
@@ -535,7 +535,7 @@ Deno.test("IPortalPermissions: RBAC maps execute action to git operation", () =>
 Deno.test("IPortalPermissions: RBAC maps delete action to write operation", () => {
   const portal = createTestPortal({
     // Legacy model
-    agents_allowed: ["agent1"],
+    identities_allowed: ["agent1"],
     operations: [PortalOperation.WRITE],
   });
   const service = createTestService([portal]);
@@ -548,7 +548,7 @@ Deno.test("IPortalPermissions: RBAC maps delete action to write operation", () =
 Deno.test("IPortalPermissions: RBAC denies execute without git permission", () => {
   const portal = createTestPortal({
     // Legacy model
-    agents_allowed: ["agent1"],
+    identities_allowed: ["agent1"],
     operations: [
       PortalOperation.READ,
       PortalOperation.WRITE,
@@ -565,7 +565,7 @@ Deno.test("IPortalPermissions: RBAC denies execute without git permission", () =
 Deno.test("IPortalPermissions: RBAC denies delete without write permission", () => {
   const portal = createTestPortal({
     // Legacy model
-    agents_allowed: ["agent1"],
+    identities_allowed: ["agent1"],
     operations: [PortalOperation.READ], // No write
   });
   const service = createTestService([portal]);

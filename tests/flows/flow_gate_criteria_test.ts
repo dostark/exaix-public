@@ -24,7 +24,7 @@ import type { IRequestAnalysis } from "../../src/shared/schemas/request_analysis
 // ============================================================
 
 class StubAgentExecutor implements IAgentExecutor {
-  async run(_agentId: string, _req: IFlowStepRequest): Promise<IAgentExecutionResult> {
+  async run(_identityId: string, _req: IFlowStepRequest): Promise<IAgentExecutionResult> {
     return await Promise.resolve({ thought: "", content: "agent-result", raw: "agent-result" });
   }
 }

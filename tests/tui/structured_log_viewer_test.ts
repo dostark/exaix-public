@@ -44,8 +44,8 @@ class MockLogService implements IStructuredLogService {
     return Promise.resolve(this.logs.filter((l) => l.context.trace_id === traceId));
   }
 
-  getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]> {
-    return Promise.resolve(this.logs.filter((l) => l.context.agent_id === agentId));
+  getLogsByAgentId(identityId: string): Promise<IStructuredLogEntry[]> {
+    return Promise.resolve(this.logs.filter((l) => l.context.identity_id === identityId));
   }
 
   exportLogs(_filename: string, _entries: IStructuredLogEntry[]): Promise<void> {
@@ -81,7 +81,7 @@ const createTestLogs = (count: number): IStructuredLogEntry[] => {
     context: {
       trace_id: `trace-${i % 3}`,
       correlation_id: `corr-${i % 2}`,
-      agent_id: `agent-${i % 2}`,
+      identity_id: `agent-${i % 2}`,
     },
     metadata: {},
   }));

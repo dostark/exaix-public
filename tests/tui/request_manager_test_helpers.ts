@@ -12,7 +12,7 @@ import { MessageType } from "../../src/shared/enums.ts";
 export interface IRequestManagerMockHandlers {
   handleSearchResult: (value: string) => void;
   handleFilterStatusResult: (value: string) => void;
-  handleFilterAgentResult: (value: string) => void;
+  handleFilterIdentityResult: (value: string) => void;
   handleCreateResult: (value: string) => Promise<void>;
   handlePriorityResult: (value: string) => void;
   processConfirmDialog: (dialog: ConfirmDialog) => Promise<void>;
@@ -30,8 +30,8 @@ export function createMockHandlers(
     handleFilterStatusResult: (value: string) => {
       calls.push(`filter_status:${value}`);
     },
-    handleFilterAgentResult: (value: string) => {
-      calls.push(`filter_agent:${value}`);
+    handleFilterIdentityResult: (value: string) => {
+      calls.push(`filter_identity:${value}`);
     },
     handleCreateResult: (value: string) => {
       calls.push(`create:${value}`);

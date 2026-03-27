@@ -30,12 +30,12 @@ Deno.test("RequestProcessor: Portal context includes file list for grounding", a
     }];
 
     // 2. Setup agent blueprint
-    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    const blueprintsDir = join(tempDir, "Blueprints", "Identities");
     await Deno.mkdir(blueprintsDir, { recursive: true });
     await Deno.writeTextFile(
       join(blueprintsDir, "code-analyst.md"),
       `---
-agent_id: code-analyst
+identity_id: code-analyst
 name: Code Analyst
 model: mock
 provider: mock
@@ -64,7 +64,7 @@ You are a code analyst. portal context follows.`,
       requestPath,
       `---
 trace_id: "t1"
-agent: code-analyst
+identity: code-analyst
 portal: test-portal
 created: "${new Date().toISOString()}"
 ---

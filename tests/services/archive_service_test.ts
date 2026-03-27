@@ -13,7 +13,7 @@ function createSampleEntry(overrides: Partial<ReturnType<typeof ArchiveEntrySche
   return ArchiveEntrySchema.parse({
     trace_id: overrides.trace_id ?? crypto.randomUUID(),
     request_id: overrides.request_id ?? "req-1",
-    agent_id: overrides.agent_id ?? "agent-1",
+    identity_id: overrides.identity_id ?? "agent-1",
     archived_at: overrides.archived_at ?? new Date().toISOString(),
     completed_at: overrides.completed_at ?? new Date().toISOString(),
     status: overrides.status ?? ArchiveStatus.COMPLETED,
@@ -76,15 +76,15 @@ Deno.test("ArchiveService: getByTraceId returns matching entry", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "archive-svc-get-" });
   try {
     const service = new ArchiveService(tempDir);
-    const entry1 = createSampleEntry({ agent_id: "alpha" });
-    const entry2 = createSampleEntry({ agent_id: "beta" });
+    const entry1 = createSampleEntry({ identity_id: "alpha" });
+    const entry2 = createSampleEntry({ identity_id: "beta" });
 
     await service.updateIndex(entry1);
     await service.updateIndex(entry2);
 
     const result = await service.getByTraceId(entry2.trace_id);
     assertEquals(result !== undefined, true);
-    assertEquals(result?.agent_id, "beta");
+    assertEquals(result?.identity_id, "beta");
   } finally {
     await Deno.remove(tempDir, { recursive: true }).catch(() => {});
   }
@@ -115,17 +115,17 @@ Deno.test("ArchiveService: getByTraceId returns undefined when no index", async 
   }
 });
 
-Deno.test("ArchiveService: searchByAgent filters by agent_id", async () => {
+Deno.test("ArchiveService: searchByAgent filters by identity_id", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "archive-svc-agent-" });
   try {
     const service = new ArchiveService(tempDir);
-    await service.updateIndex(createSampleEntry({ agent_id: "alpha" }));
-    await service.updateIndex(createSampleEntry({ agent_id: "beta" }));
-    await service.updateIndex(createSampleEntry({ agent_id: "alpha" }));
+    await service.updateIndex(createSampleEntry({ identity_id: "alpha" }));
+    await service.updateIndex(createSampleEntry({ identity_id: "beta" }));
+    await service.updateIndex(createSampleEntry({ identity_id: "alpha" }));
 
     const results = await service.searchByAgent("alpha");
     assertEquals(results.length, 2);
-    results.forEach((e) => assertEquals(e.agent_id, "alpha"));
+    results.forEach((e) => assertEquals(e.identity_id, "alpha"));
   } finally {
     await Deno.remove(tempDir, { recursive: true }).catch(() => {});
   }

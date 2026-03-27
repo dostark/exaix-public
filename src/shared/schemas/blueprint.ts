@@ -18,7 +18,7 @@ import { DEFAULT_BLUEPRINT_VERSION } from "../constants.ts";
  * Result from blueprint creation
  */
 export interface IBlueprintCreateResult {
-  agent_id: string;
+  identity_id: string;
   name: string;
   model: string;
   capabilities?: string[];
@@ -32,7 +32,7 @@ export interface IBlueprintCreateResult {
  * Metadata for blueprint listing
  */
 export interface IBlueprintMetadata {
-  agent_id: string;
+  identity_id: string;
   name: string;
   model: string;
   capabilities?: string[];
@@ -66,9 +66,9 @@ export interface IBlueprintValidationResult {
  */
 export const BlueprintFrontmatterSchema = z.object({
   /** Unique agent identifier (lowercase alphanumeric + hyphens) */
-  agent_id: z.string()
+  identity_id: z.string()
     .min(1)
-    .regex(/^[a-z0-9-]+$/, "agent_id must be lowercase alphanumeric with hyphens only"),
+    .regex(/^[a-z0-9-]+$/, "identity_id must be lowercase alphanumeric with hyphens only"),
 
   /** Human-readable agent name */
   name: z.string().min(1).max(100),
@@ -112,8 +112,8 @@ export const RESERVED_AGENT_IDS = new Set([
 ]);
 
 /**
- * Check if agent_id is reserved
+ * Check if identity_id is reserved
  */
-export function isReservedAgentId(agentId: string): boolean {
-  return RESERVED_AGENT_IDS.has(agentId);
+export function isReservedAgentId(identityId: string): boolean {
+  return RESERVED_AGENT_IDS.has(identityId);
 }

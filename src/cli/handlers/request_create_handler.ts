@@ -51,7 +51,7 @@ export class RequestCreateHandler extends BaseCommand {
       if (options.flow) await this.assertFlowExists(options.flow);
 
       // Set defaults
-      const agent = options.agent || "default";
+      const agent = options.identity || options.agent || "default";
       const portal = options.portal;
 
       // Generate unique trace_id
@@ -77,7 +77,7 @@ export class RequestCreateHandler extends BaseCommand {
         created,
         status: initialStatus,
         priority,
-        agent,
+        identity: agent,
         source,
         created_by,
         subject,
@@ -112,6 +112,7 @@ export class RequestCreateHandler extends BaseCommand {
       await this.display.info("request.created", path, {
         trace_id,
         priority,
+        identity: agent,
         agent,
         portal: portal || null,
         model: options.model || null,
@@ -129,7 +130,7 @@ export class RequestCreateHandler extends BaseCommand {
         path,
         status: RequestStatus.PENDING,
         priority,
-        agent,
+        identity: agent,
         portal,
         target_branch: options.target_branch,
         model: options.model,
@@ -164,8 +165,8 @@ export class RequestCreateHandler extends BaseCommand {
       .addRule(
         "flow",
         (val) =>
-          (val && options.agent)
-            ? "Cannot specify both 'flow' and 'agent'. Use 'flow' for multi-agent workflows or 'agent' for single agent requests."
+          (val && (options.agent || options.identity))
+            ? "Cannot specify both 'flow' and 'agent'/'identity'. Use 'flow' for multi-agent workflows or 'identity' for single agent requests."
             : null,
       )
       .validate({ description, priority, flow: options.flow });

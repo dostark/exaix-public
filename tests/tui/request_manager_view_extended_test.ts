@@ -57,7 +57,7 @@ function createTestRequests(): IRequest[] {
       subject: "Test Request 1",
       status: RequestStatus.PENDING,
       priority: RequestPriority.NORMAL,
-      agent: "default",
+      identity: "default",
       created: "2025-01-01T10:00:00Z",
       created_by: "test@example.com",
       source: RequestSource.CLI,
@@ -68,7 +68,7 @@ function createTestRequests(): IRequest[] {
       subject: "Test Request 2",
       status: RequestStatus.PENDING,
       priority: RequestPriority.HIGH,
-      agent: "code-reviewer",
+      identity: "code-reviewer",
       created: "2025-01-01T11:00:00Z",
       created_by: "user@example.com",
       source: RequestSource.CLI,
@@ -85,7 +85,7 @@ function createTestRequests(): IRequest[] {
       subject: "Test Request 3",
       status: RequestStatus.COMPLETED,
       priority: RequestPriority.CRITICAL,
-      agent: "architect",
+      identity: "architect",
       created: "2025-01-01T12:00:00Z",
       created_by: "admin@example.com",
       source: RequestSource.CLI,
@@ -96,7 +96,7 @@ function createTestRequests(): IRequest[] {
       subject: "Cancelled Request",
       status: RequestStatus.CANCELLED,
       priority: RequestPriority.LOW,
-      agent: "default",
+      identity: "default",
       created: "2025-01-01T13:00:00Z",
       created_by: "test@example.com",
       source: RequestSource.CLI,
@@ -107,7 +107,7 @@ function createTestRequests(): IRequest[] {
       subject: "Failed Request",
       status: RequestStatus.FAILED,
       priority: RequestPriority.HIGH,
-      agent: "researcher",
+      identity: "researcher",
       created: "2025-01-01T14:00:00Z",
       created_by: "test@example.com",
       source: RequestSource.CLI,
@@ -276,7 +276,7 @@ Deno.test("RequestManagerTuiSession: toggleGrouping cycles through modes", () =>
   assertEquals(session.getState().groupBy, "priority");
 
   session.toggleGrouping();
-  assertEquals(session.getState().groupBy, RequestGroupingMode.AGENT);
+  assertEquals(session.getState().groupBy, RequestGroupingMode.IDENTITY);
 
   session.toggleGrouping();
   assertEquals(session.getState().groupBy, "none");
@@ -296,27 +296,27 @@ Deno.test("RequestManagerTuiSession: buildGroupedByPriority", () => {
   assert(tree.length > 0);
 
   // Should have priority groups
-  const groupIds = tree.map((n) => n.id);
-  assertEquals(groupIds.some((id) => id.startsWith("priority-")), true);
+  const groupIds = tree.map((n: any) => n.id);
+  assertEquals(groupIds.some((id: string) => id.startsWith("priority-")), true);
 });
 
-Deno.test("RequestManagerTuiSession: buildGroupedByAgent", () => {
+Deno.test("RequestManagerTuiSession: buildGroupedByIdentity", () => {
   const mockService = new MinimalRequestServiceMock();
   const requests = createTestRequests();
   const view = new RequestManagerView(mockService);
   const session = view.createTuiSession(requests);
 
-  // Switch to agent grouping
+  // Switch to identity grouping
   session.toggleGrouping(); // none -> status
   session.toggleGrouping(); // status -> priority
-  session.toggleGrouping(); // priority -> agent
+  session.toggleGrouping(); // priority -> identity
 
   const tree = session.getState().requestTree;
   assert(tree.length > 0);
 
-  // Should have agent groups
-  const groupIds = tree.map((n) => n.id);
-  assertEquals(groupIds.some((id) => id.startsWith("agent-")), true);
+  // Should have identity groups
+  const groupIds = tree.map((n: any) => n.id);
+  assertEquals(groupIds.some((id: string) => id.startsWith("identity-")), true);
 });
 
 Deno.test("RequestManagerTuiSession: expandSelectedNode and collapseSelectedNode", async () => {
@@ -397,7 +397,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     subject: "Request with empty skills",
     status: RequestStatus.PENDING,
     priority: RequestPriority.NORMAL,
-    agent: "default",
+    identity: "default",
     created: "2025-01-01T10:00:00Z",
     created_by: "test@example.com",
     source: RequestSource.CLI,
@@ -414,7 +414,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
         path: "request-empty.md",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
-        agent: "default",
+        identity: "default",
         created: "2025-01-01T10:00:00Z",
         created_by: "test@example.com",
         source: RequestSource.CLI,
@@ -457,7 +457,7 @@ Deno.test("RequestManagerTuiSession: filter by status and agent", () => {
   state.filterStatus = null;
 
   // Test filtering by agent
-  state.filterAgent = "code-reviewer";
+  state.filterIdentity = "code-reviewer";
   session.buildTree();
   assertEquals(session.getFilteredRequests().length, 1);
 });
@@ -524,12 +524,12 @@ Deno.test("RequestManagerTuiSession: render shows current filters", () => {
   const state = session.getState();
   state.searchQuery = "test";
   state.filterStatus = RequestStatus.PENDING;
-  state.filterAgent = "default";
+  state.filterIdentity = "default";
 
   const output = session.render();
   assertStringIncludes(output, 'search="test"');
-  assertStringIncludes(output, "status=pending");
-  assertStringIncludes(output, "agent=default");
+  assertStringIncludes(output, "Status: pending");
+  assertStringIncludes(output, "Identity: default");
 });
 
 Deno.test("RequestManagerTuiSession: renderTree returns empty message for no requests", () => {
@@ -593,10 +593,10 @@ Deno.test("RequestManagerTuiSession: showFilterStatusDialog", async () => {
   assertEquals(session.getState().activeDialog, null);
 });
 
-Deno.test("RequestManagerTuiSession: showFilterAgentDialog", async () => {
+Deno.test("RequestManagerTuiSession: showFilterIdentityDialog", async () => {
   const session = createTestSessionWithMockService("Content");
 
-  session.showFilterAgentDialog();
+  session.showFilterIdentityDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
   await session.handleKey(KEYS.ESCAPE);
@@ -827,7 +827,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       plans: "Plans",
       requests: "Requests",
       rejected: "Rejected",
-      identies: "Identities",
+      identities: "Identities",
       flows: "Flows",
       memoryProjects: "MemoryProjects",
       memoryExecution: "MemoryExecution",
@@ -870,7 +870,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
       transport: McpTransportType.STDIO,
       server_name: "test-server",
     },
-    mcp_defaults: { agent_id: "agent-1" },
+    mcp_defaults: { identity_id: "agent-1" },
     rate_limiting: {
       enabled: false,
       max_calls_per_minute: 100,
@@ -1017,7 +1017,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
           path: "dummy.md",
           status: RequestStatus.PENDING,
           priority: RequestPriority.NORMAL,
-          agent: "dummy",
+          identity: "dummy",
           created: new Date().toISOString(),
           created_by: "dummy",
           source: RequestSource.CLI,
@@ -1032,7 +1032,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
         path: "dummy.md",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
-        agent: "dummy",
+        identity: "dummy",
         created: new Date().toISOString(),
         created_by: "dummy",
         source: RequestSource.CLI,
@@ -1045,7 +1045,7 @@ Deno.test("RequestServiceAdapter: updateRequestStatus returns false (not impleme
         path: "dummy.md",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
-        agent: "dummy",
+        identity: "dummy",
         created: new Date().toISOString(),
         created_by: "dummy",
         source: RequestSource.CLI,

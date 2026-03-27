@@ -17,7 +17,7 @@ export interface ITestRequestFixture {
   subject: string;
   status: RequestStatusType;
   priority: string;
-  agent: string;
+  identity: string;
   portal?: string;
   model?: string;
   created: string;
@@ -68,7 +68,7 @@ export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
   subject: "Request",
   status: RequestStatus.PENDING,
   priority: "normal",
-  agent: "default",
+  identity: "default",
   created: new Date().toISOString(),
   created_by: "test@example.com",
   source: RequestSource.CLI,
@@ -160,7 +160,7 @@ export class MockRequestService extends BaseMockService<ITestRequestFixture> {
 
   createRequest(
     description: string,
-    options?: { priority?: string; agent?: string; portal?: string; model?: string },
+    options?: { priority?: string; identity?: string; portal?: string; model?: string },
   ): Promise<ITestRequestFixture> {
     return this.create({
       trace_id: `test-${Date.now()}`,
@@ -168,7 +168,7 @@ export class MockRequestService extends BaseMockService<ITestRequestFixture> {
       subject: description,
       status: RequestStatus.PENDING,
       priority: options?.priority || "normal",
-      agent: options?.agent || "default",
+      identity: options?.identity || "default",
       portal: options?.portal,
       model: options?.model,
       created: new Date().toISOString(),
@@ -230,7 +230,7 @@ export const commonTestData = {
           trace_id: "req-2",
           subject: "Request 2",
           status: RequestStatus.PLANNED,
-          agent: "other",
+          identity: "other",
         },
       ]),
     pending: () =>
@@ -275,7 +275,7 @@ export const commonTestData = {
       subject: "New Request",
       status: RequestStatus.PENDING,
       priority: "normal",
-      agent: "default",
+      identity: "default",
       created: new Date().toISOString(),
       created_by: "test@example.com",
       source: "tui",

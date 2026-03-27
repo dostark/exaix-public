@@ -694,10 +694,10 @@ Deno.test("AgentRunner handles self-closing tags", async () => {
 // IBlueprint and Request Variations
 // ============================================================================
 
-Deno.test("AgentRunner handles blueprint with agentId", async () => {
+Deno.test("AgentRunner handles blueprint with identityId", async () => {
   const blueprintWithId: IBlueprint = {
     systemPrompt: "You are an assistant",
-    agentId: "test-agent-001",
+    identityId: "test-agent-001",
   };
 
   const mockProvider = new MockProvider(wellFormedResponse);
@@ -954,7 +954,7 @@ Deno.test("AgentRunner: uses blueprint defaultSkills when no trigger matches", a
   // IBlueprint with defaultSkills
   const blueprintWithDefaults: IBlueprint = {
     systemPrompt: "You are a helpful assistant.",
-    agentId: "test-agent",
+    identityId: "test-agent",
     defaultSkills: ["default-skill-1", "default-skill-2"],
   };
 
@@ -984,7 +984,7 @@ Deno.test("AgentRunner: trigger matches override blueprint defaultSkills", async
   // IBlueprint with defaultSkills
   const blueprintWithDefaults: IBlueprint = {
     systemPrompt: "You are a helpful assistant.",
-    agentId: "test-agent",
+    identityId: "test-agent",
     defaultSkills: ["default-skill-1"],
   };
 

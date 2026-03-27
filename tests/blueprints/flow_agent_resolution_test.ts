@@ -9,12 +9,12 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { join } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { parse as parseYaml } from "https://deno.land/std@0.224.0/yaml/mod.ts";
 
-const BLUEPRINTS_DIR = "./Blueprints/Agents";
-const EXAMPLES_DIR = "./Blueprints/Agents/examples";
+const BLUEPRINTS_DIR = "./Blueprints/Identities";
+const EXAMPLES_DIR = "./Blueprints/Identities/examples";
 const FLOWS_DIR = "./Blueprints/Flows";
 
 interface BlueprintFrontmatter {
-  agent_id: string;
+  identity_id: string;
 }
 
 /**
@@ -30,7 +30,7 @@ function parseFrontmatter(content: string): BlueprintFrontmatter | null {
  * Get all agent IDs from blueprints
  */
 async function getAllAgentIds(): Promise<Set<string>> {
-  const agentIds = new Set<string>();
+  const identityIds = new Set<string>();
 
   const dirs = [BLUEPRINTS_DIR, EXAMPLES_DIR];
 
@@ -40,8 +40,8 @@ async function getAllAgentIds(): Promise<Set<string>> {
         if (entry.isFile && entry.name.endsWith(".md") && entry.name !== "README.md") {
           const content = await Deno.readTextFile(join(dir, entry.name));
           const frontmatter = parseFrontmatter(content);
-          if (frontmatter?.agent_id) {
-            agentIds.add(frontmatter.agent_id);
+          if (frontmatter?.identity_id) {
+            identityIds.add(frontmatter.identity_id);
           }
         }
       }
@@ -50,7 +50,7 @@ async function getAllAgentIds(): Promise<Set<string>> {
     }
   }
 
-  return agentIds;
+  return identityIds;
 }
 
 /**
@@ -59,9 +59,9 @@ async function getAllAgentIds(): Promise<Set<string>> {
 async function getFlowAgentRefs(flowPath: string): Promise<string[]> {
   const content = await Deno.readTextFile(flowPath);
 
-  // Match agent: "agent-name" patterns
+  // Match identity: "agent-name" patterns
   const agentRefs: string[] = [];
-  const regex = /agent:\s*["']([^"']+)["']/g;
+  const regex = /identity:\s*["']([^"']+)["']/g;
   let match;
 
   while ((match = regex.exec(content)) !== null) {
@@ -76,13 +76,13 @@ async function getFlowAgentRefs(flowPath: string): Promise<string[]> {
 // ============================================================================
 
 Deno.test("Flow validation: code_review.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "code_review.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `code_review.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -90,13 +90,13 @@ Deno.test("Flow validation: code_review.flow.yaml resolves all agents", async ()
 });
 
 Deno.test("Flow validation: feature_development.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "feature_development.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `feature_development.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -104,13 +104,13 @@ Deno.test("Flow validation: feature_development.flow.yaml resolves all agents", 
 });
 
 Deno.test("Flow validation: documentation.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "documentation.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `documentation.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -118,13 +118,13 @@ Deno.test("Flow validation: documentation.flow.yaml resolves all agents", async 
 });
 
 Deno.test("Flow validation: bug_investigation.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "bug_investigation.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `bug_investigation.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -132,13 +132,13 @@ Deno.test("Flow validation: bug_investigation.flow.yaml resolves all agents", as
 });
 
 Deno.test("Flow validation: refactoring.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "refactoring.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `refactoring.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -146,13 +146,13 @@ Deno.test("Flow validation: refactoring.flow.yaml resolves all agents", async ()
 });
 
 Deno.test("Flow validation: security_audit.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "security_audit.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `security_audit.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -160,13 +160,13 @@ Deno.test("Flow validation: security_audit.flow.yaml resolves all agents", async
 });
 
 Deno.test("Flow validation: api_design.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "api_design.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `api_design.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -174,13 +174,13 @@ Deno.test("Flow validation: api_design.flow.yaml resolves all agents", async () 
 });
 
 Deno.test("Flow validation: test_generation.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "test_generation.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `test_generation.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -188,13 +188,13 @@ Deno.test("Flow validation: test_generation.flow.yaml resolves all agents", asyn
 });
 
 Deno.test("Flow validation: pr_review.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "pr_review.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `pr_review.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -202,13 +202,13 @@ Deno.test("Flow validation: pr_review.flow.yaml resolves all agents", async () =
 });
 
 Deno.test("Flow validation: migration_planning.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "migration_planning.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `migration_planning.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -216,13 +216,13 @@ Deno.test("Flow validation: migration_planning.flow.yaml resolves all agents", a
 });
 
 Deno.test("Flow validation: onboarding_docs.flow.yaml resolves all agents", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
   const flowPath = join(FLOWS_DIR, "onboarding_docs.flow.yaml");
   const flowAgents = await getFlowAgentRefs(flowPath);
 
   for (const agent of flowAgents) {
     assertEquals(
-      agentIds.has(agent),
+      identityIds.has(agent),
       true,
       `onboarding_docs.flow.yaml references "${agent}" but no blueprint exists`,
     );
@@ -370,7 +370,7 @@ Deno.test("Flow validation: onboarding_docs.flow.yaml has defaultSkills", async 
 // ============================================================================
 
 Deno.test("Flow validation: all flow-referenced agents exist", async () => {
-  const agentIds = await getAllAgentIds();
+  const identityIds = await getAllAgentIds();
 
   const flowFiles = [];
   for await (const entry of Deno.readDir(FLOWS_DIR)) {
@@ -379,13 +379,13 @@ Deno.test("Flow validation: all flow-referenced agents exist", async () => {
     }
   }
 
-  const missingAgents: { flow: string; agent: string }[] = [];
+  const missingAgents: { flow: string; identity: string }[] = [];
 
   for (const flowPath of flowFiles) {
     const flowAgents = await getFlowAgentRefs(flowPath);
     for (const agent of flowAgents) {
-      if (!agentIds.has(agent)) {
-        missingAgents.push({ flow: flowPath, agent });
+      if (!identityIds.has(agent)) {
+        missingAgents.push({ flow: flowPath, identity: agent });
       }
     }
   }

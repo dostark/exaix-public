@@ -26,7 +26,7 @@ function createTestTraceData(overrides: Partial<ITraceData> = {}): ITraceData {
   return {
     traceId: overrides.traceId ?? "550e8400-e29b-41d4-a716-446655440000",
     requestId: overrides.requestId ?? "implement-auth",
-    agentId: overrides.agentId ?? "senior-coder",
+    identityId: overrides.identityId ?? "senior-coder",
     status: overrides.status ?? ExecutionStatus.COMPLETED,
     branch: overrides.branch ?? "feat/implement-auth-550e8400",
     completedAt: overrides.completedAt ?? new Date(),

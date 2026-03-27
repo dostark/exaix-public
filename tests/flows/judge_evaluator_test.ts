@@ -18,25 +18,25 @@ import type { JSONObject } from "../../src/shared/types/json.ts";
  */
 class MockAgentRunner {
   responses: Map<string, string> = new Map();
-  lastRequest: { agentId: string; prompt: string; context?: JSONObject } | null = null;
+  lastRequest: { identityId: string; prompt: string; context?: JSONObject } | null = null;
 
-  setResponse(agentId: string, response: string): void {
-    this.responses.set(agentId, response);
+  setResponse(identityId: string, response: string): void {
+    this.responses.set(identityId, response);
   }
 
   async run(
-    agentId: string,
+    identityId: string,
     request: { userPrompt: string; context?: JSONObject },
   ): Promise<{ content: string }> {
     this.lastRequest = {
-      agentId,
+      identityId,
       prompt: request.userPrompt,
       context: request.context,
     };
 
-    const response = await this.responses.get(agentId);
+    const response = await this.responses.get(identityId);
     if (!response) {
-      throw new Error(`No mock response for agent: ${agentId}`);
+      throw new Error(`No mock response for identity: ${identityId}`);
     }
 
     return { content: response };

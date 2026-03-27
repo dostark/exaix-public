@@ -1,5 +1,5 @@
 ---
-agent: claude
+identity: claude
 scope: dev
 title: Claude provider adaptation notes
 short_summary: "Comprehensive Claude usage guide with task-specific prompts, thinking protocols, and tool-use patterns."

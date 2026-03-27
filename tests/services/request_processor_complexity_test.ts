@@ -126,7 +126,7 @@ Deno.test("[classifyTaskComplexity] uses analysis complexity as primary signal",
     });
 
     const blueprint: IBlueprint = {
-      agentId: "generic-agent",
+      identityId: "generic-agent",
       systemPrompt: "test",
     };
     const frontmatter: IRequestFrontmatter = {
@@ -180,7 +180,7 @@ Deno.test("[classifyTaskComplexity] falls back to content heuristics without ana
     });
 
     const blueprint: IBlueprint = {
-      agentId: "generic-agent",
+      identityId: "generic-agent",
       systemPrompt: "test",
     };
 
@@ -270,7 +270,7 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
     assertEquals(
       callClassifyTaskComplexity(
         processor,
-        { ...baseBlueprint, agentId: "expert-coder" },
+        { ...baseBlueprint, identityId: "expert-coder" },
         request,
       ),
       TaskComplexity.COMPLEX,
@@ -280,7 +280,7 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
     assertEquals(
       callClassifyTaskComplexity(
         processor,
-        { ...baseBlueprint, agentId: "log-analyzer" },
+        { ...baseBlueprint, identityId: "log-analyzer" },
         request,
       ),
       TaskComplexity.SIMPLE,
@@ -290,7 +290,7 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
     assertEquals(
       callClassifyTaskComplexity(
         processor,
-        { ...baseBlueprint, agentId: "helper" },
+        { ...baseBlueprint, identityId: "helper" },
         request,
       ),
       TaskComplexity.MEDIUM,
@@ -303,7 +303,7 @@ Deno.test("[classifyTaskComplexity] falls back to agent ID without analysis or c
 Deno.test("[classifyTaskComplexity] content heuristic: short body with no bullets -> SIMPLE", async () => {
   const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+    const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
     assertEquals(
       callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("Just fix spelling.")),
       TaskComplexity.SIMPLE,
@@ -316,7 +316,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: short body with no bullet
 Deno.test("[classifyTaskComplexity] content heuristic: many bullets (>=8) -> COMPLEX", async () => {
   const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+    const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
     const longBody = "Requirements:\n- R1\n- R2\n- R3\n- R4\n- R5\n- R6\n- R7\n- R8";
     assertEquals(
       callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest(longBody)),
@@ -330,7 +330,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: many bullets (>=8) -> COM
 Deno.test("[classifyTaskComplexity] content heuristic: many file refs (>=5) -> COMPLEX", async () => {
   const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+    const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
     assertEquals(
       callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("Change a.ts, b.ts, c.ts, d.ts, e.ts")),
       TaskComplexity.COMPLEX,
@@ -343,7 +343,7 @@ Deno.test("[classifyTaskComplexity] content heuristic: many file refs (>=5) -> C
 Deno.test("[classifyTaskComplexity] handles empty/undefined body gracefully (MEDIUM via agent ID)", async () => {
   const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+    const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
     assertEquals(
       callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("")),
       TaskComplexity.MEDIUM,
@@ -356,7 +356,7 @@ Deno.test("[classifyTaskComplexity] handles empty/undefined body gracefully (MED
 Deno.test("[classifyTaskComplexity] maps EPIC to COMPLEX", async () => {
   const { processor, cleanup } = await createComplexityTestSetup();
   try {
-    const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+    const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
     const analysis = createTestAnalysis(RequestAnalysisComplexity.EPIC);
     assertEquals(
       callClassifyTaskComplexity(processor, blueprint, buildComplexityRequest("body"), analysis),
@@ -376,7 +376,7 @@ Deno.test(
   async () => {
     const { processor, cleanup } = await createComplexityTestSetup();
     try {
-      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
       // Build body with exactly COMPLEXITY_FILE_REF_THRESHOLD_HIGH file references.
       const refs = Array.from(
         { length: COMPLEXITY_FILE_REF_THRESHOLD_HIGH },
@@ -397,7 +397,7 @@ Deno.test(
   async () => {
     const { processor, cleanup } = await createComplexityTestSetup();
     try {
-      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
       // Build a body with one fewer file reference than the threshold — no COMPLEX from this signal.
       const refs = Array.from(
         { length: COMPLEXITY_FILE_REF_THRESHOLD_HIGH - 1 },
@@ -422,7 +422,7 @@ Deno.test(
   async () => {
     const { processor, cleanup } = await createComplexityTestSetup();
     try {
-      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
       const body = "Header:\n" +
         Array.from({ length: COMPLEXITY_BULLET_THRESHOLD_HIGH }, (_, i) => `- item ${i}`).join("\n");
       assertEquals(
@@ -440,7 +440,7 @@ Deno.test(
   async () => {
     const { processor, cleanup } = await createComplexityTestSetup();
     try {
-      const blueprint: IBlueprint = { agentId: "helper", systemPrompt: "test" };
+      const blueprint: IBlueprint = { identityId: "helper", systemPrompt: "test" };
       // Construct a body just under COMPLEXITY_BODY_LENGTH_LOW characters.
       const shortBody = "x".repeat(COMPLEXITY_BODY_LENGTH_LOW - 1);
       assertEquals(

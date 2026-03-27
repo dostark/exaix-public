@@ -104,7 +104,7 @@ export interface IFlowResult {
  * Interface for executing individual agent steps
  */
 export interface IAgentExecutor {
-  run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult>;
+  run(identityId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult>;
 }
 
 /**

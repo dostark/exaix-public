@@ -106,7 +106,7 @@ function createExecutionMemory(): IExecutionMemory {
     completed_at: TEST_COMPLETED_AT,
     status: ExecutionStatus.COMPLETED,
     portal: TEST_PORTAL_NAME,
-    agent: TEST_AGENT_NAME,
+    identity_id: TEST_AGENT_NAME,
     summary: TEST_SUMMARY_TEXT,
     context_files: [TEST_CONTEXT_FILE],
     context_portals: [TEST_PORTAL_NAME],
@@ -179,7 +179,7 @@ function createPendingProposal(): IMemoryUpdateProposal {
       references: [],
     },
     reason: TEST_PENDING_REASON,
-    agent: TEST_AGENT_NAME,
+    identity_id: TEST_AGENT_NAME,
     execution_id: TEST_TRACE_ID,
     status: MemoryStatus.PENDING,
   };

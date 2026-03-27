@@ -20,7 +20,7 @@ Deno.test("Integration: IFlow as Flow Request Creation and Metadata", async (t) 
     // ========================================================================
     await t.step("Test 1: Create flow request with correct metadata", async () => {
       const result = await env.createFlowRequest("Process user data pipeline", "refactoring", {
-        agentId: "mock-agent",
+        identityId: "mock-agent",
         priority: 5,
         tags: ["data", "processing"],
       });
@@ -37,7 +37,7 @@ Deno.test("Integration: IFlow as Flow Request Creation and Metadata", async (t) 
       const content = await Deno.readTextFile(requestPath);
 
       assertStringIncludes(content, "flow: refactoring");
-      assertStringIncludes(content, "agent: mock-agent");
+      assertStringIncludes(content, "identity: mock-agent");
       assertStringIncludes(content, "source: test");
       assertStringIncludes(content, "priority: 5");
       assertStringIncludes(content, 'tags: ["data", "processing"]');
@@ -55,7 +55,7 @@ Deno.test("Integration: IFlow as Flow Request Creation and Metadata", async (t) 
         `Workspace/Requests/request-${requestId}.md`,
         {
           flow: "refactoring",
-          agent: "mock-agent",
+          identity: "mock-agent",
           priority: 5,
           description: "Process user data pipeline",
         },
@@ -75,7 +75,7 @@ Deno.test("Integration: IFlow as Flow Request Creation and Metadata", async (t) 
 
       const payload = JSON.parse(requestEntry.payload);
       assertEquals(payload.flow, "refactoring");
-      assertEquals(payload.agent, "mock-agent");
+      assertEquals(payload.identity, "mock-agent");
       assertEquals(payload.priority, 5);
     });
   } finally {
@@ -106,7 +106,7 @@ Deno.test("Integration: IFlow as Flow Request Validation", async (t) => {
     await t.step("Test 5: IFlow as Flow request with portal metadata", async () => {
       const result = await env.createFlowRequest("Portal flow request", "refactoring", {
         portal: "TestPortal",
-        agentId: "mock-agent",
+        identityId: "mock-agent",
       });
 
       const requestPath = join(env.tempDir, "Workspace", "Requests", `request-${result.traceId.substring(0, 8)}.md`);
@@ -114,7 +114,7 @@ Deno.test("Integration: IFlow as Flow Request Validation", async (t) => {
 
       assertStringIncludes(content, "flow: refactoring");
       assertStringIncludes(content, 'portal: "TestPortal"');
-      assertStringIncludes(content, "agent: mock-agent");
+      assertStringIncludes(content, "identity: mock-agent");
     });
   } finally {
     await env.cleanup();
